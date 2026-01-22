@@ -1,10 +1,10 @@
-import { notFound } from 'next/navigation'
-import { prisma } from '@/lib/prisma'
-import { getWalletData } from '@/lib/avalanche'
-import { isValidAddress, formatAddress } from '@/lib/utils'
+'use client'
+
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { formatAddress, isValidAddress } from '@/lib/utils'
 import Link from 'next/link'
 import { ExternalLink } from 'lucide-react'
 
@@ -14,196 +14,257 @@ interface PageProps {
   }
 }
 
-async function getProfile(id: string) {
-  const normalizedId = id.toLowerCase()
-  
-  // Try to find by slug first, then by address
-  let profile = await prisma.profile.findFirst({
-    where: {
-      OR: [
-        { slug: normalizedId },
-        { address: normalizedId },
-      ],
-    },
-    include: { showcase: true },
-  })
-
-  // If not found by slug/address, check if id is a valid address
-  if (!profile && isValidAddress(id)) {
-    // Create a temporary profile object for unclaimed addresses
-    return {
-      address: normalizedId,
-      slug: null,
-      owner: null,
-      isPublic: false,
-      claimedAt: null,
-      showcase: [],
-    }
-  }
-
-  return profile
+interface WalletData {
+  address: string
+  nativeBalance: string
+  tokenBalances: Array<{
+    contractAddress: string
+    name: string
+    symbol: string
+    balance: string
+    decimals: number
+  }>
+  nfts: Array<{
+    contractAddress: string
+    tokenId: string
+    name?: string
+    image?: string
+  }>
+  transactions: Array<{
+    hash: string
+    from: string
+    to: string
+    value: string
+    timestamp: number
+    blockNumber: number
+  }>
+  txCount: number
+  firstSeen?: number
+  lastSeen?: number
 }
 
-export default async function ProfilePage({ params }: PageProps) {
-  const profile = await getProfile(params.id)
+export default function ProfilePage({ params }: PageProps) {
+  const [walletData, setWalletData] = useState<WalletData | null>(null)
+  const [profileStatus, setProfileStatus] = useState<'UNCLAIMED' | 'CLAIMED+PUBLIC' | 'CLAIMED+PRIVATE'>('UNCLAIMED')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  if (!profile) {
-    notFound()
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!isValidAddress(params.id)) {
+        setError('Geçersiz cüzdan adresi')
+        setLoading(false)
+        return
+      }
+
+      setLoading(true)
+      setError(null)
+
+      try {
+        const response = await fetch(`/api/wallet?address=${params.id}`)
+        const data = await response.json()
+
+        if (data.error) {
+          setError(data.error)
+        } else {
+          setWalletData(data.walletData)
+          setProfileStatus(data.profileStatus)
+        }
+      } catch (err) {
+        setError('Veri yüklenirken bir hata oluştu')
+        console.error(err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [params.id])
+
+  const getStatusBadge = () => {
+    switch (profileStatus) {
+      case 'UNCLAIMED':
+        return <Badge variant="outline">Unclaimed</Badge>
+      case 'CLAIMED+PUBLIC':
+        return <Badge variant="default">Claimed - Public</Badge>
+      case 'CLAIMED+PRIVATE':
+        return <Badge variant="secondary">Claimed - Private</Badge>
+      default:
+        return <Badge variant="outline">Unclaimed</Badge>
+    }
   }
 
-  const isClaimed = !!profile.owner
-  const isPublic = profile.isPublic
-  const isPrivate = isClaimed && !isPublic
-
-  // Get wallet data
-  let walletData = null
-  if (!isPrivate) {
-    try {
-      walletData = await getWalletData(profile.address)
-    } catch (error) {
-      console.error('Error fetching wallet data:', error)
-    }
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <p className="text-destructive">{error}</p>
+          <Link href="/" className="text-muted-foreground hover:text-foreground mt-4 inline-block">
+            ← Ana Sayfaya Dön
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="container mx-auto px-4 py-12 max-w-6xl">
-      <div className="mb-6">
-        <Link href="/" className="text-muted-foreground hover:text-foreground">
-          ← Ana Sayfaya Dön
-        </Link>
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Wallet Profile</h1>
+            <p className="font-mono text-sm text-muted-foreground mt-1">
+              {formatAddress(params.id)}
+            </p>
+          </div>
+          {getStatusBadge()}
+        </div>
       </div>
 
-      <Card className="mb-6">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-2xl">Cüzdan Profili</CardTitle>
-              <CardDescription className="mt-1">
-                {formatAddress(profile.address)}
-              </CardDescription>
-            </div>
-            <div className="flex gap-2">
-              {!isClaimed && (
-                <Badge variant="outline">Talep Edilmemiş</Badge>
-              )}
-              {isClaimed && isPublic && (
-                <Badge variant="default">Halka Açık</Badge>
-              )}
-              {isPrivate && (
-                <Badge variant="secondary">Özel</Badge>
-              )}
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isPrivate ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground text-lg">
-                Bu profil özeldir ve varlık detayları gösterilmemektedir.
-              </p>
-            </div>
-          ) : (
-            <>
-              {!isClaimed && (
-                <div className="mb-6 p-4 bg-muted rounded-lg">
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Bu profil henüz talep edilmemiş. Profili talep etmek için dashboard'a gidin.
-                  </p>
-                  <Link href="/dashboard">
-                    <Button variant="outline">Profili Talep Et</Button>
-                  </Link>
+      {loading ? (
+        <div className="grid gap-6 md:grid-cols-3">
+          <Card>
+            <CardHeader>
+              <CardTitle>Summary</CardTitle>
+              <CardDescription>Wallet overview</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Skeleton className="h-6 w-24" />
+              <Skeleton className="h-6 w-16" />
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-32" />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Activity</CardTitle>
+              <CardDescription>Recent transactions</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Skeleton key={i} className="h-4 w-full" />
+              ))}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Assets</CardTitle>
+              <CardDescription>Tokens and NFTs</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-4 w-16" />
+            </CardContent>
+          </Card>
+        </div>
+      ) : walletData ? (
+        <div className="grid gap-6 md:grid-cols-3">
+          {/* Summary Column */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Summary</CardTitle>
+              <CardDescription>Wallet overview</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">AVAX Balance</p>
+                <p className="text-2xl font-bold">{parseFloat(walletData.nativeBalance).toFixed(4)} AVAX</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Total Transactions</p>
+                <p className="text-xl font-bold">{walletData.txCount}</p>
+              </div>
+              {walletData.firstSeen && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">First Seen</p>
+                  <p className="text-sm">{new Date(walletData.firstSeen).toLocaleDateString('tr-TR')}</p>
                 </div>
               )}
-
-              {walletData && (
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">Özet</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div>
-                        <p className="text-sm text-muted-foreground">AVAX Bakiyesi</p>
-                        <p className="text-xl font-bold">{parseFloat(walletData.nativeBalance).toFixed(4)} AVAX</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Toplam İşlem</p>
-                        <p className="text-xl font-bold">{walletData.txCount}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Token Sayısı</p>
-                        <p className="text-xl font-bold">{walletData.tokenBalances?.length || 0}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">NFT Sayısı</p>
-                        <p className="text-xl font-bold">{walletData.nfts?.length || 0}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {isClaimed && profile.showcase && profile.showcase.length > 0 && (
-                    <div>
-                      <h3 className="text-lg font-semibold mb-4">Vitrin NFT'leri</h3>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {profile.showcase.map((item) => (
-                          <Card key={item.id}>
-                            <CardContent className="pt-4">
-                              <p className="text-sm text-muted-foreground">Token ID</p>
-                              <p className="font-mono text-sm">{item.tokenId}</p>
-                              <p className="text-xs text-muted-foreground mt-2">
-                                {formatAddress(item.contractAddress)}
-                              </p>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {walletData.tokenBalances && walletData.tokenBalances.length > 0 && (
-                    <div>
-                      <h3 className="text-lg font-semibold mb-4">Token Bakiyeleri</h3>
-                      <div className="space-y-2">
-                        {walletData.tokenBalances.slice(0, 10).map((token: any, idx: number) => (
-                          <div key={idx} className="flex justify-between items-center p-3 border rounded-lg">
-                            <div>
-                              <p className="font-medium">{token.symbol}</p>
-                              <p className="text-sm text-muted-foreground">{token.name}</p>
-                            </div>
-                            <p className="font-mono">{parseFloat(token.balance).toFixed(4)}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">Son İşlemler</h3>
-                    <div className="space-y-2">
-                      {walletData.transactions && walletData.transactions.slice(0, 5).map((tx: any, idx: number) => (
-                        <div key={idx} className="flex justify-between items-center p-3 border rounded-lg">
-                          <div className="flex-1">
-                            <p className="font-mono text-sm">{formatAddress(tx.hash)}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(tx.timestamp * 1000).toLocaleString('tr-TR')}
-                            </p>
-                          </div>
-                          <a
-                            href={`https://snowtrace.io/tx/${tx.hash}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="ml-4"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+              {walletData.lastSeen && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Last Seen</p>
+                  <p className="text-sm">{new Date(walletData.lastSeen).toLocaleDateString('tr-TR')}</p>
                 </div>
               )}
-            </>
-          )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+
+          {/* Activity Column */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Activity</CardTitle>
+              <CardDescription>Recent transactions</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {walletData.transactions && walletData.transactions.length > 0 ? (
+                walletData.transactions.slice(0, 10).map((tx, idx) => (
+                  <div key={idx} className="space-y-1 border-b pb-2 last:border-0">
+                    <div className="flex items-center justify-between">
+                      <p className="font-mono text-xs">{formatAddress(tx.hash)}</p>
+                      <a
+                        href={`https://snowtrace.io/tx/${tx.hash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(tx.timestamp * 1000).toLocaleString('tr-TR')}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">No transactions found</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Assets Column */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Assets</CardTitle>
+              <CardDescription>Tokens and NFTs</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">Tokens</p>
+                {walletData.tokenBalances && walletData.tokenBalances.length > 0 ? (
+                  walletData.tokenBalances.slice(0, 5).map((token, idx) => (
+                    <div key={idx} className="flex justify-between items-center mb-2">
+                      <div>
+                        <p className="text-sm font-medium">{token.symbol}</p>
+                        <p className="text-xs text-muted-foreground">{token.name}</p>
+                      </div>
+                      <p className="text-sm font-mono">{parseFloat(token.balance).toFixed(4)}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-muted-foreground">No tokens found</p>
+                )}
+              </div>
+              <div className="pt-4 border-t">
+                <p className="text-sm text-muted-foreground mb-2">NFTs</p>
+                {walletData.nfts && walletData.nfts.length > 0 ? (
+                  walletData.nfts.slice(0, 5).map((nft, idx) => (
+                    <div key={idx} className="flex justify-between items-center mb-2">
+                      <div>
+                        <p className="text-sm font-medium">{nft.name || 'Unnamed NFT'}</p>
+                        <p className="text-xs text-muted-foreground font-mono">
+                          {formatAddress(nft.contractAddress)} #{nft.tokenId}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-xs text-muted-foreground">No NFTs found</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
     </div>
   )
 }
