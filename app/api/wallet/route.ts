@@ -1,39 +1,66 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getWalletData } from '@/lib/avalanche'
-import { prisma } from '@/lib/prisma'
+import { getProfileByAddress, getProfileBySlug } from '@/lib/db'
 import { isValidAddress } from '@/lib/utils'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
   const address = searchParams.get('address')
+  const slug = searchParams.get('slug')
 
-  if (!address || !isValidAddress(address)) {
-    return NextResponse.json({ error: 'Geçersiz cüzdan adresi' }, { status: 400 })
+  let resolvedAddress: string | null = null
+  let profile = null
+
+  // If slug is provided, resolve it to address
+  if (slug) {
+    profile = await getProfileBySlug(slug)
+    if (!profile) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+    }
+    resolvedAddress = profile.address
+  } else if (address) {
+    if (!isValidAddress(address)) {
+      return NextResponse.json({ error: 'Geçersiz cüzdan adresi' }, { status: 400 })
+    }
+    resolvedAddress = address
+    profile = await getProfileByAddress(address)
+  } else {
+    return NextResponse.json({ error: 'Address or slug is required' }, { status: 400 })
+  }
+
+  if (!resolvedAddress) {
+    return NextResponse.json({ error: 'Could not resolve address' }, { status: 400 })
   }
 
   try {
-    const normalizedAddress = address.toLowerCase()
-    
-    // Get profile status
-    const profile = await prisma.profile.findUnique({
-      where: { address: normalizedAddress },
-      include: { showcase: true },
-    })
-
+    // Determine profile status for display
     let profileStatus: 'UNCLAIMED' | 'CLAIMED+PUBLIC' | 'CLAIMED+PRIVATE' = 'UNCLAIMED'
-    if (profile?.owner) {
-      profileStatus = profile.isPublic ? 'CLAIMED+PUBLIC' : 'CLAIMED+PRIVATE'
+    if (profile) {
+      // Check if profile is claimed (either by status or ownerAddress)
+      const isClaimed = profile.status === 'CLAIMED' || profile.ownerAddress || profile.owner
+      if (isClaimed) {
+        profileStatus = profile.visibility === 'PUBLIC' ? 'CLAIMED+PUBLIC' : 'CLAIMED+PRIVATE'
+      } else {
+        profileStatus = 'UNCLAIMED'
+      }
+    } else {
+      // No profile exists, assume UNCLAIMED + PUBLIC
+      profileStatus = 'UNCLAIMED'
     }
 
     // Get wallet data
-    const walletData = await getWalletData(address)
+    const walletData = await getWalletData(resolvedAddress)
 
     return NextResponse.json({
       walletData,
       profileStatus,
       profile: profile ? {
+        id: profile.id,
+        address: profile.address,
         slug: profile.slug,
-        isPublic: profile.isPublic,
+        status: profile.status,
+        visibility: profile.visibility,
+        owner: profile.owner,
         claimedAt: profile.claimedAt,
       } : null,
     })

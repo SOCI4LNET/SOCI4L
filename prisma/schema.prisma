@@ -11,20 +11,24 @@ datasource db {
 }
 
 model Profile {
-  id          String   @id @default(cuid())
-  address     String   @unique
-  slug        String?  @unique
-  owner       String?  // wallet address of the claimer
-  isPublic    Boolean  @default(false)
-  claimedAt   DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  address      String   @unique
+  slug         String?  @unique
+  owner        String?  // wallet address of the claimer (kept for backward compatibility)
+  ownerAddress String?  // wallet address of the claimer
+  status       String   @default("UNCLAIMED") // UNCLAIMED | CLAIMED
+  visibility   String   @default("PUBLIC")   // PUBLIC | PRIVATE
+  isPublic     Boolean  @default(false)       // kept for backward compatibility
+  claimedAt    DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   showcase ShowcaseItem[]
 
   @@index([address])
   @@index([slug])
   @@index([owner])
+  @@index([ownerAddress])
 }
 
 model ShowcaseItem {

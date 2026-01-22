@@ -1,168 +1,214 @@
 'use client'
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useState, useEffect } from 'react'
+import { useAccount, useConnect } from 'wagmi'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Loader2, Copy } from 'lucide-react'
+import { formatAddress, isValidAddress } from '@/lib/utils'
+import { toast } from 'sonner'
+import Link from 'next/link'
 
 export default function DashboardPage() {
+  const [mounted, setMounted] = useState(false)
+  const [addressInput, setAddressInput] = useState('')
+  const { address: connectedAddress, isConnected } = useAccount()
+  const { connect, connectors, isPending: isConnecting } = useConnect()
+  const router = useRouter()
+  const [hasClaimedProfile, setHasClaimedProfile] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted || !isConnected || !connectedAddress) {
+      setLoading(false)
+      return
+    }
+
+    // Check if connected address has a claimed profile
+    const checkProfile = async () => {
+      try {
+        const response = await fetch(`/api/wallet?address=${connectedAddress}`)
+        const data = await response.json()
+        
+        if (data.profile && data.profile.status === 'CLAIMED') {
+          setHasClaimedProfile(true)
+        }
+      } catch (error) {
+        console.error('Error checking profile:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    checkProfile()
+  }, [mounted, isConnected, connectedAddress])
+
+  const handleAddressSubmit = () => {
+    if (!addressInput.trim()) return
+    
+    const trimmedAddress = addressInput.trim()
+    if (isValidAddress(trimmedAddress)) {
+      router.push(`/dashboard/${trimmedAddress}`)
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleAddressSubmit()
+    }
+  }
+
+  const handleCopyAddress = async () => {
+    if (!connectedAddress) return
+    
+    try {
+      await navigator.clipboard.writeText(connectedAddress)
+      toast.success('Address copied')
+    } catch (error) {
+      toast.error('Copy failed')
+    }
+  }
+
+  if (!mounted) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground mt-1">
-          Manage your wallet profile
+          Select a profile to manage
         </p>
       </div>
 
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="assets">Assets</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-4 mt-6">
+      {!isConnected ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Wallet Connection Required</CardTitle>
+            <CardDescription>Connect your wallet to access the dashboard</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            {connectors.length > 0 ? (
+              <Button
+                onClick={() => connect({ connector: connectors[0] })}
+                variant="default"
+                className="w-full"
+                disabled={isConnecting}
+              >
+                {isConnecting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Connecting...
+                  </>
+                ) : (
+                  'Connect Wallet'
+                )}
+              </Button>
+            ) : (
+              <p className="text-center text-muted-foreground">
+                No wallet connectors available
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-6">
+          {/* Current connected address */}
           <Card>
             <CardHeader>
-              <CardTitle>Overview</CardTitle>
-              <CardDescription>Wallet summary and statistics</CardDescription>
+              <CardTitle>Connected Wallet</CardTitle>
+              <CardDescription>Your currently connected wallet address</CardDescription>
             </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Metric</TableHead>
-                    <TableHead>Value</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <TableRow key={i}>
-                      <TableCell>
-                        <Skeleton className="h-4 w-32" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-24" />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-3 border rounded-lg">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="font-mono text-sm">{formatAddress(connectedAddress || '')}</p>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={handleCopyAddress}
+                      aria-label="Copy address"
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Current account</p>
+                </div>
+                {loading ? (
+                  <Skeleton className="h-8 w-32" />
+                ) : hasClaimedProfile ? (
+                  <Link href={`/dashboard/${connectedAddress}`}>
+                    <Button variant="default">Manage My Profile</Button>
+                  </Link>
+                ) : (
+                  <Link href={`/p/${connectedAddress}`}>
+                    <Button variant="outline">Claim Profile</Button>
+                  </Link>
+                )}
+              </div>
             </CardContent>
           </Card>
-        </TabsContent>
 
-        <TabsContent value="assets" className="space-y-4 mt-6">
+          {/* Address input for other profiles */}
           <Card>
             <CardHeader>
-              <CardTitle>Assets</CardTitle>
-              <CardDescription>Tokens and NFT holdings</CardDescription>
+              <CardTitle>Manage Another Profile</CardTitle>
+              <CardDescription>
+                Enter a wallet address to manage its profile (if you own it)
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Asset</TableHead>
-                    <TableHead>Symbol</TableHead>
-                    <TableHead className="text-right">Balance</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {[1, 2, 3, 4, 5, 6].map((i) => (
-                    <TableRow key={i}>
-                      <TableCell>
-                        <Skeleton className="h-4 w-24" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-16" />
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Skeleton className="h-4 w-20 ml-auto" />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="address">Wallet Address</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="address"
+                    placeholder="0x..."
+                    value={addressInput}
+                    onChange={(e) => setAddressInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="flex-1"
+                  />
+                  <Button
+                    onClick={handleAddressSubmit}
+                    disabled={!isValidAddress(addressInput.trim())}
+                  >
+                    Go
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
-        </TabsContent>
 
-        <TabsContent value="activity" className="space-y-4 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Activity</CardTitle>
-              <CardDescription>Transaction history</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Hash</TableHead>
-                    <TableHead>From</TableHead>
-                    <TableHead>To</TableHead>
-                    <TableHead className="text-right">Value</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                    <TableRow key={i}>
-                      <TableCell>
-                        <Skeleton className="h-4 w-40" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-32" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-32" />
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Skeleton className="h-4 w-16 ml-auto" />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="settings" className="space-y-4 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Settings</CardTitle>
-              <CardDescription>Profile configuration</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Setting</TableHead>
-                    <TableHead>Value</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {[1, 2, 3, 4].map((i) => (
-                    <TableRow key={i}>
-                      <TableCell>
-                        <Skeleton className="h-4 w-28" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-24" />
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Skeleton className="h-8 w-20 ml-auto" />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+          {/* Info about account switching */}
+          <Alert>
+            <AlertDescription>
+              <p className="font-semibold mb-1">Multiple Accounts?</p>
+              <p className="text-sm">
+                If you have multiple accounts in your wallet, switch accounts in your wallet extension,
+                then click "Manage My Profile" above or enter the address manually.
+              </p>
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
     </div>
   )
 }

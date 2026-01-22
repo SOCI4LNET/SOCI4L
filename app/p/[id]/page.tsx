@@ -6,7 +6,10 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import Link from 'next/link'
-import { ExternalLink } from 'lucide-react'
+import { ExternalLink, Share2 } from 'lucide-react'
+import { ClaimProfileButton } from '@/components/claim-profile-button'
+import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
 
 interface PageProps {
   params: {
@@ -46,29 +49,43 @@ interface WalletData {
 export default function ProfilePage({ params }: PageProps) {
   const [walletData, setWalletData] = useState<WalletData | null>(null)
   const [profileStatus, setProfileStatus] = useState<'UNCLAIMED' | 'CLAIMED+PUBLIC' | 'CLAIMED+PRIVATE'>('UNCLAIMED')
+  const [profile, setProfile] = useState<{ address: string; slug: string | null } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!isValidAddress(params.id)) {
-        setError('Geçersiz cüzdan adresi')
-        setLoading(false)
-        return
-      }
-
       setLoading(true)
       setError(null)
 
       try {
-        const response = await fetch(`/api/wallet?address=${params.id}`)
+        // Check if id is an address (starts with 0x) or a slug
+        const isAddress = params.id.startsWith('0x') && isValidAddress(params.id)
+        
+        let response: Response
+        if (isAddress) {
+          response = await fetch(`/api/wallet?address=${params.id}`)
+        } else {
+          response = await fetch(`/api/wallet?slug=${params.id}`)
+        }
+
         const data = await response.json()
 
         if (data.error) {
-          setError(data.error)
+          if (response.status === 404 && !isAddress) {
+            setError('Profile not found')
+          } else {
+            setError(data.error)
+          }
         } else {
           setWalletData(data.walletData)
           setProfileStatus(data.profileStatus)
+          if (data.profile) {
+            setProfile({
+              address: data.profile.address,
+              slug: data.profile.slug,
+            })
+          }
         }
       } catch (err) {
         setError('Veri yüklenirken bir hata oluştu')
@@ -107,6 +124,27 @@ export default function ProfilePage({ params }: PageProps) {
     )
   }
 
+  const handleClaimSuccess = () => {
+    // Refresh the page to show updated status
+    window.location.reload()
+  }
+
+  const handleCopyProfileLink = async () => {
+    const profileUrl = profile?.slug 
+      ? `${window.location.origin}/p/${profile.slug}`
+      : `${window.location.origin}/p/${params.id}`
+
+    try {
+      await navigator.clipboard.writeText(profileUrl)
+      toast.success('Link copied')
+    } catch (error) {
+      toast.error('Copy failed')
+    }
+  }
+
+  // Show private state if profile is CLAIMED and PRIVATE
+  const isPrivate = profileStatus === 'CLAIMED+PRIVATE'
+
   return (
     <div className="space-y-6">
       <div className="space-y-4">
@@ -114,10 +152,23 @@ export default function ProfilePage({ params }: PageProps) {
           <div>
             <h1 className="text-3xl font-bold">Wallet Profile</h1>
             <p className="font-mono text-sm text-muted-foreground mt-1">
-              {formatAddress(params.id)}
+              {profile?.address ? formatAddress(profile.address) : (params.id.startsWith('0x') ? formatAddress(params.id) : params.id)}
             </p>
           </div>
-          {getStatusBadge()}
+          <div className="flex items-center gap-3">
+            {getStatusBadge()}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleCopyProfileLink}
+              aria-label="Copy profile link"
+            >
+              <Share2 className="h-4 w-4" />
+            </Button>
+            {profileStatus === 'UNCLAIMED' && profile?.address && (
+              <ClaimProfileButton address={profile.address} onSuccess={handleClaimSuccess} />
+            )}
+          </div>
         </div>
       </div>
 
@@ -157,6 +208,17 @@ export default function ProfilePage({ params }: PageProps) {
             </CardContent>
           </Card>
         </div>
+      ) : isPrivate ? (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center py-12">
+              <p className="text-lg font-semibold mb-2">This profile is private</p>
+              <p className="text-muted-foreground">
+                The owner has set this profile to private. Asset and activity details are not visible.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       ) : walletData ? (
         <div className="grid gap-6 md:grid-cols-3">
           {/* Summary Column */}
