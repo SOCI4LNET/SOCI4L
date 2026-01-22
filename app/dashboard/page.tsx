@@ -57,7 +57,9 @@ export default function DashboardPage() {
     
     const trimmedAddress = addressInput.trim()
     if (isValidAddress(trimmedAddress)) {
-      router.push(`/dashboard/${trimmedAddress}`)
+      // Normalize address to lowercase
+      const normalizedAddress = trimmedAddress.toLowerCase()
+      router.push(`/dashboard/${normalizedAddress}`)
     }
   }
 
@@ -107,6 +109,7 @@ export default function DashboardPage() {
               <Button
                 onClick={() => connect({ connector: connectors[0] })}
                 variant="default"
+                size="sm"
                 className="w-full"
                 disabled={isConnecting}
               >
@@ -141,8 +144,7 @@ export default function DashboardPage() {
                     <p className="font-mono text-sm">{formatAddress(connectedAddress || '')}</p>
                     <Button
                       variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
+                      size="icon-xs"
                       onClick={handleCopyAddress}
                       aria-label="Copy address"
                     >
@@ -154,12 +156,12 @@ export default function DashboardPage() {
                 {loading ? (
                   <Skeleton className="h-8 w-32" />
                 ) : hasClaimedProfile ? (
-                  <Link href={`/dashboard/${connectedAddress}`}>
-                    <Button variant="default">Manage My Profile</Button>
+                  <Link href={`/dashboard/${connectedAddress?.toLowerCase()}`}>
+                    <Button variant="default" size="sm">Manage My Profile</Button>
                   </Link>
                 ) : (
-                  <Link href={`/p/${connectedAddress}`}>
-                    <Button variant="outline">Claim Profile</Button>
+                  <Link href={`/dashboard/${connectedAddress?.toLowerCase()}`}>
+                    <Button variant="outline" size="sm">Claim Profile</Button>
                   </Link>
                 )}
               </div>
@@ -189,6 +191,7 @@ export default function DashboardPage() {
                   <Button
                     onClick={handleAddressSubmit}
                     disabled={!isValidAddress(addressInput.trim())}
+                    size="sm"
                   >
                     Go
                   </Button>

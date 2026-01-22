@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useAccount, useConnect, useSignMessage } from 'wagmi'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
@@ -13,8 +15,10 @@ interface ClaimProfileButtonProps {
 }
 
 export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonProps) {
+  const router = useRouter()
   const [mounted, setMounted] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isClaimed, setIsClaimed] = useState(false)
   const { address: connectedAddress, isConnected } = useAccount()
   const { connect, connectors, isPending: isConnecting } = useConnect()
   const { signMessageAsync } = useSignMessage()
@@ -36,7 +40,12 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
       return // Alert will be shown below
     }
 
-    setLoading(true)
+    // Prevent multiple clicks
+    if (isSubmitting || isClaimed) {
+      return
+    }
+
+    setIsSubmitting(true)
 
     try {
       // Step 1: Get nonce
@@ -51,13 +60,15 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
       const signature = await signMessageAsync({ message })
 
       // Step 3: Claim profile
+      // Normalize address to lowercase before sending
+      const normalizedAddress = connectedAddress.toLowerCase()
       const claimResponse = await fetch('/api/profile/claim', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          address: connectedAddress,
+          address: normalizedAddress,
           signature,
         }),
       })
@@ -68,26 +79,37 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
         throw new Error(result.error || 'Profil talep edilemedi')
       }
 
-      // Success
-      toast.success('Profile claimed successfully!')
+      // Success - mark as claimed (whether it was already claimed or newly claimed)
+      setIsClaimed(true)
+      if (result.alreadyClaimed) {
+        toast.success('Profile already claimed')
+      } else {
+        toast.success('Profile claimed successfully!')
+      }
+      
+      // Refresh router cache
+      router.refresh()
+      
       if (onSuccess) {
+        // Call onSuccess callback (which should handle navigation and refresh)
         onSuccess()
       } else {
-        // Refresh page
-        window.location.reload()
+        // Default: Navigate to dashboard after claim
+        // Use replace to avoid back button issues
+        router.replace(`/dashboard/${normalizedAddress}`)
       }
     } catch (error: any) {
       console.error('Error claiming profile:', error)
       toast.error(error.message || 'Profil talep edilirken bir hata oluştu')
     } finally {
-      setLoading(false)
+      setIsSubmitting(false)
     }
   }
 
   // Prevent hydration mismatch by showing consistent UI until mounted
   if (!mounted) {
     return (
-      <Button variant="default" disabled>
+      <Button variant="default" size="sm" disabled>
         Claim Profile
       </Button>
     )
@@ -102,6 +124,7 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
           }
         }}
         variant="default"
+        size="sm"
         disabled={isConnecting}
       >
         {isConnecting ? (
@@ -129,9 +152,24 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
     )
   }
 
+  // If already claimed, show a non-clickable badge instead of button
+  if (isClaimed) {
+    return (
+      <Badge variant="default" className="px-4 py-2">
+        Claimed
+      </Badge>
+    )
+  }
+
   return (
-    <Button onClick={handleClaim} disabled={loading} variant="default">
-      {loading ? (
+    <Button 
+      onClick={handleClaim} 
+      disabled={isSubmitting} 
+      variant="default"
+      size="sm"
+      className={isSubmitting ? "pointer-events-none" : ""}
+    >
+      {isSubmitting ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           Claiming...

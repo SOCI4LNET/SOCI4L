@@ -1,22 +1,23 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useAccount, useSignMessage } from 'wagmi'
-import { useRouter, useParams } from 'next/navigation'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { useAccount, useConnect } from 'wagmi'
+import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
-import { Loader2, Share2 } from 'lucide-react'
+import { Share2, Wallet, Loader2 } from 'lucide-react'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import Link from 'next/link'
+import { ClaimProfileButton } from '@/components/claim-profile-button'
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
+import { DashboardSidebar } from '@/components/dashboard/dashboard-sidebar'
+import { OverviewPanel } from '@/components/dashboard/overview-panel'
+import { AssetsPanel } from '@/components/dashboard/assets-panel'
+import { ActivityPanel } from '@/components/dashboard/activity-panel'
+import { SettingsPanel } from '@/components/dashboard/settings-panel'
 
 interface Profile {
   id: string
@@ -61,17 +62,19 @@ export default function DashboardAddressPage() {
   const [mounted, setMounted] = useState(false)
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { address: connectedAddress, isConnected } = useAccount()
-  const { signMessageAsync } = useSignMessage()
+  const { connect, connectors, isPending: isConnecting } = useConnect()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [walletData, setWalletData] = useState<WalletData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [savingSlug, setSavingSlug] = useState(false)
-  const [visibility, setVisibility] = useState<'PUBLIC' | 'PRIVATE'>('PUBLIC')
-  const [slug, setSlug] = useState<string>('')
   
   const targetAddress = params.address as string
+  const currentTab = searchParams.get('tab') || 'overview'
+  
+  // Validate tab value
+  const validTabs = ['overview', 'assets', 'activity', 'settings']
+  const activeTab = validTabs.includes(currentTab) ? currentTab : 'overview'
 
   useEffect(() => {
     setMounted(true)
@@ -100,27 +103,29 @@ export default function DashboardAddressPage() {
       return
     }
 
-    if (!isConnected || !connectedAddress) {
-      setLoading(false)
-      return
-    }
-
+    // Load data even if not connected (to show claim button)
     loadData()
-  }, [mounted, isConnected, connectedAddress, targetAddress])
+  }, [mounted, targetAddress])
 
   const loadData = async () => {
-    if (!targetAddress || !isValidAddress(targetAddress) || !connectedAddress) return
+    if (!targetAddress || !isValidAddress(targetAddress)) return
 
     setLoading(true)
     try {
+      // Normalize address to lowercase for consistent API calls
+      const normalizedAddress = targetAddress.toLowerCase()
       // Load profile and wallet data
-      const response = await fetch(`/api/wallet?address=${targetAddress}`)
+      const response = await fetch(`/api/wallet?address=${normalizedAddress}`, {
+        cache: 'no-store',
+      })
       const data = await response.json()
 
+      // Always set profile state (null if not found)
       if (data.profile) {
         setProfile(data.profile)
-        setVisibility(data.profile.visibility === 'PRIVATE' ? 'PRIVATE' : 'PUBLIC')
-        setSlug(data.profile.slug || '')
+      } else {
+        // Explicitly set to null if no profile exists
+        setProfile(null)
       }
 
       if (data.walletData) {
@@ -133,97 +138,17 @@ export default function DashboardAddressPage() {
     }
   }
 
-  const handleSaveVisibility = async () => {
-    if (!connectedAddress || !profile) return
-
-    setSaving(true)
-    try {
-      // Step 1: Get nonce
-      const nonceResponse = await fetch('/api/auth/nonce')
-      if (!nonceResponse.ok) {
-        throw new Error('Nonce alınamadı')
-      }
-      const { nonce } = await nonceResponse.json()
-
-      // Step 2: Sign message
-      const message = `Update visibility for ${targetAddress} to ${visibility}. Nonce: ${nonce}`
-      const signature = await signMessageAsync({ message })
-
-      // Step 3: Update visibility
-      const updateResponse = await fetch('/api/profile/visibility', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          address: targetAddress,
-          visibility,
-          signature,
-        }),
-      })
-
-      const result = await updateResponse.json()
-
-      if (!updateResponse.ok) {
-        throw new Error(result.error || 'Visibility güncellenemedi')
-      }
-
-      // Success - reload data
-      await loadData()
-      toast.success('Visibility updated successfully')
-    } catch (error: any) {
-      console.error('Error updating visibility:', error)
-      toast.error(error.message || 'Failed to update visibility')
-    } finally {
-      setSaving(false)
-    }
+  const handleClaimSuccess = async () => {
+    // Normalize address
+    const normalizedAddress = targetAddress.toLowerCase()
+    // Reload data from DB to get fresh state
+    await loadData()
+    // Refresh router cache
+    router.refresh()
+    // Navigate to dashboard with normalized address
+    router.replace(`/dashboard/${normalizedAddress}`)
   }
 
-  const handleSaveSlug = async () => {
-    if (!connectedAddress || !profile) return
-
-    setSavingSlug(true)
-    try {
-      // Step 1: Get nonce
-      const nonceResponse = await fetch('/api/auth/nonce')
-      if (!nonceResponse.ok) {
-        throw new Error('Nonce alınamadı')
-      }
-      const { nonce } = await nonceResponse.json()
-
-      // Step 2: Sign message
-      const message = `Set slug for ${targetAddress} to ${slug || '(empty)'}. Nonce: ${nonce}`
-      const signature = await signMessageAsync({ message })
-
-      // Step 3: Update slug
-      const updateResponse = await fetch('/api/profile/slug', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          address: targetAddress,
-          slug: slug.trim() || null,
-          signature,
-        }),
-      })
-
-      const result = await updateResponse.json()
-
-      if (!updateResponse.ok) {
-        throw new Error(result.error || 'Slug güncellenemedi')
-      }
-
-      // Success - reload data
-      await loadData()
-      toast.success('Custom URL updated successfully')
-    } catch (error: any) {
-      console.error('Error updating slug:', error)
-      toast.error(error.message || 'Failed to update custom URL')
-    } finally {
-      setSavingSlug(false)
-    }
-  }
 
   // Prevent hydration mismatch
   if (!mounted) {
@@ -248,13 +173,14 @@ export default function DashboardAddressPage() {
           </AlertDescription>
         </Alert>
         <Link href="/dashboard">
-          <Button variant="outline">Back to Dashboard</Button>
+          <Button variant="outline" size="sm">Back to Dashboard</Button>
         </Link>
       </div>
     )
   }
 
   if (!isConnected) {
+    const normalizedAddress = targetAddress.toLowerCase()
     return (
       <div className="space-y-6">
         <div>
@@ -263,14 +189,51 @@ export default function DashboardAddressPage() {
             {formatAddress(targetAddress)}
           </p>
         </div>
-        <Alert>
-          <AlertDescription>
-            Please connect your wallet to manage this profile.
-          </AlertDescription>
-        </Alert>
-        <Link href="/dashboard">
-          <Button variant="outline">Back to Dashboard</Button>
-        </Link>
+        <Card>
+          <CardHeader>
+            <CardTitle>Wallet Connection Required</CardTitle>
+            <CardDescription>Connect your wallet to manage this profile</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-4">
+            {!profile || profile.status !== 'CLAIMED' ? (
+              <ClaimProfileButton address={normalizedAddress} onSuccess={handleClaimSuccess} />
+            ) : (
+              <>
+                <Alert>
+                  <AlertDescription>
+                    Please connect your wallet to manage this profile.
+                  </AlertDescription>
+                </Alert>
+                {connectors.length > 0 && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => connect({ connector: connectors[0] })}
+                    disabled={isConnecting}
+                    className="w-full"
+                  >
+                    {isConnecting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Connecting...
+                      </>
+                    ) : (
+                      <>
+                        <Wallet className="mr-2 h-4 w-4" />
+                        Connect Wallet
+                      </>
+                    )}
+                  </Button>
+                )}
+              </>
+            )}
+            <div className="flex gap-2">
+              <Link href="/dashboard" className="flex-1">
+                <Button variant="outline" size="sm" className="w-full">Back to Dashboard</Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }
@@ -284,8 +247,11 @@ export default function DashboardAddressPage() {
     )
   }
 
-  // Check profile status
-  if (!profile || profile.status !== 'CLAIMED') {
+  // Check profile status - ONLY render "Profile Not Claimed" when:
+  // profile is null OR profile.status === "UNCLAIMED"
+  // If profile.status === "CLAIMED", render the owner dashboard instead
+  if (!profile || profile.status === 'UNCLAIMED') {
+    const normalizedAddress = targetAddress.toLowerCase()
     return (
       <div className="space-y-6">
         <div>
@@ -294,19 +260,23 @@ export default function DashboardAddressPage() {
             {formatAddress(targetAddress)}
           </p>
         </div>
-        <Alert>
-          <AlertDescription>
-            This profile is not claimed yet. Please claim it first.
-          </AlertDescription>
-        </Alert>
-        <div className="flex gap-2">
-          <Link href={`/p/${targetAddress}`}>
-            <Button variant="default">View Profile</Button>
-          </Link>
-          <Link href="/dashboard">
-            <Button variant="outline">Back to Dashboard</Button>
-          </Link>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Profile Not Claimed</CardTitle>
+            <CardDescription>This profile is not claimed yet. Please claim it first to manage it.</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-4">
+            <ClaimProfileButton address={normalizedAddress} onSuccess={handleClaimSuccess} />
+            <div className="flex gap-2">
+              <Link href={`/p/${normalizedAddress}`}>
+                <Button variant="outline" size="sm">View Public Profile</Button>
+              </Link>
+              <Link href="/dashboard">
+                <Button variant="ghost" size="sm">Back to Dashboard</Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }
@@ -339,6 +309,7 @@ export default function DashboardAddressPage() {
         <div className="flex gap-2">
           <Button
             variant="default"
+            size="sm"
             onClick={() => {
               toast.info('Please switch accounts in your wallet extension')
             }}
@@ -346,7 +317,7 @@ export default function DashboardAddressPage() {
             Switch Account in Wallet
           </Button>
           <Link href="/dashboard">
-            <Button variant="outline">Back to Dashboard</Button>
+            <Button variant="outline" size="sm">Back to Dashboard</Button>
           </Link>
         </div>
       </div>
@@ -368,211 +339,59 @@ export default function DashboardAddressPage() {
     }
   }
 
-  // Owner view - show full dashboard
+  // Owner view - show full dashboard with sidebar
+  const normalizedAddress = targetAddress.toLowerCase()
+
+  const renderPanel = () => {
+    if (loading) {
+      return <Skeleton className="h-64 w-full" />
+    }
+
+    switch (activeTab) {
+      case 'overview':
+        return <OverviewPanel walletData={walletData} />
+      case 'assets':
+        return <AssetsPanel walletData={walletData} />
+      case 'activity':
+        return <ActivityPanel walletData={walletData} />
+      case 'settings':
+        return profile ? (
+          <SettingsPanel profile={profile} targetAddress={targetAddress} onUpdate={loadData} />
+        ) : (
+          <Skeleton className="h-64 w-full" />
+        )
+      default:
+        return <OverviewPanel walletData={walletData} />
+    }
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-            {formatAddress(targetAddress)}
-          </p>
+    <SidebarProvider>
+      <DashboardSidebar address={normalizedAddress} />
+      <SidebarInset>
+        <div className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger />
+          <div className="flex items-center justify-between flex-1">
+            <div>
+              <h1 className="text-xl font-semibold">Dashboard</h1>
+              <p className="text-sm text-muted-foreground">
+                {formatAddress(targetAddress)}
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={handleCopyProfileLink}
+              aria-label="Copy profile link"
+            >
+              <Share2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleCopyProfileLink}
-          aria-label="Copy profile link"
-        >
-          <Share2 className="h-4 w-4" />
-        </Button>
-      </div>
-
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="assets">Assets</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-4 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Overview</CardTitle>
-              <CardDescription>Wallet summary and statistics</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {walletData ? (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">AVAX Balance</p>
-                    <p className="text-2xl font-bold">{parseFloat(walletData.nativeBalance).toFixed(4)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Transactions</p>
-                    <p className="text-2xl font-bold">{walletData.txCount}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Tokens</p>
-                    <p className="text-2xl font-bold">{walletData.tokenBalances?.length || 0}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">NFTs</p>
-                    <p className="text-2xl font-bold">{walletData.nfts?.length || 0}</p>
-                  </div>
-                </div>
-              ) : (
-                <Skeleton className="h-32 w-full" />
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="assets" className="space-y-4 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Assets</CardTitle>
-              <CardDescription>Tokens and NFT holdings</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {walletData && walletData.tokenBalances ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Asset</TableHead>
-                      <TableHead>Symbol</TableHead>
-                      <TableHead className="text-right">Balance</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {walletData.tokenBalances.map((token, idx) => (
-                      <TableRow key={idx}>
-                        <TableCell>{token.name}</TableCell>
-                        <TableCell>{token.symbol}</TableCell>
-                        <TableCell className="text-right font-mono">
-                          {parseFloat(token.balance).toFixed(4)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <Skeleton className="h-32 w-full" />
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="activity" className="space-y-4 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Activity</CardTitle>
-              <CardDescription>Transaction history</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {walletData && walletData.transactions ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Hash</TableHead>
-                      <TableHead>Value</TableHead>
-                      <TableHead>Date</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {walletData.transactions.slice(0, 10).map((tx, idx) => (
-                      <TableRow key={idx}>
-                        <TableCell className="font-mono text-sm">
-                          {formatAddress(tx.hash)}
-                        </TableCell>
-                        <TableCell>{parseFloat(tx.value).toFixed(4)} AVAX</TableCell>
-                        <TableCell>
-                          {new Date(tx.timestamp * 1000).toLocaleDateString('tr-TR')}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <Skeleton className="h-32 w-full" />
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="settings" className="space-y-4 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Settings</CardTitle>
-              <CardDescription>Profile configuration</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-3">
-                <Label>Profile Visibility</Label>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Current:</span>
-                  <Badge variant={profile.visibility === 'PUBLIC' ? 'default' : 'secondary'}>
-                    {profile.visibility}
-                  </Badge>
-                </div>
-                <RadioGroup value={visibility} onValueChange={(value) => setVisibility(value as 'PUBLIC' | 'PRIVATE')}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="PUBLIC" id="public" />
-                    <Label htmlFor="public" className="cursor-pointer">
-                      Public - Anyone can view your profile
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="PRIVATE" id="private" />
-                    <Label htmlFor="private" className="cursor-pointer">
-                      Private - Only you can view full details
-                    </Label>
-                  </div>
-                </RadioGroup>
-                <Button onClick={handleSaveVisibility} disabled={saving || visibility === profile.visibility}>
-                  {saving ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    'Save Changes'
-                  )}
-                </Button>
-              </div>
-
-              <div className="space-y-3 pt-6 border-t">
-                <Label>Custom URL</Label>
-                <div className="space-y-2">
-                  <Input
-                    value={slug}
-                    onChange={(e) => setSlug(e.target.value)}
-                    placeholder="my-profile"
-                    className="font-mono"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    /p/{slug || 'your-slug'}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    3-24 characters, lowercase letters, numbers, and hyphens only
-                  </p>
-                </div>
-                <Button onClick={handleSaveSlug} disabled={savingSlug || slug === (profile.slug || '')}>
-                  {savingSlug ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    'Save Custom URL'
-                  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+        <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
+          {renderPanel()}
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { isValidAddress } from '@/lib/utils'
+import { toast } from 'sonner'
 
 export default function HomePage() {
   const [address, setAddress] = useState('')
@@ -17,9 +18,11 @@ export default function HomePage() {
     
     const trimmedAddress = address.trim()
     if (isValidAddress(trimmedAddress)) {
-      router.push(`/p/${trimmedAddress}`)
+      // Normalize address to lowercase
+      const normalizedAddress = trimmedAddress.toLowerCase()
+      router.push(`/p/${normalizedAddress}`)
     } else {
-      alert('Geçersiz cüzdan adresi')
+      toast.error('Geçersiz cüzdan adresi')
     }
   }
 
@@ -54,7 +57,7 @@ export default function HomePage() {
               onKeyDown={handleKeyDown}
               className="flex-1"
             />
-            <Button onClick={handleSearch}>Search</Button>
+            <Button onClick={handleSearch} size="sm">Search</Button>
           </div>
         </CardContent>
       </Card>

@@ -22,8 +22,10 @@ export async function GET(request: NextRequest) {
     if (!isValidAddress(address)) {
       return NextResponse.json({ error: 'Geçersiz cüzdan adresi' }, { status: 400 })
     }
-    resolvedAddress = address
-    profile = await getProfileByAddress(address)
+    // Normalize address to lowercase for consistent DB lookups
+    const normalizedAddress = address.toLowerCase()
+    resolvedAddress = normalizedAddress
+    profile = await getProfileByAddress(normalizedAddress)
   } else {
     return NextResponse.json({ error: 'Address or slug is required' }, { status: 400 })
   }
@@ -61,6 +63,7 @@ export async function GET(request: NextRequest) {
         status: profile.status,
         visibility: profile.visibility,
         owner: profile.owner,
+        ownerAddress: profile.ownerAddress,
         claimedAt: profile.claimedAt,
       } : null,
     })

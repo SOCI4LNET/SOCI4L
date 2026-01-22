@@ -3,14 +3,14 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { useAccount, useConnect, useDisconnect } from 'wagmi'
-import { formatAddress } from '@/lib/utils'
+import { useAccount, useConnect } from 'wagmi'
+import { ProfileDropdown } from '@/components/profile-dropdown'
+import { Wallet } from 'lucide-react'
 
 export function SiteHeader() {
   const [mounted, setMounted] = useState(false)
-  const { address, isConnected } = useAccount()
-  const { connect, connectors } = useConnect()
-  const { disconnect } = useDisconnect()
+  const { isConnected } = useAccount()
+  const { connect, connectors, isPending: isConnecting } = useConnect()
 
   useEffect(() => {
     setMounted(true)
@@ -25,34 +25,22 @@ export function SiteHeader() {
           </Link>
           <div className="flex items-center gap-4">
             {!mounted ? (
-              <Link href="/dashboard">
-                <Button variant="ghost">Dashboard</Button>
-              </Link>
-            ) : isConnected && address ? (
-              <>
-                <span className="text-sm text-muted-foreground">
-                  {formatAddress(address)}
-                </span>
-                <Link href="/dashboard">
-                  <Button variant="ghost">Dashboard</Button>
-                </Link>
-                <Button variant="ghost" size="sm" onClick={() => disconnect()}>
-                  Disconnect
-                </Button>
-              </>
+              <div className="h-9 w-9" /> // Placeholder for avatar
+            ) : isConnected ? (
+              <ProfileDropdown />
             ) : (
               <>
                 {connectors.length > 0 && (
                   <Button
-                    variant="ghost"
+                    variant="default"
+                    size="sm"
                     onClick={() => connect({ connector: connectors[0] })}
+                    disabled={isConnecting}
                   >
-                    Connect Wallet
+                    <Wallet className="mr-2 h-4 w-4" />
+                    {isConnecting ? 'Connecting...' : 'Connect Wallet'}
                   </Button>
                 )}
-                <Link href="/dashboard">
-                  <Button variant="ghost">Dashboard</Button>
-                </Link>
               </>
             )}
           </div>

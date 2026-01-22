@@ -15,7 +15,7 @@ export default function NotFound() {
             Aradığınız sayfa mevcut değil veya taşınmış olabilir.
           </p>
           <Link href="/">
-            <Button>Ana Sayfaya Dön</Button>
+            <Button size="sm">Ana Sayfaya Dön</Button>
           </Link>
         </CardContent>
       </Card>

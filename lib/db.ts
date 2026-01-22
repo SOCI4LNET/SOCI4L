@@ -8,6 +8,7 @@ export interface ProfileData {
   address: string
   slug: string | null
   owner: string | null
+  ownerAddress: string | null
   status: ProfileStatus
   visibility: ProfileVisibility
   claimedAt: Date | null
@@ -35,6 +36,7 @@ export async function getProfileByAddress(address: string): Promise<ProfileData 
     address: profile.address,
     slug: profile.slug,
     owner: profile.owner,
+    ownerAddress: profile.ownerAddress,
     status: (profile.status as ProfileStatus) || (profile.ownerAddress || profile.owner ? 'CLAIMED' : 'UNCLAIMED'),
     visibility: (profile.visibility as ProfileVisibility) || (profile.isPublic ? 'PUBLIC' : 'PRIVATE'),
     claimedAt: profile.claimedAt,
@@ -63,6 +65,7 @@ export async function getProfileBySlug(slug: string): Promise<ProfileData | null
     address: profile.address,
     slug: profile.slug,
     owner: profile.owner,
+    ownerAddress: profile.ownerAddress,
     status: (profile.status as ProfileStatus) || (profile.ownerAddress || profile.owner ? 'CLAIMED' : 'UNCLAIMED'),
     visibility: (profile.visibility as ProfileVisibility) || (profile.isPublic ? 'PUBLIC' : 'PRIVATE'),
     claimedAt: profile.claimedAt,

@@ -62,25 +62,50 @@ export async function POST(request: NextRequest) {
     }
 
     const normalizedAddress = address.toLowerCase()
+    
+    // Extract signer from signature verification
+    // verifyMessage already verified that the signature matches the address
+    // So the signer is the address itself
+    const signerAddress = normalizedAddress
 
-    // Check if profile already claimed by someone else
+    // Check if profile already exists
     const existing = await prisma.profile.findUnique({
       where: { address: normalizedAddress },
     })
 
-    if (existing && existing.ownerAddress && existing.ownerAddress.toLowerCase() !== normalizedAddress) {
-      return NextResponse.json(
-        { error: 'Bu profil başka bir cüzdan tarafından talep edilmiş' },
-        { status: 403 }
-      )
+    // Idempotency check: If profile exists and is CLAIMED by the same signer
+    if (existing && existing.status === 'CLAIMED' && existing.ownerAddress) {
+      const existingOwnerLower = existing.ownerAddress.toLowerCase()
+      if (existingOwnerLower === signerAddress) {
+        // Already claimed by this signer - return success with alreadyClaimed flag
+        return NextResponse.json({
+          success: true,
+          alreadyClaimed: true,
+          profile: {
+            id: existing.id,
+            address: existing.address,
+            slug: existing.slug,
+            ownerAddress: existing.ownerAddress,
+            status: existing.status,
+            visibility: existing.visibility,
+            claimedAt: existing.claimedAt,
+          },
+        })
+      } else {
+        // Claimed by someone else
+        return NextResponse.json(
+          { error: 'Bu profil başka bir cüzdan tarafından talep edilmiş' },
+          { status: 403 }
+        )
+      }
     }
 
-    // Upsert Profile
+    // Upsert Profile - normalize both address and ownerAddress to lowercase
     const profile = await prisma.profile.upsert({
       where: { address: normalizedAddress },
       update: {
-        ownerAddress: normalizedAddress,
-        owner: normalizedAddress, // backward compatibility
+        ownerAddress: signerAddress.toLowerCase(), // Ensure lowercase
+        owner: signerAddress.toLowerCase(), // backward compatibility
         status: 'CLAIMED',
         visibility: 'PUBLIC',
         isPublic: true,
@@ -88,8 +113,8 @@ export async function POST(request: NextRequest) {
       },
       create: {
         address: normalizedAddress,
-        ownerAddress: normalizedAddress,
-        owner: normalizedAddress, // backward compatibility
+        ownerAddress: signerAddress.toLowerCase(), // Ensure lowercase
+        owner: signerAddress.toLowerCase(), // backward compatibility
         status: 'CLAIMED',
         visibility: 'PUBLIC',
         isPublic: true,
@@ -102,6 +127,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      alreadyClaimed: false,
       profile: {
         id: profile.id,
         address: profile.address,

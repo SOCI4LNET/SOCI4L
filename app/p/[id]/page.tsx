@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -47,6 +48,7 @@ interface WalletData {
 }
 
 export default function ProfilePage({ params }: PageProps) {
+  const router = useRouter()
   const [walletData, setWalletData] = useState<WalletData | null>(null)
   const [profileStatus, setProfileStatus] = useState<'UNCLAIMED' | 'CLAIMED+PUBLIC' | 'CLAIMED+PRIVATE'>('UNCLAIMED')
   const [profile, setProfile] = useState<{ address: string; slug: string | null } | null>(null)
@@ -64,9 +66,15 @@ export default function ProfilePage({ params }: PageProps) {
         
         let response: Response
         if (isAddress) {
-          response = await fetch(`/api/wallet?address=${params.id}`)
+          // Normalize address to lowercase for consistent API calls
+          const normalizedAddress = params.id.toLowerCase()
+          response = await fetch(`/api/wallet?address=${normalizedAddress}`, {
+            cache: 'no-store',
+          })
         } else {
-          response = await fetch(`/api/wallet?slug=${params.id}`)
+          response = await fetch(`/api/wallet?slug=${params.id}`, {
+            cache: 'no-store',
+          })
         }
 
         const data = await response.json()
@@ -124,9 +132,36 @@ export default function ProfilePage({ params }: PageProps) {
     )
   }
 
-  const handleClaimSuccess = () => {
-    // Refresh the page to show updated status
-    window.location.reload()
+  const handleClaimSuccess = async () => {
+    // Get the resolved address (from profile or params)
+    // Normalize to lowercase for consistency
+    const resolvedAddress = profile?.address?.toLowerCase() || (params.id.startsWith('0x') ? params.id.toLowerCase() : null)
+    
+    if (resolvedAddress) {
+      // Refresh router cache first
+      router.refresh()
+      
+      // Refetch data to get updated profile status
+      const normalizedAddress = resolvedAddress.toLowerCase()
+      const response = await fetch(`/api/wallet?address=${normalizedAddress}`, {
+        cache: 'no-store',
+      })
+      const data = await response.json()
+      
+      if (data.profile) {
+        setProfile({
+          address: data.profile.address,
+          slug: data.profile.slug,
+        })
+        // Update status based on fresh data
+        if (data.profileStatus) {
+          setProfileStatus(data.profileStatus)
+        }
+      }
+    } else {
+      // Fallback: reload page
+      window.location.reload()
+    }
   }
 
   const handleCopyProfileLink = async () => {
@@ -159,7 +194,7 @@ export default function ProfilePage({ params }: PageProps) {
             {getStatusBadge()}
             <Button
               variant="ghost"
-              size="icon"
+              size="icon-sm"
               onClick={handleCopyProfileLink}
               aria-label="Copy profile link"
             >
