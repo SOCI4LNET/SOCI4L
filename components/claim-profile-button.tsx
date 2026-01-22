@@ -5,7 +5,6 @@ import { useAccount, useConnect, useSignMessage } from 'wagmi'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 
@@ -139,17 +138,9 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
     )
   }
 
+  // Address mismatch: return null - parent component should handle guard state
   if (connectedAddress.toLowerCase() !== address.toLowerCase()) {
-    return (
-      <div className="space-y-2">
-        <Alert variant="destructive">
-          <AlertDescription>
-            You can only claim a profile for your connected wallet address. 
-            Please connect the wallet matching this profile address.
-          </AlertDescription>
-        </Alert>
-      </div>
-    )
+    return null
   }
 
   // If already claimed, show a non-clickable badge instead of button

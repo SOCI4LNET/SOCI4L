@@ -14,6 +14,9 @@ export interface ProfileData {
   claimedAt: Date | null
   createdAt: Date
   updatedAt: Date
+  displayName?: string | null
+  bio?: string | null
+  socialLinks?: string | null
 }
 
 /**
@@ -42,6 +45,9 @@ export async function getProfileByAddress(address: string): Promise<ProfileData 
     claimedAt: profile.claimedAt,
     createdAt: profile.createdAt,
     updatedAt: profile.updatedAt,
+    displayName: profile.displayName,
+    bio: profile.bio,
+    socialLinks: profile.socialLinks,
   }
 }
 
@@ -71,5 +77,8 @@ export async function getProfileBySlug(slug: string): Promise<ProfileData | null
     claimedAt: profile.claimedAt,
     createdAt: profile.createdAt,
     updatedAt: profile.updatedAt,
+    displayName: profile.displayName,
+    bio: profile.bio,
+    socialLinks: profile.socialLinks,
   }
 }

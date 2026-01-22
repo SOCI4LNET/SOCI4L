@@ -4,13 +4,17 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import Link from 'next/link'
-import { ExternalLink, Share2 } from 'lucide-react'
+import { ExternalLink, Twitter, Linkedin, Github, Globe, MessageCircle, Send, Mail } from 'lucide-react'
 import { ClaimProfileButton } from '@/components/claim-profile-button'
-import { Button } from '@/components/ui/button'
-import { toast } from 'sonner'
+import { PublicProfileShareMenu } from '@/components/public-profile-share-menu'
+import { FollowToggle, FollowStats } from '@/components/follow-toggle'
+import { QRCodeModal } from '@/components/qr/qr-code-modal'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { QrCode } from 'lucide-react'
 
 interface PageProps {
   params: {
@@ -51,9 +55,16 @@ export default function ProfilePage({ params }: PageProps) {
   const router = useRouter()
   const [walletData, setWalletData] = useState<WalletData | null>(null)
   const [profileStatus, setProfileStatus] = useState<'UNCLAIMED' | 'CLAIMED+PUBLIC' | 'CLAIMED+PRIVATE'>('UNCLAIMED')
-  const [profile, setProfile] = useState<{ address: string; slug: string | null } | null>(null)
+  const [profile, setProfile] = useState<{ 
+    address: string
+    slug: string | null
+    displayName?: string | null
+    bio?: string | null
+    socialLinks?: Array<{ id?: string; platform?: string; type?: string; url: string; label?: string }> | null
+  } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [qrModalOpen, setQrModalOpen] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -92,6 +103,9 @@ export default function ProfilePage({ params }: PageProps) {
             setProfile({
               address: data.profile.address,
               slug: data.profile.slug,
+              displayName: data.profile.displayName,
+              bio: data.profile.bio,
+              socialLinks: data.profile.socialLinks,
             })
           }
         }
@@ -152,6 +166,9 @@ export default function ProfilePage({ params }: PageProps) {
         setProfile({
           address: data.profile.address,
           slug: data.profile.slug,
+          displayName: data.profile.displayName,
+          bio: data.profile.bio,
+          socialLinks: data.profile.socialLinks,
         })
         // Update status based on fresh data
         if (data.profileStatus) {
@@ -164,42 +181,111 @@ export default function ProfilePage({ params }: PageProps) {
     }
   }
 
-  const handleCopyProfileLink = async () => {
-    const profileUrl = profile?.slug 
-      ? `${window.location.origin}/p/${profile.slug}`
-      : `${window.location.origin}/p/${params.id}`
-
-    try {
-      await navigator.clipboard.writeText(profileUrl)
-      toast.success('Link copied')
-    } catch (error) {
-      toast.error('Copy failed')
-    }
-  }
 
   // Show private state if profile is CLAIMED and PRIVATE
   const isPrivate = profileStatus === 'CLAIMED+PRIVATE'
+  const isClaimed = profileStatus === 'CLAIMED+PUBLIC' || profileStatus === 'CLAIMED+PRIVATE'
+  const displayName = profile?.displayName || (profile?.address ? formatAddress(profile.address) : (params.id.startsWith('0x') ? formatAddress(params.id) : params.id))
+
+  const getSocialIcon = (platform: string) => {
+    const normalizedPlatform = platform.toLowerCase()
+    switch (normalizedPlatform) {
+      case 'x':
+        return <Twitter className="h-3.5 w-3.5" />
+      case 'instagram':
+        return <Globe className="h-3.5 w-3.5" />
+      case 'youtube':
+        return <Globe className="h-3.5 w-3.5" />
+      case 'linkedin':
+        return <Linkedin className="h-3.5 w-3.5" />
+      case 'github':
+        return <Github className="h-3.5 w-3.5" />
+      case 'website':
+        return <Globe className="h-3.5 w-3.5" />
+      default:
+        return <ExternalLink className="h-3.5 w-3.5" />
+    }
+  }
+
+  const getSocialLabel = (link: { platform?: string; type?: string; url: string; label?: string }) => {
+    if (link.label) return link.label
+    const platform = link.platform || link.type || 'website'
+    switch (platform.toLowerCase()) {
+      case 'x':
+        return 'X'
+      case 'instagram':
+        return 'Instagram'
+      case 'youtube':
+        return 'YouTube'
+      case 'linkedin':
+        return 'LinkedIn'
+      case 'github':
+        return 'GitHub'
+      case 'website':
+        return 'Website'
+      default:
+        return platform
+    }
+  }
+
+  const getSocialUrl = (link: { platform?: string; type?: string; url: string }) => {
+    return link.url
+  }
+
+  // Get resolved address for follow components
+  const resolvedAddress = profile?.address || (params.id.startsWith('0x') ? params.id : null)
 
   return (
     <div className="space-y-6">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Wallet Profile</h1>
-            <p className="font-mono text-sm text-muted-foreground mt-1">
-              {profile?.address ? formatAddress(profile.address) : (params.id.startsWith('0x') ? formatAddress(params.id) : params.id)}
-            </p>
+            <h1 className="text-3xl font-bold">{isClaimed ? displayName : 'Wallet Profile'}</h1>
+            {isClaimed && profile?.address && displayName !== formatAddress(profile.address) && (
+              <p className="font-mono text-sm text-muted-foreground mt-1">
+                {formatAddress(profile.address)}
+              </p>
+            )}
+            {!isClaimed && (
+              <p className="font-mono text-sm text-muted-foreground mt-1">
+                {params.id.startsWith('0x') ? formatAddress(params.id) : params.id}
+              </p>
+            )}
+            {resolvedAddress && isValidAddress(resolvedAddress) && (
+              <div className="mt-2">
+                <FollowStats address={resolvedAddress} />
+              </div>
+            )}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {getStatusBadge()}
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={handleCopyProfileLink}
-              aria-label="Copy profile link"
-            >
-              <Share2 className="h-4 w-4" />
-            </Button>
+            {resolvedAddress && isValidAddress(resolvedAddress) && (
+              <FollowToggle address={resolvedAddress} />
+            )}
+            {resolvedAddress && isValidAddress(resolvedAddress) && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon-sm"
+                      onClick={() => setQrModalOpen(true)}
+                      aria-label="QR Code"
+                      className="h-7 w-7"
+                    >
+                      <QrCode className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>QR Code</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            <PublicProfileShareMenu 
+              address={profile?.address || params.id} 
+              slug={profile?.slug}
+            />
             {profileStatus === 'UNCLAIMED' && profile?.address && (
               <ClaimProfileButton address={profile.address} onSuccess={handleClaimSuccess} />
             )}
@@ -255,9 +341,52 @@ export default function ProfilePage({ params }: PageProps) {
           </CardContent>
         </Card>
       ) : walletData ? (
-        <div className="grid gap-6 md:grid-cols-3">
-          {/* Summary Column */}
-          <Card>
+        <div className="space-y-6">
+          {/* Profile Info Card - only show if claimed and public */}
+          {isClaimed && !isPrivate && (profile?.bio || (profile?.socialLinks && profile.socialLinks.length > 0)) && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Profile</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {profile?.bio && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">{profile.bio}</p>
+                  </div>
+                )}
+                {profile?.socialLinks && profile.socialLinks.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-medium text-muted-foreground">Social Links</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.socialLinks.map((link, idx) => (
+                        <Button
+                          key={link.id || idx}
+                          variant="outline"
+                          size="sm"
+                          asChild
+                          className="h-7"
+                        >
+                          <a
+                            href={getSocialUrl(link)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5"
+                          >
+                            {getSocialIcon(link.platform || link.type || 'website')}
+                            <span className="text-xs">{getSocialLabel(link)}</span>
+                          </a>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          <div className="grid gap-6 md:grid-cols-3">
+            {/* Summary Column */}
+            <Card>
             <CardHeader>
               <CardTitle>Summary</CardTitle>
               <CardDescription>Wallet overview</CardDescription>
@@ -360,8 +489,23 @@ export default function ProfilePage({ params }: PageProps) {
               </div>
             </CardContent>
           </Card>
+          </div>
         </div>
       ) : null}
+      
+      {/* QR Code Modal for current profile */}
+      {resolvedAddress && isValidAddress(resolvedAddress) && (
+        <QRCodeModal
+          open={qrModalOpen}
+          onOpenChange={setQrModalOpen}
+          profile={{
+            address: resolvedAddress,
+            slug: profile?.slug || null,
+            displayName: profile?.displayName || null,
+            avatarUrl: `https://effigy.im/a/${resolvedAddress}.svg`,
+          }}
+        />
+      )}
     </div>
   )
 }

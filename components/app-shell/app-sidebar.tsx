@@ -1,7 +1,6 @@
 'use client'
 
-import { usePathname, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
+import { usePathname, useSearchParams, useRouter } from 'next/navigation'
 import {
   Sidebar,
   SidebarContent,
@@ -11,62 +10,59 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
-  useSidebar,
+  SidebarRail,
 } from '@/components/ui/sidebar'
 import { LayoutDashboard, Wallet, Activity, Settings, Users } from 'lucide-react'
 import { formatAddress } from '@/lib/utils'
 
-interface DashboardSidebarProps {
+interface AppSidebarProps {
   address: string
 }
 
-export function DashboardSidebar({ address }: DashboardSidebarProps) {
+const menuItems = [
+  {
+    title: 'Overview',
+    icon: LayoutDashboard,
+    value: 'overview',
+  },
+  {
+    title: 'Assets',
+    icon: Wallet,
+    value: 'assets',
+  },
+  {
+    title: 'Activity',
+    icon: Activity,
+    value: 'activity',
+  },
+  {
+    title: 'Social',
+    icon: Users,
+    value: 'social',
+  },
+  {
+    title: 'Settings',
+    icon: Settings,
+    value: 'settings',
+  },
+]
+
+export function AppSidebar({ address }: AppSidebarProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const { setOpenMobile, isMobile } = useSidebar()
+  const router = useRouter()
   const currentTab = searchParams.get('tab') || 'overview'
 
-  const menuItems = [
-    {
-      title: 'Overview',
-      icon: LayoutDashboard,
-      value: 'overview',
-    },
-    {
-      title: 'Assets',
-      icon: Wallet,
-      value: 'assets',
-    },
-    {
-      title: 'Activity',
-      icon: Activity,
-      value: 'activity',
-    },
-    {
-      title: 'Social',
-      icon: Users,
-      value: 'social',
-    },
-    {
-      title: 'Settings',
-      icon: Settings,
-      value: 'settings',
-    },
-  ]
-
-  const handleLinkClick = () => {
-    // Close sidebar on mobile after selection
-    if (isMobile) {
-      setOpenMobile(false)
-    }
+  const handleTabChange = (value: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('tab', value)
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false })
   }
 
   return (
-    <Sidebar side="left" variant="sidebar" collapsible="icon">
+    <Sidebar collapsible="icon">
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-1.5">
-          <SidebarTrigger className="md:hidden" />
           <div className="flex flex-col space-y-1 flex-1">
             <h2 className="text-lg font-semibold">Dashboard</h2>
             <p className="text-xs text-muted-foreground font-mono">
@@ -82,18 +78,16 @@ export function DashboardSidebar({ address }: DashboardSidebarProps) {
               {menuItems.map((item) => {
                 const Icon = item.icon
                 const isActive = currentTab === item.value
-                const href = `${pathname}?tab=${item.value}`
                 
                 return (
                   <SidebarMenuItem key={item.value}>
                     <SidebarMenuButton
-                      asChild
+                      onClick={() => handleTabChange(item.value)}
                       isActive={isActive}
+                      tooltip={item.title}
                     >
-                      <Link href={href} onClick={handleLinkClick} title={item.title}>
-                        <Icon />
-                        <span>{item.title}</span>
-                      </Link>
+                      <Icon />
+                      <span>{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )
@@ -102,6 +96,7 @@ export function DashboardSidebar({ address }: DashboardSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarRail />
     </Sidebar>
   )
 }

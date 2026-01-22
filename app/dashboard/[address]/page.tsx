@@ -8,16 +8,15 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
-import { Share2, Wallet, Loader2 } from 'lucide-react'
+import { Wallet, Loader2, Copy } from 'lucide-react'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import Link from 'next/link'
 import { ClaimProfileButton } from '@/components/claim-profile-button'
-import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
-import { DashboardSidebar } from '@/components/dashboard/dashboard-sidebar'
 import { OverviewPanel } from '@/components/dashboard/overview-panel'
 import { AssetsPanel } from '@/components/dashboard/assets-panel'
 import { ActivityPanel } from '@/components/dashboard/activity-panel'
 import { SettingsPanel } from '@/components/dashboard/settings-panel'
+import { SocialPanel } from '@/components/dashboard/social-panel'
 
 interface Profile {
   id: string
@@ -27,6 +26,9 @@ interface Profile {
   status: string
   visibility: string
   claimedAt: string | null
+  displayName?: string | null
+  bio?: string | null
+  socialLinks?: Array<{ type: string; url: string; label?: string }> | null
 }
 
 interface WalletData {
@@ -73,7 +75,7 @@ export default function DashboardAddressPage() {
   const currentTab = searchParams.get('tab') || 'overview'
   
   // Validate tab value
-  const validTabs = ['overview', 'assets', 'activity', 'settings']
+  const validTabs = ['overview', 'assets', 'activity', 'social', 'settings']
   const activeTab = validTabs.includes(currentTab) ? currentTab : 'overview'
 
   useEffect(() => {
@@ -122,7 +124,32 @@ export default function DashboardAddressPage() {
 
       // Always set profile state (null if not found)
       if (data.profile) {
-        setProfile(data.profile)
+        // Parse socialLinks if it's a string (from DB)
+        let parsedSocialLinks = data.profile.socialLinks
+        if (typeof parsedSocialLinks === 'string') {
+          try {
+            parsedSocialLinks = JSON.parse(parsedSocialLinks)
+          } catch {
+            parsedSocialLinks = null
+          }
+        }
+        
+        // Ensure all links have id and platform field
+        const normalizedLinks = parsedSocialLinks && Array.isArray(parsedSocialLinks)
+          ? parsedSocialLinks.map((link: any) => ({
+              id: link.id || crypto.randomUUID(),
+              platform: link.platform || link.type || 'website',
+              url: link.url || '',
+              label: link.label || '',
+            }))
+          : null
+        
+        setProfile({
+          ...data.profile,
+          displayName: data.profile.displayName || null,
+          bio: data.profile.bio || null,
+          socialLinks: normalizedLinks,
+        })
       } else {
         // Explicitly set to null if no profile exists
         setProfile(null)
@@ -147,6 +174,13 @@ export default function DashboardAddressPage() {
     router.refresh()
     // Navigate to dashboard with normalized address
     router.replace(`/dashboard/${normalizedAddress}`)
+  }
+
+  const handleSettingsUpdate = async () => {
+    // Reload data from DB to get fresh state
+    await loadData()
+    // Refresh router cache to ensure all components see updated data
+    router.refresh()
   }
 
 
@@ -227,9 +261,9 @@ export default function DashboardAddressPage() {
                 )}
               </>
             )}
-            <div className="flex gap-2">
-              <Link href="/dashboard" className="flex-1">
-                <Button variant="outline" size="sm" className="w-full">Back to Dashboard</Button>
+            <div className="flex items-center gap-2">
+              <Link href="/dashboard">
+                <Button variant="outline" size="sm">Back to Dashboard</Button>
               </Link>
             </div>
           </CardContent>
@@ -252,6 +286,20 @@ export default function DashboardAddressPage() {
   // If profile.status === "CLAIMED", render the owner dashboard instead
   if (!profile || profile.status === 'UNCLAIMED') {
     const normalizedAddress = targetAddress.toLowerCase()
+    const normalizedConnectedAddress = connectedAddress?.toLowerCase()
+    
+    // Check for address mismatch when wallet is connected
+    const hasMismatch = isConnected && normalizedConnectedAddress && normalizedConnectedAddress !== normalizedAddress
+
+    const handleCopyProfileAddress = async () => {
+      try {
+        await navigator.clipboard.writeText(targetAddress)
+        toast.success('Copied')
+      } catch (error) {
+        toast.error('Copy failed')
+      }
+    }
+
     return (
       <div className="space-y-6">
         <div>
@@ -266,15 +314,50 @@ export default function DashboardAddressPage() {
             <CardDescription>This profile is not claimed yet. Please claim it first to manage it.</CardDescription>
           </CardHeader>
           <CardContent className="pt-6 space-y-4">
-            <ClaimProfileButton address={normalizedAddress} onSuccess={handleClaimSuccess} />
-            <div className="flex gap-2">
-              <Link href={`/p/${normalizedAddress}`}>
-                <Button variant="outline" size="sm">View Public Profile</Button>
-              </Link>
-              <Link href="/dashboard">
-                <Button variant="ghost" size="sm">Back to Dashboard</Button>
-              </Link>
-            </div>
+            {hasMismatch ? (
+              <>
+                <Alert variant="destructive">
+                  <AlertDescription>
+                    <p className="font-semibold mb-1">Connected wallet does not match this profile</p>
+                    <p className="text-sm">
+                      To manage or claim this profile, switch your wallet to {formatAddress(targetAddress)}.
+                    </p>
+                  </AlertDescription>
+                </Alert>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => router.push(`/dashboard/${normalizedConnectedAddress}`)}
+                  >
+                    Go to My Dashboard
+                  </Button>
+                  <Link href={`/p/${normalizedAddress}`}>
+                    <Button variant="outline" size="sm">View Public Profile</Button>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={handleCopyProfileAddress}
+                    aria-label="Copy profile address"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <ClaimProfileButton address={normalizedAddress} onSuccess={handleClaimSuccess} />
+                <div className="flex items-center gap-2">
+                  <Link href={`/p/${normalizedAddress}`}>
+                    <Button variant="outline" size="sm">View Public Profile</Button>
+                  </Link>
+                  <Link href="/dashboard">
+                    <Button variant="ghost" size="sm">Back to Dashboard</Button>
+                  </Link>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -285,6 +368,18 @@ export default function DashboardAddressPage() {
   const isOwner = profile.ownerAddress?.toLowerCase() === connectedAddress?.toLowerCase()
 
   if (!isOwner) {
+    const normalizedConnectedAddress = connectedAddress?.toLowerCase()
+    const normalizedTargetAddress = targetAddress.toLowerCase()
+
+    const handleCopyProfileAddress = async () => {
+      try {
+        await navigator.clipboard.writeText(targetAddress)
+        toast.success('Copied')
+      } catch (error) {
+        toast.error('Copy failed')
+      }
+    }
+
     return (
       <div className="space-y-6">
         <div>
@@ -293,51 +388,48 @@ export default function DashboardAddressPage() {
             {formatAddress(targetAddress)}
           </p>
         </div>
-        <Alert variant="destructive">
-          <AlertDescription className="space-y-2">
-            <p>
-              You are connected as <span className="font-mono">{formatAddress(connectedAddress || '')}</span>.
-            </p>
-            <p>
-              This profile is owned by <span className="font-mono">{formatAddress(profile.ownerAddress || '')}</span>.
-            </p>
-            <p className="mt-2">
-              Please switch to the correct account in your wallet or select a different profile to manage.
-            </p>
-          </AlertDescription>
-        </Alert>
-        <div className="flex gap-2">
-          <Button
-            variant="default"
-            size="sm"
-            onClick={() => {
-              toast.info('Please switch accounts in your wallet extension')
-            }}
-          >
-            Switch Account in Wallet
-          </Button>
-          <Link href="/dashboard">
-            <Button variant="outline" size="sm">Back to Dashboard</Button>
-          </Link>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Access Restricted</CardTitle>
+            <CardDescription>This profile is owned by a different wallet address</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-4">
+            <Alert variant="destructive">
+              <AlertDescription>
+                <p className="font-semibold mb-1">Connected wallet does not match this profile</p>
+                <p className="text-sm">
+                  To manage this profile, switch your wallet to {formatAddress(profile.ownerAddress || targetAddress)}.
+                </p>
+              </AlertDescription>
+            </Alert>
+            <div className="flex items-center gap-2">
+              {normalizedConnectedAddress && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => router.push(`/dashboard/${normalizedConnectedAddress}`)}
+                >
+                  Go to My Dashboard
+                </Button>
+              )}
+              <Link href={`/p/${normalizedTargetAddress}`}>
+                <Button variant="outline" size="sm">View Public Profile</Button>
+              </Link>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={handleCopyProfileAddress}
+                aria-label="Copy profile address"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
-  const handleCopyProfileLink = async () => {
-    if (!profile) return
-
-    const profileUrl = profile.slug 
-      ? `${window.location.origin}/p/${profile.slug}`
-      : `${window.location.origin}/p/${targetAddress}`
-
-    try {
-      await navigator.clipboard.writeText(profileUrl)
-      toast.success('Link copied')
-    } catch (error) {
-      toast.error('Copy failed')
-    }
-  }
 
   // Owner view - show full dashboard with sidebar
   const normalizedAddress = targetAddress.toLowerCase()
@@ -349,49 +441,27 @@ export default function DashboardAddressPage() {
 
     switch (activeTab) {
       case 'overview':
-        return <OverviewPanel walletData={walletData} />
+        return <OverviewPanel walletData={walletData} profile={profile ? { displayName: profile.displayName, bio: profile.bio, socialLinks: profile.socialLinks } : null} address={normalizedAddress} />
       case 'assets':
         return <AssetsPanel walletData={walletData} />
       case 'activity':
         return <ActivityPanel walletData={walletData} />
+      case 'social':
+        return <SocialPanel address={normalizedAddress} />
       case 'settings':
         return profile ? (
-          <SettingsPanel profile={profile} targetAddress={targetAddress} onUpdate={loadData} />
+          <SettingsPanel profile={profile} targetAddress={targetAddress} onUpdate={handleSettingsUpdate} />
         ) : (
           <Skeleton className="h-64 w-full" />
         )
       default:
-        return <OverviewPanel walletData={walletData} />
+        return <OverviewPanel walletData={walletData} profile={profile ? { displayName: profile.displayName, bio: profile.bio, socialLinks: profile.socialLinks } : null} address={normalizedAddress} />
     }
   }
 
   return (
-    <SidebarProvider>
-      <DashboardSidebar address={normalizedAddress} />
-      <SidebarInset>
-        <div className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger />
-          <div className="flex items-center justify-between flex-1">
-            <div>
-              <h1 className="text-xl font-semibold">Dashboard</h1>
-              <p className="text-sm text-muted-foreground">
-                {formatAddress(targetAddress)}
-              </p>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={handleCopyProfileLink}
-              aria-label="Copy profile link"
-            >
-              <Share2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-        <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
-          {renderPanel()}
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+    <div className="flex flex-1 flex-col">
+      {renderPanel()}
+    </div>
   )
 }

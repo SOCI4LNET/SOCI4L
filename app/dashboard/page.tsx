@@ -9,10 +9,24 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, Copy } from 'lucide-react'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Loader2, Copy, Twitter, Github, Globe } from 'lucide-react'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import { toast } from 'sonner'
 import Link from 'next/link'
+
+interface ProfileData {
+  displayName?: string | null
+  bio?: string | null
+  socialLinks?: Array<{ type: string; url: string; label?: string }> | null
+}
+
+interface WalletData {
+  nativeBalance: string
+  txCount: number
+  tokenBalances?: Array<any>
+  nfts?: Array<any>
+}
 
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false)
@@ -20,6 +34,8 @@ export default function DashboardPage() {
   const { address: connectedAddress, isConnected } = useAccount()
   const { connect, connectors, isPending: isConnecting } = useConnect()
   const router = useRouter()
+  const [profile, setProfile] = useState<ProfileData | null>(null)
+  const [walletData, setWalletData] = useState<WalletData | null>(null)
   const [hasClaimedProfile, setHasClaimedProfile] = useState(false)
   const [loading, setLoading] = useState(true)
 
@@ -33,23 +49,42 @@ export default function DashboardPage() {
       return
     }
 
-    // Check if connected address has a claimed profile
-    const checkProfile = async () => {
+    // Fetch profile and wallet data
+    const fetchData = async () => {
       try {
-        const response = await fetch(`/api/wallet?address=${connectedAddress}`)
+        const normalizedAddress = connectedAddress.toLowerCase()
+        const response = await fetch(`/api/wallet?address=${normalizedAddress}`, {
+          cache: 'no-store',
+        })
         const data = await response.json()
         
-        if (data.profile && data.profile.status === 'CLAIMED') {
-          setHasClaimedProfile(true)
+        if (data.profile) {
+          setProfile({
+            displayName: data.profile.displayName,
+            bio: data.profile.bio,
+            socialLinks: data.profile.socialLinks,
+          })
+          if (data.profile.status === 'CLAIMED') {
+            setHasClaimedProfile(true)
+          }
+        }
+        
+        if (data.walletData) {
+          setWalletData({
+            nativeBalance: data.walletData.nativeBalance,
+            txCount: data.walletData.txCount,
+            tokenBalances: data.walletData.tokenBalances,
+            nfts: data.walletData.nfts,
+          })
         }
       } catch (error) {
-        console.error('Error checking profile:', error)
+        console.error('Error fetching data:', error)
       } finally {
         setLoading(false)
       }
     }
 
-    checkProfile()
+    fetchData()
   }, [mounted, isConnected, connectedAddress])
 
   const handleAddressSubmit = () => {
@@ -74,37 +109,41 @@ export default function DashboardPage() {
     
     try {
       await navigator.clipboard.writeText(connectedAddress)
-      toast.success('Address copied')
+      toast.success('Copied')
     } catch (error) {
       toast.error('Copy failed')
     }
   }
 
+  const getSocialIcon = (type: string) => {
+    const normalizedType = type.toLowerCase()
+    if (normalizedType.includes('twitter') || normalizedType.includes('x')) {
+      return <Twitter className="h-3.5 w-3.5" />
+    } else if (normalizedType.includes('github')) {
+      return <Github className="h-3.5 w-3.5" />
+    } else {
+      return <Globe className="h-3.5 w-3.5" />
+    }
+  }
+
   if (!mounted) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-10 w-64" />
-        <Skeleton className="h-64 w-full" />
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-48 w-full" />
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">
-          Select a profile to manage
-        </p>
-      </div>
-
+    <div className="space-y-4">
       {!isConnected ? (
         <Card>
-          <CardHeader>
-            <CardTitle>Wallet Connection Required</CardTitle>
-            <CardDescription>Connect your wallet to access the dashboard</CardDescription>
+          <CardHeader className="p-4 pb-3">
+            <CardTitle className="text-base font-semibold">Wallet Connection Required</CardTitle>
+            <CardDescription className="text-xs">Connect your wallet to access the dashboard</CardDescription>
           </CardHeader>
-          <CardContent className="pt-6">
+          <CardContent className="p-4 pt-0">
             {connectors.length > 0 ? (
               <Button
                 onClick={() => connect({ connector: connectors[0] })}
@@ -123,62 +162,147 @@ export default function DashboardPage() {
                 )}
               </Button>
             ) : (
-              <p className="text-center text-muted-foreground">
+              <p className="text-center text-sm text-muted-foreground">
                 No wallet connectors available
               </p>
             )}
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6">
-          {/* Current connected address */}
+        <>
+          {/* Dashboard Header */}
+          <div className="flex items-center justify-between border-b pb-3">
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-sm text-muted-foreground">
+                {formatAddress(connectedAddress || '', 4)}
+              </span>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                onClick={handleCopyAddress}
+                aria-label="Copy address"
+                title="Copy address"
+                className="h-7 w-7"
+              >
+                <Copy className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+            {loading ? (
+              <Skeleton className="h-7 w-24" />
+            ) : hasClaimedProfile ? (
+              <Link href={`/dashboard/${connectedAddress?.toLowerCase()}`}>
+                <Button variant="default" size="sm">Manage Profile</Button>
+              </Link>
+            ) : (
+              <Link href={`/dashboard/${connectedAddress?.toLowerCase()}`}>
+                <Button variant="outline" size="sm">Claim Profile</Button>
+              </Link>
+            )}
+          </div>
+
+          {/* Profile Summary Card */}
           <Card>
-            <CardHeader>
-              <CardTitle>Connected Wallet</CardTitle>
-              <CardDescription>Your currently connected wallet address</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-mono text-sm">{formatAddress(connectedAddress || '')}</p>
-                    <Button
-                      variant="ghost"
-                      size="icon-xs"
-                      onClick={handleCopyAddress}
-                      aria-label="Copy address"
-                    >
-                      <Copy className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">Current account</p>
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <Avatar className="h-12 w-12">
+                  <AvatarImage 
+                    src={connectedAddress ? `https://effigy.im/a/${connectedAddress}.svg` : undefined}
+                    alt={profile?.displayName || formatAddress(connectedAddress || '')}
+                  />
+                  <AvatarFallback className="text-xs">
+                    {connectedAddress ? connectedAddress.slice(2, 4).toUpperCase() : '??'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  {loading ? (
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-full" />
+                      <Skeleton className="h-3 w-3/4" />
+                    </div>
+                  ) : profile?.displayName ? (
+                    <>
+                      <h2 className="text-sm font-semibold mb-1">{profile.displayName}</h2>
+                      {profile.bio && (
+                        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mb-2">
+                          {profile.bio}
+                        </p>
+                      )}
+                      {profile.socialLinks && profile.socialLinks.length > 0 && (
+                        <div className="flex items-center gap-2 mt-2">
+                          {profile.socialLinks.map((link, idx) => (
+                            <a
+                              key={idx}
+                              href={link.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-muted-foreground hover:text-foreground transition-colors"
+                              title={link.label || link.type}
+                            >
+                              {getSocialIcon(link.type)}
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground">
+                        {formatAddress(connectedAddress || '')}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Profile not claimed yet
+                      </p>
+                    </div>
+                  )}
                 </div>
-                {loading ? (
-                  <Skeleton className="h-8 w-32" />
-                ) : hasClaimedProfile ? (
-                  <Link href={`/dashboard/${connectedAddress?.toLowerCase()}`}>
-                    <Button variant="default" size="sm">Manage My Profile</Button>
-                  </Link>
-                ) : (
-                  <Link href={`/dashboard/${connectedAddress?.toLowerCase()}`}>
-                    <Button variant="outline" size="sm">Claim Profile</Button>
-                  </Link>
-                )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Address input for other profiles */}
+          {/* Wallet Stats */}
+          {walletData && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <Card>
+                <CardContent className="p-3">
+                  <p className="text-xs text-muted-foreground mb-1">AVAX Balance</p>
+                  <p className="text-sm font-semibold">
+                    {parseFloat(walletData.nativeBalance).toFixed(4)} AVAX
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-3">
+                  <p className="text-xs text-muted-foreground mb-1">Transactions</p>
+                  <p className="text-sm font-semibold">{walletData.txCount}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-3">
+                  <p className="text-xs text-muted-foreground mb-1">Tokens</p>
+                  <p className="text-sm font-semibold">{walletData.tokenBalances?.length || 0}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-3">
+                  <p className="text-xs text-muted-foreground mb-1">NFTs</p>
+                  <p className="text-sm font-semibold">{walletData.nfts?.length || 0}</p>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Manage Another Profile */}
           <Card>
-            <CardHeader>
-              <CardTitle>Manage Another Profile</CardTitle>
-              <CardDescription>
-                Enter a wallet address to manage its profile (if you own it)
+            <CardHeader className="p-4 pb-3">
+              <CardTitle className="text-sm font-medium">Manage Another Profile</CardTitle>
+              <CardDescription className="text-xs">
+                Enter a wallet address to manage its profile
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="p-4 pt-0">
               <div className="space-y-2">
-                <Label htmlFor="address">Wallet Address</Label>
+                <Label htmlFor="address" className="text-xs">Wallet Address</Label>
                 <div className="flex gap-2">
                   <Input
                     id="address"
@@ -186,12 +310,13 @@ export default function DashboardPage() {
                     value={addressInput}
                     onChange={(e) => setAddressInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    className="flex-1"
+                    className="flex-1 h-8 text-sm"
                   />
                   <Button
                     onClick={handleAddressSubmit}
                     disabled={!isValidAddress(addressInput.trim())}
                     size="sm"
+                    variant="outline"
                   >
                     Go
                   </Button>
@@ -201,16 +326,12 @@ export default function DashboardPage() {
           </Card>
 
           {/* Info about account switching */}
-          <Alert>
-            <AlertDescription>
-              <p className="font-semibold mb-1">Multiple Accounts?</p>
-              <p className="text-sm">
-                If you have multiple accounts in your wallet, switch accounts in your wallet extension,
-                then click "Manage My Profile" above or enter the address manually.
-              </p>
+          <Alert className="py-2">
+            <AlertDescription className="text-xs">
+              <span className="font-medium">Multiple Accounts?</span> Switch accounts in your wallet extension, then click "Manage Profile" above or enter the address manually.
             </AlertDescription>
           </Alert>
-        </div>
+        </>
       )}
     </div>
   )

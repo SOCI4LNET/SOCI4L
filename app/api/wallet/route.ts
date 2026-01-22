@@ -65,6 +65,15 @@ export async function GET(request: NextRequest) {
         owner: profile.owner,
         ownerAddress: profile.ownerAddress,
         claimedAt: profile.claimedAt,
+        displayName: profile.displayName,
+        bio: profile.bio,
+        socialLinks: profile.socialLinks ? (() => {
+          try {
+            return JSON.parse(profile.socialLinks)
+          } catch {
+            return null
+          }
+        })() : null,
       } : null,
     })
   } catch (error) {

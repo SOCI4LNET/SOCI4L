@@ -23,9 +23,9 @@ export function SiteHeader() {
           <Link href="/" className="text-xl font-bold">
             Avalanche Profile Hub
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             {!mounted ? (
-              <div className="h-9 w-9" /> // Placeholder for avatar
+              <div className="h-8 w-8" />
             ) : isConnected ? (
               <ProfileDropdown />
             ) : (
