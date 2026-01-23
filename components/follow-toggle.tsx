@@ -14,7 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Bookmark as BookmarkIcon } from 'lucide-react'
+import { Bookmark as BookmarkIcon, Users, UserPlus } from 'lucide-react'
 import { toast } from 'sonner'
 import { isValidAddress } from '@/lib/utils'
 
@@ -341,9 +341,21 @@ export function FollowStats({ address }: { address: string }) {
   }
 
   return (
-    <div className="flex items-center gap-3 text-sm text-muted-foreground">
-      <span>Followers {followersCount}</span>
-      <span>Following {followingCount}</span>
+    <div className="flex items-center gap-5">
+      <div className="flex items-center gap-2">
+        <Users className="h-4 w-4 text-muted-foreground" />
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-sm text-muted-foreground">Followers</span>
+          <span className="text-base font-semibold text-foreground">{followersCount}</span>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <UserPlus className="h-4 w-4 text-muted-foreground" />
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-sm text-muted-foreground">Following</span>
+          <span className="text-base font-semibold text-foreground">{followingCount}</span>
+        </div>
+      </div>
     </div>
   )
 }

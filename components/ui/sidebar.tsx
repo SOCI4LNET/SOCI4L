@@ -13,10 +13,12 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
+const SIDEBAR_LOCALSTORAGE_KEY = "soc4l_sidebar_collapsed"
 const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
+const SIDEBAR_MOBILE_BREAKPOINT = 1024 // lg breakpoint
 
 type SidebarContext = {
   state: "expanded" | "collapsed"
@@ -50,29 +52,58 @@ const SidebarProvider = React.forwardRef<
   const [openMobile, setOpenMobile] = React.useState(false)
   const [isMobile, setIsMobile] = React.useState(false)
 
+  // Load persisted sidebar state from localStorage (desktop only)
+  const getInitialOpenState = React.useCallback(() => {
+    if (typeof window === "undefined") return defaultOpen
+    
+    // On desktop, check localStorage for persisted state
+    if (window.innerWidth >= SIDEBAR_MOBILE_BREAKPOINT) {
+      const persisted = localStorage.getItem(SIDEBAR_LOCALSTORAGE_KEY)
+      if (persisted !== null) {
+        return persisted === "false" // stored as string
+      }
+    }
+    
+    return defaultOpen
+  }, [defaultOpen])
+
   // Handle controlled/uncontrolled state
-  const [internalOpen, setInternalOpen] = React.useState(defaultOpen)
+  const [internalOpen, setInternalOpen] = React.useState(getInitialOpenState)
   const open = openProp ?? internalOpen
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
       const newOpen = typeof value === "function" ? value(open) : value
       if (openProp === undefined) {
         setInternalOpen(newOpen)
+        
+        // Persist to localStorage on desktop (only when collapsed)
+        if (typeof window !== "undefined" && window.innerWidth >= SIDEBAR_MOBILE_BREAKPOINT) {
+          localStorage.setItem(SIDEBAR_LOCALSTORAGE_KEY, String(!newOpen))
+        }
       }
       onOpenChange?.(newOpen)
     },
     [open, openProp, onOpenChange]
   )
 
-  // Mobile detection
+  // Mobile detection (lg breakpoint: 1024px)
   React.useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
+      const isMobileView = window.innerWidth < SIDEBAR_MOBILE_BREAKPOINT
+      setIsMobile(isMobileView)
+      
+      // On desktop, restore persisted state
+      if (!isMobileView && openProp === undefined) {
+        const persisted = localStorage.getItem(SIDEBAR_LOCALSTORAGE_KEY)
+        if (persisted !== null) {
+          setInternalOpen(persisted === "false")
+        }
+      }
     }
     checkMobile()
     window.addEventListener("resize", checkMobile)
     return () => window.removeEventListener("resize", checkMobile)
-  }, [])
+  }, [openProp])
 
   // Keyboard shortcut
   React.useEffect(() => {
@@ -129,7 +160,7 @@ const SidebarProvider = React.forwardRef<
 SidebarProvider.displayName = "SidebarProvider"
 
 const sidebarVariants = cva(
-  "group/sidebar flex h-full w-[--sidebar-width] flex-col bg-background text-sidebar-foreground transition-[width] duration-200 ease-linear border-r border-sidebar-border",
+  "group/sidebar flex h-full flex-col bg-background text-sidebar-foreground transition-[width] duration-200 ease-linear border-r border-sidebar-border",
   {
     variants: {
       variant: {
@@ -178,10 +209,20 @@ const Sidebar = React.forwardRef<
     )
   }
 
+  // Determine width based on collapsed state
+  const widthClass = state === "collapsed" && collapsible === "icon" 
+    ? "w-[--sidebar-width-icon]" 
+    : "w-[--sidebar-width]"
+  
+  // Add overflow-hidden when collapsed to prevent text from showing
+  const overflowClass = state === "collapsed" && collapsible === "icon"
+    ? "overflow-hidden"
+    : ""
+
   return (
     <aside
       ref={ref}
-      className={cn(sidebarVariants({ variant, side }), className)}
+      className={cn(sidebarVariants({ variant, side }), widthClass, overflowClass, className)}
       data-state={state}
       data-collapsible={state === "collapsed" ? collapsible : ""}
       data-sidebar="sidebar"
@@ -198,14 +239,14 @@ const SidebarTrigger = React.forwardRef<
   React.ElementRef<typeof Button>,
   React.ComponentProps<typeof Button>
 >(({ className, onClick, ...props }, ref) => {
-  const { toggleSidebar, openMobile, setOpenMobile, isMobile } = useSidebar()
+  const { toggleSidebar, openMobile, setOpenMobile, isMobile, open } = useSidebar()
 
   return (
     <Button
       ref={ref}
       data-sidebar="trigger"
       variant="ghost"
-      size="icon-sm"
+      size="icon"
       className={cn(className)}
       onClick={(event) => {
         onClick?.(event)
@@ -215,6 +256,8 @@ const SidebarTrigger = React.forwardRef<
           toggleSidebar()
         }
       }}
+      aria-label="Toggle sidebar"
+      aria-expanded={isMobile ? openMobile : open}
       {...props}
     >
       <PanelLeft />
@@ -262,7 +305,7 @@ const SidebarHeader = React.forwardRef<HTMLDivElement, React.ComponentProps<"div
       <div
         ref={ref}
         data-sidebar="header"
-        className={cn("flex h-14 shrink-0 items-center gap-2 border-b border-sidebar-border px-4", className)}
+        className={cn("flex h-14 shrink-0 items-center gap-2 border-b border-sidebar-border px-4 group-data-[collapsible=icon]:px-2", className)}
         {...props}
       />
     )
@@ -318,7 +361,7 @@ const SidebarGroupLabel = React.forwardRef<HTMLDivElement, React.ComponentProps<
       <div
         ref={ref}
         data-sidebar="group-label"
-        className={cn("duration-200 flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/70 outline-none ring-sidebar-ring transition-[margin,opa] ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0", "group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0", className)}
+        className={cn("duration-200 flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/70 outline-none ring-sidebar-ring transition-[margin,opa] ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0", "group-data-[collapsible=icon]:hidden", className)}
         {...props}
       />
     )

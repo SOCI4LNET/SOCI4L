@@ -159,8 +159,8 @@ export function HeaderActions() {
         {/* Avatar dropdown - all actions inside */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-              <Avatar className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-8 w-8 min-h-8 min-w-8 rounded-full shrink-0">
+              <Avatar className="h-8 w-8 min-h-8 min-w-8 shrink-0">
                 {!imageError && (
                   <AvatarImage 
                     src={avatarUrl} 

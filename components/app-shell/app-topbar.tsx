@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/breadcrumb'
 import { HeaderActions } from './header-actions'
 import { usePathname, useSearchParams } from 'next/navigation'
+import { PAGE_GUTTER } from '@/lib/layout-constants'
 
 const tabLabels: Record<string, string> = {
   overview: 'Overview',
@@ -21,6 +22,10 @@ const tabLabels: Record<string, string> = {
   settings: 'Settings',
 }
 
+/**
+ * ShellHeaderRow - Full-width header/breadcrumb row that uses shared gutter spacing.
+ * This ensures perfect alignment with page content containers.
+ */
 export function AppTopbar() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -28,12 +33,12 @@ export function AppTopbar() {
   const tabLabel = tabLabels[currentTab] || 'Overview'
 
   return (
-    <header className="sticky top-0 z-50 flex h-14 items-center gap-2 border-b border-border bg-background/80 px-4 backdrop-blur transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-      <div className="flex items-center gap-2">
+    <header className={`sticky top-0 z-50 flex h-14 min-h-[3.5rem] items-center gap-2 border-b border-border bg-background/80 ${PAGE_GUTTER} backdrop-blur transition-[width] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 group-has-data-[collapsible=icon]/sidebar-wrapper:min-h-[3rem]`}>
+      <div className="flex items-center gap-2 shrink-0">
         <SidebarTrigger className="-ml-1" />
         <Separator
           orientation="vertical"
-          className="mr-2 h-4"
+          className="mr-2 h-4 shrink-0"
         />
         <Breadcrumb>
           <BreadcrumbList>
@@ -49,7 +54,7 @@ export function AppTopbar() {
           </BreadcrumbList>
         </Breadcrumb>
       </div>
-      <div className="flex flex-1 items-center justify-end gap-2">
+      <div className="flex flex-1 items-center justify-end gap-2 shrink-0">
         <HeaderActions />
       </div>
     </header>

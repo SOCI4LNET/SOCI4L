@@ -4,10 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Twitter, Github, Globe, RefreshCw } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Twitter, Github, Globe, RefreshCw, CheckCircle2, Activity, Coins } from 'lucide-react'
 import { formatAddress } from '@/lib/utils'
 import Link from 'next/link'
 import { PageShell } from '@/components/app-shell/page-shell'
+import { ClaimProfileButton } from '@/components/claim-profile-button'
 
 interface WalletData {
   address: string
@@ -127,6 +129,38 @@ export function OverviewPanel({ walletData, profile, address }: OverviewPanelPro
         </CardContent>
       </Card>
 
+      {/* Profile Status Section */}
+      {!isLoading && (
+        <Card className="bg-card border border-border/60 shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                {profile?.displayName ? (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <div>
+                      <p className="text-xs font-medium">Profile Status</p>
+                      <p className="text-xs text-muted-foreground">Claimed</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/40" />
+                    <div>
+                      <p className="text-xs font-medium">Profile Status</p>
+                      <p className="text-xs text-muted-foreground">Unclaimed</p>
+                    </div>
+                  </>
+                )}
+              </div>
+              {!profile?.displayName && (
+                <ClaimProfileButton address={address} />
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Wallet Stats */}
       {isLoading ? (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -218,11 +252,14 @@ export function OverviewPanel({ walletData, profile, address }: OverviewPanelPro
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <p className="text-sm font-medium mb-1">No activity yet</p>
-                <p className="text-xs text-muted-foreground mb-4">
-                  Connect a wallet and start exploring.
-                </p>
+              <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
+                <Activity className="h-10 w-10 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium mb-1">No activity yet</p>
+                  <p className="text-xs text-muted-foreground">
+                    Connect a wallet and start exploring.
+                  </p>
+                </div>
                 <Link href={`/p/${address}`}>
                   <Button variant="outline" size="sm">
                     View public profile
@@ -283,11 +320,14 @@ export function OverviewPanel({ walletData, profile, address }: OverviewPanelPro
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <p className="text-sm font-medium mb-1">No assets found</p>
-                <p className="text-xs text-muted-foreground mb-4">
-                  This wallet has no tokens or NFTs to display.
-                </p>
+              <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
+                <Coins className="h-10 w-10 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium mb-1">No assets found</p>
+                  <p className="text-xs text-muted-foreground">
+                    This wallet has no tokens or NFTs to display.
+                  </p>
+                </div>
                 <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
                   <RefreshCw className="mr-2 h-3 w-3" />
                   Refresh

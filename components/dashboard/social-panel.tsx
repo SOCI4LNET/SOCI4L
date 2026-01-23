@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ExternalLink, Users, UserPlus } from 'lucide-react'
 import { formatAddress, isValidAddress } from '@/lib/utils'
@@ -138,9 +137,11 @@ export function SocialPanel({ address }: SocialPanelProps) {
   const renderList = (items: FollowItem[], emptyMessage: string) => {
     if (loading) {
       return (
-        <div className="space-y-3">
+        <div className="space-y-0">
           {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-16 w-full" />
+            <div key={i} className={`${i < 3 ? 'border-b border-border/40' : ''}`}>
+              <Skeleton className="h-20 w-full" />
+            </div>
           ))}
         </div>
       )
@@ -155,8 +156,8 @@ export function SocialPanel({ address }: SocialPanelProps) {
     }
 
     return (
-      <div className="space-y-2">
-        {items.map((item) => {
+      <div className="space-y-0">
+        {items.map((item, index) => {
           const normalizedAddr = item.address.toLowerCase()
           const avatarUrl = `https://effigy.im/a/${normalizedAddr}.svg`
           const fallbackText = item.address.slice(2, 4).toUpperCase()
@@ -164,39 +165,32 @@ export function SocialPanel({ address }: SocialPanelProps) {
           return (
             <div
               key={item.address}
-              className="flex items-center gap-3 p-3 rounded-lg border border-border/60 hover:bg-accent/50 transition-colors"
+              className={`flex items-center gap-4 p-4 hover:bg-accent/50 transition-colors ${
+                index < items.length - 1 ? 'border-b border-border/40' : ''
+              }`}
             >
-              <Avatar className="h-10 w-10">
+              <Avatar className="h-11 w-11 flex-shrink-0">
                 <AvatarImage src={avatarUrl} alt={formatAddress(item.address)} />
                 <AvatarFallback className="text-xs">{fallbackText}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-mono truncate">{formatAddress(item.address, 4)}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm font-mono truncate font-medium">{formatAddress(item.address, 4)}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
                   {new Date(item.createdAt).toLocaleDateString('tr-TR')}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        asChild
-                        className="h-7"
-                      >
-                        <Link href={`/p/${normalizedAddr}`}>
-                          <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
-                          View profile
-                        </Link>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>View profile</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className="h-8 text-xs"
+                >
+                  <Link href={`/p/${normalizedAddr}`}>
+                    <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                    View profile
+                  </Link>
+                </Button>
               </div>
             </div>
           )

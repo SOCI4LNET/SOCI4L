@@ -10,8 +10,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { ActivityTable } from '@/components/activity/ActivityTable'
 import { ActivityFiltersBar } from '@/components/activity/ActivityFiltersBar'
+import { PageContent } from '@/components/app-shell/page-content'
 import { toast } from 'sonner'
-import { RefreshCw } from 'lucide-react'
+import { RefreshCw, Activity } from 'lucide-react'
 import type { ActivityTransaction } from '@/lib/activity/fetchActivity'
 
 interface ActivityPanelProps {
@@ -209,19 +210,19 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
 
   if (!mounted) {
     return (
-      <div className="w-full max-w-[1400px] mx-auto px-4 md:px-6 py-8">
-        <div className="space-y-6 pt-6">
+      <PageContent mode="full-width">
+        <div className="space-y-4">
           <Skeleton className="h-16 w-full" />
           <Skeleton className="h-96 w-full" />
         </div>
-      </div>
+      </PageContent>
     )
   }
 
   if (!targetAddress) {
     return (
-      <div className="w-full max-w-[1400px] mx-auto px-4 md:px-6 py-8">
-        <div className="space-y-6 pt-6">
+      <PageContent mode="full-width">
+        <div className="space-y-4">
           <Card>
             <CardContent className="p-6">
               <Alert>
@@ -232,13 +233,15 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
             </CardContent>
           </Card>
         </div>
-      </div>
+      </PageContent>
     )
   }
 
+  // Full-width layout: Activity page spans available width for wide tables
+  // No max-width constraint - table can use full available space next to sidebar
   return (
-    <div className="w-full max-w-[1400px] mx-auto px-4 md:px-6 py-8">
-      <div className="space-y-6 pt-6">
+    <PageContent mode="full-width">
+      <div className="space-y-4">
         {/* Page Header */}
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Activity</h1>
@@ -306,10 +309,7 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
             </div>
             
             {/* Pagination */}
-            <div className="flex items-center justify-between pt-4 border-t">
-              <p className="text-xs text-muted-foreground">
-                {activityData.items.length} işlem gösteriliyor
-              </p>
+            <div className="flex items-center justify-end pt-4 border-t">
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -335,12 +335,15 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
           </>
         ) : (
           <div className="border rounded-lg bg-card p-12">
-            <div className="text-center">
-              <p className="text-sm font-medium mb-1">İşlem bulunamadı</p>
-              <p className="text-xs text-muted-foreground mb-4">
-                Bu cüzdan için seçilen filtrelerle eşleşen işlem bulunamadı
-              </p>
-              <div className="flex items-center justify-center gap-2">
+            <div className="flex flex-col items-center justify-center text-center space-y-3">
+              <Activity className="h-10 w-10 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium mb-1">İşlem bulunamadı</p>
+                <p className="text-xs text-muted-foreground">
+                  Bu cüzdan için seçilen filtrelerle eşleşen işlem bulunamadı
+                </p>
+              </div>
+              <div className="flex items-center justify-center gap-2 pt-1">
                 <Button
                   variant="outline"
                   size="sm"
@@ -366,6 +369,6 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
           </div>
         )}
       </div>
-    </div>
+    </PageContent>
   )
 }

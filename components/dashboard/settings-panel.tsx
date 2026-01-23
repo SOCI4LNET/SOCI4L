@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSignMessage } from 'wagmi'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -330,239 +330,275 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
   }
 
   return (
-    <PageShell title="Settings" subtitle="Profile configuration">
-      <Card className="bg-card border border-border/60 shadow-sm">
-        <CardContent className="space-y-6 p-6">
-        <div className="space-y-3">
-          <Label>Profile</Label>
-          <div className="space-y-2">
-            <Input
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Display name (max 32 characters)"
-              maxLength={32}
-            />
-            <p className="text-xs text-muted-foreground">
-              {displayName.length}/32 characters
-            </p>
-          </div>
-          <div className="space-y-2">
-            <Textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              placeholder="Bio (max 160 characters)"
-              maxLength={160}
-              rows={3}
-            />
-            <p className="text-xs text-muted-foreground">
-              {bio.length}/160 characters
-            </p>
-          </div>
-        </div>
-
-        <div className="space-y-3 pt-6 border-t">
-          <Label>Social Links</Label>
-          <div className="space-y-2">
-            {socialLinks.map((link) => (
-              <div key={link.id} className="flex items-center gap-2 p-2 border rounded-lg">
-                <div className="flex-1 flex items-center gap-2 min-w-0">
-                  <span className="text-xs text-muted-foreground font-medium capitalize w-20 shrink-0">
-                    {link.platform === 'x' ? 'X' : link.platform}
-                  </span>
-                  <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm truncate hover:text-primary transition-colors"
-                    title={link.url}
-                  >
-                    {link.label || link.url}
-                  </a>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => openEditDialog(link)}
-                    aria-label="Edit link"
-                    title="Edit link"
-                  >
-                    <X className="h-3.5 w-3.5 rotate-45" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => removeSocialLink(link.id)}
-                    aria-label="Remove link"
-                    title="Remove link"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
+    <PageShell title="Settings" subtitle="Profile configuration" mode="full-width">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+        {/* Profile Info & Social Links Section */}
+        <Card className="bg-card border border-border/60 shadow-sm md:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-base">Profile Info</CardTitle>
+            <CardDescription>Update your display name, bio, and social links</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Profile Info Fields */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Display Name</Label>
+                <Input
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="Display name (max 32 characters)"
+                  maxLength={32}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {displayName.length}/32 characters
+                </p>
               </div>
-            ))}
-            {socialLinks.length === 0 && (
-              <p className="text-xs text-muted-foreground">No social links added yet</p>
-            )}
-            {socialLinks.length < 8 && (
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={openAddDialog}
-                  >
-                    <Plus className="mr-2 h-3.5 w-3.5" />
-                    Add Link
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>{editingLink ? 'Edit Link' : 'Add Social Link'}</DialogTitle>
-                    <DialogDescription>
-                      Add a social media link to your profile
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="platform">Platform</Label>
-                      <Select value={newLinkPlatform} onValueChange={(value) => setNewLinkPlatform(value as SocialLinkPlatform)}>
-                        <SelectTrigger id="platform">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="x">X (Twitter)</SelectItem>
-                          <SelectItem value="instagram">Instagram</SelectItem>
-                          <SelectItem value="youtube">YouTube</SelectItem>
-                          <SelectItem value="github">GitHub</SelectItem>
-                          <SelectItem value="linkedin">LinkedIn</SelectItem>
-                          <SelectItem value="website">Website</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="url">URL</Label>
-                      <Input
-                        id="url"
-                        value={newLinkUrl}
-                        onChange={(e) => setNewLinkUrl(e.target.value)}
-                        placeholder="https://..."
-                      />
-                      <p className="text-xs text-muted-foreground">URL must start with http:// or https://</p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="label">Label (optional)</Label>
-                      <Input
-                        id="label"
-                        value={newLinkLabel}
-                        onChange={(e) => setNewLinkLabel(e.target.value)}
-                        placeholder="Custom label"
-                      />
-                    </div>
+              <div className="space-y-2">
+                <Label>Bio</Label>
+                <Textarea
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder="Bio (max 160 characters)"
+                  maxLength={160}
+                  rows={3}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {bio.length}/160 characters
+                </p>
+              </div>
+            </div>
+
+            {/* Social Links Section */}
+            <div className="space-y-4 pt-4 border-t">
+              <div className="space-y-2">
+                <Label>Social Links</Label>
+                {socialLinks.length === 0 ? (
+                  <p className="text-xs text-muted-foreground py-2">No social links added yet</p>
+                ) : (
+                  <div className="space-y-2">
+                    {socialLinks.map((link) => (
+                      <div key={link.id} className="flex items-center gap-2 p-2.5 border rounded-lg">
+                        <div className="flex-1 flex items-center gap-2 min-w-0">
+                          <span className="text-xs text-muted-foreground font-medium capitalize w-20 shrink-0">
+                            {link.platform === 'x' ? 'X' : link.platform}
+                          </span>
+                          <a
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm truncate hover:text-primary transition-colors"
+                            title={link.url}
+                          >
+                            {link.label || link.url}
+                          </a>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => openEditDialog(link)}
+                            aria-label="Edit link"
+                            title="Edit link"
+                          >
+                            <X className="h-3.5 w-3.5 rotate-45" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => removeSocialLink(link.id)}
+                            aria-label="Remove link"
+                            title="Remove link"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <DialogFooter>
-                    <Button variant="outline" size="sm" onClick={() => setDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button size="sm" onClick={handleSaveLink}>
-                      {editingLink ? 'Update' : 'Add'}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            )}
-          </div>
-          <Button
-            onClick={handleSaveSocial}
-            disabled={savingSocial || !hasSocialChanges()}
-            size="sm"
-            variant="secondary"
-            className={savingSocial ? "pointer-events-none" : ""}
-          >
-            {savingSocial ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              'Save Profile'
-            )}
-          </Button>
-        </div>
-
-        <div className="space-y-3 pt-6 border-t">
-          <Label>Profile Visibility</Label>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Current:</span>
-            <Badge variant={profile.visibility === 'PUBLIC' ? 'default' : 'secondary'}>
-              {profile.visibility}
-            </Badge>
-          </div>
-          <RadioGroup value={visibility} onValueChange={(value) => setVisibility(value as 'PUBLIC' | 'PRIVATE')}>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="PUBLIC" id="public" />
-              <Label htmlFor="public" className="cursor-pointer">
-                Public - Anyone can view your profile
-              </Label>
+                )}
+                {socialLinks.length < 8 && (
+                  <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={openAddDialog}
+                      >
+                        <Plus className="mr-2 h-3.5 w-3.5" />
+                        Add Link
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>{editingLink ? 'Edit Link' : 'Add Social Link'}</DialogTitle>
+                        <DialogDescription>
+                          Add a social media link to your profile
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="platform">Platform</Label>
+                          <Select value={newLinkPlatform} onValueChange={(value) => setNewLinkPlatform(value as SocialLinkPlatform)}>
+                            <SelectTrigger id="platform">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="x">X (Twitter)</SelectItem>
+                              <SelectItem value="instagram">Instagram</SelectItem>
+                              <SelectItem value="youtube">YouTube</SelectItem>
+                              <SelectItem value="github">GitHub</SelectItem>
+                              <SelectItem value="linkedin">LinkedIn</SelectItem>
+                              <SelectItem value="website">Website</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="url">URL</Label>
+                          <Input
+                            id="url"
+                            value={newLinkUrl}
+                            onChange={(e) => setNewLinkUrl(e.target.value)}
+                            placeholder="https://..."
+                          />
+                          <p className="text-xs text-muted-foreground">URL must start with http:// or https://</p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="label">Label (optional)</Label>
+                          <Input
+                            id="label"
+                            value={newLinkLabel}
+                            onChange={(e) => setNewLinkLabel(e.target.value)}
+                            placeholder="Custom label"
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" size="sm" onClick={() => setDialogOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button size="sm" onClick={handleSaveLink}>
+                          {editingLink ? 'Update' : 'Add'}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="PRIVATE" id="private" />
-              <Label htmlFor="private" className="cursor-pointer">
-                Private - Only you can view full details
-              </Label>
-            </div>
-          </RadioGroup>
-          <Button 
-            onClick={handleSaveVisibility} 
-            disabled={saving || visibility === profile.visibility} 
-            size="sm"
-            variant="secondary"
-          >
-            {saving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              'Save Changes'
-            )}
-          </Button>
-        </div>
 
-        <div className="space-y-3 pt-6 border-t">
-          <Label>Custom URL</Label>
-          <div className="space-y-2">
-            <Input
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              placeholder="my-profile"
-              className="font-mono"
-            />
-            <p className="text-xs text-muted-foreground">
-              /p/{slug || 'your-slug'}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              3-24 characters, lowercase letters, numbers, and hyphens only
-            </p>
-          </div>
-          <Button 
-            onClick={handleSaveSlug} 
-            disabled={savingSlug || slug === (profile.slug || '')} 
-            size="sm"
-            variant="secondary"
-          >
-            {savingSlug ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              'Save Custom URL'
-            )}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+            {/* Save Button */}
+            <Button
+              onClick={handleSaveSocial}
+              disabled={savingSocial || !hasSocialChanges()}
+              size="sm"
+              variant="secondary"
+              className="w-full"
+            >
+              {savingSocial ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Profile & Social Links'
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Visibility Section */}
+        <Card className="bg-card border border-border/60 shadow-sm h-full flex flex-col">
+          <CardHeader>
+            <CardTitle className="text-base">Visibility</CardTitle>
+            <CardDescription>Control who can view your profile</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col h-full flex-1 space-y-4">
+            <div className="flex-1 space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Current:</span>
+                <Badge variant={profile.visibility === 'PUBLIC' ? 'default' : 'secondary'}>
+                  {profile.visibility}
+                </Badge>
+              </div>
+              <RadioGroup value={visibility} onValueChange={(value) => setVisibility(value as 'PUBLIC' | 'PRIVATE')}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="PUBLIC" id="public" />
+                  <Label htmlFor="public" className="cursor-pointer">
+                    Public - Anyone can view your profile
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="PRIVATE" id="private" />
+                  <Label htmlFor="private" className="cursor-pointer">
+                    Private - Only you can view full details
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button 
+              onClick={handleSaveVisibility} 
+              disabled={saving || visibility === profile.visibility} 
+              size="sm"
+              variant="secondary"
+              className="w-full"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Visibility'
+              )}
+            </Button>
+          </CardFooter>
+        </Card>
+
+        {/* Custom URL Section */}
+        <Card className="bg-card border border-border/60 shadow-sm h-full flex flex-col">
+          <CardHeader>
+            <CardTitle className="text-base">Custom URL</CardTitle>
+            <CardDescription>Set a custom URL for your profile</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col h-full flex-1 space-y-4">
+            <div className="flex-1 space-y-2">
+              <Label>Slug</Label>
+              <Input
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                placeholder="my-profile"
+                className="font-mono"
+              />
+              <p className="text-xs text-muted-foreground">
+                /p/{slug || 'your-slug'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                3-24 characters, lowercase letters, numbers, and hyphens only
+              </p>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button 
+              onClick={handleSaveSlug} 
+              disabled={savingSlug || slug === (profile.slug || '')} 
+              size="sm"
+              variant="secondary"
+              className="w-full"
+            >
+              {savingSlug ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Custom URL'
+              )}
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
     </PageShell>
   )
 }

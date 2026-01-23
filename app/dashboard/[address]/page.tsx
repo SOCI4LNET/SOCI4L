@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useAccount, useConnect } from 'wagmi'
-import { useRouter, useParams, useSearchParams } from 'next/navigation'
+import { useRouter, useParams, useSearchParams, usePathname } from 'next/navigation'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -17,6 +17,8 @@ import { AssetsPanel } from '@/components/dashboard/assets-panel'
 import { ActivityPanel } from '@/components/dashboard/activity-panel'
 import { SettingsPanel } from '@/components/dashboard/settings-panel'
 import { SocialPanel } from '@/components/dashboard/social-panel'
+import { PageShell } from '@/components/app-shell/page-shell'
+import { sanitizeQueryParams } from '@/lib/query-params'
 
 interface Profile {
   id: string
@@ -64,6 +66,7 @@ export default function DashboardAddressPage() {
   const [mounted, setMounted] = useState(false)
   const params = useParams()
   const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
   const { address: connectedAddress, isConnected } = useAccount()
   const { connect, connectors, isPending: isConnecting } = useConnect()
@@ -81,6 +84,21 @@ export default function DashboardAddressPage() {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Sanitize query params when Settings tab is active
+  // Remove irrelevant params (e.g., subtab=following from Social tab)
+  useEffect(() => {
+    if (!mounted || activeTab !== 'settings') return
+
+    const params = new URLSearchParams(searchParams.toString())
+    const sanitized = sanitizeQueryParams(params, 'settings')
+    sanitized.set('tab', 'settings')
+
+    // Only update if params changed (avoid infinite loop)
+    if (params.toString() !== sanitized.toString()) {
+      router.replace(`${pathname}?${sanitized.toString()}`, { scroll: false })
+    }
+  }, [mounted, activeTab, searchParams, pathname, router])
 
   // Check for account switching after profile is loaded
   useEffect(() => {
@@ -185,13 +203,10 @@ export default function DashboardAddressPage() {
 
 
   // Prevent hydration mismatch
+  // Note: We don't show a loading state here to avoid layout shift
+  // Each panel handles its own loading state with proper layout wrappers
   if (!mounted) {
-    return (
-      <div className="space-y-6">
-        <Skeleton className="h-10 w-64" />
-        <Skeleton className="h-64 w-full" />
-      </div>
-    )
+    return null
   }
 
   // Validate address
@@ -401,26 +416,34 @@ export default function DashboardAddressPage() {
   const normalizedAddress = targetAddress.toLowerCase()
 
   const renderPanel = () => {
-    if (loading) {
-      return <Skeleton className="h-64 w-full" />
-    }
-
     switch (activeTab) {
       case 'overview':
+        // Constrained layout: Overview page uses PageShell with constrained mode (max-width ~1200px, centered)
         return <OverviewPanel walletData={walletData} profile={profile ? { displayName: profile.displayName, bio: profile.bio, socialLinks: profile.socialLinks } : null} address={normalizedAddress} />
       case 'assets':
+        // Full-width layout: Assets page spans available width for wide tables (no max-width constraint)
         return <AssetsPanel walletData={walletData} address={normalizedAddress} />
       case 'activity':
+        // Full-width layout: Activity page spans available width for wide tables (no max-width constraint)
         return <ActivityPanel walletData={walletData} address={normalizedAddress} />
       case 'social':
+        // Constrained layout: Social page uses PageShell with constrained mode (max-width ~1200px, centered)
         return <SocialPanel address={normalizedAddress} />
       case 'settings':
-        return profile ? (
+        // Full-width layout: Settings page spans available width (same as Assets)
+        // Always use PageShell wrapper to prevent layout shift on initial load
+        if (loading || !profile) {
+          return (
+            <PageShell title="Settings" subtitle="Profile configuration" mode="full-width">
+              <Skeleton className="h-64 w-full" />
+            </PageShell>
+          )
+        }
+        return (
           <SettingsPanel profile={profile} targetAddress={targetAddress} onUpdate={handleSettingsUpdate} />
-        ) : (
-          <Skeleton className="h-64 w-full" />
         )
       default:
+        // Constrained layout: Default to Overview with PageShell constrained mode
         return <OverviewPanel walletData={walletData} profile={profile ? { displayName: profile.displayName, bio: profile.bio, socialLinks: profile.socialLinks } : null} address={normalizedAddress} />
     }
   }

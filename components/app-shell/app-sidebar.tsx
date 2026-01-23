@@ -16,6 +16,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { LayoutDashboard, Wallet, Activity, Settings, Users } from 'lucide-react'
+import { sanitizeQueryParams } from '@/lib/query-params'
 
 interface AppSidebarProps {
   address?: string
@@ -53,13 +54,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { setOpenMobile, isMobile } = useSidebar()
+  const { setOpenMobile, isMobile, state } = useSidebar()
   const currentTab = searchParams.get('tab') || 'overview'
+  const isCollapsed = state === 'collapsed'
 
   const handleTabChange = (value: string) => {
-    const params = new URLSearchParams(searchParams.toString())
-    params.set('tab', value)
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+    // Sanitize query params: remove params not allowed for the target tab
+    // This prevents cross-tab parameter pollution (e.g., subtab=following on Settings)
+    const sanitized = sanitizeQueryParams(searchParams, value)
+    sanitized.set('tab', value)
+    
+    router.replace(`${pathname}?${sanitized.toString()}`, { scroll: false })
     
     // Close sidebar on mobile after selection
     if (isMobile) {
@@ -70,16 +75,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2">
+        <div className={`flex items-center gap-2 px-2 ${isCollapsed ? 'justify-center px-0 gap-0' : ''}`}>
           <div className="h-6 w-6 rounded-full bg-white flex-shrink-0" />
-          <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-            <span className="text-sm font-semibold leading-none text-sidebar-foreground truncate">SOCI4L</span>
-          </div>
+          {!isCollapsed && (
+            <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+              <span className="text-sm font-semibold leading-none text-sidebar-foreground truncate">SOCI4L</span>
+            </div>
+          )}
         </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Platform</SidebarGroupLabel>
+          <SidebarGroupLabel className={isCollapsed ? 'opacity-0 pointer-events-none' : ''}>Platform</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => {

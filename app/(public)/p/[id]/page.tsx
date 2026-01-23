@@ -252,7 +252,7 @@ export default function ProfilePage({ params }: PageProps) {
               </p>
             )}
             {resolvedAddress && isValidAddress(resolvedAddress) && (
-              <div className="mt-2">
+              <div className="mt-3">
                 <FollowStats address={resolvedAddress} />
               </div>
             )}

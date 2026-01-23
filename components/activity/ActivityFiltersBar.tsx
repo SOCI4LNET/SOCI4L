@@ -46,57 +46,62 @@ export function ActivityFiltersBar({
   hasData,
 }: ActivityFiltersBarProps) {
   return (
-    <div className="border rounded-lg bg-card p-4">
+    <div className="border rounded-lg bg-card p-5">
       {/* Single row layout - wraps on small screens */}
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Left: Time range segmented control */}
-        <ToggleGroup
-          type="single"
-          value={dateRange}
-          onValueChange={(value) => {
-            if (value) onDateRangeChange(value as typeof dateRange)
-          }}
-          className="border rounded-md p-0.5 bg-muted/50"
-        >
-          <ToggleGroupItem value="24h" aria-label="24 Saat" className="text-xs px-2.5 h-9">
-            24h
-          </ToggleGroupItem>
-          <ToggleGroupItem value="7d" aria-label="7 Gün" className="text-xs px-2.5 h-9">
-            7d
-          </ToggleGroupItem>
-          <ToggleGroupItem value="30d" aria-label="30 Gün" className="text-xs px-2.5 h-9">
-            30d
-          </ToggleGroupItem>
-          <ToggleGroupItem value="all" aria-label="Tümü" className="text-xs px-2.5 h-9">
-            All
-          </ToggleGroupItem>
-        </ToggleGroup>
+      <div className="flex flex-wrap items-center gap-4">
+        {/* Left: Time range segmented control - clearly grouped */}
+        <div className="flex-shrink-0">
+          <ToggleGroup
+            type="single"
+            value={dateRange}
+            onValueChange={(value) => {
+              if (value) onDateRangeChange(value as typeof dateRange)
+            }}
+            className="border rounded-md p-0.5 bg-muted/50"
+          >
+            <ToggleGroupItem value="24h" aria-label="24 Saat" className="text-xs px-3 h-9">
+              24h
+            </ToggleGroupItem>
+            <ToggleGroupItem value="7d" aria-label="7 Gün" className="text-xs px-3 h-9">
+              7d
+            </ToggleGroupItem>
+            <ToggleGroupItem value="30d" aria-label="30 Gün" className="text-xs px-3 h-9">
+              30d
+            </ToggleGroupItem>
+            <ToggleGroupItem value="all" aria-label="Tümü" className="text-xs px-3 h-9">
+              All
+            </ToggleGroupItem>
+          </ToggleGroup>
+        </div>
 
-        {/* Middle: Type Select, Direction Select, Search Input */}
-        <Select value={type} onValueChange={(v) => onTypeChange(v as typeof type)}>
-          <SelectTrigger className="h-9 w-[120px]">
-            <SelectValue placeholder="Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="transfer">Transfer</SelectItem>
-            <SelectItem value="contract">Contract</SelectItem>
-            <SelectItem value="swap">Swap</SelectItem>
-          </SelectContent>
-        </Select>
+        {/* Middle: Type and Direction dropdowns - evenly spaced and aligned */}
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <Select value={type} onValueChange={(v) => onTypeChange(v as typeof type)}>
+            <SelectTrigger className="h-9 w-[130px]">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="transfer">Transfer</SelectItem>
+              <SelectItem value="contract">Contract</SelectItem>
+              <SelectItem value="swap">Swap</SelectItem>
+            </SelectContent>
+          </Select>
 
-        <Select value={direction} onValueChange={(v) => onDirectionChange(v as typeof direction)}>
-          <SelectTrigger className="h-9 w-[120px]">
-            <SelectValue placeholder="Direction" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="incoming">Incoming</SelectItem>
-            <SelectItem value="outgoing">Outgoing</SelectItem>
-          </SelectContent>
-        </Select>
+          <Select value={direction} onValueChange={(v) => onDirectionChange(v as typeof direction)}>
+            <SelectTrigger className="h-9 w-[130px]">
+              <SelectValue placeholder="Direction" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="incoming">Incoming</SelectItem>
+              <SelectItem value="outgoing">Outgoing</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-        <div className="flex-1 min-w-[200px] max-w-[400px]">
+        {/* Search Input - prominent and flexible */}
+        <div className="flex-1 min-w-[240px]">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -108,8 +113,8 @@ export function ActivityFiltersBar({
           </div>
         </div>
 
-        {/* Right: Updated text + Refresh + CSV */}
-        <div className="flex items-center gap-2 flex-shrink-0">
+        {/* Right: Updated text + Refresh + CSV - aligned actions */}
+        <div className="flex items-center gap-2.5 flex-shrink-0">
           <span className="text-xs text-muted-foreground hidden lg:inline whitespace-nowrap">
             {lastUpdatedText}
           </span>

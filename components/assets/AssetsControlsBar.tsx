@@ -55,7 +55,7 @@ export function AssetsControlsBar({
   }
 
   return (
-    <div className="w-full flex flex-wrap items-center gap-2">
+    <div className="w-full flex flex-wrap items-center gap-3">
       {/* Left: Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => onTabChange(v as 'tokens' | 'nfts')}>
         <TabsList>

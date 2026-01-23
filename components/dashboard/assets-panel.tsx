@@ -45,6 +45,7 @@ import { getPublicProfileHref } from '@/lib/routing'
 import { AssetsHeader } from '@/components/assets/AssetsHeader'
 import { AssetsControlsBar } from '@/components/assets/AssetsControlsBar'
 import { Separator } from '@/components/ui/separator'
+import { PageContent } from '@/components/app-shell/page-content'
 import Link from 'next/link'
 
 interface AssetsPanelProps {
@@ -509,9 +510,9 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
 
   if (!mounted || !targetAddress) {
     return (
-      <div className="w-full max-w-screen-2xl mx-auto px-6 py-6">
+      <PageContent mode="full-width">
         <Skeleton className="h-64 w-full" />
-      </div>
+      </PageContent>
     )
   }
 
@@ -519,8 +520,10 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
     ? `Updated ${formatTimeAgo(lastUpdatedAt)}` 
     : 'Not updated yet'
 
+  // Full-width layout: Assets page spans available width for wide tables
+  // No max-width constraint - table can use full available space next to sidebar
   return (
-    <div className="w-full max-w-screen-2xl mx-auto px-6 py-6">
+    <PageContent mode="full-width">
       {/* Error Alert */}
       {(error && !hasApiKeyError) && (
         <Alert variant="destructive" className="mb-6">
@@ -550,7 +553,7 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
         </Alert>
       )}
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Header: Title + Actions */}
         <AssetsHeader
           lastUpdatedText={lastUpdatedText}
@@ -564,7 +567,7 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
 
         {/* Controls Bar: Tabs + Search + Sort */}
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-5 pb-4">
             <AssetsControlsBar
               activeTab={activeTab}
               onTabChange={handleTabChange}
@@ -579,8 +582,6 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
             />
           </CardContent>
         </Card>
-
-        <Separator />
 
         {/* Content: Tabs Content */}
         <Tabs value={activeTab} onValueChange={handleTabChange}>
@@ -803,20 +804,21 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
               </Card>
             ) : (
               <Card>
-                <CardContent className="p-8">
-                  <div className="flex flex-col items-center justify-center text-center space-y-3">
-                    <Coins className="h-10 w-10 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium mb-1">No tokens detected</p>
-                      <p className="text-xs text-muted-foreground">
-                        {searchQuery
-                          ? 'No tokens match your search'
-                          : tokensData?.tokens && tokensData.tokens.length === 0
-                          ? 'This wallet has no tokens to display'
-                          : 'Loading tokens...'}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
+              <CardContent className="p-8">
+                <div className="flex flex-col items-center justify-center text-center space-y-3">
+                  <Coins className="h-10 w-10 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium mb-1">No tokens detected</p>
+                    <p className="text-xs text-muted-foreground">
+                      {searchQuery
+                        ? 'No tokens match your search'
+                        : tokensData?.tokens && tokensData.tokens.length === 0
+                        ? 'This wallet has no tokens to display'
+                        : 'Loading tokens...'}
+                    </p>
+                  </div>
+                  {!isLoading && (
+                    <div className="flex items-center gap-2 pt-1">
                       <Button
                         variant="outline"
                         size="sm"
@@ -830,8 +832,9 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
                         <Link href={publicProfileHref}>View Public Profile</Link>
                       </Button>
                     </div>
-                  </div>
-                </CardContent>
+                  )}
+                </div>
+              </CardContent>
               </Card>
             )}
 
@@ -972,29 +975,29 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
               <CardContent className="p-8">
                 <div className="flex flex-col items-center justify-center text-center space-y-3">
                   <ImageIcon className="h-10 w-10 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium mb-1">No NFTs detected</p>
-                      <p className="text-xs text-muted-foreground">
-                        {searchQuery
-                          ? 'No NFTs match your search'
-                          : 'This wallet has no NFTs to display'}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => refetchNFTs()}
-                      >
-                        <RefreshCw className="mr-2 h-3 w-3" />
-                        Refresh
-                      </Button>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={publicProfileHref}>View Public Profile</Link>
-                      </Button>
-                    </div>
+                  <div>
+                    <p className="text-sm font-medium mb-1">No NFTs detected</p>
+                    <p className="text-xs text-muted-foreground">
+                      {searchQuery
+                        ? 'No NFTs match your search'
+                        : 'This wallet has no NFTs to display'}
+                    </p>
                   </div>
-                </CardContent>
+                  <div className="flex items-center gap-2 pt-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => refetchNFTs()}
+                    >
+                      <RefreshCw className="mr-2 h-3 w-3" />
+                      Refresh
+                    </Button>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={publicProfileHref}>View Public Profile</Link>
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
               </Card>
             )}
 
@@ -1026,6 +1029,6 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
           }}
         />
       )}
-    </div>
+    </PageContent>
   )
 }
