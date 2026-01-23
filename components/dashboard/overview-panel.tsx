@@ -1,15 +1,22 @@
 'use client'
 
+import { useState, useEffect } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Twitter, Github, Globe, RefreshCw, CheckCircle2, Activity, Coins } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Twitter, Github, Globe, RefreshCw, CheckCircle2, Activity, Coins, ArrowUpRight, ArrowDownRight, ExternalLink } from 'lucide-react'
 import { formatAddress } from '@/lib/utils'
 import Link from 'next/link'
 import { PageShell } from '@/components/app-shell/page-shell'
 import { ClaimProfileButton } from '@/components/claim-profile-button'
+import { toast } from 'sonner'
+import { formatDistanceToNow } from 'date-fns'
+import type { ActivityTransaction } from '@/lib/activity/fetchActivity'
 
 interface WalletData {
   address: string
@@ -64,7 +71,107 @@ const getSocialIcon = (platform?: string, type?: string) => {
 }
 
 export function OverviewPanel({ walletData, profile, address }: OverviewPanelProps) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const [mounted, setMounted] = useState(false)
+  
+  // Get address from route param (primary) or prop (fallback)
+  const addressMatch = pathname?.match(/\/dashboard\/(0x[a-fA-F0-9]{40})/)
+  const urlAddress = addressMatch ? addressMatch[1].toLowerCase() : null
+  const targetAddress = urlAddress || address?.toLowerCase() || ''
+  
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const ACTIVITY_LIMIT = 7
+  const ASSETS_LIMIT = 7
+
+  // Fetch activity data
+  const { 
+    data: activityData, 
+    isLoading: activityLoading, 
+    error: activityError,
+    refetch: refetchActivity 
+  } = useQuery<{ items: ActivityTransaction[] }>({
+    queryKey: ['wallet-activity-preview', targetAddress],
+    queryFn: async () => {
+      if (!targetAddress) throw new Error('No address')
+      const normalizedAddress = targetAddress.toLowerCase()
+      const response = await fetch(`/api/wallet/${normalizedAddress}/activity?limit=${ACTIVITY_LIMIT}`)
+      if (!response.ok) throw new Error('Failed to fetch activity')
+      return response.json()
+    },
+    enabled: mounted && !!targetAddress,
+  })
+
+  // Fetch assets data
+  const { 
+    data: assetsData, 
+    isLoading: assetsLoading, 
+    error: assetsError,
+    refetch: refetchAssets 
+  } = useQuery<{
+    tokens?: Array<{
+      address: string | null
+      symbol: string
+      name: string
+      balanceFormatted: string
+      valueUsd?: number
+      logoUrl?: string
+      isNative?: boolean
+    }>
+    nfts?: Array<{
+      contract: string
+      tokenId: string
+      name?: string
+      imageUrl?: string
+    }>
+  }>({
+    queryKey: ['wallet-assets-preview', targetAddress],
+    queryFn: async () => {
+      if (!targetAddress) throw new Error('No address')
+      const normalizedAddress = targetAddress.toLowerCase()
+      const response = await fetch(`/api/wallet/${normalizedAddress}/assets?tab=tokens&limit=${ASSETS_LIMIT}`)
+      if (!response.ok) throw new Error('Failed to fetch assets')
+      return response.json()
+    },
+    enabled: mounted && !!targetAddress,
+  })
+
+  const handleCopyHash = async (hash: string) => {
+    try {
+      await navigator.clipboard.writeText(hash)
+      toast.success('Hash kopyalandı')
+    } catch {
+      toast.error('Kopyalama başarısız')
+    }
+  }
+
+  const getStatusIcon = (status: ActivityTransaction['status']) => {
+    if (status === 'success') {
+      return <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+    } else if (status === 'failed') {
+      return <CheckCircle2 className="h-3.5 w-3.5 text-red-500" />
+    } else {
+      return <CheckCircle2 className="h-3.5 w-3.5 text-yellow-500" />
+    }
+  }
+
+  const getDirectionIcon = (direction: ActivityTransaction['direction']) => {
+    if (direction === 'outgoing') {
+      return <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
+    } else {
+      return <ArrowDownRight className="h-3.5 w-3.5 text-muted-foreground" />
+    }
+  }
+
+  const getExplorerLink = (hash: string): string => {
+    return `https://snowtrace.io/tx/${hash}`
+  }
+
   const isLoading = walletData === null
+  const normalizedAddress = targetAddress.toLowerCase()
 
   return (
     <PageShell title="Overview" subtitle="Wallet summary and activity">
@@ -75,11 +182,11 @@ export function OverviewPanel({ walletData, profile, address }: OverviewPanelPro
           <div className="flex items-start gap-3">
             <Avatar className="h-12 w-12">
               <AvatarImage 
-                src={address ? `https://effigy.im/a/${address}.svg` : undefined}
-                alt={profile?.displayName || formatAddress(address)}
+                src={normalizedAddress ? `https://effigy.im/a/${normalizedAddress}.svg` : undefined}
+                alt={profile?.displayName || formatAddress(normalizedAddress)}
               />
               <AvatarFallback className="text-xs">
-                {address ? address.slice(2, 4).toUpperCase() : '??'}
+                {normalizedAddress ? normalizedAddress.slice(2, 4).toUpperCase() : '??'}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
@@ -117,7 +224,7 @@ export function OverviewPanel({ walletData, profile, address }: OverviewPanelPro
               ) : (
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-muted-foreground">
-                    {formatAddress(address)}
+                    {formatAddress(normalizedAddress)}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Profile not claimed yet
@@ -154,7 +261,7 @@ export function OverviewPanel({ walletData, profile, address }: OverviewPanelPro
                 )}
               </div>
               {!profile?.displayName && (
-                <ClaimProfileButton address={address} />
+                <ClaimProfileButton address={normalizedAddress} />
               )}
             </div>
           </CardContent>
@@ -216,12 +323,179 @@ export function OverviewPanel({ walletData, profile, address }: OverviewPanelPro
       {/* Recent Activity and Assets Section */}
       <div className="grid md:grid-cols-2 gap-6">
         {/* Recent Activity Card */}
-        <Card className="bg-card border border-border/60 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold">Recent Activity</CardTitle>
+        <Card className="bg-card border border-border/60 shadow-sm relative">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <div>
+              <CardTitle className="text-base font-semibold">Recent Activity</CardTitle>
+              <CardDescription className="text-xs">Son {ACTIVITY_LIMIT} işlem</CardDescription>
+            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => refetchActivity()}
+                    disabled={activityLoading}
+                    aria-label="Yenile"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${activityLoading ? 'animate-spin' : ''}`} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Yenile</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </CardHeader>
-          <CardContent>
-            {isLoading ? (
+          <CardContent className="relative">
+            {activityLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <div className="flex-1 space-y-1">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : activityError ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <p className="text-sm font-medium mb-1">Aktivite yüklenemedi</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refetchActivity()}
+                  className="mt-2"
+                >
+                  <RefreshCw className="mr-2 h-3 w-3" />
+                  Tekrar Dene
+                </Button>
+              </div>
+            ) : activityData?.items && activityData.items.length > 0 ? (
+              <div className="space-y-3 relative">
+                {activityData.items.map((tx, idx) => {
+                  return (
+                    <div key={tx.hash || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
+                      <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                        {getDirectionIcon(tx.direction)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon(tx.status)}
+                          <Badge variant="secondary" className="text-xs">
+                            {tx.type === 'transfer' ? 'Transfer' : tx.type === 'contract' ? 'Kontrat' : 'Swap'}
+                          </Badge>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={() => handleCopyHash(tx.hash)}
+                                  className="text-xs font-mono truncate hover:text-primary"
+                                >
+                                  {formatAddress(tx.hash, 4)}
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="font-mono text-xs">{tx.hash}</p>
+                                <p className="text-xs mt-1">Kopyalamak için tıkla</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-xs text-muted-foreground">
+                            {parseFloat(tx.nativeValueAvax) > 0 
+                              ? `${parseFloat(tx.nativeValueAvax).toFixed(4)} AVAX`
+                              : tx.tokenTransfers.length > 0
+                              ? `${parseFloat(tx.tokenTransfers[0].amount).toFixed(4)} ${tx.tokenTransfers[0].symbol}`
+                              : '-'}
+                          </p>
+                          <span className="text-xs text-muted-foreground">•</span>
+                          <p className="text-xs text-muted-foreground">
+                            {formatDistanceToNow(new Date(tx.timestamp * 1000), { addSuffix: true })}
+                          </p>
+                        </div>
+                      </div>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 flex-shrink-0"
+                              asChild
+                              aria-label="Explorer'da görüntüle"
+                            >
+                              <a
+                                href={getExplorerLink(tx.hash)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </a>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Explorer'da görüntüle</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  )
+                })}
+                {activityData.items.length >= ACTIVITY_LIMIT && (
+                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-background/90 backdrop-blur-sm pointer-events-none" />
+                )}
+                <div className="pt-2 relative z-10">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=activity`)}
+                  >
+                    Tümünü Gör
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <Activity className="h-10 w-10 text-muted-foreground mb-3" />
+                <p className="text-sm font-medium mb-1">Henüz aktivite yok</p>
+                <p className="text-xs text-muted-foreground">
+                  Bu cüzdan için henüz işlem bulunamadı.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Assets Card */}
+        <Card className="bg-card border border-border/60 shadow-sm relative">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <div>
+              <CardTitle className="text-base font-semibold">Assets</CardTitle>
+              <CardDescription className="text-xs">Token ve NFT'ler</CardDescription>
+            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => refetchAssets()}
+                    disabled={assetsLoading}
+                    aria-label="Yenile"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${assetsLoading ? 'animate-spin' : ''}`} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Yenile</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardHeader>
+          <CardContent className="relative">
+            {assetsLoading ? (
               <div className="space-y-3">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <div key={i} className="flex items-center gap-3">
@@ -233,105 +507,86 @@ export function OverviewPanel({ walletData, profile, address }: OverviewPanelPro
                   </div>
                 ))}
               </div>
-            ) : walletData?.transactions && walletData.transactions.length > 0 ? (
-              <div className="space-y-3">
-                {walletData.transactions.slice(0, 5).map((tx, idx) => (
-                  <div key={tx.hash || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
-                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                      <span className="text-xs font-mono">{tx.hash.slice(0, 2)}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {formatAddress(tx.from)} → {formatAddress(tx.to)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(tx.timestamp * 1000).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+            ) : assetsError ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <p className="text-sm font-medium mb-1">Varlıklar yüklenemedi</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refetchAssets()}
+                  className="mt-2"
+                >
+                  <RefreshCw className="mr-2 h-3 w-3" />
+                  Tekrar Dene
+                </Button>
               </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
-                <Activity className="h-10 w-10 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium mb-1">No activity yet</p>
-                  <p className="text-xs text-muted-foreground">
-                    Connect a wallet and start exploring.
-                  </p>
-                </div>
-                <Link href={`/p/${address}`}>
-                  <Button variant="outline" size="sm">
-                    View public profile
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Assets Card */}
-        <Card className="bg-card border border-border/60 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold">Assets</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <Skeleton className="h-10 w-10 rounded-full" />
-                    <div className="flex-1 space-y-1">
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-3 w-1/2" />
+            ) : assetsData && ((assetsData.tokens && assetsData.tokens.length > 0) || (assetsData.nfts && assetsData.nfts.length > 0)) ? (
+              <div className="space-y-3 relative">
+                {assetsData.tokens?.slice(0, ASSETS_LIMIT).map((token, idx) => {
+                  return (
+                    <div key={token.address || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
+                      <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+                        {token.logoUrl ? (
+                          <img src={token.logoUrl} alt={token.symbol} className="h-10 w-10 rounded-full object-cover" />
+                        ) : (
+                          <Coins className="h-5 w-5 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{token.symbol}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <p className="text-xs text-muted-foreground">
+                            {token.balanceFormatted} {token.symbol}
+                          </p>
+                          {token.valueUsd !== undefined && token.valueUsd > 0 && (
+                            <>
+                              <span className="text-xs text-muted-foreground">•</span>
+                              <p className="text-xs text-muted-foreground">
+                                ${token.valueUsd.toFixed(2)}
+                              </p>
+                            </>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : walletData && (walletData.tokenBalances?.length > 0 || walletData.nfts?.length > 0) ? (
-              <div className="space-y-3">
-                {walletData.tokenBalances?.slice(0, 3).map((token, idx) => (
-                  <div key={token.contractAddress || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
-                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                      <span className="text-xs font-semibold">{token.symbol.slice(0, 2)}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{token.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {parseFloat(token.balance).toFixed(4)} {token.symbol}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-                {walletData.nfts?.slice(0, 2).map((nft, idx) => (
-                  <div key={nft.tokenId || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
-                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                      {nft.image ? (
-                        <img src={nft.image} alt={nft.name} className="h-10 w-10 rounded-full object-cover" />
+                  )
+                })}
+                {assetsData.nfts?.slice(0, Math.max(0, ASSETS_LIMIT - (assetsData.tokens?.length || 0))).map((nft, idx) => (
+                  <div key={`${nft.contract}-${nft.tokenId}` || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
+                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {nft.imageUrl ? (
+                        <img src={nft.imageUrl} alt={nft.name} className="h-10 w-10 rounded-full object-cover" />
                       ) : (
-                        <span className="text-xs font-semibold">NFT</span>
+                        <Coins className="h-5 w-5 text-muted-foreground" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{nft.name || `NFT #${nft.tokenId}`}</p>
-                      <p className="text-xs text-muted-foreground">Token ID: {nft.tokenId}</p>
+                      <p className="text-xs text-muted-foreground">Token ID: {formatAddress(nft.tokenId, 4)}</p>
                     </div>
                   </div>
                 ))}
+                {((assetsData.tokens && assetsData.tokens.length >= ASSETS_LIMIT) || (assetsData.nfts && assetsData.nfts.length > 0)) && (
+                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-background/90 backdrop-blur-sm pointer-events-none" />
+                )}
+                <div className="pt-2 relative z-10">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=assets&assetTab=tokens`)}
+                  >
+                    Tümünü Gör
+                  </Button>
+                </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
-                <Coins className="h-10 w-10 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium mb-1">No assets found</p>
-                  <p className="text-xs text-muted-foreground">
-                    This wallet has no tokens or NFTs to display.
-                  </p>
-                </div>
-                <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
-                  <RefreshCw className="mr-2 h-3 w-3" />
-                  Refresh
-                </Button>
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <Coins className="h-10 w-10 text-muted-foreground mb-3" />
+                <p className="text-sm font-medium mb-1">Varlık bulunamadı</p>
+                <p className="text-xs text-muted-foreground">
+                  Bu cüzdan için token veya NFT bulunamadı.
+                </p>
               </div>
             )}
           </CardContent>
