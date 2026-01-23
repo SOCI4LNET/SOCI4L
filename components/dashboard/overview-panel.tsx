@@ -1,10 +1,13 @@
 'use client'
 
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import { Twitter, Github, Globe } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Twitter, Github, Globe, RefreshCw } from 'lucide-react'
 import { formatAddress } from '@/lib/utils'
+import Link from 'next/link'
+import { PageShell } from '@/components/app-shell/page-shell'
 
 interface WalletData {
   address: string
@@ -62,10 +65,11 @@ export function OverviewPanel({ walletData, profile, address }: OverviewPanelPro
   const isLoading = walletData === null
 
   return (
-    <div className="space-y-4">
+    <PageShell title="Overview" subtitle="Wallet summary and activity">
+
       {/* Profile Summary Card */}
-      <Card>
-        <CardContent className="p-4">
+      <Card className="bg-card border border-border/60 shadow-sm">
+        <CardContent className="p-5">
           <div className="flex items-start gap-3">
             <Avatar className="h-12 w-12">
               <AvatarImage 
@@ -125,47 +129,47 @@ export function OverviewPanel({ walletData, profile, address }: OverviewPanelPro
 
       {/* Wallet Stats */}
       {isLoading ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <Card key={i}>
-              <CardContent className="p-3">
-                <Skeleton className="h-3 w-16 mb-1" />
-                <Skeleton className="h-4 w-20" />
+            <Card key={i} className="bg-card border shadow-sm">
+              <CardContent className="p-4">
+                <Skeleton className="h-3 w-16 mb-2" />
+                <Skeleton className="h-7 w-24" />
               </CardContent>
             </Card>
           ))}
         </div>
       ) : walletData ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <Card>
-            <CardContent className="p-3">
-              <p className="text-xs text-muted-foreground mb-1">AVAX Balance</p>
-              <p className="text-sm font-semibold">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="bg-card border border-border/60 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-xs text-muted-foreground mb-2">AVAX Balance</p>
+              <p className="text-xl font-semibold tracking-tight">
                 {parseFloat(walletData.nativeBalance).toFixed(4)} AVAX
               </p>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-3">
-              <p className="text-xs text-muted-foreground mb-1">Transactions</p>
-              <p className="text-sm font-semibold">{walletData.txCount}</p>
+          <Card className="bg-card border border-border/60 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-xs text-muted-foreground mb-2">Transactions</p>
+              <p className="text-xl font-semibold tracking-tight">{walletData.txCount}</p>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-3">
-              <p className="text-xs text-muted-foreground mb-1">Tokens</p>
-              <p className="text-sm font-semibold">{walletData.tokenBalances?.length || 0}</p>
+          <Card className="bg-card border border-border/60 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-xs text-muted-foreground mb-2">Tokens</p>
+              <p className="text-xl font-semibold tracking-tight">{walletData.tokenBalances?.length || 0}</p>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-3">
-              <p className="text-xs text-muted-foreground mb-1">NFTs</p>
-              <p className="text-sm font-semibold">{walletData.nfts?.length || 0}</p>
+          <Card className="bg-card border border-border/60 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-xs text-muted-foreground mb-2">NFTs</p>
+              <p className="text-xl font-semibold tracking-tight">{walletData.nfts?.length || 0}</p>
             </CardContent>
           </Card>
         </div>
       ) : (
-        <Card>
+        <Card className="bg-card border shadow-sm">
           <CardContent className="p-4">
             <div className="text-center py-4">
               <p className="text-xs font-medium mb-1">No data available</p>
@@ -174,6 +178,125 @@ export function OverviewPanel({ walletData, profile, address }: OverviewPanelPro
           </CardContent>
         </Card>
       )}
-    </div>
+
+      {/* Recent Activity and Assets Section */}
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Recent Activity Card */}
+        <Card className="bg-card border border-border/60 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-base font-semibold">Recent Activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="flex-1 space-y-1">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : walletData?.transactions && walletData.transactions.length > 0 ? (
+              <div className="space-y-3">
+                {walletData.transactions.slice(0, 5).map((tx, idx) => (
+                  <div key={tx.hash || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
+                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                      <span className="text-xs font-mono">{tx.hash.slice(0, 2)}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {formatAddress(tx.from)} → {formatAddress(tx.to)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(tx.timestamp * 1000).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <p className="text-sm font-medium mb-1">No activity yet</p>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Connect a wallet and start exploring.
+                </p>
+                <Link href={`/p/${address}`}>
+                  <Button variant="outline" size="sm">
+                    View public profile
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Assets Card */}
+        <Card className="bg-card border border-border/60 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-base font-semibold">Assets</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="flex-1 space-y-1">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : walletData && (walletData.tokenBalances?.length > 0 || walletData.nfts?.length > 0) ? (
+              <div className="space-y-3">
+                {walletData.tokenBalances?.slice(0, 3).map((token, idx) => (
+                  <div key={token.contractAddress || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
+                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                      <span className="text-xs font-semibold">{token.symbol.slice(0, 2)}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{token.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {parseFloat(token.balance).toFixed(4)} {token.symbol}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                {walletData.nfts?.slice(0, 2).map((nft, idx) => (
+                  <div key={nft.tokenId || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
+                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                      {nft.image ? (
+                        <img src={nft.image} alt={nft.name} className="h-10 w-10 rounded-full object-cover" />
+                      ) : (
+                        <span className="text-xs font-semibold">NFT</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{nft.name || `NFT #${nft.tokenId}`}</p>
+                      <p className="text-xs text-muted-foreground">Token ID: {nft.tokenId}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <p className="text-sm font-medium mb-1">No assets found</p>
+                <p className="text-xs text-muted-foreground mb-4">
+                  This wallet has no tokens or NFTs to display.
+                </p>
+                <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+                  <RefreshCw className="mr-2 h-3 w-3" />
+                  Refresh
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </PageShell>
   )
 }

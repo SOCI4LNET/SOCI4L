@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
-import { Wallet, Loader2, Copy } from 'lucide-react'
+import { Wallet, Loader2 } from 'lucide-react'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import Link from 'next/link'
 import { ClaimProfileButton } from '@/components/claim-profile-button'
@@ -291,15 +291,6 @@ export default function DashboardAddressPage() {
     // Check for address mismatch when wallet is connected
     const hasMismatch = isConnected && normalizedConnectedAddress && normalizedConnectedAddress !== normalizedAddress
 
-    const handleCopyProfileAddress = async () => {
-      try {
-        await navigator.clipboard.writeText(targetAddress)
-        toast.success('Copied')
-      } catch (error) {
-        toast.error('Copy failed')
-      }
-    }
-
     return (
       <div className="space-y-6">
         <div>
@@ -335,14 +326,6 @@ export default function DashboardAddressPage() {
                   <Link href={`/p/${normalizedAddress}`}>
                     <Button variant="outline" size="sm">View Public Profile</Button>
                   </Link>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={handleCopyProfileAddress}
-                    aria-label="Copy profile address"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
                 </div>
               </>
             ) : (
@@ -370,15 +353,6 @@ export default function DashboardAddressPage() {
   if (!isOwner) {
     const normalizedConnectedAddress = connectedAddress?.toLowerCase()
     const normalizedTargetAddress = targetAddress.toLowerCase()
-
-    const handleCopyProfileAddress = async () => {
-      try {
-        await navigator.clipboard.writeText(targetAddress)
-        toast.success('Copied')
-      } catch (error) {
-        toast.error('Copy failed')
-      }
-    }
 
     return (
       <div className="space-y-6">
@@ -415,14 +389,6 @@ export default function DashboardAddressPage() {
               <Link href={`/p/${normalizedTargetAddress}`}>
                 <Button variant="outline" size="sm">View Public Profile</Button>
               </Link>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={handleCopyProfileAddress}
-                aria-label="Copy profile address"
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
             </div>
           </CardContent>
         </Card>
@@ -443,9 +409,9 @@ export default function DashboardAddressPage() {
       case 'overview':
         return <OverviewPanel walletData={walletData} profile={profile ? { displayName: profile.displayName, bio: profile.bio, socialLinks: profile.socialLinks } : null} address={normalizedAddress} />
       case 'assets':
-        return <AssetsPanel walletData={walletData} />
+        return <AssetsPanel walletData={walletData} address={normalizedAddress} />
       case 'activity':
-        return <ActivityPanel walletData={walletData} />
+        return <ActivityPanel walletData={walletData} address={normalizedAddress} />
       case 'social':
         return <SocialPanel address={normalizedAddress} />
       case 'settings':

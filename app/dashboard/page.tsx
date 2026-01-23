@@ -3,96 +3,190 @@
 import { useState, useEffect } from 'react'
 import { useAccount, useConnect } from 'wagmi'
 import { useRouter } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import { Loader2, Copy, Twitter, Github, Globe } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Separator } from '@/components/ui/separator'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { 
+  Loader2, 
+  Twitter, 
+  Github, 
+  Globe, 
+  ExternalLink, 
+  Copy, 
+  Share2, 
+  QrCode, 
+  Eye,
+  RefreshCw,
+  ArrowUpRight,
+  ArrowDownRight,
+  Wallet,
+  Coins,
+  Image as ImageIcon,
+  FileText,
+} from 'lucide-react'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import { PageShell } from '@/components/app-shell/page-shell'
+import { ClaimProfileButton } from '@/components/claim-profile-button'
+import { QRCodeModal } from '@/components/qr/qr-code-modal'
+import { getPublicProfileHref } from '@/lib/routing'
 
-interface ProfileData {
-  displayName?: string | null
-  bio?: string | null
-  socialLinks?: Array<{ type: string; url: string; label?: string }> | null
+interface SummaryData {
+  avaxBalance: string
+  txCount: number
+  tokenCount: number
+  nftCount: number
+  claimed: boolean
+  visibility: string
+  networkOk: boolean
+  profile: {
+    displayName?: string | null
+    slug?: string | null
+    status?: string
+  } | null
 }
 
-interface WalletData {
-  nativeBalance: string
-  txCount: number
-  tokenBalances?: Array<any>
-  nfts?: Array<any>
+interface ActivityItem {
+  hash: string
+  from: string
+  to: string
+  value: string
+  timestamp: number
+  blockNumber: number
+}
+
+interface AssetsData {
+  topTokens: Array<{
+    contractAddress: string
+    name: string
+    symbol: string
+    balance: string
+    decimals: number
+  }>
+  nfts: Array<{
+    contractAddress: string
+    tokenId: string
+    name?: string
+    image?: string
+  }>
+}
+
+function formatRelativeTime(timestamp: number): string {
+  const seconds = Math.floor((Date.now() / 1000) - timestamp)
+  if (seconds < 60) return `${seconds}s ago`
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days}d ago`
+  const weeks = Math.floor(days / 7)
+  if (weeks < 4) return `${weeks}w ago`
+  const months = Math.floor(days / 30)
+  return `${months}mo ago`
+}
+
+function getExplorerLink(hash: string): string {
+  return `https://snowtrace.io/tx/${hash}`
+}
+
+function getShareUrl(address: string, slug?: string | null): string {
+  if (typeof window === 'undefined') {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || ''
+    const profilePath = getPublicProfileHref(address, slug)
+    return `${appUrl}${profilePath}`
+  }
+  const baseUrl = window.location.origin
+  const profilePath = getPublicProfileHref(address, slug)
+  return `${baseUrl}${profilePath}`
 }
 
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false)
   const [addressInput, setAddressInput] = useState('')
+  const [qrModalOpen, setQrModalOpen] = useState(false)
   const { address: connectedAddress, isConnected } = useAccount()
   const { connect, connectors, isPending: isConnecting } = useConnect()
   const router = useRouter()
-  const [profile, setProfile] = useState<ProfileData | null>(null)
-  const [walletData, setWalletData] = useState<WalletData | null>(null)
-  const [hasClaimedProfile, setHasClaimedProfile] = useState(false)
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  useEffect(() => {
-    if (!mounted || !isConnected || !connectedAddress) {
-      setLoading(false)
-      return
-    }
+  // Fetch summary data
+  const { 
+    data: summaryData, 
+    isLoading: summaryLoading, 
+    error: summaryError,
+    refetch: refetchSummary 
+  } = useQuery<SummaryData>({
+    queryKey: ['wallet-summary', connectedAddress],
+    queryFn: async () => {
+      if (!connectedAddress) throw new Error('No address')
+      const normalizedAddress = connectedAddress.toLowerCase()
+      const response = await fetch(`/api/wallet/${normalizedAddress}/summary`)
+      if (!response.ok) throw new Error('Failed to fetch summary')
+      return response.json()
+    },
+    enabled: mounted && isConnected && !!connectedAddress,
+  })
 
-    // Fetch profile and wallet data
-    const fetchData = async () => {
-      try {
-        const normalizedAddress = connectedAddress.toLowerCase()
-        const response = await fetch(`/api/wallet?address=${normalizedAddress}`, {
-          cache: 'no-store',
-        })
-        const data = await response.json()
-        
-        if (data.profile) {
-          setProfile({
-            displayName: data.profile.displayName,
-            bio: data.profile.bio,
-            socialLinks: data.profile.socialLinks,
-          })
-          if (data.profile.status === 'CLAIMED') {
-            setHasClaimedProfile(true)
-          }
-        }
-        
-        if (data.walletData) {
-          setWalletData({
-            nativeBalance: data.walletData.nativeBalance,
-            txCount: data.walletData.txCount,
-            tokenBalances: data.walletData.tokenBalances,
-            nfts: data.walletData.nfts,
-          })
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
+  // Fetch activity data
+  const { 
+    data: activityData, 
+    isLoading: activityLoading, 
+    error: activityError,
+    refetch: refetchActivity 
+  } = useQuery<{ items: ActivityItem[] }>({
+    queryKey: ['wallet-activity', connectedAddress],
+    queryFn: async () => {
+      if (!connectedAddress) throw new Error('No address')
+      const normalizedAddress = connectedAddress.toLowerCase()
+      const response = await fetch(`/api/wallet/${normalizedAddress}/activity?limit=5`)
+      if (!response.ok) throw new Error('Failed to fetch activity')
+      return response.json()
+    },
+    enabled: mounted && isConnected && !!connectedAddress,
+  })
 
-    fetchData()
-  }, [mounted, isConnected, connectedAddress])
+  // Fetch assets data
+  const { 
+    data: assetsData, 
+    isLoading: assetsLoading, 
+    error: assetsError,
+    refetch: refetchAssets 
+  } = useQuery<AssetsData>({
+    queryKey: ['wallet-assets', connectedAddress],
+    queryFn: async () => {
+      if (!connectedAddress) throw new Error('No address')
+      const normalizedAddress = connectedAddress.toLowerCase()
+      const response = await fetch(`/api/wallet/${normalizedAddress}/assets?top=3&nfts=3`)
+      if (!response.ok) throw new Error('Failed to fetch assets')
+      return response.json()
+    },
+    enabled: mounted && isConnected && !!connectedAddress,
+  })
 
   const handleAddressSubmit = () => {
     if (!addressInput.trim()) return
     
     const trimmedAddress = addressInput.trim()
     if (isValidAddress(trimmedAddress)) {
-      // Normalize address to lowercase
       const normalizedAddress = trimmedAddress.toLowerCase()
       router.push(`/dashboard/${normalizedAddress}`)
     }
@@ -104,15 +198,31 @@ export default function DashboardPage() {
     }
   }
 
-  const handleCopyAddress = async () => {
-    if (!connectedAddress) return
-    
+  const handleCopyHash = async (hash: string) => {
     try {
-      await navigator.clipboard.writeText(connectedAddress)
-      toast.success('Copied')
-    } catch (error) {
+      await navigator.clipboard.writeText(hash)
+      toast.success('Hash copied')
+    } catch {
       toast.error('Copy failed')
     }
+  }
+
+  const handleCopyLink = async () => {
+    if (!connectedAddress) return
+    const url = getShareUrl(connectedAddress, summaryData?.profile?.slug)
+    try {
+      await navigator.clipboard.writeText(url)
+      toast.success('Link copied')
+    } catch {
+      toast.error('Copy failed')
+    }
+  }
+
+  const handleShareTwitter = () => {
+    if (!connectedAddress) return
+    const url = getShareUrl(connectedAddress, summaryData?.profile?.slug)
+    const text = encodeURIComponent(`Check out my Avalanche profile!`)
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(url)}`, '_blank')
   }
 
   const getSocialIcon = (type: string) => {
@@ -126,18 +236,59 @@ export default function DashboardPage() {
     }
   }
 
-  if (!mounted) {
+  const getPrimaryCTA = () => {
+    if (!isConnected || !connectedAddress) {
+      return (
+        <Button
+          onClick={() => connect({ connector: connectors[0] })}
+          variant="default"
+          size="sm"
+          disabled={isConnecting}
+        >
+          {isConnecting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Connecting...
+            </>
+          ) : (
+            'Connect Wallet to Claim'
+          )}
+        </Button>
+      )
+    }
+
+    const normalizedConnected = connectedAddress.toLowerCase()
+    const isClaimed = summaryData?.claimed ?? false
+
+    if (!isClaimed) {
+      return <ClaimProfileButton address={normalizedConnected} />
+    }
+
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-48 w-full" />
-      </div>
+      <Button
+        onClick={() => router.push(`/dashboard/${normalizedConnected}?tab=settings`)}
+        variant="default"
+        size="sm"
+      >
+        Edit Profile
+      </Button>
     )
   }
 
-  return (
-    <div className="space-y-4">
-      {!isConnected ? (
+  if (!mounted) {
+    return (
+      <PageShell title="Dashboard" subtitle="Overview">
+        <div className="space-y-4">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-48 w-full" />
+        </div>
+      </PageShell>
+    )
+  }
+
+  if (!isConnected) {
+    return (
+      <PageShell title="Dashboard" subtitle="Overview">
         <Card>
           <CardHeader className="p-4 pb-3">
             <CardTitle className="text-base font-semibold">Wallet Connection Required</CardTitle>
@@ -168,171 +319,575 @@ export default function DashboardPage() {
             )}
           </CardContent>
         </Card>
-      ) : (
-        <>
-          {/* Dashboard Header */}
-          <div className="flex items-center justify-between border-b pb-3">
+      </PageShell>
+    )
+  }
+
+  const normalizedAddress = connectedAddress?.toLowerCase() || ''
+  const publicProfileHref = summaryData?.profile?.slug 
+    ? `/p/${summaryData.profile.slug}` 
+    : `/p/${normalizedAddress}`
+
+  return (
+    <PageShell title="Dashboard" subtitle="Overview">
+      {/* Status Bar */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant="secondary">Avalanche C-Chain</Badge>
+              <Badge variant={summaryData?.claimed ? 'default' : 'outline'}>
+                {summaryData?.claimed ? 'Claimed' : 'Not Claimed'}
+              </Badge>
+              <Badge variant={summaryData?.visibility === 'PUBLIC' ? 'default' : 'secondary'}>
+                {summaryData?.visibility === 'PUBLIC' ? 'Public' : 'Private'}
+              </Badge>
+            </div>
             <div className="flex items-center gap-2">
-              <span className="font-mono text-sm text-muted-foreground">
-                {formatAddress(connectedAddress || '', 4)}
-              </span>
-              <Button
-                variant="outline"
-                size="icon-sm"
-                onClick={handleCopyAddress}
-                aria-label="Copy address"
-                title="Copy address"
-                className="h-7 w-7"
-              >
-                <Copy className="h-3.5 w-3.5" />
-              </Button>
+              {getPrimaryCTA()}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      asChild
+                      aria-label="View public profile"
+                    >
+                      <Link href={publicProfileHref}>
+                        <Eye className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>View public profile</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <DropdownMenu>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                      className="h-8 w-8"
+                          aria-label="Share profile"
+                        >
+                          <Share2 className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>Share profile</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleShareTwitter}>
+                    <Twitter className="mr-2 h-4 w-4" />
+                    Share on X
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleCopyLink}>
+                    <Copy className="mr-2 h-4 w-4" />
+                    Copy link
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => setQrModalOpen(true)}
+                      aria-label="Show QR code"
+                    >
+                      <QrCode className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Show QR code</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
-            {loading ? (
-              <Skeleton className="h-7 w-24" />
-            ) : hasClaimedProfile ? (
-              <Link href={`/dashboard/${connectedAddress?.toLowerCase()}`}>
-                <Button variant="default" size="sm">Manage Profile</Button>
-              </Link>
-            ) : (
-              <Link href={`/dashboard/${connectedAddress?.toLowerCase()}`}>
-                <Button variant="outline" size="sm">Claim Profile</Button>
-              </Link>
-            )}
           </div>
+        </CardContent>
+      </Card>
 
-          {/* Profile Summary Card */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <Avatar className="h-12 w-12">
-                  <AvatarImage 
-                    src={connectedAddress ? `https://effigy.im/a/${connectedAddress}.svg` : undefined}
-                    alt={profile?.displayName || formatAddress(connectedAddress || '')}
-                  />
-                  <AvatarFallback className="text-xs">
-                    {connectedAddress ? connectedAddress.slice(2, 4).toUpperCase() : '??'}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  {loading ? (
-                    <div className="space-y-2">
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-3 w-full" />
-                      <Skeleton className="h-3 w-3/4" />
-                    </div>
-                  ) : profile?.displayName ? (
-                    <>
-                      <h2 className="text-sm font-semibold mb-1">{profile.displayName}</h2>
-                      {profile.bio && (
-                        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mb-2">
-                          {profile.bio}
-                        </p>
-                      )}
-                      {profile.socialLinks && profile.socialLinks.length > 0 && (
-                        <div className="flex items-center gap-2 mt-2">
-                          {profile.socialLinks.map((link, idx) => (
-                            <a
-                              key={idx}
-                              href={link.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-muted-foreground hover:text-foreground transition-colors"
-                              title={link.label || link.type}
-                            >
-                              {getSocialIcon(link.type)}
-                            </a>
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-muted-foreground">
-                        {formatAddress(connectedAddress || '')}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Profile not claimed yet
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Wallet Stats */}
-          {walletData && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <Card>
-                <CardContent className="p-3">
-                  <p className="text-xs text-muted-foreground mb-1">AVAX Balance</p>
-                  <p className="text-sm font-semibold">
-                    {parseFloat(walletData.nativeBalance).toFixed(4)} AVAX
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-3">
-                  <p className="text-xs text-muted-foreground mb-1">Transactions</p>
-                  <p className="text-sm font-semibold">{walletData.txCount}</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-3">
-                  <p className="text-xs text-muted-foreground mb-1">Tokens</p>
-                  <p className="text-sm font-semibold">{walletData.tokenBalances?.length || 0}</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-3">
-                  <p className="text-xs text-muted-foreground mb-1">NFTs</p>
-                  <p className="text-sm font-semibold">{walletData.nfts?.length || 0}</p>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {/* Manage Another Profile */}
-          <Card>
-            <CardHeader className="p-4 pb-3">
-              <CardTitle className="text-sm font-medium">Manage Another Profile</CardTitle>
-              <CardDescription className="text-xs">
-                Enter a wallet address to manage its profile
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-4 pt-0">
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* AVAX Balance */}
+        <Card 
+          className="cursor-pointer hover:bg-accent/50 transition-colors"
+          onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=assets`)}
+        >
+          <CardContent className="p-4">
+            {summaryLoading ? (
+              <>
+                <Skeleton className="h-3 w-16 mb-2" />
+                <Skeleton className="h-6 w-24" />
+              </>
+            ) : summaryError ? (
               <div className="space-y-2">
-                <Label htmlFor="address" className="text-xs">Wallet Address</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="address"
-                    placeholder="0x..."
-                    value={addressInput}
-                    onChange={(e) => setAddressInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    className="flex-1 h-8 text-sm"
-                  />
+                <p className="text-xs text-muted-foreground">AVAX Balance</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-destructive">Error</p>
                   <Button
-                    onClick={handleAddressSubmit}
-                    disabled={!isValidAddress(addressInput.trim())}
-                    size="sm"
-                    variant="outline"
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      refetchSummary()
+                    }}
+                    aria-label="Retry"
                   >
-                    Go
+                    <RefreshCw className="h-3 w-3" />
                   </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            ) : (
+              <>
+                <p className="text-xs text-muted-foreground mb-1">AVAX Balance</p>
+                <p className="text-lg font-semibold">
+                  {parseFloat(summaryData?.avaxBalance || '0').toFixed(4)} AVAX
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
 
-          {/* Info about account switching */}
-          <Alert className="py-2">
-            <AlertDescription className="text-xs">
-              <span className="font-medium">Multiple Accounts?</span> Switch accounts in your wallet extension, then click "Manage Profile" above or enter the address manually.
-            </AlertDescription>
-          </Alert>
-        </>
+        {/* Transactions */}
+        <Card 
+          className="cursor-pointer hover:bg-accent/50 transition-colors"
+          onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=activity`)}
+        >
+          <CardContent className="p-4">
+            {summaryLoading ? (
+              <>
+                <Skeleton className="h-3 w-20 mb-2" />
+                <Skeleton className="h-6 w-16" />
+              </>
+            ) : summaryError ? (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">Transactions</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-destructive">Error</p>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      refetchSummary()
+                    }}
+                    aria-label="Retry"
+                  >
+                    <RefreshCw className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <p className="text-xs text-muted-foreground mb-1">Transactions</p>
+                <p className="text-lg font-semibold">{summaryData?.txCount || 0}</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Tokens */}
+        <Card 
+          className="cursor-pointer hover:bg-accent/50 transition-colors"
+          onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=assets&assetTab=tokens`)}
+        >
+          <CardContent className="p-4">
+            {summaryLoading ? (
+              <>
+                <Skeleton className="h-3 w-16 mb-2" />
+                <Skeleton className="h-6 w-16" />
+              </>
+            ) : summaryError ? (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">Tokens</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-destructive">Error</p>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      refetchSummary()
+                    }}
+                    aria-label="Retry"
+                  >
+                    <RefreshCw className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <p className="text-xs text-muted-foreground mb-1">Tokens</p>
+                <p className="text-lg font-semibold">{summaryData?.tokenCount || 0}</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* NFTs */}
+        <Card 
+          className="cursor-pointer hover:bg-accent/50 transition-colors"
+          onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=assets&assetTab=nfts`)}
+        >
+          <CardContent className="p-4">
+            {summaryLoading ? (
+              <>
+                <Skeleton className="h-3 w-16 mb-2" />
+                <Skeleton className="h-6 w-16" />
+              </>
+            ) : summaryError ? (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">NFTs</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-destructive">Error</p>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      refetchSummary()
+                    }}
+                    aria-label="Retry"
+                  >
+                    <RefreshCw className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <p className="text-xs text-muted-foreground mb-1">NFTs</p>
+                <p className="text-lg font-semibold">{summaryData?.nftCount || 0}</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Activity and Assets */}
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Recent Activity */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <div>
+              <CardTitle className="text-base font-semibold">Recent Activity</CardTitle>
+              <CardDescription className="text-xs">Last 5 transactions</CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => refetchActivity()}
+                      disabled={activityLoading}
+                      aria-label="Refresh"
+                    >
+                      <RefreshCw className={`h-4 w-4 ${activityLoading ? 'animate-spin' : ''}`} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Refresh</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {activityLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <div className="flex-1 space-y-1">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : activityError ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <p className="text-sm font-medium mb-1">Failed to load activity</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refetchActivity()}
+                  className="mt-2"
+                >
+                  <RefreshCw className="mr-2 h-3 w-3" />
+                  Retry
+                </Button>
+              </div>
+            ) : activityData?.items && activityData.items.length > 0 ? (
+              <div className="space-y-3">
+                {activityData.items.map((item, idx) => {
+                  const isOutgoing = item.from.toLowerCase() === normalizedAddress
+                  return (
+                    <div key={item.hash || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
+                      <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+                        {isOutgoing ? (
+                          <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <ArrowDownRight className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={() => handleCopyHash(item.hash)}
+                                  className="text-sm font-mono truncate hover:text-primary"
+                                >
+                                  {formatAddress(item.hash, 4)}
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="font-mono text-xs">{item.hash}</p>
+                                <p className="text-xs mt-1">Click to copy</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-xs text-muted-foreground">
+                            {parseFloat(item.value).toFixed(4)} AVAX
+                          </p>
+                          <span className="text-xs text-muted-foreground">•</span>
+                          <p className="text-xs text-muted-foreground">
+                            {formatRelativeTime(item.timestamp)}
+                          </p>
+                        </div>
+                      </div>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                      className="h-8 w-8"
+                              asChild
+                              aria-label="View on explorer"
+                            >
+                              <a
+                                href={getExplorerLink(item.hash)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </a>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>View on explorer</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  )
+                })}
+                <div className="pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=activity`)}
+                  >
+                    View all activity
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <p className="text-sm font-medium mb-1">No recent activity found</p>
+                <p className="text-xs text-muted-foreground mb-4">
+                  {isConnected ? 'No transactions detected yet' : 'Connect a wallet to see activity'}
+                </p>
+                {isConnected && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => refetchActivity()}
+                  >
+                    <RefreshCw className="mr-2 h-3 w-3" />
+                    Refresh
+                  </Button>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Assets */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <div>
+              <CardTitle className="text-base font-semibold">Assets</CardTitle>
+              <CardDescription className="text-xs">Top tokens and NFTs</CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => refetchAssets()}
+                      disabled={assetsLoading}
+                      aria-label="Refresh"
+                    >
+                      <RefreshCw className={`h-4 w-4 ${assetsLoading ? 'animate-spin' : ''}`} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Refresh</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {assetsLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="flex-1 space-y-1">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : assetsError ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <p className="text-sm font-medium mb-1">Failed to load assets</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refetchAssets()}
+                  className="mt-2"
+                >
+                  <RefreshCw className="mr-2 h-3 w-3" />
+                  Retry
+                </Button>
+              </div>
+            ) : assetsData && (assetsData.topTokens.length > 0 || assetsData.nfts.length > 0) ? (
+              <div className="space-y-3">
+                {assetsData.topTokens.map((token, idx) => (
+                  <div key={token.contractAddress || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
+                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                      <Coins className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{token.symbol}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {parseFloat(token.balance).toFixed(4)} {token.symbol}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                {assetsData.nfts.map((nft, idx) => (
+                  <div key={`${nft.contractAddress}-${nft.tokenId}` || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
+                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden">
+                      {nft.image ? (
+                        <img src={nft.image} alt={nft.name} className="h-10 w-10 rounded-full object-cover" />
+                      ) : (
+                        <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{nft.name || `NFT #${nft.tokenId}`}</p>
+                      <p className="text-xs text-muted-foreground">Token ID: {formatAddress(nft.tokenId, 4)}</p>
+                    </div>
+                  </div>
+                ))}
+                <div className="pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=assets&assetTab=tokens`)}
+                  >
+                    View all assets
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <p className="text-sm font-medium mb-1">No tokens or NFTs detected</p>
+                <p className="text-xs text-muted-foreground mb-4">
+                  This wallet has no tokens or NFTs to display
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refetchAssets()}
+                >
+                  <RefreshCw className="mr-2 h-3 w-3" />
+                  Refresh
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Manage Another Profile */}
+      <Card>
+        <CardHeader className="p-4 pb-3">
+          <CardTitle className="text-sm font-medium">Manage Another Profile</CardTitle>
+          <CardDescription className="text-xs">
+            Enter a wallet address to manage its profile
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-4 pt-0">
+          <div className="space-y-2">
+            <Label htmlFor="address" className="text-xs">Wallet Address</Label>
+            <div className="flex gap-2">
+              <Input
+                id="address"
+                placeholder="0x..."
+                value={addressInput}
+                onChange={(e) => setAddressInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="flex-1 h-8 text-sm"
+              />
+              <Button
+                onClick={handleAddressSubmit}
+                disabled={!isValidAddress(addressInput.trim())}
+                size="sm"
+                variant="outline"
+              >
+                Go
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* QR Code Modal */}
+      {connectedAddress && (
+        <QRCodeModal
+          open={qrModalOpen}
+          onOpenChange={setQrModalOpen}
+          profile={{
+            address: connectedAddress,
+            slug: summaryData?.profile?.slug || null,
+            displayName: summaryData?.profile?.displayName || null,
+          }}
+        />
       )}
-    </div>
+    </PageShell>
   )
 }

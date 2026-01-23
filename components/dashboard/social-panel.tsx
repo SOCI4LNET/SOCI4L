@@ -9,10 +9,11 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Copy, ExternalLink, Users, UserPlus } from 'lucide-react'
+import { ExternalLink, Users, UserPlus } from 'lucide-react'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import { PageShell } from '@/components/app-shell/page-shell'
 
 interface SocialPanelProps {
   address: string
@@ -94,19 +95,11 @@ export function SocialPanel({ address }: SocialPanelProps) {
     fetchFollows()
   }, [mounted, address])
 
-  const handleCopyAddress = async (addr: string) => {
-    try {
-      await navigator.clipboard.writeText(addr)
-      toast.success('Copied')
-    } catch (error) {
-      toast.error('Copy failed')
-    }
-  }
 
   const handleTabChange = (value: string) => {
     const newTab = value as 'followers' | 'following'
     
-    // Update local state immediately
+    // Update local state immediately - no navigation, just state change
     setActiveTab(newTab)
     
     // Update URL with 'subtab' param (not 'tab' to avoid conflict with dashboard routing)
@@ -155,13 +148,9 @@ export function SocialPanel({ address }: SocialPanelProps) {
 
     if (items.length === 0) {
       return (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center py-12">
-              <p className="text-sm text-muted-foreground">{emptyMessage}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="text-center py-12">
+          <p className="text-sm text-muted-foreground">{emptyMessage}</p>
+        </div>
       )
     }
 
@@ -175,7 +164,7 @@ export function SocialPanel({ address }: SocialPanelProps) {
           return (
             <div
               key={item.address}
-              className="flex items-center gap-3 p-3 rounded-lg border hover:bg-accent/50 transition-colors"
+              className="flex items-center gap-3 p-3 rounded-lg border border-border/60 hover:bg-accent/50 transition-colors"
             >
               <Avatar className="h-10 w-10">
                 <AvatarImage src={avatarUrl} alt={formatAddress(item.address)} />
@@ -193,41 +182,21 @@ export function SocialPanel({ address }: SocialPanelProps) {
                     <TooltipTrigger asChild>
                       <Button
                         variant="outline"
-                        size="icon-sm"
-                        onClick={() => handleCopyAddress(item.address)}
-                        aria-label="Copy address"
-                        className="h-7 w-7"
+                        size="sm"
+                        asChild
+                        className="h-7"
                       >
-                        <Copy className="h-3.5 w-3.5" />
+                        <Link href={`/p/${normalizedAddr}`}>
+                          <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                          View profile
+                        </Link>
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Copy address</p>
+                      <p>View profile</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-                <Link href={`/p/${normalizedAddr}`}>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          asChild
-                          className="h-7"
-                        >
-                          <span className="flex items-center gap-1.5">
-                            <ExternalLink className="h-3.5 w-3.5" />
-                            View profile
-                          </span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>View profile</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </Link>
               </div>
             </div>
           )
@@ -237,15 +206,8 @@ export function SocialPanel({ address }: SocialPanelProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-3xl font-bold">Social</h1>
-        <p className="text-muted-foreground mt-1">
-          Manage your followers and following
-        </p>
-      </div>
-
-      <Card>
+    <PageShell title="Social" subtitle="Manage your followers and following">
+      <Card className="bg-card border border-border/60 shadow-sm">
         <CardHeader>
           <CardTitle>Follows</CardTitle>
           <CardDescription>View and manage your social connections</CardDescription>
@@ -254,19 +216,11 @@ export function SocialPanel({ address }: SocialPanelProps) {
           <Tabs value={activeTab} onValueChange={handleTabChange}>
             <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
               <TabsList>
-                <TabsTrigger 
-                  value="followers" 
-                  className="gap-2"
-                  type="button"
-                >
+                <TabsTrigger value="followers" className="gap-2">
                   <Users className="h-4 w-4" />
                   <span>Followers</span>
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="following" 
-                  className="gap-2"
-                  type="button"
-                >
+                <TabsTrigger value="following" className="gap-2">
                   <UserPlus className="h-4 w-4" />
                   <span>Following</span>
                 </TabsTrigger>
@@ -293,6 +247,6 @@ export function SocialPanel({ address }: SocialPanelProps) {
           </Tabs>
         </CardContent>
       </Card>
-    </div>
+    </PageShell>
   )
 }

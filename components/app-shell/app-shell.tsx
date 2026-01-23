@@ -1,24 +1,24 @@
 'use client'
 
 import { ReactNode } from 'react'
-import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { AppSidebar } from './app-sidebar'
 import { AppTopbar } from './app-topbar'
 
 interface AppShellProps {
   children: ReactNode
-  address: string
+  address?: string
 }
 
 export function AppShell({ children, address }: AppShellProps) {
   return (
-    <SidebarProvider>
-      <AppSidebar address={address} />
+    <SidebarProvider defaultOpen={true}>
+      <AppSidebar />
       <SidebarInset>
         <AppTopbar />
-        <main className="flex flex-1 flex-col gap-4 p-4 md:p-6 lg:p-8">
+        <div className="flex flex-1 flex-col bg-background">
           {children}
-        </main>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   )

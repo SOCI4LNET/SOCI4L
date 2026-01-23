@@ -4,6 +4,16 @@ import { useState, useEffect } from 'react'
 import { useAccount, useConnect, useSignMessage } from 'wagmi'
 import { Toggle } from '@/components/ui/toggle'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Bookmark as BookmarkIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { isValidAddress } from '@/lib/utils'
@@ -19,8 +29,9 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
   const [isPending, setIsPending] = useState(false)
   const [followersCount, setFollowersCount] = useState(0)
   const [followingCount, setFollowingCount] = useState(0)
+  const [showConnectDialog, setShowConnectDialog] = useState(false)
   const { address: connectedAddress, isConnected } = useAccount()
-  const { connect, connectors } = useConnect()
+  const { connect, connectors, isPending: isConnecting } = useConnect()
   const { signMessageAsync } = useSignMessage()
 
   useEffect(() => {
@@ -132,6 +143,12 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
   const handleToggle = async (pressed: boolean) => {
     if (!mounted) return
 
+    // If not connected, show connect dialog
+    if (!isConnected) {
+      setShowConnectDialog(true)
+      return
+    }
+
     // Ensure session exists
     const hasSession = await ensureSession()
     if (!hasSession) {
@@ -231,19 +248,11 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
     </Toggle>
   )
 
-  if (!isConnected) {
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div>{toggleButton}</div>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Connect wallet to follow</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    )
+  const handleConnect = () => {
+    if (connectors.length > 0) {
+      connect({ connector: connectors[0] })
+      setShowConnectDialog(false)
+    }
   }
 
   if (isSelfProfile) {
@@ -261,7 +270,39 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
     )
   }
 
-  return toggleButton
+  return (
+    <>
+      <Toggle
+        aria-label="Follow profile"
+        size="sm"
+        variant="outline"
+        pressed={isFollowing}
+        onPressedChange={handleToggle}
+        disabled={isPending || isSelfProfile}
+        className="gap-2"
+      >
+        <BookmarkIcon className="h-3.5 w-3.5 group-data-[state=on]/toggle:fill-foreground" />
+        {isFollowing ? 'Following' : 'Follow'}
+      </Toggle>
+
+      <AlertDialog open={showConnectDialog} onOpenChange={setShowConnectDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Connect Wallet</AlertDialogTitle>
+            <AlertDialogDescription>
+              You need to connect your wallet to follow profiles.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConnect} disabled={isConnecting || connectors.length === 0}>
+              {isConnecting ? 'Connecting...' : 'Connect Wallet'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  )
 }
 
 export function FollowStats({ address }: { address: string }) {

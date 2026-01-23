@@ -76,38 +76,29 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
     }
   }, [mounted])
 
-  // Handle modal open/close and QR rendering
+  // Handle modal open/close and QR rendering - simplified to prevent flicker
   useEffect(() => {
-    if (!mounted) return
-
-    if (!profileUrl) {
-      console.log('QR: No profile URL')
-      return
-    }
-
-    // Modal closed: cleanup only in onClose handler, not here
-    if (!open) {
+    if (!mounted || !open || !profileUrl) {
+      if (!open) {
+        setQrReady(false)
+        didAppendRef.current = false
+        isAppendingRef.current = false
+      }
       return
     }
 
     // Wait for library to load
     if (!qrLibraryRef.current) {
-      console.log('QR: Library not loaded yet')
       return
     }
 
     // Prevent duplicate appends
-    if (isAppendingRef.current) {
-      console.log('QR: Already appending')
+    if (isAppendingRef.current || didAppendRef.current) {
       return
     }
 
-    // Check if data changed
-    const dataChanged = lastDataRef.current !== profileUrl
-
-    // Create QR instance if it doesn't exist (don't wait for container)
+    // Create or update QR instance
     if (!qrInstanceRef.current) {
-      console.log('QR open: Creating QR instance', { profileUrl })
       try {
         qrInstanceRef.current = new qrLibraryRef.current({
           width: 240,
@@ -120,37 +111,28 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
             mode: 'Byte',
             errorCorrectionLevel: 'M',
           },
-          imageOptions: {
-            hideBackgroundDots: true,
-            imageSize: 0.4,
-            margin: 0,
-          },
           dotsOptions: {
-            color: '#ffffff',
+            color: '#000000',
             type: 'rounded',
           },
           backgroundOptions: {
-            color: 'transparent',
+            color: '#ffffff',
           },
           cornersSquareOptions: {
-            color: '#ffffff',
+            color: '#000000',
             type: 'extra-rounded',
           },
           cornersDotOptions: {
-            color: '#ffffff',
+            color: '#000000',
             type: 'dot',
           },
         })
         lastDataRef.current = profileUrl
-        didAppendRef.current = false
-        console.log('QR instance created')
       } catch (error) {
         console.error('Failed to create QR instance:', error)
         return
       }
-    } else if (dataChanged) {
-      // Update existing instance with new data
-      console.log('QR open: Updating QR data', { profileUrl })
+    } else if (lastDataRef.current !== profileUrl) {
       try {
         qrInstanceRef.current.update({ data: profileUrl })
         lastDataRef.current = profileUrl
@@ -160,95 +142,49 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
       }
     }
 
-    // Schedule append after modal is mounted and visible
-    // Use multiple RAFs and setTimeout to ensure container is ready
-    if (!didAppendRef.current || dataChanged) {
-      isAppendingRef.current = true
-      setQrReady(false)
-
-      // Wait for container to be ready with multiple checks
-      const attemptAppend = (attempts = 0) => {
-        if (attempts > 10) {
-          console.error('QR: Container never became ready after 10 attempts')
-          isAppendingRef.current = false
-          return
-        }
-
-        if (!qrContainerRef.current || !qrInstanceRef.current || !open) {
-          if (attempts < 10) {
-            setTimeout(() => attemptAppend(attempts + 1), 50)
-          } else {
-            console.log('QR: Append cancelled', {
-              hasContainer: !!qrContainerRef.current,
-              hasInstance: !!qrInstanceRef.current,
-              isOpen: open
-            })
-            isAppendingRef.current = false
-          }
-          return
-        }
-
-        // Container is ready, proceed with append
-        // Use setTimeout to ensure React has finished its render cycle
-        setTimeout(() => {
-          if (!qrContainerRef.current || !qrInstanceRef.current || !open) {
-            isAppendingRef.current = false
-            return
-          }
-
-          try {
-            // Update data before append (in case it changed)
-            qrInstanceRef.current.update({ data: profileUrl })
-            
-            // Clear container - use replaceChildren which is safer and doesn't conflict with React
-            const container = qrContainerRef.current
-            if (container) {
-              // Use replaceChildren which is atomic and doesn't cause removeChild errors
-              // This clears all children at once without individual removeChild calls
-              if (container.replaceChildren) {
-                container.replaceChildren()
-              } else {
-                // Fallback for older browsers
-                container.innerHTML = ''
-              }
-            }
-            
-            // Append QR - this adds elements directly to DOM outside React's control
-            qrInstanceRef.current.append(qrContainerRef.current)
-            didAppendRef.current = true
-            setQrReady(true)
-            console.log('QR appended successfully')
-          } catch (error) {
-            console.error('Failed to append QR code:', error)
-            setQrReady(false)
-            didAppendRef.current = false
-          } finally {
-            isAppendingRef.current = false
-          }
-        }, 100)
+    // Append QR after a short delay to ensure container is ready
+    isAppendingRef.current = true
+    const timeoutId = setTimeout(() => {
+      if (!qrContainerRef.current || !qrInstanceRef.current || !open) {
+        isAppendingRef.current = false
+        return
       }
 
-      // Start append attempt after a short delay to ensure DOM is ready
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          attemptAppend(0)
-        })
-      })
+      try {
+        // Clear container
+        if (qrContainerRef.current.replaceChildren) {
+          qrContainerRef.current.replaceChildren()
+        } else {
+          qrContainerRef.current.innerHTML = ''
+        }
+        
+        // Append QR
+        qrInstanceRef.current.append(qrContainerRef.current)
+        didAppendRef.current = true
+        setQrReady(true)
+      } catch (error) {
+        console.error('Failed to append QR code:', error)
+        setQrReady(false)
+        didAppendRef.current = false
+      } finally {
+        isAppendingRef.current = false
+      }
+    }, 150)
+
+    return () => {
+      clearTimeout(timeoutId)
+      if (!open) {
+        isAppendingRef.current = false
+      }
     }
   }, [mounted, open, profileUrl])
 
-  // Handle modal close - cleanup only here, not in effect cleanup
+  // Handle modal close
   const handleOpenChange = (newOpen: boolean) => {
-    if (!newOpen && open) {
-      // Modal is closing
-      console.log('QR close')
+    if (!newOpen) {
       setQrReady(false)
       didAppendRef.current = false
       isAppendingRef.current = false
-      
-      // Don't clear container here - let React handle it naturally
-      // Clearing it manually causes removeChild conflicts
-      // The container will be cleared when the component unmounts or re-renders
     }
     onOpenChange(newOpen)
   }
@@ -393,20 +329,16 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md bg-black/40 backdrop-blur-2xl border border-white/10 shadow-2xl p-6 [&>button]:hidden relative overflow-hidden">
+      <DialogContent className="max-w-md bg-card border shadow-lg p-6 [&>button]:hidden">
         <DialogTitle className="sr-only">QR Code for {displayName}</DialogTitle>
         <DialogDescription className="sr-only">
           Scan this QR code to open the profile for {displayName} ({formatAddress(profile.address, 4)})
         </DialogDescription>
         
-        {/* Holographic gradient overlay effect with subtle animation */}
-        <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-pink-500/10 opacity-50 pointer-events-none animate-pulse" 
-             style={{ animationDuration: '3s' }} />
-        
-        <div className="relative z-10 space-y-6">
+        <div className="flex flex-col items-center space-y-6">
           {/* Profile Header */}
           <div className="flex flex-col items-center space-y-3">
-            <Avatar className="h-16 w-16 border-2 border-white/20">
+            <Avatar className="h-16 w-16 border-2 border-border">
               <AvatarImage src={avatarUrl} alt={displayName} />
               <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-sm">
                 {fallbackText}
@@ -421,7 +353,7 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
           </div>
 
           {/* QR Code Container */}
-          <div className="mx-auto flex items-center justify-center rounded-xl border border-white/10 bg-black/20 p-4">
+          <div className="mx-auto flex items-center justify-center rounded-lg border border-border bg-background p-4">
             {/* Skeleton shown while QR is loading */}
             {!qrReady && (
               <Skeleton className="h-[240px] w-[240px] rounded-lg" />
@@ -441,7 +373,7 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
           </p>
 
           {/* Actions */}
-          <div className="flex items-center justify-center gap-2 pt-2">
+          <div className="flex items-center justify-center gap-2 w-full">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="default" size="sm" className="gap-2">

@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge'
 import { Loader2, X, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { PageShell } from '@/components/app-shell/page-shell'
 
 type SocialLinkPlatform = 'x' | 'instagram' | 'youtube' | 'github' | 'linkedin' | 'website'
 
@@ -329,12 +330,9 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Settings</CardTitle>
-        <CardDescription>Profile configuration</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
+    <PageShell title="Settings" subtitle="Profile configuration">
+      <Card className="bg-card border border-border/60 shadow-sm">
+        <CardContent className="space-y-6 p-6">
         <div className="space-y-3">
           <Label>Profile</Label>
           <div className="space-y-2">
@@ -565,5 +563,6 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
         </div>
       </CardContent>
     </Card>
+    </PageShell>
   )
 }

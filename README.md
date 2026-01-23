@@ -82,7 +82,14 @@ echo 'DATABASE_URL="file:./dev.db"' > .env
 
 Opsiyonel değişkenler:
 - `NEXT_PUBLIC_AVALANCHE_RPC`: Avalanche RPC endpoint (varsayılan: public RPC)
-- `SNOWTRACE_API_KEY`: Snowtrace API anahtarı (opsiyonel, gelişmiş veri için)
+- `MORALIS_API_KEY`: **Önerilen** - Moralis API anahtarı (token ve NFT bakiyeleri için gerekli)
+  - **ÜCRETSİZ PLAN**: 40,000 Compute Units/gün, süresiz (trial yok!)
+  - Ücretsiz API anahtarı almak için: https://moralis.io/
+  - API anahtarı olmadan sadece native AVAX bakiyesi gösterilir
+- `SNOWTRACE_API_KEY`: Snowtrace API anahtarı (opsiyonel - ücretsiz plan API key gerektirmez)
+  - **ÜCRETSİZ PLAN**: 2 req/saniye, 10,000 çağrı/gün (API key olmadan çalışır!)
+  - API key sadece daha yüksek limitler için gerekli
+  - Ücretsiz API key almak için: https://snowtrace.io/apis
 - `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`: WalletConnect Project ID (opsiyonel)
 
 ### Adım 4: Veritabanını Hazırlayın
@@ -157,7 +164,31 @@ Talep edilen profiller için dashboard'da şunları yapabilirsiniz:
 
 ## Notlar
 
-- API anahtarları opsiyoneldir. Anahtar olmadan da temel işlevler çalışır
+- **Moralis API Key**: Token ve NFT bakiyelerini görmek için `MORALIS_API_KEY` ayarlanmalıdır. API anahtarı olmadan sadece native AVAX bakiyesi gösterilir. Ücretsiz plan: 40,000 CU/gün, süresiz.
+- API anahtarları opsiyoneldir. Anahtar olmadan da temel işlevler çalışır (sınırlı veri ile)
+
+## Test Etme
+
+### Assets Sayfasını Test Etme
+
+1. Token bakiyesi olan bir cüzdan adresi ile test edin:
+   ```
+   /dashboard/0x.../assets
+   ```
+
+2. Console loglarını kontrol edin (F12 > Console):
+   - `[Assets Panel]` - UI tarafı logları
+   - `[Assets API]` - API route logları
+   - `[Moralis]` - Moralis API logları
+
+3. Bilinen zengin cüzdanlar (test için):
+   - Avalanche Foundation: `0x8eb8a3b98659C8f2725A7743C832d2bF852FDF20`
+   - veya kendi cüzdanınızı kullanın
+
+4. Hata durumlarını test edin:
+   - API key yoksa: "Moralis API Key Required" uyarısı görünmeli
+   - Geçersiz adres: 400 hatası
+   - Rate limit: 429 hatası (retry butonu ile tekrar deneyin)
 - Veritabanı SQLite kullanır, production için PostgreSQL önerilir
 - Cache mekanizması basit in-memory cache kullanır (production için Redis önerilir)
 

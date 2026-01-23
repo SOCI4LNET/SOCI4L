@@ -1,106 +1,371 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState, useEffect, useMemo } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useAccount } from 'wagmi'
+import { useQuery } from '@tanstack/react-query'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { formatAddress } from '@/lib/utils'
-import { ExternalLink } from 'lucide-react'
-
-interface WalletData {
-  transactions?: Array<{
-    hash: string
-    from: string
-    to: string
-    value: string
-    timestamp: number
-    blockNumber: number
-  }>
-}
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { ActivityTable } from '@/components/activity/ActivityTable'
+import { ActivityFiltersBar } from '@/components/activity/ActivityFiltersBar'
+import { toast } from 'sonner'
+import { RefreshCw } from 'lucide-react'
+import type { ActivityTransaction } from '@/lib/activity/fetchActivity'
 
 interface ActivityPanelProps {
-  walletData: WalletData | null
+  walletData?: any // Legacy prop, kept for compatibility
+  address?: string // Address to show activity for (from route param or parent)
 }
 
-export function ActivityPanel({ walletData }: ActivityPanelProps) {
-  const isLoading = walletData === null
-  const transactions = walletData?.transactions || []
-  const hasTransactions = transactions.length > 0
+interface ActivityResponse {
+  items: ActivityTransaction[]
+  total: number
+  hasMore: boolean
+}
 
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>Activity</CardTitle>
-            <CardDescription>Transaction history</CardDescription>
-          </div>
+function formatLastUpdated(secondsAgo: number): string {
+  if (secondsAgo < 10) return 'Az önce güncellendi'
+  if (secondsAgo < 60) return `${Math.floor(secondsAgo)}s önce güncellendi`
+  const minutes = Math.floor(secondsAgo / 60)
+  if (minutes < 60) return `${minutes}dk önce güncellendi`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}sa önce güncellendi`
+  const days = Math.floor(hours / 24)
+  return `${days}gün önce güncellendi`
+}
+
+export function ActivityPanel({ walletData: legacyWalletData, address: propAddress }: ActivityPanelProps) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const { address: connectedAddress, isConnected } = useAccount()
+  const [mounted, setMounted] = useState(false)
+  
+  // Get address: prop > route param > connected wallet
+  // IMPORTANT: Activity page should show transactions for the specific address (route param or prop)
+  // This ensures we show the correct wallet's transactions, not a mix
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : ''
+  const addressMatch = pathname.match(/\/dashboard\/(0x[a-fA-F0-9]{40})/)
+  const urlAddress = addressMatch ? addressMatch[1].toLowerCase() : null
+  // Priority: prop > route param > connected wallet
+  const targetAddress = propAddress?.toLowerCase() || urlAddress || connectedAddress?.toLowerCase() || ''
+
+  // Debug: Log which address is being used
+  useEffect(() => {
+    if (mounted && targetAddress) {
+      console.log('[Activity Panel] Address resolved:', {
+        resolvedAddress: targetAddress,
+        source: propAddress ? 'prop' : urlAddress ? 'route-param' : connectedAddress ? 'connected-wallet' : 'none',
+        propAddress,
+        urlAddress,
+        connectedAddress,
+        pathname,
+      })
+    }
+  }, [mounted, targetAddress, propAddress, urlAddress, connectedAddress, pathname])
+
+  // Filter states
+  const [dateRange, setDateRange] = useState<'24h' | '7d' | '30d' | 'all'>('all')
+  const [type, setType] = useState<'all' | 'transfer' | 'contract' | 'swap'>('all')
+  const [direction, setDirection] = useState<'all' | 'incoming' | 'outgoing'>('all')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [page, setPage] = useState(0)
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(null)
+  const [currentTime, setCurrentTime] = useState(Date.now())
+
+  const limit = 20
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Update current time every 10 seconds for "last updated" display
+  useEffect(() => {
+    if (!mounted) return
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now())
+    }, 10000) // Every 10 seconds
+    return () => clearInterval(interval)
+  }, [mounted])
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(0)
+  }, [dateRange, type, direction, searchQuery])
+
+  // Fetch activity data
+  const { 
+    data: activityData, 
+    isLoading, 
+    error,
+    refetch,
+  } = useQuery<ActivityResponse>({
+    queryKey: ['wallet-activity', targetAddress, dateRange, type, direction, searchQuery, page],
+    queryFn: async () => {
+      if (!targetAddress) throw new Error('No address')
+      
+      // Log the address being used for debugging
+      console.log('[Activity Panel] Fetching transactions for address:', targetAddress)
+      
+      const params = new URLSearchParams({
+        dateRange,
+        type,
+        direction,
+        limit: limit.toString(),
+        offset: (page * limit).toString(),
+      })
+      
+      if (searchQuery) {
+        params.set('search', searchQuery)
+      }
+
+      const apiUrl = `/api/wallet/${targetAddress}/activity?${params.toString()}`
+      console.log('[Activity Panel] API URL:', apiUrl)
+      
+      const response = await fetch(apiUrl)
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('[Activity Panel] API Error:', errorText)
+        throw new Error(`Failed to fetch activity: ${response.status}`)
+      }
+      const data = await response.json()
+      
+      // Log the received data for debugging
+      console.log('[Activity Panel] Received transactions:', {
+        count: data.items?.length || 0,
+        address: targetAddress,
+        sampleTx: data.items?.[0] ? {
+          hash: data.items[0].hash,
+          from: data.items[0].from,
+          to: data.items[0].to,
+          direction: data.items[0].direction,
+        } : null,
+      })
+      
+      setLastUpdatedAt(Date.now())
+      return data
+    },
+    enabled: mounted && !!targetAddress,
+    staleTime: 30000, // 30 seconds
+  })
+
+  const handleRefresh = () => {
+    const params = new URLSearchParams({
+      dateRange,
+      type,
+      direction,
+      limit: limit.toString(),
+      offset: (page * limit).toString(),
+      t: Date.now().toString(), // Cache bust
+    })
+    
+    if (searchQuery) {
+      params.set('search', searchQuery)
+    }
+
+    refetch()
+  }
+
+  const handleExportCSV = () => {
+    if (!activityData?.items || activityData.items.length === 0) {
+      toast.error('Dışa aktarılacak veri yok')
+      return
+    }
+
+    const headers = ['Hash', 'Durum', 'Tür', 'Yön', 'Gönderen', 'Alıcı', 'AVAX Değeri', 'Ücret', 'Zaman', 'Blok']
+    const rows = activityData.items.map(tx => [
+      tx.hash,
+      tx.status,
+      tx.type,
+      tx.direction,
+      tx.from,
+      tx.to,
+      tx.nativeValueAvax,
+      tx.feeAvax,
+      new Date(tx.timestamp * 1000).toISOString(),
+      tx.blockNumber.toString(),
+    ])
+
+    const csv = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n')
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', `activity-${targetAddress.slice(0, 8)}-${Date.now()}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  const lastUpdatedText = lastUpdatedAt 
+    ? formatLastUpdated(Math.floor((currentTime - lastUpdatedAt) / 1000))
+    : 'Henüz güncellenmedi'
+
+  if (!mounted) {
+    return (
+      <div className="w-full max-w-[1400px] mx-auto px-4 md:px-6 py-8">
+        <div className="space-y-6 pt-6">
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-96 w-full" />
         </div>
-      </CardHeader>
-      <CardContent>
-        {isLoading ? (
-          <div className="space-y-3">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="flex items-center justify-between py-2 border-b last:border-0">
-                <div className="flex-1 space-y-2 min-w-0">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-3 w-24" />
-                </div>
-                <Skeleton className="h-4 w-16 ml-4" />
-                <Skeleton className="h-8 w-8 ml-2" />
-              </div>
-            ))}
-          </div>
-        ) : hasTransactions ? (
-          <div className="space-y-2">
-            {transactions.slice(0, 10).map((tx, idx) => (
-              <div key={idx} className="flex items-center justify-between py-2 border-b last:border-0">
-                <div className="flex-1 min-w-0 pr-4">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-mono truncate">{formatAddress(tx.hash)}</p>
-                  </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <p className="text-xs text-muted-foreground">
-                      {parseFloat(tx.value).toFixed(4)} AVAX
-                    </p>
-                    <span className="text-xs text-muted-foreground">•</span>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(tx.timestamp * 1000).toLocaleString('tr-TR', {
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  asChild
-                  aria-label="View transaction on explorer"
-                >
-                  <a
-                    href={`https://snowtrace.io/tx/${tx.hash}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-                </Button>
-              </div>
-            ))}
-          </div>
-        ) : (
+      </div>
+    )
+  }
+
+  if (!targetAddress) {
+    return (
+      <div className="w-full max-w-[1400px] mx-auto px-4 md:px-6 py-8">
+        <div className="space-y-6 pt-6">
           <Card>
-            <CardContent className="pt-6">
-              <div className="text-center py-8">
-                <p className="text-sm font-medium mb-1">No activity yet</p>
-                <p className="text-sm text-muted-foreground">This wallet has no transaction history</p>
-              </div>
+            <CardContent className="p-6">
+              <Alert>
+                <AlertDescription>
+                  Cüzdan adresi bulunamadı. Lütfen bir cüzdan bağlayın veya bir adres girin.
+                </AlertDescription>
+              </Alert>
             </CardContent>
           </Card>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="w-full max-w-[1400px] mx-auto px-4 md:px-6 py-8">
+      <div className="space-y-6 pt-6">
+        {/* Page Header */}
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Activity</h1>
+          <p className="text-sm text-muted-foreground mt-1">Transaction history</p>
+        </div>
+
+        {/* Filters Bar */}
+        <ActivityFiltersBar
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          type={type}
+          onTypeChange={setType}
+          direction={direction}
+          onDirectionChange={setDirection}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          lastUpdatedText={lastUpdatedText}
+          isLoading={isLoading}
+          onRefresh={handleRefresh}
+          onExportCSV={handleExportCSV}
+          hasData={!!activityData?.items && activityData.items.length > 0}
+        />
+
+        {/* Transactions List */}
+        {isLoading ? (
+          <div className="border rounded-lg bg-card p-6">
+            <div className="space-y-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : error ? (
+          <div className="border rounded-lg bg-card p-6">
+            <Alert variant="destructive">
+              <AlertDescription>
+                <p className="font-semibold mb-1">İşlemler yüklenirken hata oluştu</p>
+                <p className="text-sm mb-3">
+                  {error instanceof Error ? error.message : 'Bilinmeyen bir hata oluştu'}
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleRefresh()}
+                >
+                  <RefreshCw className="mr-2 h-3.5 w-3.5" />
+                  Tekrar Dene
+                </Button>
+              </AlertDescription>
+            </Alert>
+          </div>
+        ) : activityData?.items && activityData.items.length > 0 ? (
+          <>
+            <div className="border rounded-lg bg-card overflow-hidden">
+              <div className="overflow-x-auto">
+                <ActivityTable 
+                  transactions={activityData.items} 
+                  address={targetAddress}
+                  isLoading={isLoading}
+                />
+              </div>
+            </div>
+            
+            {/* Pagination */}
+            <div className="flex items-center justify-between pt-4 border-t">
+              <p className="text-xs text-muted-foreground">
+                {activityData.items.length} işlem gösteriliyor
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(p => Math.max(0, p - 1))}
+                  disabled={page === 0 || isLoading}
+                >
+                  Önceki
+                </Button>
+                <span className="text-xs text-muted-foreground">
+                  Sayfa {page + 1}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(p => p + 1)}
+                  disabled={!activityData.hasMore || isLoading}
+                >
+                  Sonraki
+                </Button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="border rounded-lg bg-card p-12">
+            <div className="text-center">
+              <p className="text-sm font-medium mb-1">İşlem bulunamadı</p>
+              <p className="text-xs text-muted-foreground mb-4">
+                Bu cüzdan için seçilen filtrelerle eşleşen işlem bulunamadı
+              </p>
+              <div className="flex items-center justify-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setDateRange('all')
+                    setType('all')
+                    setDirection('all')
+                    setSearchQuery('')
+                  }}
+                >
+                  Filtreleri Temizle
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRefresh}
+                >
+                  <RefreshCw className="mr-2 h-3.5 w-3.5" />
+                  Yenile
+                </Button>
+              </div>
+            </div>
+          </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

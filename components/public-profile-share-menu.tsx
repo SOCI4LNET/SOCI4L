@@ -8,10 +8,15 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Share2, Twitter, Copy } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Share2, Twitter, Copy, Download, QrCode } from 'lucide-react'
 import { toast } from 'sonner'
 import { isValidAddress } from '@/lib/utils'
+import { getPublicProfileHref } from '@/lib/routing'
 
 interface PublicProfileShareMenuProps {
   address: string
@@ -54,13 +59,17 @@ export function PublicProfileShareMenu({ address, slug }: PublicProfileShareMenu
     const profileUrl = getProfileUrl()
     if (!profileUrl) return
 
-    // Remove localhost in production, use NEXT_PUBLIC_SITE_URL if available
-    const siteUrl = typeof window !== 'undefined' 
-      ? (process.env.NEXT_PUBLIC_SITE_URL || window.location.origin)
+    // Use NEXT_PUBLIC_APP_URL or fallback to window.origin
+    const baseUrl = typeof window !== 'undefined' 
+      ? (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || window.location.origin)
       : ''
-    const finalUrl = profileUrl.replace(window.location.origin, siteUrl)
     
-    const text = encodeURIComponent('Found an Avalanche profile worth checking out.\n\n')
+    // Build final URL (replace localhost with production URL if needed)
+    const finalUrl = profileUrl.replace(window.location.origin, baseUrl)
+    
+    // Improved share text with blank line before link
+    const shareText = 'Just found this Avalanche wallet profile on SOCI4L.\n\nExplore it here:'
+    const text = encodeURIComponent(shareText)
     const url = encodeURIComponent(finalUrl)
     const intentUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`
 
@@ -112,42 +121,55 @@ export function PublicProfileShareMenu({ address, slug }: PublicProfileShareMenu
   // Address is valid if it's a valid Ethereum address or if we have a slug (slug means profile exists)
   const isValid = address && (isValidAddress(address) || !!slug)
 
+  const handleDownloadQR = () => {
+    // QR modal will be opened from parent component
+    // This is just a placeholder - actual QR download handled in QR modal
+    toast.info('QR code available in profile header')
+  }
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          size="icon-sm"
-          disabled={!isValid}
-          aria-label="Share"
-          title="Share"
-        >
-          <Share2 className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={handleShareOnX}>
-          <Twitter className="mr-2 h-4 w-4" />
-          <span>Share on X</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleCopyLink}>
-          <Copy className="mr-2 h-4 w-4" />
-          <span>Copy Link</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleCopyAddress}>
-          <Copy className="mr-2 h-4 w-4" />
-          <span>Copy Address</span>
-        </DropdownMenuItem>
-        {supportsShare && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSystemShare}>
-              <Share2 className="mr-2 h-4 w-4" />
-              <span>Share…</span>
-            </DropdownMenuItem>
-          </>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                disabled={!isValid}
+                className="h-8 w-8"
+                aria-label="Share"
+              >
+                <Share2 className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleShareOnX}>
+                <Twitter className="mr-2 h-4 w-4" />
+                <span>Share on X</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleCopyLink}>
+                <Copy className="mr-2 h-4 w-4" />
+                <span>Copy profile link</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleDownloadQR}>
+                <Download className="mr-2 h-4 w-4" />
+                <span>Download QR</span>
+              </DropdownMenuItem>
+              {supportsShare && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSystemShare}>
+                    <Share2 className="mr-2 h-4 w-4" />
+                    <span>Share…</span>
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </TooltipTrigger>
+        <TooltipContent>Share profile</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   )
 }

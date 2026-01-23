@@ -10,7 +10,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuGroup,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -20,7 +19,7 @@ import {
   getCurrentProfileAddressFromRoute,
   getPublicProfileHref 
 } from '@/lib/routing'
-import { LayoutDashboard, User, Copy, LogOut, Share2, Settings, Users, QrCode } from 'lucide-react'
+import { LayoutDashboard, User, Copy, LogOut, Share2, QrCode } from 'lucide-react'
 import { toast } from 'sonner'
 import { QRCodeModal } from '@/components/qr/qr-code-modal'
 
@@ -102,49 +101,18 @@ export function ProfileDropdown() {
   // Get first 2-3 characters for fallback
   const fallbackText = connectedAddress.slice(2, 5).toUpperCase()
 
-  // My Account actions (always use connected wallet)
   const handleDashboard = () => {
     if (!isConnected || !connectedAddress) {
       toast.error('Connect your wallet to access your dashboard')
       return
     }
+    // Always navigate to connected wallet dashboard (never current profile)
     if (dashboardHref) {
       router.push(dashboardHref)
     }
   }
 
-  const handleSettings = () => {
-    if (!isConnected || !connectedAddress) {
-      toast.error('Connect your wallet to access your dashboard')
-      return
-    }
-    if (dashboardHref) {
-      router.push(`${dashboardHref}?tab=settings`)
-    }
-  }
-
-  const handleSocial = () => {
-    if (!isConnected || !connectedAddress) {
-      toast.error('Connect your wallet to access your dashboard')
-      return
-    }
-    if (dashboardHref) {
-      router.push(`${dashboardHref}?tab=social`)
-    }
-  }
-
-  const handleDisconnect = () => {
-    disconnect()
-    // Route to safe public page - use current profile if available, otherwise home
-    if (currentProfileAddress) {
-      router.push(`/p/${currentProfileAddress}`)
-    } else {
-      router.push('/')
-    }
-  }
-
-  // Current Profile actions (use current profile from route)
-  const handleViewPublicProfile = () => {
+  const handlePublicProfile = () => {
     if (publicProfileHref) {
       router.push(publicProfileHref)
     }
@@ -163,8 +131,11 @@ export function ProfileDropdown() {
     }
   }
 
-  const handleShareProfile = async () => {
-    if (!publicProfileHref) return
+  const handleShare = async () => {
+    if (!publicProfileHref) {
+      toast.error('Profile URL not available')
+      return
+    }
 
     const profileUrl = `${window.location.origin}${publicProfileHref}`
 
@@ -191,6 +162,16 @@ export function ProfileDropdown() {
       toast.success('Profile link copied')
     } catch (error) {
       toast.error('Copy failed')
+    }
+  }
+
+  const handleDisconnect = () => {
+    disconnect()
+    // Route to safe public page - use current profile if available, otherwise home
+    if (currentProfileAddress) {
+      router.push(`/p/${currentProfileAddress}`)
+    } else {
+      router.push('/')
     }
   }
 
@@ -224,53 +205,27 @@ export function ProfileDropdown() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        
-        {/* My Account Group - Always uses connected wallet */}
-        <DropdownMenuGroup>
-          <DropdownMenuLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-            My Account
-          </DropdownMenuLabel>
-          <DropdownMenuItem onClick={handleDashboard}>
-            <LayoutDashboard className="mr-2 h-4 w-4" />
-            <span>Dashboard</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleSettings}>
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleSocial}>
-            <Users className="mr-2 h-4 w-4" />
-            <span>Social</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setQrModalOpen(true)}>
-            <QrCode className="mr-2 h-4 w-4" />
-            <span>My QR Code</span>
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        
+        <DropdownMenuItem onClick={handleDashboard}>
+          <LayoutDashboard className="mr-2 h-4 w-4" />
+          <span>Dashboard</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handlePublicProfile} disabled={!publicProfileHref}>
+          <User className="mr-2 h-4 w-4" />
+          <span>Public Profile</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleCopyAddress}>
+          <Copy className="mr-2 h-4 w-4" />
+          <span>Copy Address</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleShare} disabled={!publicProfileHref}>
+          <Share2 className="mr-2 h-4 w-4" />
+          <span>Share</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setQrModalOpen(true)}>
+          <QrCode className="mr-2 h-4 w-4" />
+          <span>QR Code</span>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
-        
-        {/* Current Profile Group - Uses current profile from route */}
-        <DropdownMenuGroup>
-          <DropdownMenuLabel className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-            Current Profile
-          </DropdownMenuLabel>
-          <DropdownMenuItem onClick={handleViewPublicProfile} disabled={!publicProfileHref}>
-            <User className="mr-2 h-4 w-4" />
-            <span>View Public Profile</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleCopyAddress}>
-            <Copy className="mr-2 h-4 w-4" />
-            <span>Copy Address</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleShareProfile} disabled={!publicProfileHref}>
-            <Share2 className="mr-2 h-4 w-4" />
-            <span>Share Profile</span>
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        
-        <DropdownMenuSeparator />
-        
         <DropdownMenuItem onClick={handleDisconnect} className="text-destructive focus:text-destructive">
           <LogOut className="mr-2 h-4 w-4" />
           <span>Disconnect</span>
