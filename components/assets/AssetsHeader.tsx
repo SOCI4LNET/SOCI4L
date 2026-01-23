@@ -81,35 +81,28 @@ export function AssetsHeader({
           </Tooltip>
         </TooltipProvider>
 
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9"
-                    aria-label="Share profile"
-                  >
-                    <Share2 className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={onShareTwitter}>
-                    <Share2 className="mr-2 h-4 w-4" />
-                    Share on X
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={onCopyLink}>
-                    <Copy className="mr-2 h-4 w-4" />
-                    Copy link
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TooltipTrigger>
-            <TooltipContent>Share profile</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9"
+              aria-label="Share profile"
+            >
+              <Share2 className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onShareTwitter}>
+              <Share2 className="mr-2 h-4 w-4" />
+              Share on X
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onCopyLink}>
+              <Copy className="mr-2 h-4 w-4" />
+              Copy link
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <TooltipProvider>
           <Tooltip>

@@ -78,8 +78,9 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error fetching wallet data:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: 'Cüzdan verileri alınırken bir hata oluştu' },
+      { error: 'Cüzdan verileri alınırken bir hata oluştu', details: errorMessage },
       { status: 500 }
     )
   }

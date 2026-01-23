@@ -237,6 +237,7 @@ export default function DashboardPage() {
   }
 
   const getPrimaryCTA = () => {
+    // Guard: if address is missing, show connect wallet
     if (!isConnected || !connectedAddress) {
       return (
         <Button
@@ -257,22 +258,41 @@ export default function DashboardPage() {
       )
     }
 
-    const normalizedConnected = connectedAddress.toLowerCase()
-    const isClaimed = summaryData?.claimed ?? false
-
-    if (!isClaimed) {
-      return <ClaimProfileButton address={normalizedConnected} />
+    // While loading, do not show the Claim button
+    if (summaryLoading) {
+      return null
     }
 
-    return (
-      <Button
-        onClick={() => router.push(`/dashboard/${normalizedConnected}?tab=settings`)}
-        variant="default"
-        size="sm"
-      >
-        Edit Profile
-      </Button>
+    const normalizedConnected = connectedAddress.toLowerCase()
+    // Claim status must come from profile record only
+    const profile = summaryData?.profile
+    const isClaimed = Boolean(
+      profile && 
+      (summaryData?.claimed || profile.displayName || profile.slug || profile.status === 'CLAIMED')
     )
+
+    // If profile is claimed, show "View Public Profile" button
+    if (isClaimed) {
+      const publicProfileHref = summaryData?.profile?.slug 
+        ? `/p/${summaryData.profile.slug}` 
+        : `/p/${normalizedConnected}`
+      
+      return (
+        <Button
+          onClick={() => router.push(publicProfileHref)}
+          variant="default"
+          size="sm"
+          asChild
+        >
+          <Link href={publicProfileHref}>
+            View Public Profile
+          </Link>
+        </Button>
+      )
+    }
+
+    // If not claimed, show single "Claim Profile" CTA
+    return <ClaimProfileButton address={normalizedConnected} />
   }
 
   if (!mounted) {
@@ -323,6 +343,20 @@ export default function DashboardPage() {
     )
   }
 
+  // Guard: if address is missing after connection check, show error
+  if (isConnected && !connectedAddress) {
+    return (
+      <PageShell title="Dashboard" subtitle="Overview">
+        <Card>
+          <CardHeader className="p-4 pb-3">
+            <CardTitle className="text-base font-semibold">Wallet Address Required</CardTitle>
+            <CardDescription className="text-xs">Please connect a valid wallet address</CardDescription>
+          </CardHeader>
+        </Card>
+      </PageShell>
+    )
+  }
+
   const normalizedAddress = connectedAddress?.toLowerCase() || ''
   const publicProfileHref = summaryData?.profile?.slug 
     ? `/p/${summaryData.profile.slug}` 
@@ -336,12 +370,31 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-2 flex-wrap">
               <Badge variant="secondary">Avalanche C-Chain</Badge>
-              <Badge variant={summaryData?.claimed ? 'default' : 'outline'}>
-                {summaryData?.claimed ? 'Claimed' : 'Not Claimed'}
-              </Badge>
-              <Badge variant={summaryData?.visibility === 'PUBLIC' ? 'default' : 'secondary'}>
-                {summaryData?.visibility === 'PUBLIC' ? 'Public' : 'Private'}
-              </Badge>
+              {summaryLoading ? (
+                <Skeleton className="h-5 w-32" />
+              ) : (
+                <>
+                  {(() => {
+                    const profile = summaryData?.profile
+                    const isClaimed = Boolean(
+                      profile && 
+                      (summaryData?.claimed || profile.displayName || profile.slug || profile.status === 'CLAIMED')
+                    )
+                    return (
+                      <Badge variant={isClaimed ? 'default' : 'outline'}>
+                        Profile Status: {isClaimed ? 'Claimed' : 'Unclaimed'}
+                      </Badge>
+                    )
+                  })()}
+                </>
+              )}
+              {summaryLoading ? (
+                <Skeleton className="h-5 w-16" />
+              ) : (
+                <Badge variant={summaryData?.visibility === 'PUBLIC' ? 'default' : 'secondary'}>
+                  {summaryData?.visibility === 'PUBLIC' ? 'Public' : 'Private'}
+                </Badge>
+              )}
             </div>
             <div className="flex items-center gap-2">
               {getPrimaryCTA()}

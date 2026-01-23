@@ -21,7 +21,12 @@ export async function GET(
 
     // Get profile
     const profile = await getProfileByAddress(normalizedAddress)
-    const isClaimed = profile ? (profile.status === 'CLAIMED' || profile.ownerAddress || profile.owner) : false
+    // Claim status must come from profile record only
+    // Profile is claimed if it exists and has claimedAt, displayName, slug, or status is CLAIMED
+    const isClaimed = Boolean(
+      profile && 
+      (profile.claimedAt || profile.displayName || profile.slug || profile.status === 'CLAIMED')
+    )
 
     // Get wallet data
     const walletData = await getWalletData(normalizedAddress)

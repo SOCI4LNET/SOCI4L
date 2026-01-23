@@ -14,6 +14,7 @@ import { Loader2, X, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { PageShell } from '@/components/app-shell/page-shell'
+import { ClaimProfileButton } from '@/components/claim-profile-button'
 
 type SocialLinkPlatform = 'x' | 'instagram' | 'youtube' | 'github' | 'linkedin' | 'website'
 
@@ -329,11 +330,63 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
     )
   }
 
+  // Claim status must come from profile record only
+  const isClaimed = Boolean(
+    profile && 
+    (profile.displayName || profile.slug || profile.status === 'CLAIMED' || profile.claimedAt)
+  )
+
   return (
     <PageShell title="Settings" subtitle="Profile configuration" mode="full-width">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-        {/* Profile Info & Social Links Section */}
-        <Card className="bg-card border border-border/60 shadow-sm md:col-span-2">
+      <div className="space-y-6">
+        {/* Profile Status Card */}
+        <Card className="bg-card border border-border/60 shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                {isClaimed ? (
+                  <>
+                    <div className="h-4 w-4 rounded-full bg-green-600 flex items-center justify-center">
+                      <div className="h-2 w-2 rounded-full bg-white" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium">Profile Status</p>
+                      <p className="text-xs text-muted-foreground">Claimed</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/40" />
+                    <div>
+                      <p className="text-xs font-medium">Profile Status</p>
+                      <p className="text-xs text-muted-foreground">Unclaimed</p>
+                    </div>
+                  </>
+                )}
+              </div>
+              {isClaimed ? (
+                <Button
+                  onClick={() => {
+                    const publicProfileHref = profile.slug 
+                      ? `/p/${profile.slug}` 
+                      : `/p/${targetAddress.toLowerCase()}`
+                    window.open(publicProfileHref, '_blank')
+                  }}
+                  variant="default"
+                  size="sm"
+                >
+                  View Public Profile
+                </Button>
+              ) : (
+                <ClaimProfileButton address={targetAddress} />
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+          {/* Profile Info & Social Links Section */}
+          <Card className="bg-card border border-border/60 shadow-sm md:col-span-2">
           <CardHeader>
             <CardTitle className="text-base">Profile Info</CardTitle>
             <CardDescription>Update your display name, bio, and social links</CardDescription>
@@ -395,19 +448,21 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
                         <div className="flex items-center gap-1">
                           <Button
                             variant="ghost"
-                            size="icon-sm"
+                            size="icon"
                             onClick={() => openEditDialog(link)}
                             aria-label="Edit link"
                             title="Edit link"
+                            className="h-8 w-8"
                           >
                             <X className="h-3.5 w-3.5 rotate-45" />
                           </Button>
                           <Button
                             variant="ghost"
-                            size="icon-sm"
+                            size="icon"
                             onClick={() => removeSocialLink(link.id)}
                             aria-label="Remove link"
                             title="Remove link"
+                            className="h-8 w-8"
                           >
                             <X className="h-3.5 w-3.5" />
                           </Button>
@@ -598,6 +653,7 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
             </Button>
           </CardFooter>
         </Card>
+        </div>
       </div>
     </PageShell>
   )

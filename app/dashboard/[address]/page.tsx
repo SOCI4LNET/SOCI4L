@@ -73,6 +73,7 @@ export default function DashboardAddressPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [walletData, setWalletData] = useState<WalletData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
   
   const targetAddress = params.address as string
   const currentTab = searchParams.get('tab') || 'overview'
@@ -128,17 +129,48 @@ export default function DashboardAddressPage() {
   }, [mounted, targetAddress])
 
   const loadData = async () => {
-    if (!targetAddress || !isValidAddress(targetAddress)) return
+    if (!targetAddress || !isValidAddress(targetAddress)) {
+      setLoading(false)
+      setError(null)
+      return
+    }
 
+    const normalizedAddress = targetAddress.toLowerCase()
+    console.log('[Overview] Starting data fetch for address:', normalizedAddress)
+    
     setLoading(true)
+    setError(null)
+    
+    // Timeout safeguard: 12 seconds
+    const timeoutId = setTimeout(() => {
+      const timeoutError = new Error('Request timed out')
+      console.error('[Overview] Request timeout after 12s:', timeoutError)
+      setError(timeoutError)
+      setLoading(false)
+    }, 12000)
+
     try {
-      // Normalize address to lowercase for consistent API calls
-      const normalizedAddress = targetAddress.toLowerCase()
       // Load profile and wallet data
       const response = await fetch(`/api/wallet?address=${normalizedAddress}`, {
         cache: 'no-store',
       })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        let errorData
+        try {
+          errorData = JSON.parse(errorText)
+        } catch {
+          errorData = { error: errorText || 'Failed to fetch wallet data' }
+        }
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`)
+      }
+
       const data = await response.json()
+      console.log('[Overview] Data fetch successful:', { 
+        hasProfile: !!data.profile, 
+        hasWalletData: !!data.walletData 
+      })
 
       // Always set profile state (null if not found)
       if (data.profile) {
@@ -175,11 +207,21 @@ export default function DashboardAddressPage() {
 
       if (data.walletData) {
         setWalletData(data.walletData)
+      } else {
+        // If no walletData, set to null explicitly
+        setWalletData(null)
       }
+
+      console.log('[Overview] State resolved - loading: false, error: null')
     } catch (error) {
-      console.error('Error loading data:', error)
+      const errorObj = error instanceof Error ? error : new Error(String(error))
+      console.error('[Overview] Error loading data:', errorObj)
+      setError(errorObj)
+      // Don't clear walletData/profile on error - keep previous state if available
     } finally {
+      clearTimeout(timeoutId)
       setLoading(false)
+      console.log('[Overview] Fetch completed - loading set to false')
     }
   }
 
@@ -296,79 +338,20 @@ export default function DashboardAddressPage() {
     )
   }
 
-  // Check profile status - ONLY render "Profile Not Claimed" when:
-  // profile is null OR profile.status === "UNCLAIMED"
-  // If profile.status === "CLAIMED", render the owner dashboard instead
-  if (!profile || profile.status === 'UNCLAIMED') {
-    const normalizedAddress = targetAddress.toLowerCase()
-    const normalizedConnectedAddress = connectedAddress?.toLowerCase()
-    
-    // Check for address mismatch when wallet is connected
-    const hasMismatch = isConnected && normalizedConnectedAddress && normalizedConnectedAddress !== normalizedAddress
+  // Dashboard access is based on wallet connection, not on profile claim
+  // If wallet is connected and address matches, show dashboard regardless of claim status
+  const normalizedAddress = targetAddress.toLowerCase()
+  const normalizedConnectedAddress = connectedAddress?.toLowerCase()
+  const addressMatches = isConnected && normalizedConnectedAddress === normalizedAddress
 
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-            {formatAddress(targetAddress)}
-          </p>
-        </div>
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile Not Claimed</CardTitle>
-            <CardDescription>This profile is not claimed yet. Please claim it first to manage it.</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6 space-y-4">
-            {hasMismatch ? (
-              <>
-                <Alert variant="destructive">
-                  <AlertDescription>
-                    <p className="font-semibold mb-1">Connected wallet does not match this profile</p>
-                    <p className="text-sm">
-                      To manage or claim this profile, switch your wallet to {formatAddress(targetAddress)}.
-                    </p>
-                  </AlertDescription>
-                </Alert>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={() => router.push(`/dashboard/${normalizedConnectedAddress}`)}
-                  >
-                    Go to My Dashboard
-                  </Button>
-                  <Link href={`/p/${normalizedAddress}`}>
-                    <Button variant="outline" size="sm">View Public Profile</Button>
-                  </Link>
-                </div>
-              </>
-            ) : (
-              <>
-                <ClaimProfileButton address={normalizedAddress} onSuccess={handleClaimSuccess} />
-                <div className="flex items-center gap-2">
-                  <Link href={`/p/${normalizedAddress}`}>
-                    <Button variant="outline" size="sm">View Public Profile</Button>
-                  </Link>
-                  <Link href="/dashboard">
-                    <Button variant="ghost" size="sm">Back to Dashboard</Button>
-                  </Link>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
+  // If wallet is not connected or address doesn't match, show connection/access message
+  if (!isConnected || !addressMatches) {
+    if (!isConnected) {
+      // Already handled above, but keep for safety
+      return null
+    }
 
-  // Check ownership
-  const isOwner = profile.ownerAddress?.toLowerCase() === connectedAddress?.toLowerCase()
-
-  if (!isOwner) {
-    const normalizedConnectedAddress = connectedAddress?.toLowerCase()
-    const normalizedTargetAddress = targetAddress.toLowerCase()
-
+    // Address mismatch - show access message
     return (
       <div className="space-y-6">
         <div>
@@ -380,14 +363,14 @@ export default function DashboardAddressPage() {
         <Card>
           <CardHeader>
             <CardTitle>Access Restricted</CardTitle>
-            <CardDescription>This profile is owned by a different wallet address</CardDescription>
+            <CardDescription>Connect the matching wallet to access this dashboard</CardDescription>
           </CardHeader>
           <CardContent className="pt-6 space-y-4">
-            <Alert variant="destructive">
+            <Alert>
               <AlertDescription>
-                <p className="font-semibold mb-1">Connected wallet does not match this profile</p>
+                <p className="font-semibold mb-1">Connected wallet does not match this address</p>
                 <p className="text-sm">
-                  To manage this profile, switch your wallet to {formatAddress(profile.ownerAddress || targetAddress)}.
+                  To access this dashboard, switch your wallet to {formatAddress(targetAddress)}.
                 </p>
               </AlertDescription>
             </Alert>
@@ -401,7 +384,7 @@ export default function DashboardAddressPage() {
                   Go to My Dashboard
                 </Button>
               )}
-              <Link href={`/p/${normalizedTargetAddress}`}>
+              <Link href={`/p/${normalizedAddress}`}>
                 <Button variant="outline" size="sm">View Public Profile</Button>
               </Link>
             </div>
@@ -411,15 +394,25 @@ export default function DashboardAddressPage() {
     )
   }
 
+  // Check ownership for claimed profiles (for settings access)
+  const isOwner = profile?.ownerAddress?.toLowerCase() === normalizedConnectedAddress
 
-  // Owner view - show full dashboard with sidebar
-  const normalizedAddress = targetAddress.toLowerCase()
+  // Dashboard access is based on wallet connection, not on profile claim
+  // If wallet is connected and address matches, show dashboard regardless of claim status
+  // Profile claim status only affects settings access (must be owner to edit claimed profiles)
 
   const renderPanel = () => {
     switch (activeTab) {
       case 'overview':
         // Constrained layout: Overview page uses PageShell with constrained mode (max-width ~1200px, centered)
-        return <OverviewPanel walletData={walletData} profile={profile ? { displayName: profile.displayName, bio: profile.bio, socialLinks: profile.socialLinks } : null} address={normalizedAddress} />
+        return <OverviewPanel 
+          walletData={walletData} 
+          profile={profile ? { displayName: profile.displayName, bio: profile.bio, slug: profile.slug, socialLinks: profile.socialLinks } : null} 
+          address={normalizedAddress}
+          loading={loading}
+          error={error}
+          onRetry={loadData}
+        />
       case 'assets':
         // Full-width layout: Assets page spans available width for wide tables (no max-width constraint)
         return <AssetsPanel walletData={walletData} address={normalizedAddress} />
@@ -444,7 +437,14 @@ export default function DashboardAddressPage() {
         )
       default:
         // Constrained layout: Default to Overview with PageShell constrained mode
-        return <OverviewPanel walletData={walletData} profile={profile ? { displayName: profile.displayName, bio: profile.bio, socialLinks: profile.socialLinks } : null} address={normalizedAddress} />
+        return <OverviewPanel 
+          walletData={walletData} 
+          profile={profile ? { displayName: profile.displayName, bio: profile.bio, slug: profile.slug, socialLinks: profile.socialLinks } : null} 
+          address={normalizedAddress}
+          loading={loading}
+          error={error}
+          onRetry={loadData}
+        />
     }
   }
 

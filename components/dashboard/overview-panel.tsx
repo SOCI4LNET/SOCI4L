@@ -9,7 +9,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Twitter, Github, Globe, RefreshCw, CheckCircle2, Activity, Coins, ArrowUpRight, ArrowDownRight, ExternalLink } from 'lucide-react'
+import { Twitter, Github, Globe, RefreshCw, CheckCircle2, Activity, Coins, ArrowUpRight, ArrowDownRight, ExternalLink, AlertCircle } from 'lucide-react'
 import { formatAddress } from '@/lib/utils'
 import Link from 'next/link'
 import { PageShell } from '@/components/app-shell/page-shell'
@@ -50,6 +50,7 @@ interface WalletData {
 interface ProfileData {
   displayName?: string | null
   bio?: string | null
+  slug?: string | null
   socialLinks?: Array<{ id?: string; platform?: string; type?: string; url: string; label?: string }> | null
 }
 
@@ -57,6 +58,9 @@ interface OverviewPanelProps {
   walletData: WalletData | null
   profile: ProfileData | null
   address: string
+  loading?: boolean
+  error?: Error | null
+  onRetry?: () => void
 }
 
 const getSocialIcon = (platform?: string, type?: string) => {
@@ -70,7 +74,7 @@ const getSocialIcon = (platform?: string, type?: string) => {
   }
 }
 
-export function OverviewPanel({ walletData, profile, address }: OverviewPanelProps) {
+export function OverviewPanel({ walletData, profile, address, loading: propLoading, error: propError, onRetry }: OverviewPanelProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [mounted, setMounted] = useState(false)
@@ -96,13 +100,30 @@ export function OverviewPanel({ walletData, profile, address }: OverviewPanelPro
   } = useQuery<{ items: ActivityTransaction[] }>({
     queryKey: ['wallet-activity-preview', targetAddress],
     queryFn: async () => {
-      if (!targetAddress) throw new Error('No address')
+      if (!targetAddress) {
+        console.error('[Overview Activity] No address provided')
+        throw new Error('No address')
+      }
       const normalizedAddress = targetAddress.toLowerCase()
-      const response = await fetch(`/api/wallet/${normalizedAddress}/activity?limit=${ACTIVITY_LIMIT}`)
-      if (!response.ok) throw new Error('Failed to fetch activity')
-      return response.json()
+      console.log('[Overview Activity] Starting fetch for:', normalizedAddress)
+      try {
+        const response = await fetch(`/api/wallet/${normalizedAddress}/activity?limit=${ACTIVITY_LIMIT}`)
+        if (!response.ok) {
+          const errorText = await response.text()
+          console.error('[Overview Activity] Fetch failed:', response.status, errorText)
+          throw new Error(`Failed to fetch activity: ${response.status} ${response.statusText}`)
+        }
+        const data = await response.json()
+        console.log('[Overview Activity] Fetch successful:', { itemCount: data.items?.length || 0 })
+        return data
+      } catch (error) {
+        console.error('[Overview Activity] Fetch error:', error)
+        throw error
+      }
     },
     enabled: mounted && !!targetAddress,
+    retry: 1,
+    retryDelay: 1000,
   })
 
   // Fetch assets data
@@ -130,13 +151,33 @@ export function OverviewPanel({ walletData, profile, address }: OverviewPanelPro
   }>({
     queryKey: ['wallet-assets-preview', targetAddress],
     queryFn: async () => {
-      if (!targetAddress) throw new Error('No address')
+      if (!targetAddress) {
+        console.error('[Overview Assets] No address provided')
+        throw new Error('No address')
+      }
       const normalizedAddress = targetAddress.toLowerCase()
-      const response = await fetch(`/api/wallet/${normalizedAddress}/assets?tab=tokens&limit=${ASSETS_LIMIT}`)
-      if (!response.ok) throw new Error('Failed to fetch assets')
-      return response.json()
+      console.log('[Overview Assets] Starting fetch for:', normalizedAddress)
+      try {
+        const response = await fetch(`/api/wallet/${normalizedAddress}/assets?tab=tokens&limit=${ASSETS_LIMIT}`)
+        if (!response.ok) {
+          const errorText = await response.text()
+          console.error('[Overview Assets] Fetch failed:', response.status, errorText)
+          throw new Error(`Failed to fetch assets: ${response.status} ${response.statusText}`)
+        }
+        const data = await response.json()
+        console.log('[Overview Assets] Fetch successful:', { 
+          tokenCount: data.tokens?.length || 0, 
+          nftCount: data.nfts?.length || 0 
+        })
+        return data
+      } catch (error) {
+        console.error('[Overview Assets] Fetch error:', error)
+        throw error
+      }
     },
     enabled: mounted && !!targetAddress,
+    retry: 1,
+    retryDelay: 1000,
   })
 
   const handleCopyHash = async (hash: string) => {
@@ -170,8 +211,42 @@ export function OverviewPanel({ walletData, profile, address }: OverviewPanelPro
     return `https://snowtrace.io/tx/${hash}`
   }
 
-  const isLoading = walletData === null
+  // Use prop loading/error if provided, otherwise fall back to walletData check
+  const isLoading = propLoading !== undefined ? propLoading : walletData === null
+  const error = propError
   const normalizedAddress = targetAddress.toLowerCase()
+
+  // Show error state if there's an error and no data
+  if (error && !walletData && !isLoading) {
+    return (
+      <PageShell title="Overview" subtitle="Wallet summary and activity">
+        <Card className="bg-card border border-border/60 shadow-sm">
+          <CardContent className="p-6">
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <AlertCircle className="h-12 w-12 text-destructive mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Failed to Load Overview</h3>
+              <p className="text-sm text-muted-foreground mb-4 max-w-md">
+                {error.message || 'An error occurred while loading wallet data. Please try again.'}
+              </p>
+              {onRetry && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => {
+                    console.log('[Overview] Retry button clicked')
+                    onRetry()
+                  }}
+                >
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Retry
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </PageShell>
+    )
+  }
 
   return (
     <PageShell title="Overview" subtitle="Wallet summary and activity">
@@ -242,27 +317,52 @@ export function OverviewPanel({ walletData, profile, address }: OverviewPanelPro
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                {profile?.displayName ? (
-                  <>
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <div>
-                      <p className="text-xs font-medium">Profile Status</p>
-                      <p className="text-xs text-muted-foreground">Claimed</p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/40" />
-                    <div>
-                      <p className="text-xs font-medium">Profile Status</p>
-                      <p className="text-xs text-muted-foreground">Unclaimed</p>
-                    </div>
-                  </>
-                )}
+                {(() => {
+                  // Claim status must come from profile record only
+                  const isClaimed = Boolean(profile && (profile.displayName || profile.slug))
+                  return isClaimed ? (
+                    <>
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      <div>
+                        <p className="text-xs font-medium">Profile Status</p>
+                        <p className="text-xs text-muted-foreground">Claimed</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/40" />
+                      <div>
+                        <p className="text-xs font-medium">Profile Status</p>
+                        <p className="text-xs text-muted-foreground">Unclaimed</p>
+                      </div>
+                    </>
+                  )
+                })()}
               </div>
-              {!profile?.displayName && (
-                <ClaimProfileButton address={normalizedAddress} />
-              )}
+              {(() => {
+                // Claim status must come from profile record only
+                const isClaimed = Boolean(profile && (profile.displayName || profile.slug))
+                if (isClaimed) {
+                  // If claimed, show "View Public Profile" button
+                  const publicProfileHref = profile.slug 
+                    ? `/p/${profile.slug}` 
+                    : `/p/${normalizedAddress}`
+                  return (
+                    <Button
+                      onClick={() => router.push(publicProfileHref)}
+                      variant="default"
+                      size="sm"
+                      asChild
+                    >
+                      <Link href={publicProfileHref}>
+                        View Public Profile
+                      </Link>
+                    </Button>
+                  )
+                }
+                // If not claimed, show single "Claim Profile" CTA
+                return <ClaimProfileButton address={normalizedAddress} />
+              })()}
             </div>
           </CardContent>
         </Card>
