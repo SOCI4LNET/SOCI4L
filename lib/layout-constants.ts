@@ -23,5 +23,7 @@ export const CONTENT_MAX_WIDTH = 'max-w-[1200px]'
 
 /**
  * Vertical padding for page content areas
+ * - Top padding: 2rem (32px) for spacing from header/breadcrumb divider
+ * - Bottom padding: 1.5rem (24px) for consistent bottom spacing
  */
-export const PAGE_PADDING_Y = 'py-6'
+export const PAGE_PADDING_Y = 'pt-8 pb-6'

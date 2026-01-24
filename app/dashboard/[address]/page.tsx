@@ -19,6 +19,7 @@ import { SettingsPanel } from '@/components/dashboard/settings-panel'
 import { SocialPanel } from '@/components/dashboard/social-panel'
 import { PageShell } from '@/components/app-shell/page-shell'
 import { sanitizeQueryParams } from '@/lib/query-params'
+import { isProfileClaimed } from '@/lib/profile/isProfileClaimed'
 
 interface Profile {
   id: string
@@ -150,8 +151,9 @@ export default function DashboardAddressPage() {
     }, 12000)
 
     try {
-      // Load profile and wallet data
-      const response = await fetch(`/api/wallet?address=${normalizedAddress}`, {
+      // Load profile and wallet data (with cache bust timestamp for claim updates)
+      const cacheBust = Date.now()
+      const response = await fetch(`/api/wallet?address=${normalizedAddress}&_t=${cacheBust}`, {
         cache: 'no-store',
       })
 
@@ -194,15 +196,51 @@ export default function DashboardAddressPage() {
             }))
           : null
         
-        setProfile({
-          ...data.profile,
-          displayName: data.profile.displayName || null,
-          bio: data.profile.bio || null,
-          socialLinks: normalizedLinks,
+        // Check if current state is claimed - if so, preserve claim status even if API returns stale data
+        setProfile((prev) => {
+          const currentIsClaimed = isProfileClaimed(prev)
+          const newIsClaimed = isProfileClaimed(data.profile)
+          
+          // If current state is claimed but new data says unclaimed, preserve current state
+          // This prevents claim state from being lost due to cache/stale data
+          if (currentIsClaimed && !newIsClaimed) {
+            console.log('[Overview] Preserving claimed state - API returned stale data')
+            return prev // Keep current claimed state
+          }
+          
+          // Otherwise, update with new data
+          return {
+            ...data.profile,
+            id: data.profile.id,
+            address: data.profile.address,
+            slug: data.profile.slug,
+            ownerAddress: data.profile.ownerAddress,
+            status: data.profile.status,
+            visibility: data.profile.visibility,
+            claimedAt: data.profile.claimedAt,
+            displayName: data.profile.displayName || null,
+            bio: data.profile.bio || null,
+            socialLinks: normalizedLinks,
+          }
+        })
+        console.log('[Overview] Profile state updated:', {
+          status: data.profile.status,
+          claimedAt: data.profile.claimedAt,
+          displayName: data.profile.displayName,
+          slug: data.profile.slug,
+          isClaimed: isProfileClaimed(data.profile)
         })
       } else {
-        // Explicitly set to null if no profile exists
-        setProfile(null)
+        // Only set to null if current state is not claimed
+        // This prevents losing claim state if API temporarily returns null
+        setProfile((prev) => {
+          const currentIsClaimed = isProfileClaimed(prev)
+          if (currentIsClaimed) {
+            console.log('[Overview] Preserving claimed state - API returned null but state is claimed')
+            return prev // Keep current claimed state
+          }
+          return null
+        })
       }
 
       if (data.walletData) {
@@ -225,15 +263,67 @@ export default function DashboardAddressPage() {
     }
   }
 
-  const handleClaimSuccess = async () => {
+  const handleClaimSuccess = async (claimResponseProfile?: { status: string; claimedAt: string | Date | null; slug: string | null; displayName: string | null }) => {
     // Normalize address
     const normalizedAddress = targetAddress.toLowerCase()
-    // Reload data from DB to get fresh state
-    await loadData()
-    // Refresh router cache
+    console.log('[Claim Success] Updating profile state after claim...', claimResponseProfile)
+    
+    // If we have profile data from claim response, update state immediately
+    // This ensures UI updates instantly without waiting for API call
+    if (claimResponseProfile) {
+      console.log('[Claim Success] Updating profile state from claim response')
+      setProfile((prev) => {
+        const updatedProfile = !prev ? {
+          // If no previous profile, create new one from claim response
+          id: '', // Will be set by loadData()
+          address: normalizedAddress,
+          slug: claimResponseProfile.slug,
+          ownerAddress: normalizedAddress, // Claim response doesn't include this, but we know it's the current address
+          status: claimResponseProfile.status,
+          visibility: 'PUBLIC' as const, // Default for claimed profiles
+          claimedAt: typeof claimResponseProfile.claimedAt === 'string' 
+            ? claimResponseProfile.claimedAt 
+            : claimResponseProfile.claimedAt?.toISOString() || new Date().toISOString(),
+          displayName: claimResponseProfile.displayName,
+          bio: null,
+          socialLinks: null,
+        } : {
+          // Update existing profile with claim data
+          ...prev,
+          status: claimResponseProfile.status,
+          claimedAt: typeof claimResponseProfile.claimedAt === 'string' 
+            ? claimResponseProfile.claimedAt 
+            : claimResponseProfile.claimedAt?.toISOString() || prev.claimedAt || new Date().toISOString(),
+          slug: claimResponseProfile.slug || prev.slug,
+          displayName: claimResponseProfile.displayName || prev.displayName,
+        }
+        
+        console.log('[Claim Success] Profile state updated immediately:', {
+          status: updatedProfile.status,
+          claimedAt: updatedProfile.claimedAt,
+          slug: updatedProfile.slug,
+          displayName: updatedProfile.displayName,
+          isClaimed: isProfileClaimed(updatedProfile)
+        })
+        
+        return updatedProfile
+      })
+    }
+    
+    // Don't call loadData() immediately - it might fetch stale data from cache
+    // Instead, rely on the state update above and let the user refresh manually if needed
+    // Or call loadData() after a longer delay to ensure DB write is fully propagated
+    
+    // Refresh router cache to ensure all components see updated data
     router.refresh()
-    // Navigate to dashboard with normalized address
-    router.replace(`/dashboard/${normalizedAddress}`)
+    
+    // Optionally reload data after a delay (but preserve claimed state if already set)
+    setTimeout(async () => {
+      console.log('[Claim Success] Reloading profile data after delay to get complete data...')
+      await loadData()
+    }, 2000) // 2 second delay to ensure DB write is fully propagated
+    
+    console.log('[Claim Success] Profile state updated immediately, UI should reflect claimed status')
   }
 
   const handleSettingsUpdate = async () => {
@@ -407,11 +497,19 @@ export default function DashboardAddressPage() {
         // Constrained layout: Overview page uses PageShell with constrained mode (max-width ~1200px, centered)
         return <OverviewPanel 
           walletData={walletData} 
-          profile={profile ? { displayName: profile.displayName, bio: profile.bio, slug: profile.slug, socialLinks: profile.socialLinks } : null} 
+          profile={profile ? { 
+            displayName: profile.displayName, 
+            bio: profile.bio, 
+            slug: profile.slug,
+            status: profile.status,
+            claimedAt: profile.claimedAt,
+            socialLinks: profile.socialLinks 
+          } : null} 
           address={normalizedAddress}
           loading={loading}
           error={error}
           onRetry={loadData}
+          onClaimSuccess={handleClaimSuccess}
         />
       case 'assets':
         // Full-width layout: Assets page spans available width for wide tables (no max-width constraint)
@@ -439,11 +537,19 @@ export default function DashboardAddressPage() {
         // Constrained layout: Default to Overview with PageShell constrained mode
         return <OverviewPanel 
           walletData={walletData} 
-          profile={profile ? { displayName: profile.displayName, bio: profile.bio, slug: profile.slug, socialLinks: profile.socialLinks } : null} 
+          profile={profile ? { 
+            displayName: profile.displayName, 
+            bio: profile.bio, 
+            slug: profile.slug,
+            status: profile.status,
+            claimedAt: profile.claimedAt,
+            socialLinks: profile.socialLinks 
+          } : null} 
           address={normalizedAddress}
           loading={loading}
           error={error}
           onRetry={loadData}
+          onClaimSuccess={handleClaimSuccess}
         />
     }
   }

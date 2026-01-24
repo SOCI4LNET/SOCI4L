@@ -12,14 +12,16 @@ interface AppShellProps {
 
 export function AppShell({ children, address }: AppShellProps) {
   return (
-    <SidebarProvider defaultOpen={true}>
-      <AppSidebar />
-      <SidebarInset>
-        <AppTopbar />
-        <div className="flex flex-1 flex-col bg-background">
-          {children}
-        </div>
-      </SidebarInset>
+    <SidebarProvider defaultOpen={true} className="!h-auto min-h-0">
+      <div className="flex flex-1 min-h-0 w-full">
+        <AppSidebar />
+        <SidebarInset className="!min-h-0 !h-auto flex flex-col flex-1">
+          <AppTopbar />
+          <main className="flex flex-1 flex-col bg-background min-h-0">
+            {children}
+          </main>
+        </SidebarInset>
+      </div>
     </SidebarProvider>
   )
 }

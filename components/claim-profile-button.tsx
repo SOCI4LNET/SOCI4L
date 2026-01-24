@@ -10,7 +10,7 @@ import { Loader2 } from 'lucide-react'
 
 interface ClaimProfileButtonProps {
   address: string
-  onSuccess?: () => void
+  onSuccess?: (profile?: { status: string; claimedAt: string | Date | null; slug: string | null; displayName: string | null }) => void
 }
 
 export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonProps) {
@@ -90,8 +90,14 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
       router.refresh()
       
       if (onSuccess) {
-        // Call onSuccess callback (which should handle navigation and refresh)
-        onSuccess()
+        // Call onSuccess callback with profile data from API response
+        // This allows immediate UI update without waiting for loadData()
+        onSuccess(result.profile ? {
+          status: result.profile.status,
+          claimedAt: result.profile.claimedAt,
+          slug: result.profile.slug,
+          displayName: null, // displayName might not be in claim response, will be loaded by loadData()
+        } : undefined)
       } else {
         // Default: Navigate to dashboard after claim
         // Use replace to avoid back button issues

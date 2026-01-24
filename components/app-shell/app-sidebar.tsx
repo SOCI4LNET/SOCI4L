@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/sidebar'
 import { LayoutDashboard, Wallet, Activity, Settings, Users } from 'lucide-react'
 import { sanitizeQueryParams } from '@/lib/query-params'
+import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 
 interface AppSidebarProps {
   address?: string
@@ -75,12 +76,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <div className={`flex items-center gap-2 px-2 ${isCollapsed ? 'justify-center px-0 gap-0' : ''}`}>
-          <div className="h-6 w-6 rounded-full bg-white flex-shrink-0" />
-          {!isCollapsed && (
-            <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-              <span className="text-sm font-semibold leading-none text-sidebar-foreground truncate">SOCI4L</span>
-            </div>
+        <div className={`flex items-center justify-center w-full ${isCollapsed ? 'px-0' : 'px-2'}`}>
+          {isCollapsed ? (
+            <Soci4LLogo variant="icon" width={18} height={19} />
+          ) : (
+            <Soci4LLogo variant="combination" width={100} height={19} />
           )}
         </div>
       </SidebarHeader>
@@ -101,7 +101,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       tooltip={item.title}
                     >
                       <Icon />
-                      <span>{item.title}</span>
+                      {!isCollapsed && <span>{item.title}</span>}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )

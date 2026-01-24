@@ -17,6 +17,7 @@ import { ClaimProfileButton } from '@/components/claim-profile-button'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 import type { ActivityTransaction } from '@/lib/activity/fetchActivity'
+import { isProfileClaimed } from '@/lib/profile/isProfileClaimed'
 
 interface WalletData {
   address: string
@@ -51,6 +52,8 @@ interface ProfileData {
   displayName?: string | null
   bio?: string | null
   slug?: string | null
+  status?: string | null
+  claimedAt?: string | Date | null
   socialLinks?: Array<{ id?: string; platform?: string; type?: string; url: string; label?: string }> | null
 }
 
@@ -61,6 +64,7 @@ interface OverviewPanelProps {
   loading?: boolean
   error?: Error | null
   onRetry?: () => void
+  onClaimSuccess?: () => void
 }
 
 const getSocialIcon = (platform?: string, type?: string) => {
@@ -74,7 +78,7 @@ const getSocialIcon = (platform?: string, type?: string) => {
   }
 }
 
-export function OverviewPanel({ walletData, profile, address, loading: propLoading, error: propError, onRetry }: OverviewPanelProps) {
+export function OverviewPanel({ walletData, profile, address, loading: propLoading, error: propError, onRetry, onClaimSuccess }: OverviewPanelProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [mounted, setMounted] = useState(false)
@@ -215,6 +219,21 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
   const isLoading = propLoading !== undefined ? propLoading : walletData === null
   const error = propError
   const normalizedAddress = targetAddress.toLowerCase()
+  
+  // Debug: Log profile claim status
+  useEffect(() => {
+    if (profile) {
+      const isClaimed = isProfileClaimed(profile)
+      console.log('[Overview Panel] Profile claim status check:', {
+        hasProfile: !!profile,
+        status: profile.status,
+        claimedAt: profile.claimedAt,
+        slug: profile.slug,
+        displayName: profile.displayName,
+        isClaimed
+      })
+    }
+  }, [profile])
 
   // Show error state if there's an error and no data
   if (error && !walletData && !isLoading) {
@@ -271,7 +290,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
                   <Skeleton className="h-3 w-full" />
                   <Skeleton className="h-3 w-3/4" />
                 </div>
-              ) : profile?.displayName ? (
+              ) : isProfileClaimed(profile) ? (
                 <>
                   <h2 className="text-sm font-semibold mb-1">{profile.displayName}</h2>
                   {profile.bio && (
@@ -317,10 +336,10 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                {(() => {
-                  // Claim status must come from profile record only
-                  const isClaimed = Boolean(profile && (profile.displayName || profile.slug))
-                  return isClaimed ? (
+              {(() => {
+                // Claim status must come from profile record only
+                const isClaimed = isProfileClaimed(profile)
+                return isClaimed ? (
                     <>
                       <CheckCircle2 className="h-4 w-4 text-green-600" />
                       <div>
@@ -341,10 +360,10 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
               </div>
               {(() => {
                 // Claim status must come from profile record only
-                const isClaimed = Boolean(profile && (profile.displayName || profile.slug))
+                const isClaimed = isProfileClaimed(profile)
                 if (isClaimed) {
                   // If claimed, show "View Public Profile" button
-                  const publicProfileHref = profile.slug 
+                  const publicProfileHref = profile?.slug 
                     ? `/p/${profile.slug}` 
                     : `/p/${normalizedAddress}`
                   return (
@@ -361,7 +380,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
                   )
                 }
                 // If not claimed, show single "Claim Profile" CTA
-                return <ClaimProfileButton address={normalizedAddress} />
+                return <ClaimProfileButton address={normalizedAddress} onSuccess={onClaimSuccess} />
               })()}
             </div>
           </CardContent>

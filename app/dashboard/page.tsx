@@ -45,6 +45,7 @@ import { PageShell } from '@/components/app-shell/page-shell'
 import { ClaimProfileButton } from '@/components/claim-profile-button'
 import { QRCodeModal } from '@/components/qr/qr-code-modal'
 import { getPublicProfileHref } from '@/lib/routing'
+import { isProfileClaimed } from '@/lib/profile/isProfileClaimed'
 
 interface SummaryData {
   avaxBalance: string
@@ -264,12 +265,9 @@ export default function DashboardPage() {
     }
 
     const normalizedConnected = connectedAddress.toLowerCase()
-    // Claim status must come from profile record only
+    // Claim status must come from profile record only - using single source of truth
     const profile = summaryData?.profile
-    const isClaimed = Boolean(
-      profile && 
-      (summaryData?.claimed || profile.displayName || profile.slug || profile.status === 'CLAIMED')
-    )
+    const isClaimed = isProfileClaimed(profile)
 
     // If profile is claimed, show "View Public Profile" button
     if (isClaimed) {
@@ -376,10 +374,7 @@ export default function DashboardPage() {
                 <>
                   {(() => {
                     const profile = summaryData?.profile
-                    const isClaimed = Boolean(
-                      profile && 
-                      (summaryData?.claimed || profile.displayName || profile.slug || profile.status === 'CLAIMED')
-                    )
+                    const isClaimed = isProfileClaimed(profile)
                     return (
                       <Badge variant={isClaimed ? 'default' : 'outline'}>
                         Profile Status: {isClaimed ? 'Claimed' : 'Unclaimed'}

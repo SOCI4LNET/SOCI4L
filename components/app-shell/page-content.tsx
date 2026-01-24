@@ -36,6 +36,8 @@ export function PageContent({ children, mode = 'constrained', className }: PageC
         'w-full',
         PAGE_GUTTER,
         PAGE_PADDING_Y,
+        // Footer için yeterli alt padding ekle (footer yüksekliği ~350-400px)
+        'pb-32 md:pb-40',
         className
       )}>
         {children}
@@ -50,6 +52,8 @@ export function PageContent({ children, mode = 'constrained', className }: PageC
       'w-full',
       PAGE_GUTTER,
       PAGE_PADDING_Y,
+      // Footer için yeterli alt padding ekle (footer yüksekliği ~350-400px)
+      'pb-32 md:pb-40',
       className
     )}>
       <div className={cn(

@@ -15,6 +15,7 @@ import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { PageShell } from '@/components/app-shell/page-shell'
 import { ClaimProfileButton } from '@/components/claim-profile-button'
+import { isProfileClaimed } from '@/lib/profile/isProfileClaimed'
 
 type SocialLinkPlatform = 'x' | 'instagram' | 'youtube' | 'github' | 'linkedin' | 'website'
 
@@ -330,11 +331,8 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
     )
   }
 
-  // Claim status must come from profile record only
-  const isClaimed = Boolean(
-    profile && 
-    (profile.displayName || profile.slug || profile.status === 'CLAIMED' || profile.claimedAt)
-  )
+  // Claim status must come from profile record only - using single source of truth
+  const isClaimed = isProfileClaimed(profile)
 
   return (
     <PageShell title="Settings" subtitle="Profile configuration" mode="full-width">
