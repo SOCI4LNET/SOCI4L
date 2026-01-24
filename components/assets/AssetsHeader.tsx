@@ -2,40 +2,30 @@
 
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { RefreshCw, Eye, Share2, QrCode, Copy } from 'lucide-react'
+import { RefreshCw, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 
 interface AssetsHeaderProps {
   lastUpdatedText: string
   isLoading: boolean
   onRefresh: () => void
-  publicProfileHref: string
-  onShareTwitter: () => void
-  onCopyLink: () => void
-  onShowQR: () => void
+  explorerHref: string
 }
 
 export function AssetsHeader({
   lastUpdatedText,
   isLoading,
   onRefresh,
-  publicProfileHref,
-  onShareTwitter,
-  onCopyLink,
-  onShowQR,
+  explorerHref,
 }: AssetsHeaderProps) {
   return (
     <div className="flex items-start justify-between gap-4 pb-6">
       {/* Left: Title + Subtitle */}
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Assets</h1>
-        <p className="text-sm text-muted-foreground mt-1">Tokens and NFT holdings</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          Tokens and NFTs held by this wallet
+        </p>
       </div>
 
       {/* Right: Status + Actions */}
@@ -43,7 +33,7 @@ export function AssetsHeader({
         <span className="text-xs text-muted-foreground whitespace-nowrap">
           {lastUpdatedText}
         </span>
-        
+
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -70,54 +60,14 @@ export function AssetsHeader({
                 size="icon"
                 asChild
                 className="h-9 w-9"
-                aria-label="View public profile"
+                aria-label="View on explorer"
               >
-                <Link href={publicProfileHref}>
-                  <Eye className="h-4 w-4" />
+                <Link href={explorerHref} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-4 w-4" />
                 </Link>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>View public profile</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9"
-              aria-label="Share profile"
-            >
-              <Share2 className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={onShareTwitter}>
-              <Share2 className="mr-2 h-4 w-4" />
-              Share on X
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onCopyLink}>
-              <Copy className="mr-2 h-4 w-4" />
-              Copy link
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onShowQR}
-                className="h-9 w-9"
-                aria-label="Show QR code"
-              >
-                <QrCode className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Show QR code</TooltipContent>
+            <TooltipContent>View assets on Snowtrace</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>

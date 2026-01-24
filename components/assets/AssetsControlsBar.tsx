@@ -58,21 +58,27 @@ export function AssetsControlsBar({
     <div className="w-full flex flex-wrap items-center gap-3">
       {/* Left: Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => onTabChange(v as 'tokens' | 'nfts')}>
-        <TabsList>
-          <TabsTrigger value="tokens" className="gap-2 h-9">
+        <TabsList className="bg-muted/40 p-1 rounded-lg">
+          <TabsTrigger
+            value="tokens"
+            className="gap-2 h-9 rounded-md px-3 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground"
+          >
             <Coins className="h-4 w-4" />
-            Tokens
-            {tokenCount !== undefined && tokenCount > 0 && (
-              <Badge variant="secondary" className="ml-1 text-xs">
+            <span className="text-sm">Tokens</span>
+            {typeof tokenCount === 'number' && (
+              <Badge variant="secondary" className="ml-1 text-[11px]">
                 {tokenCount}
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="nfts" className="gap-2 h-9">
+          <TabsTrigger
+            value="nfts"
+            className="gap-2 h-9 rounded-md px-3 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground"
+          >
             <ImageIcon className="h-4 w-4" />
-            NFTs
-            {nftCount !== undefined && nftCount > 0 && (
-              <Badge variant="secondary" className="ml-1 text-xs">
+            <span className="text-sm">NFTs</span>
+            {typeof nftCount === 'number' && (
+              <Badge variant="secondary" className="ml-1 text-[11px]">
                 {nftCount}
               </Badge>
             )}

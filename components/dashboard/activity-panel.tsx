@@ -1,19 +1,20 @@
-'use client'
+"use client"
 
-import { useState, useEffect, useMemo } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useAccount } from 'wagmi'
-import { useQuery } from '@tanstack/react-query'
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { ActivityTable } from '@/components/activity/ActivityTable'
-import { ActivityFiltersBar } from '@/components/activity/ActivityFiltersBar'
-import { PageContent } from '@/components/app-shell/page-content'
-import { toast } from 'sonner'
-import { RefreshCw, Activity } from 'lucide-react'
-import type { ActivityTransaction } from '@/lib/activity/fetchActivity'
+import { useState, useEffect, useMemo } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useAccount } from "wagmi"
+import { useQuery } from "@tanstack/react-query"
+import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { ActivityTable } from "@/components/activity/ActivityTable"
+import { ActivityFiltersBar } from "@/components/activity/ActivityFiltersBar"
+import { PageContent } from "@/components/app-shell/page-content"
+import { toast } from "sonner"
+import { RefreshCw, Activity, ExternalLink } from "lucide-react"
+import type { ActivityTransaction } from "@/lib/activity/fetchActivity"
 
 interface ActivityPanelProps {
   walletData?: any // Legacy prop, kept for compatibility
@@ -168,42 +169,6 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
     refetch()
   }
 
-  const handleExportCSV = () => {
-    if (!activityData?.items || activityData.items.length === 0) {
-      toast.error('Dışa aktarılacak veri yok')
-      return
-    }
-
-    const headers = ['Hash', 'Durum', 'Tür', 'Yön', 'Gönderen', 'Alıcı', 'AVAX Değeri', 'Ücret', 'Zaman', 'Blok']
-    const rows = activityData.items.map(tx => [
-      tx.hash,
-      tx.status,
-      tx.type,
-      tx.direction,
-      tx.from,
-      tx.to,
-      tx.nativeValueAvax,
-      tx.feeAvax,
-      new Date(tx.timestamp * 1000).toISOString(),
-      tx.blockNumber.toString(),
-    ])
-
-    const csv = [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n')
-
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-    const url = URL.createObjectURL(blob)
-    link.setAttribute('href', url)
-    link.setAttribute('download', `activity-${targetAddress.slice(0, 8)}-${Date.now()}.csv`)
-    link.style.visibility = 'hidden'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
-
   const lastUpdatedText = lastUpdatedAt 
     ? formatLastUpdated(Math.floor((currentTime - lastUpdatedAt) / 1000))
     : 'Henüz güncellenmedi'
@@ -243,9 +208,57 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
     <PageContent mode="full-width">
       <div className="space-y-4">
         {/* Page Header */}
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Activity</h1>
-          <p className="text-sm text-muted-foreground mt-1">Transaction history</p>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Activity</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Recent on-chain transactions for this wallet
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="text-xs text-muted-foreground hidden sm:inline">
+              {lastUpdatedText}
+            </span>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={handleRefresh}
+                    disabled={isLoading}
+                    aria-label="Refresh activity"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Refresh activity</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    asChild
+                    aria-label="View on explorer"
+                  >
+                    <a
+                      href={targetAddress ? `https://snowtrace.io/address/${targetAddress}` : 'https://snowtrace.io'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>View wallet on Snowtrace</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </div>
 
         {/* Filters Bar */}
@@ -258,11 +271,6 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
           onDirectionChange={setDirection}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          lastUpdatedText={lastUpdatedText}
-          isLoading={isLoading}
-          onRefresh={handleRefresh}
-          onExportCSV={handleExportCSV}
-          hasData={!!activityData?.items && activityData.items.length > 0}
         />
 
         {/* Transactions List */}
@@ -338,9 +346,9 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
             <div className="flex flex-col items-center justify-center text-center space-y-3">
               <Activity className="h-10 w-10 text-muted-foreground" />
               <div>
-                <p className="text-sm font-medium mb-1">İşlem bulunamadı</p>
+                <p className="text-sm font-medium mb-1">No recent transactions found.</p>
                 <p className="text-xs text-muted-foreground">
-                  Bu cüzdan için seçilen filtrelerle eşleşen işlem bulunamadı
+                  This wallet hasn’t interacted with the Avalanche network recently.
                 </p>
               </div>
               <div className="flex items-center justify-center gap-2 pt-1">
@@ -354,7 +362,7 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
                     setSearchQuery('')
                   }}
                 >
-                  Filtreleri Temizle
+                  Clear filters
                 </Button>
                 <Button
                   variant="outline"
@@ -362,7 +370,7 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
                   onClick={handleRefresh}
                 >
                   <RefreshCw className="mr-2 h-3.5 w-3.5" />
-                  Yenile
+                  Refresh
                 </Button>
               </div>
             </div>

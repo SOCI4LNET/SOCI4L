@@ -15,15 +15,11 @@ import {
   SidebarRail,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { LayoutDashboard, Wallet, Activity, Settings, Users } from 'lucide-react'
+import { LayoutDashboard, Wallet, Activity, Settings, Users, Wand2, Link2, BarChart3 } from 'lucide-react'
 import { sanitizeQueryParams } from '@/lib/query-params'
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 
-interface AppSidebarProps {
-  address?: string
-}
-
-const menuItems = [
+const platformItems = [
   {
     title: 'Overview',
     icon: LayoutDashboard,
@@ -44,10 +40,39 @@ const menuItems = [
     icon: Users,
     value: 'social',
   },
+]
+
+const profileItems = [
+  {
+    title: 'Builder',
+    icon: Wand2,
+    value: 'builder',
+  },
+  {
+    title: 'Links',
+    icon: Link2,
+    value: 'links',
+  },
+  {
+    title: 'Insights',
+    icon: BarChart3,
+    value: 'insights',
+  },
   {
     title: 'Settings',
     icon: Settings,
     value: 'settings',
+  },
+]
+
+const navGroups = [
+  {
+    label: 'Platform',
+    items: platformItems,
+  },
+  {
+    label: 'Profile',
+    items: profileItems,
   },
 ]
 
@@ -65,7 +90,24 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const sanitized = sanitizeQueryParams(searchParams, value)
     sanitized.set('tab', value)
     
-    router.replace(`${pathname}?${sanitized.toString()}`, { scroll: false })
+    // If we're on a link detail page (/dashboard/[address]/links/[linkId]),
+    // navigate to the main dashboard page instead of adding tab param to current path
+    const isLinkDetailPage = pathname.includes('/links/') && pathname.split('/').length > 4
+    
+    if (isLinkDetailPage) {
+      // Extract address from pathname: /dashboard/[address]/links/[linkId]
+      const pathParts = pathname.split('/')
+      const addressIndex = pathParts.indexOf('dashboard') + 1
+      if (addressIndex > 0 && pathParts[addressIndex]) {
+        const address = pathParts[addressIndex]
+        router.replace(`/dashboard/${address}?${sanitized.toString()}`, { scroll: false })
+      } else {
+        // Fallback: use current pathname (shouldn't happen)
+        router.replace(`${pathname}?${sanitized.toString()}`, { scroll: false })
+      }
+    } else {
+      router.replace(`${pathname}?${sanitized.toString()}`, { scroll: false })
+    }
     
     // Close sidebar on mobile after selection
     if (isMobile) {
@@ -85,30 +127,42 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel className={isCollapsed ? 'opacity-0 pointer-events-none' : ''}>Platform</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => {
-                const Icon = item.icon
-                const isActive = currentTab === item.value
-                
-                return (
-                  <SidebarMenuItem key={item.value}>
-                    <SidebarMenuButton
-                      onClick={() => handleTabChange(item.value)}
-                      isActive={isActive}
-                      tooltip={item.title}
-                    >
-                      <Icon />
-                      {!isCollapsed && <span>{item.title}</span>}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {navGroups.map((group, index) => {
+          const spacingClass = index === 0 ? 'mt-2 mb-1' : 'mt-6 mb-1'
+
+          return (
+            <SidebarGroup key={group.label}>
+              <SidebarGroupLabel
+                className={`${spacingClass} text-xs uppercase tracking-widest text-muted-foreground/60 ${
+                  isCollapsed ? 'opacity-0 pointer-events-none' : ''
+                }`}
+              >
+                {group.label}
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {group.items.map((item) => {
+                    const Icon = item.icon
+                    const isActive = currentTab === item.value
+
+                    return (
+                      <SidebarMenuItem key={item.value}>
+                        <SidebarMenuButton
+                          onClick={() => handleTabChange(item.value)}
+                          isActive={isActive}
+                          tooltip={item.title}
+                        >
+                          <Icon />
+                          {!isCollapsed && <span>{item.title}</span>}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    )
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )
+        })}
       </SidebarContent>
       <SidebarRail />
     </Sidebar>

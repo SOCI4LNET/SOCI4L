@@ -354,45 +354,44 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
       mode="full-width"
     >
       <div className="space-y-6">
-        {/* Identity Header Card */}
+        {/* Identity Header Card (read-only) */}
         <Card className="bg-card border border-border/60 shadow-sm">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3 min-w-0">
-                <Avatar className="h-10 w-10">
-                  {normalizedAddress ? (
-                    <>
-                      <AvatarImage
-                        src={`https://effigy.im/a/${normalizedAddress}.svg`}
-                        alt={identityDisplayName}
-                      />
-                      <AvatarFallback className="text-xs">
-                        {normalizedAddress.slice(2, 4).toUpperCase()}
-                      </AvatarFallback>
-                    </>
-                  ) : (
-                    <AvatarFallback className="text-xs">??</AvatarFallback>
-                  )}
-                </Avatar>
-                <div className="min-w-0 space-y-1">
-                  <p className="text-sm font-semibold truncate">{identityDisplayName}</p>
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                    <span className="font-mono">{shortAddress}</span>
-                    <span>• Avalanche</span>
-                    <a
-                      href={publicProfileHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="truncate hover:text-primary transition-colors"
-                    >
-                      {publicProfileUrl}
-                    </a>
-                  </div>
-                </div>
+            <div className="flex items-center gap-3 min-w-0">
+              <Avatar className="h-10 w-10">
+                {normalizedAddress ? (
+                  <>
+                    <AvatarImage
+                      src={`https://effigy.im/a/${normalizedAddress}.svg`}
+                      alt={identityDisplayName}
+                    />
+                    <AvatarFallback className="text-xs">
+                      {normalizedAddress.slice(2, 4).toUpperCase()}
+                    </AvatarFallback>
+                  </>
+                ) : (
+                  <AvatarFallback className="text-xs">??</AvatarFallback>
+                )}
+              </Avatar>
+              <div className="min-w-0 space-y-1">
+                <p className="text-sm font-mono font-semibold truncate">
+                  {shortAddress}
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  Avalanche •{" "}
+                  <a
+                    href={publicProfileHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline-offset-2 hover:underline"
+                  >
+                    {publicProfileUrl}
+                  </a>
+                </p>
               </div>
             </div>
             <p className="mt-3 text-[11px] text-muted-foreground">
-              This identity is backed by your wallet.
+              This identity is backed by your wallet and cannot be edited.
             </p>
           </CardContent>
         </Card>

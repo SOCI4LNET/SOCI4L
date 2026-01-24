@@ -830,9 +830,11 @@ export default function DashboardPage() {
                   Retry
                 </Button>
               </div>
-            ) : assetsData && (assetsData.topTokens.length > 0 || assetsData.nfts.length > 0) ? (
+            ) : assetsData &&
+              ((assetsData.topTokens && assetsData.topTokens.length > 0) ||
+                (assetsData.nfts && assetsData.nfts.length > 0)) ? (
               <div className="space-y-3">
-                {assetsData.topTokens.map((token, idx) => (
+                {(assetsData.topTokens || []).map((token, idx) => (
                   <div key={token.contractAddress || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
                     <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
                       <Coins className="h-5 w-5 text-muted-foreground" />
@@ -845,7 +847,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 ))}
-                {assetsData.nfts.map((nft, idx) => (
+                {(assetsData.nfts || []).map((nft, idx) => (
                   <div key={`${nft.contractAddress}-${nft.tokenId}` || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
                     <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden">
                       {nft.image ? (

@@ -501,6 +501,9 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
   const publicProfileHref = profileData?.slug
     ? `/p/${profileData.slug}`
     : `/p/${targetAddress}`
+  const explorerHref = targetAddress
+    ? `https://snowtrace.io/address/${targetAddress}`
+    : 'https://snowtrace.io'
 
   const lastUpdatedAt = activeTab === 'tokens' ? tokensLastUpdatedAt : nftsLastUpdatedAt
   const isLoading = activeTab === 'tokens' ? tokensLoading : nftsLoading
@@ -559,10 +562,7 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
           lastUpdatedText={lastUpdatedText}
           isLoading={isLoading}
           onRefresh={handleRefresh}
-          publicProfileHref={publicProfileHref}
-          onShareTwitter={handleShareTwitter}
-          onCopyLink={handleCopyLink}
-          onShowQR={() => setQrModalOpen(true)}
+          explorerHref={explorerHref}
         />
 
         {/* Controls Bar: Tabs + Search + Sort */}
@@ -970,34 +970,33 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
                 </Card>
               ))}
             </div>
-          ) : (
-            <Card className="w-full">
-              <CardContent className="p-8">
-                <div className="flex flex-col items-center justify-center text-center space-y-3">
-                  <ImageIcon className="h-10 w-10 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium mb-1">No NFTs detected</p>
-                    <p className="text-xs text-muted-foreground">
-                      {searchQuery
-                        ? 'No NFTs match your search'
-                        : 'This wallet has no NFTs to display'}
-                    </p>
+            ) : (
+              <Card className="w-full">
+                <CardContent className="p-8">
+                  <div className="flex flex-col items-center justify-center text-center space-y-3">
+                    <ImageIcon className="h-10 w-10 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium mb-1">
+                        This wallet does not hold any NFTs yet.
+                      </p>
+                      {searchQuery && (
+                        <p className="text-xs text-muted-foreground">
+                          No NFTs match your search.
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 pt-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => refetchNFTs()}
+                      >
+                        <RefreshCw className="mr-2 h-3 w-3" />
+                        Refresh
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 pt-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => refetchNFTs()}
-                    >
-                      <RefreshCw className="mr-2 h-3 w-3" />
-                      Refresh
-                    </Button>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={publicProfileHref}>View Public Profile</Link>
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
+                </CardContent>
               </Card>
             )}
 

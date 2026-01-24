@@ -17,6 +17,9 @@ import { AssetsPanel } from '@/components/dashboard/assets-panel'
 import { ActivityPanel } from '@/components/dashboard/activity-panel'
 import { SettingsPanel } from '@/components/dashboard/settings-panel'
 import { SocialPanel } from '@/components/dashboard/social-panel'
+import { BuilderPanel } from '@/components/dashboard/builder-panel'
+import { LinksPanel } from '@/components/dashboard/links-panel'
+import { InsightsPanel } from '@/components/dashboard/insights-panel'
 import { PageShell } from '@/components/app-shell/page-shell'
 import { sanitizeQueryParams } from '@/lib/query-params'
 import { isProfileClaimed } from '@/lib/profile/isProfileClaimed'
@@ -80,7 +83,7 @@ export default function DashboardAddressPage() {
   const currentTab = searchParams.get('tab') || 'overview'
   
   // Validate tab value
-  const validTabs = ['overview', 'assets', 'activity', 'social', 'settings']
+  const validTabs = ['overview', 'assets', 'activity', 'social', 'settings', 'builder', 'links', 'insights']
   const activeTab = validTabs.includes(currentTab) ? currentTab : 'overview'
 
   useEffect(() => {
@@ -520,6 +523,15 @@ export default function DashboardAddressPage() {
       case 'social':
         // Constrained layout: Social page uses PageShell with constrained mode (max-width ~1200px, centered)
         return <SocialPanel address={normalizedAddress} />
+      case 'builder':
+        // Constrained layout: Builder is a profile-focused experience
+        return <BuilderPanel address={normalizedAddress} />
+      case 'links':
+        // Constrained layout: Links management is content-focused
+        return <LinksPanel />
+      case 'insights':
+        // Constrained layout: Insights focuses on analytics
+        return <InsightsPanel address={normalizedAddress} />
       case 'settings':
         // Full-width layout: Settings page spans available width (same as Assets)
         // Always use PageShell wrapper to prevent layout shift on initial load

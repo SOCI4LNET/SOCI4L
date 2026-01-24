@@ -20,13 +20,16 @@ model Profile {
   visibility   String   @default("PUBLIC")   // PUBLIC | PRIVATE
   isPublic     Boolean  @default(false)       // kept for backward compatibility
   claimedAt    DateTime?
-  displayName  String?  // max 32 characters
-  bio          String?  // max 160 characters
-  socialLinks  String?  // JSON array of social links
-  createdAt    DateTime @default(now())
+  displayName      String?  // max 32 characters
+  bio              String?  // max 160 characters
+  socialLinks      String?  // JSON array of social links
+  layoutConfig     String?  // JSON ProfileLayoutConfig
+  appearanceConfig String?  // JSON ProfileAppearanceConfig
+  createdAt        DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   showcase ShowcaseItem[]
+  links    ProfileLink[]
 
   @@index([address])
   @@index([slug])
@@ -54,4 +57,19 @@ model Follow {
   @@unique([followerAddress, followingAddress])
   @@index([followerAddress])
   @@index([followingAddress])
+}
+
+model ProfileLink {
+  id        String   @id @default(cuid())
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  title     String   @default("")
+  url       String
+  enabled   Boolean  @default(true)
+  order     Int      @default(0) // Order for sorting (lower = first)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([profileId])
+  @@index([profileId, enabled])
 }

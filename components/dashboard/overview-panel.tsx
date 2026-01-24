@@ -3,21 +3,29 @@
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { RefreshCw, CheckCircle2, Activity, Coins, ArrowUpRight, ArrowDownRight, ExternalLink, AlertCircle, Copy } from 'lucide-react'
-import { formatAddress } from '@/lib/utils'
-import Link from 'next/link'
-import { PageShell } from '@/components/app-shell/page-shell'
-import { toast } from 'sonner'
-import { formatDistanceToNow } from 'date-fns'
-import type { ActivityTransaction } from '@/lib/activity/fetchActivity'
-import { isProfileClaimed } from '@/lib/profile/isProfileClaimed'
-import { getPublicProfileHref } from '@/lib/routing'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import {
+  RefreshCw,
+  CheckCircle2,
+  Activity,
+  Coins,
+  ArrowUpRight,
+  ArrowDownRight,
+  ExternalLink,
+  AlertCircle,
+} from "lucide-react"
+import { formatAddress } from "@/lib/utils"
+import Link from "next/link"
+import { PageShell } from "@/components/app-shell/page-shell"
+import { toast } from "sonner"
+import { formatDistanceToNow } from "date-fns"
+import type { ActivityTransaction } from "@/lib/activity/fetchActivity"
+import { getPublicProfileHref } from "@/lib/routing"
 
 interface WalletData {
   address: string
@@ -69,41 +77,29 @@ interface OverviewPanelProps {
 
 interface WalletHeaderProps {
   address: string
-  profile: ProfileData | null
   isLoading: boolean
   lastUpdatedText?: string | null
-  onCopyAddress: () => void
-  onRefresh?: () => void
-  isRefreshing?: boolean
+  publicProfileHref?: string | null
 }
 
 function WalletHeader({
   address,
-  profile,
   isLoading,
   lastUpdatedText,
-  onCopyAddress,
-  onRefresh,
-  isRefreshing,
+  publicProfileHref,
 }: WalletHeaderProps) {
-  const isClaimed = isProfileClaimed(profile)
   const hasAddress = !!address
-  const displayName = (profile?.displayName || '').trim()
-  const primaryLabel = displayName || (hasAddress ? formatAddress(address) : '')
-  const secondaryAddress = displayName && hasAddress ? formatAddress(address) : null
-
-  const hasPublicProfile = isClaimed && hasAddress
-  const publicProfileHref = hasPublicProfile ? getPublicProfileHref(address, profile?.slug) : null
+  const shortAddress = hasAddress ? formatAddress(address, 4) : ""
 
   return (
     <Card className="bg-card border border-border/60 shadow-sm">
-      <CardContent className="p-5">
-        <div className="flex items-center justify-between gap-4">
+      <CardContent className="px-4 py-3">
+        <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <Avatar className="h-12 w-12">
+            <Avatar className="h-9 w-9">
               {hasAddress ? (
                 <>
-                  <AvatarImage src={`https://effigy.im/a/${address}.svg`} alt={primaryLabel || address} />
+                  <AvatarImage src={`https://effigy.im/a/${address}.svg`} alt={shortAddress || address} />
                   <AvatarFallback className="text-xs">
                     {address.slice(2, 4).toUpperCase()}
                   </AvatarFallback>
@@ -112,79 +108,34 @@ function WalletHeader({
                 <AvatarFallback className="text-xs">??</AvatarFallback>
               )}
             </Avatar>
-            <div className="min-w-0 space-y-1">
-              {isLoading && !primaryLabel ? (
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-3 w-40" />
+            <div className="min-w-0">
+              {isLoading && !shortAddress ? (
+                <div className="space-y-1">
+                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-3 w-32" />
                 </div>
               ) : (
                 <>
-                  <div className="flex items-center gap-2 min-w-0">
-                    <p className="text-sm font-semibold truncate">{primaryLabel || 'Wallet'}</p>
-                    {secondaryAddress && (
-                      <span className="text-[11px] font-mono text-muted-foreground truncate">
-                        {secondaryAddress}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm font-semibold font-mono truncate">
+                    {shortAddress || "Wallet"}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
                     Avalanche
-                    {lastUpdatedText ? ` • ${lastUpdatedText}` : ''}
+                    {lastUpdatedText ? ` • ${lastUpdatedText}` : ""}
                   </p>
                 </>
               )}
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {hasPublicProfile && publicProfileHref && (
-              <Button variant="default" size="sm" asChild>
-                <Link href={publicProfileHref}>
-                  <span className="mr-1.5">View Public Profile</span>
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </Link>
-              </Button>
-            )}
-
-            {hasAddress && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={onCopyAddress}
-                      aria-label="Copy address"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Copy address</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-
-            {onRefresh && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={onRefresh}
-                      aria-label="Refresh overview"
-                    >
-                      <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Refresh overview</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-          </div>
+          {publicProfileHref && (
+            <Button variant="outline" size="sm" asChild>
+              <Link href={publicProfileHref}>
+                <span className="mr-1.5">View Public Profile</span>
+                <ExternalLink className="h-3.5 w-3.5" />
+              </Link>
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -298,43 +249,6 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
     retryDelay: 1000,
   })
 
-  const handleCopyAddress = async () => {
-    if (!normalizedAddress) return
-    try {
-      await navigator.clipboard.writeText(normalizedAddress)
-      toast.success('Adres kopyalandı')
-    } catch {
-      toast.error('Kopyalama başarısız')
-    }
-  }
-
-  const handleRefreshOverview = async () => {
-    try {
-      const [activityResult, assetsResult] = await Promise.all([
-        refetchActivity(),
-        refetchAssets(),
-      ])
-
-      if (onRetry) {
-        onRetry()
-      }
-
-      const hasError = Boolean(
-        (activityResult as any)?.error ||
-          (assetsResult as any)?.error,
-      )
-
-      if (hasError) {
-        toast.error('Genel bakış yenilenemedi')
-      } else {
-        toast.success('Genel bakış yenilendi')
-      }
-    } catch (error) {
-      console.error('[Overview] Failed to refresh overview', error)
-      toast.error('Genel bakış yenilenemedi')
-    }
-  }
-
   const handleCopyHash = async (hash: string) => {
     try {
       await navigator.clipboard.writeText(hash)
@@ -369,7 +283,6 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
   // Use prop loading/error if provided, otherwise fall back to walletData check
   const isLoading = propLoading !== undefined ? propLoading : walletData === null
   const error = propError
-  const isRefreshing = isLoading || activityLoading || assetsLoading
 
   const getLastUpdatedText = (): string | null => {
     let lastUpdatedMs: number | null = null
@@ -386,21 +299,6 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
   }
 
   const lastUpdatedText = getLastUpdatedText()
-  
-  // Debug: Log profile claim status
-  useEffect(() => {
-    if (profile) {
-      const isClaimed = isProfileClaimed(profile)
-      console.log('[Overview Panel] Profile claim status check:', {
-        hasProfile: !!profile,
-        status: profile.status,
-        claimedAt: profile.claimedAt,
-        slug: profile.slug,
-        displayName: profile.displayName,
-        isClaimed
-      })
-    }
-  }, [profile])
 
   // Show error state if there's an error and no data
   if (error && !walletData && !isLoading) {
@@ -439,12 +337,9 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
       <div className="space-y-6">
         <WalletHeader
           address={normalizedAddress}
-          profile={profile}
           isLoading={isLoading}
           lastUpdatedText={lastUpdatedText}
-          onCopyAddress={handleCopyAddress}
-          onRefresh={handleRefreshOverview}
-          isRefreshing={isRefreshing}
+          publicProfileHref={normalizedAddress ? getPublicProfileHref(normalizedAddress, profile?.slug) : undefined}
         />
 
         {/* Wallet Stats */}

@@ -13,7 +13,7 @@ import {
   DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Share2, Twitter, Copy, Download, QrCode } from 'lucide-react'
+import { Share2, Twitter, Copy, QrCode } from 'lucide-react'
 import { toast } from 'sonner'
 import { isValidAddress } from '@/lib/utils'
 import { getPublicProfileHref } from '@/lib/routing'
@@ -21,9 +21,10 @@ import { getPublicProfileHref } from '@/lib/routing'
 interface PublicProfileShareMenuProps {
   address: string
   slug?: string | null
+  onOpenQR?: () => void
 }
 
-export function PublicProfileShareMenu({ address, slug }: PublicProfileShareMenuProps) {
+export function PublicProfileShareMenu({ address, slug, onOpenQR }: PublicProfileShareMenuProps) {
   const [mounted, setMounted] = useState(false)
   const [supportsShare, setSupportsShare] = useState(false)
 
@@ -60,15 +61,19 @@ export function PublicProfileShareMenu({ address, slug }: PublicProfileShareMenu
     if (!profileUrl) return
 
     // Use NEXT_PUBLIC_APP_URL or fallback to window.origin
-    const baseUrl = typeof window !== 'undefined' 
-      ? (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || window.location.origin)
-      : ''
-    
+    const baseUrl =
+      typeof window !== 'undefined'
+        ? process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
+        : ''
+
     // Build final URL (replace localhost with production URL if needed)
     const finalUrl = profileUrl.replace(window.location.origin, baseUrl)
-    
-    // Improved share text with blank line before link
-    const shareText = 'Just found this Avalanche wallet profile on SOCI4L.\n\nExplore it here:'
+
+    // Share copy with blank line before link
+    const shareText =
+      'Just claimed my SOCI4L profile on Avalanche.\n\n' +
+      'Track my on-chain identity and links in one place.\n\n'
+
     const text = encodeURIComponent(shareText)
     const url = encodeURIComponent(finalUrl)
     const intentUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`
@@ -121,10 +126,12 @@ export function PublicProfileShareMenu({ address, slug }: PublicProfileShareMenu
   // Address is valid if it's a valid Ethereum address or if we have a slug (slug means profile exists)
   const isValid = address && (isValidAddress(address) || !!slug)
 
-  const handleDownloadQR = () => {
-    // QR modal will be opened from parent component
-    // This is just a placeholder - actual QR download handled in QR modal
-    toast.info('QR code available in profile header')
+  const handleOpenQR = () => {
+    if (onOpenQR) {
+      onOpenQR()
+    } else {
+      toast.info('QR code available in profile header')
+    }
   }
 
   return (
@@ -144,17 +151,17 @@ export function PublicProfileShareMenu({ address, slug }: PublicProfileShareMenu
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleShareOnX}>
-                <Twitter className="mr-2 h-4 w-4" />
-                <span>Share on X</span>
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={handleCopyLink}>
                 <Copy className="mr-2 h-4 w-4" />
                 <span>Copy profile link</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleDownloadQR}>
-                <Download className="mr-2 h-4 w-4" />
-                <span>Download QR</span>
+              <DropdownMenuItem onClick={handleShareOnX}>
+                <Twitter className="mr-2 h-4 w-4" />
+                <span>Share on X</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleOpenQR}>
+                <QrCode className="mr-2 h-4 w-4" />
+                <span>QR Code</span>
               </DropdownMenuItem>
               {supportsShare && (
                 <>

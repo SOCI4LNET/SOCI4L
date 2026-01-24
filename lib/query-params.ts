@@ -20,6 +20,9 @@ export const ALLOWED_QUERY_PARAMS: Record<string, string[]> = {
   assets: ['tab', 'assetTab'],
   activity: ['tab'],
   overview: ['tab'],
+  builder: ['tab', 'focus', 'category', 'link'],
+  links: ['tab', 'link', 'category'],
+  insights: ['tab'],
 }
 
 /**

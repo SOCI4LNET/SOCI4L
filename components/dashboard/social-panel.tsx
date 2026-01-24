@@ -21,6 +21,7 @@ interface SocialPanelProps {
 interface FollowItem {
   address: string
   createdAt: string
+  displayName?: string | null
 }
 
 export function SocialPanel({ address }: SocialPanelProps) {
@@ -134,7 +135,11 @@ export function SocialPanel({ address }: SocialPanelProps) {
     )
   }
 
-  const renderList = (items: FollowItem[], emptyMessage: string) => {
+  const renderList = (
+    items: FollowItem[],
+    emptyTitle: string,
+    emptyHelper: string
+  ) => {
     if (loading) {
       return (
         <div className="space-y-0">
@@ -149,8 +154,11 @@ export function SocialPanel({ address }: SocialPanelProps) {
 
     if (items.length === 0) {
       return (
-        <div className="text-center py-12">
-          <p className="text-sm text-muted-foreground">{emptyMessage}</p>
+        <div className="text-center py-10 space-y-2">
+          <p className="text-sm text-muted-foreground">{emptyTitle}</p>
+          <p className="text-xs text-muted-foreground">
+            {emptyHelper}
+          </p>
         </div>
       )
     }
@@ -161,6 +169,8 @@ export function SocialPanel({ address }: SocialPanelProps) {
           const normalizedAddr = item.address.toLowerCase()
           const avatarUrl = `https://effigy.im/a/${normalizedAddr}.svg`
           const fallbackText = item.address.slice(2, 4).toUpperCase()
+          const shortAddress = formatAddress(item.address, 4)
+          const primaryLabel = (item.displayName || '').trim() || shortAddress
 
           return (
             <div
@@ -170,13 +180,16 @@ export function SocialPanel({ address }: SocialPanelProps) {
               }`}
             >
               <Avatar className="h-11 w-11 flex-shrink-0">
-                <AvatarImage src={avatarUrl} alt={formatAddress(item.address)} />
+                <AvatarImage src={avatarUrl} alt={shortAddress} />
                 <AvatarFallback className="text-xs">{fallbackText}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-mono truncate font-medium">{formatAddress(item.address, 4)}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {new Date(item.createdAt).toLocaleDateString('tr-TR')}
+                <p className="text-sm font-medium truncate">{primaryLabel}</p>
+                <p className="text-xs font-mono text-muted-foreground truncate">
+                  {shortAddress}
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  Followed on {new Date(item.createdAt).toLocaleDateString('tr-TR')}
                 </p>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
@@ -187,7 +200,6 @@ export function SocialPanel({ address }: SocialPanelProps) {
                   className="h-8 text-xs"
                 >
                   <Link href={`/p/${normalizedAddr}`}>
-                    <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
                     View profile
                   </Link>
                 </Button>
@@ -200,23 +212,40 @@ export function SocialPanel({ address }: SocialPanelProps) {
   }
 
   return (
-    <PageShell title="Social" subtitle="Manage your followers and following">
+    <PageShell
+      title="Social"
+      subtitle="View and manage on-chain social connections"
+    >
       <Card className="bg-card border border-border/60 shadow-sm">
         <CardHeader>
-          <CardTitle>Follows</CardTitle>
-          <CardDescription>View and manage your social connections</CardDescription>
+          <CardTitle>On-chain social graph</CardTitle>
+          <CardDescription>
+            Followers and following relationships for this wallet.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={handleTabChange}>
             <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
-              <TabsList>
-                <TabsTrigger value="followers" className="gap-2">
+              <TabsList className="bg-muted/40 p-1 rounded-lg">
+                <TabsTrigger
+                  value="followers"
+                  className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground rounded-md px-3 py-1.5"
+                >
                   <Users className="h-4 w-4" />
-                  <span>Followers</span>
+                  <span className="text-sm">Followers</span>
+                  <span className="text-[11px] rounded-full bg-accent/60 px-1.5 py-0.5">
+                    {followers.length}
+                  </span>
                 </TabsTrigger>
-                <TabsTrigger value="following" className="gap-2">
+                <TabsTrigger
+                  value="following"
+                  className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground rounded-md px-3 py-1.5"
+                >
                   <UserPlus className="h-4 w-4" />
-                  <span>Following</span>
+                  <span className="text-sm">Following</span>
+                  <span className="text-[11px] rounded-full bg-accent/60 px-1.5 py-0.5">
+                    {following.length}
+                  </span>
                 </TabsTrigger>
               </TabsList>
               <Input
@@ -229,13 +258,15 @@ export function SocialPanel({ address }: SocialPanelProps) {
             <TabsContent value="followers" className="mt-4">
               {renderList(
                 filteredFollowers,
-                'No followers yet. Share your profile to get followers!'
+                'This wallet has no followers yet.',
+                'On-chain followers will appear here as they connect to this wallet.'
               )}
             </TabsContent>
             <TabsContent value="following" className="mt-4">
               {renderList(
                 filteredFollowing,
-                'You are not following anyone yet. Start following profiles to see them here!'
+                'This wallet is not following anyone.',
+                'On-chain following relationships will appear here when this wallet connects to others.'
               )}
             </TabsContent>
           </Tabs>
