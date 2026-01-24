@@ -103,11 +103,13 @@ function getShareUrl(address: string, slug?: string | null): string {
   if (typeof window === 'undefined') {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || ''
     const profilePath = getPublicProfileHref(address, slug)
-    return `${appUrl}${profilePath}`
+    // Add source=copy parameter for attribution
+    return `${appUrl}${profilePath}?source=copy`
   }
   const baseUrl = window.location.origin
   const profilePath = getPublicProfileHref(address, slug)
-  return `${baseUrl}${profilePath}`
+  // Add source=copy parameter for attribution
+  return `${baseUrl}${profilePath}?source=copy`
 }
 
 export function AssetsPanel({ walletData: legacyWalletData, address: propAddress }: AssetsPanelProps) {

@@ -14,12 +14,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Copy, Share2, QrCode, LogOut, LayoutDashboard, User } from 'lucide-react'
+import { Copy, Share2, QrCode, LogOut, LayoutDashboard, User, Settings, Loader2, Sparkles, Link2, BarChart2 } from 'lucide-react'
 import { formatAddress } from '@/lib/utils'
 import { toast } from 'sonner'
 import { getConnectedDashboardHref, getCurrentProfileAddressFromRoute, getPublicProfileHref } from '@/lib/routing'
 import { QRCodeModal } from '@/components/qr/qr-code-modal'
-import { useDisconnect } from 'wagmi'
+import { useDisconnect, useConnect } from 'wagmi'
 
 export function HeaderActions() {
   const [mounted, setMounted] = useState(false)
@@ -28,6 +28,7 @@ export function HeaderActions() {
   const [qrModalOpen, setQrModalOpen] = useState(false)
   const { address: connectedAddress, isConnected } = useAccount()
   const { disconnect } = useDisconnect()
+  const { connect, connectors, isPending: isConnecting } = useConnect()
   const router = useRouter()
   const params = useParams()
   const pathname = usePathname()
@@ -68,8 +69,30 @@ export function HeaderActions() {
     fetchProfile()
   }, [mounted, isConnected, connectedAddress])
 
+  // Handle wallet not connected - show Connect Wallet button
   if (!mounted || !isConnected || !connectedAddress) {
-    return null
+    return (
+      <Button
+        onClick={() => {
+          if (connectors.length > 0) {
+            connect({ connector: connectors[0] })
+          }
+        }}
+        variant="default"
+        size="sm"
+        disabled={isConnecting}
+        className="bg-accent-primary text-black hover:bg-accent-primary/90"
+      >
+        {isConnecting ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Connecting...
+          </>
+        ) : (
+          'Connect Wallet'
+        )}
+      </Button>
+    )
   }
 
   const normalizedConnectedAddress = connectedAddress.toLowerCase()
@@ -104,7 +127,8 @@ export function HeaderActions() {
       return
     }
 
-    const profileUrl = `${window.location.origin}${publicProfileHref}`
+    // Add source=copy parameter for attribution
+    const profileUrl = `${window.location.origin}${publicProfileHref}?source=copy`
 
     // Try Web Share API first
     if (navigator.share) {
@@ -145,6 +169,50 @@ export function HeaderActions() {
   const handlePublicProfile = () => {
     if (publicProfileHref) {
       router.push(publicProfileHref)
+    }
+  }
+
+  const handleSettings = () => {
+    if (!isConnected || !connectedAddress) {
+      toast.error('Connect your wallet to access settings')
+      return
+    }
+    const dashboardHref = getConnectedDashboardHref(connectedAddress)
+    if (dashboardHref) {
+      router.push(`${dashboardHref}?tab=settings`)
+    }
+  }
+
+  const handleBuilder = () => {
+    if (!isConnected || !connectedAddress) {
+      toast.error('Connect your wallet to access builder')
+      return
+    }
+    const dashboardHref = getConnectedDashboardHref(connectedAddress)
+    if (dashboardHref) {
+      router.push(`${dashboardHref}?tab=builder`)
+    }
+  }
+
+  const handleLinks = () => {
+    if (!isConnected || !connectedAddress) {
+      toast.error('Connect your wallet to access links')
+      return
+    }
+    const dashboardHref = getConnectedDashboardHref(connectedAddress)
+    if (dashboardHref) {
+      router.push(`${dashboardHref}?tab=links`)
+    }
+  }
+
+  const handleInsights = () => {
+    if (!isConnected || !connectedAddress) {
+      toast.error('Connect your wallet to access insights')
+      return
+    }
+    const dashboardHref = getConnectedDashboardHref(connectedAddress)
+    if (dashboardHref) {
+      router.push(`${dashboardHref}?tab=insights`)
     }
   }
 
@@ -193,6 +261,22 @@ export function HeaderActions() {
             <DropdownMenuItem onClick={handlePublicProfile} disabled={!publicProfileHref}>
               <User className="mr-2 h-4 w-4" />
               <span>Public Profile</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleBuilder}>
+              <Sparkles className="mr-2 h-4 w-4" />
+              <span>Builder</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLinks}>
+              <Link2 className="mr-2 h-4 w-4" />
+              <span>Links</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleInsights}>
+              <BarChart2 className="mr-2 h-4 w-4" />
+              <span>Insights</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleSettings}>
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleCopyAddress}>
               <Copy className="mr-2 h-4 w-4" />

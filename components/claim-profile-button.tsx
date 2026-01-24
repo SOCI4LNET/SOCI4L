@@ -114,7 +114,7 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
   // Prevent hydration mismatch by showing consistent UI until mounted
   if (!mounted) {
     return (
-      <Button variant="default" size="sm" disabled>
+      <Button variant="default" size="sm" disabled className="bg-accent-primary text-black">
         Claim Profile
       </Button>
     )
@@ -131,6 +131,7 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
         variant="default"
         size="sm"
         disabled={isConnecting}
+        className="bg-accent-primary text-black hover:bg-accent-primary/90"
       >
         {isConnecting ? (
           <>
@@ -164,7 +165,7 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
       disabled={isSubmitting} 
       variant="default"
       size="sm"
-      className={isSubmitting ? "pointer-events-none" : ""}
+      className={`bg-accent-primary text-black hover:bg-accent-primary/90 ${isSubmitting ? "pointer-events-none" : ""}`}
     >
       {isSubmitting ? (
         <>

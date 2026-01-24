@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -16,7 +16,7 @@ import { FollowToggle, FollowStats } from '@/components/follow-toggle'
 import { QRCodeModal } from '@/components/qr/qr-code-modal'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { toast } from 'sonner'
-import { trackProfileView } from '@/lib/analytics'
+import { trackProfileView, trackLinkClick, getSourceFromUrl } from '@/lib/analytics'
 import { type ProfileLink } from '@/lib/profile-links'
 import {
   type ProfileLayoutConfig,
@@ -71,6 +71,7 @@ interface WalletData {
 
 export default function ProfilePage({ params }: PageProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [walletData, setWalletData] = useState<WalletData | null>(null)
   const [profileStatus, setProfileStatus] = useState<'UNCLAIMED' | 'CLAIMED+PUBLIC' | 'CLAIMED+PRIVATE'>('UNCLAIMED')
   const [profile, setProfile] = useState<{ 
@@ -83,8 +84,10 @@ export default function ProfilePage({ params }: PageProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [qrModalOpen, setQrModalOpen] = useState(false)
-  const [viewTracked, setViewTracked] = useState(false)
   const [profileLinks, setProfileLinks] = useState<ProfileLink[]>([])
+  // useRef guard to prevent double tracking (React Strict Mode + hydration safe)
+  // Stores the profile ID that was already tracked to detect profile changes
+  const trackedProfileIdRef = useRef<string | null>(null)
   // Initialize as null to prevent rendering legacy layout on first paint
   // Will be set from API response or default after data loads
   const [layoutConfig, setLayoutConfig] = useState<ProfileLayoutConfig | null>(null)
@@ -223,13 +226,31 @@ export default function ProfilePage({ params }: PageProps) {
   // Layout config is loaded from /api/wallet response above
 
   // Track profile view (MVP - local analytics)
+  // useRef guard prevents double tracking in React Strict Mode / hydration
+  // Tracks per profile ID to handle slug -> address transitions
   useEffect(() => {
-    if (!stableProfileId) return
-    if (viewTracked) return
+    // Guard: only track on client
+    if (typeof window === 'undefined') return
+    
+    // Guard: need stable profile ID
+    if (!stableProfileId) {
+      // Reset guard if profile ID is not available yet
+      trackedProfileIdRef.current = null
+      return
+    }
+    
+    // Guard: already tracked for this profile ID in this render cycle (React Strict Mode protection)
+    if (trackedProfileIdRef.current === stableProfileId) {
+      return
+    }
 
-    trackProfileView(stableProfileId, 'unknown')
-    setViewTracked(true)
-  }, [stableProfileId, viewTracked])
+    // Track view with source attribution from URL query params
+    const source = getSourceFromUrl(searchParams)
+    trackProfileView(stableProfileId, source)
+    
+    // Mark as tracked for this profile ID to prevent double invoke
+    trackedProfileIdRef.current = stableProfileId
+  }, [stableProfileId, searchParams])
 
   const getStatusBadge = () => {
     const baseClass = 'text-[11px] px-2 py-0 font-normal'
@@ -379,17 +400,6 @@ export default function ProfilePage({ params }: PageProps) {
   }
 
   const enabledProfileLinks = profileLinks.filter((link) => link.enabled)
-
-  // Scroll to links block
-  const scrollToLinks = () => {
-    linksBlockRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-
-  // Get quick social links (first 4-6)
-  const quickSocialLinks = profile?.socialLinks?.slice(0, 6) || []
-  
-  // Check if there are more links (social + custom) to show "All links →"
-  const hasMoreLinks = (profile?.socialLinks?.length || 0) > quickSocialLinks.length || enabledProfileLinks.length > 0
 
   // Use default configs if not loaded yet (for initial render calculations)
   const effectiveLayoutConfig = layoutConfig || getDefaultProfileLayout()
@@ -603,51 +613,6 @@ export default function ProfilePage({ params }: PageProps) {
                     <p className="text-sm text-muted-foreground">{profile.bio}</p>
                   </div>
                 )}
-                {/* Quick Links Row */}
-                {(quickSocialLinks.length > 0 || hasMoreLinks) && (
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {quickSocialLinks.map((link, idx) => {
-                      const href = getSocialUrl(link)
-                      return (
-                        <TooltipProvider key={link.id || idx}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                asChild
-                                className="h-8 w-8"
-                              >
-                                <a
-                                  href={href}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-center justify-center"
-                                >
-                                  {getSocialIcon(link.platform || link.type || 'website')}
-                                </a>
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>{getSocialLabel(link)}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )
-                    })}
-                    {hasMoreLinks && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={scrollToLinks}
-                        className="h-8 text-xs text-muted-foreground hover:text-foreground"
-                      >
-                        All links
-                        <ArrowRight className="h-3 w-3 ml-1" />
-                      </Button>
-                    )}
-                  </div>
-                )}
               </CardContent>
             </Card>
           )}
@@ -663,30 +628,34 @@ export default function ProfilePage({ params }: PageProps) {
                 const gridColSpan = computedSpan === 'full' ? 'md:col-span-12' : 'md:col-span-6'
 
               if (block.key === 'links') {
-                // Merge social links and custom links into unified list
-                const allLinks: Array<{
+                // Unified Link Hub: Merge social links and custom links into single system
+                type UnifiedLink = {
                   id: string
                   title: string
                   url: string
                   category: string
-                  type: 'social' | 'custom'
+                  type: 'social' | 'featured' | 'custom'
                   icon?: React.ReactNode
-                }> = []
+                  order: number
+                }
 
-                // Add custom links first (default to "Featured" category if no category field exists)
-                enabledProfileLinks.forEach((link) => {
+                const allLinks: UnifiedLink[] = []
+
+                // Add custom links (default to "Featured" category)
+                enabledProfileLinks.forEach((link, index) => {
                   allLinks.push({
                     id: link.id,
                     title: link.title || link.url,
                     url: link.url,
                     category: 'Featured', // Default category for custom links
-                    type: 'custom',
+                    type: 'featured',
+                    order: link.order || index,
                   })
                 })
 
                 // Add social links to "Socials" category
                 if (profile?.socialLinks && profile.socialLinks.length > 0) {
-                  profile.socialLinks.forEach((link) => {
+                  profile.socialLinks.forEach((link, index) => {
                     allLinks.push({
                       id: link.id || `social-${link.url}`,
                       title: getSocialLabel(link),
@@ -694,12 +663,16 @@ export default function ProfilePage({ params }: PageProps) {
                       category: 'Socials',
                       type: 'social',
                       icon: getSocialIcon(link.platform || link.type || 'website'),
+                      order: 1000 + index, // Social links come after featured
                     })
                   })
                 }
 
+                // Sort all links by order
+                allLinks.sort((a, b) => a.order - b.order)
+
                 // Group links by category
-                const linksByCategory = new Map<string, typeof allLinks>()
+                const linksByCategory = new Map<string, UnifiedLink[]>()
                 allLinks.forEach((link) => {
                   if (!linksByCategory.has(link.category)) {
                     linksByCategory.set(link.category, [])
@@ -707,7 +680,7 @@ export default function ProfilePage({ params }: PageProps) {
                   linksByCategory.get(link.category)!.push(link)
                 })
 
-                // Sort categories: Featured first, then Socials, then others
+                // Sort categories: Featured first, then Socials, then others alphabetically
                 const categoryOrder = ['Featured', 'Socials']
                 const categories = Array.from(linksByCategory.keys()).sort((a, b) => {
                   const indexA = categoryOrder.indexOf(a)
@@ -764,12 +737,21 @@ export default function ProfilePage({ params }: PageProps) {
                                   {category}
                                 </h3>
                                 <div className="space-y-2">
-                                  {categoryLinks.map((link) => (
+                                  {categoryLinks.map((link) => {
+                                    const handleLinkClick = () => {
+                                      if (stableProfileId && link.id) {
+                                        // Links clicked from profile page always have source="profile"
+                                        trackLinkClick(stableProfileId, link.id, 'profile')
+                                      }
+                                    }
+                                    
+                                    return (
                                     <a
                                       key={link.id}
                                       href={link.url}
                                       target="_blank"
                                       rel="noopener noreferrer"
+                                      onClick={handleLinkClick}
                                       className="group flex items-center justify-between rounded-md border border-border/60 bg-background/60 px-3 py-2 text-xs transition-colors hover:border-primary/50 hover:bg-primary/5"
                                     >
                                       <div className="flex min-w-0 items-center gap-2">
@@ -787,7 +769,8 @@ export default function ProfilePage({ params }: PageProps) {
                                       </div>
                                       <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
                                     </a>
-                                  ))}
+                                    )
+                                  })}
                                 </div>
                               </div>
                             )

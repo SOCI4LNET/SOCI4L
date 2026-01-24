@@ -137,7 +137,8 @@ export function ProfileDropdown() {
       return
     }
 
-    const profileUrl = `${window.location.origin}${publicProfileHref}`
+    // Add source=copy parameter for attribution
+    const profileUrl = `${window.location.origin}${publicProfileHref}?source=copy`
 
     // Try Web Share API first
     if (navigator.share) {

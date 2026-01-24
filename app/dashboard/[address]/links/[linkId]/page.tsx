@@ -251,9 +251,9 @@ export default function LinkInsightsPage({ params }: PageProps) {
     const viewsCount = viewEvents.length
     const ctr = viewsCount > 0 ? totalClicks / viewsCount : null
 
-    const sourceCounts: Record<'profile' | 'share' | 'qr' | 'unknown', number> = {
+    const sourceCounts: Record<'profile' | 'copy' | 'qr' | 'unknown', number> = {
       profile: 0,
-      share: 0,
+      copy: 0,
       qr: 0,
       unknown: 0,
     }
@@ -261,8 +261,10 @@ export default function LinkInsightsPage({ params }: PageProps) {
     for (const event of linkEvents) {
       if (event.type === 'link_click') {
         const source = event.source ?? 'unknown'
-        if (sourceCounts[source as keyof typeof sourceCounts] !== undefined) {
-          sourceCounts[source as keyof typeof sourceCounts] += 1
+        // Map legacy 'share' to 'copy' for backward compatibility
+        const normalizedSource = source === 'share' ? 'copy' : source
+        if (normalizedSource === 'profile' || normalizedSource === 'copy' || normalizedSource === 'qr' || normalizedSource === 'unknown') {
+          sourceCounts[normalizedSource] += 1
         } else {
           sourceCounts.unknown += 1
         }
@@ -656,8 +658,8 @@ export default function LinkInsightsPage({ params }: PageProps) {
                     </tr>
                   </thead>
                   <tbody>
-                    {(['profile', 'share', 'qr', 'unknown'] as const).map((source) => {
-                      const count = analytics.sourceCounts[source]
+                    {(['profile', 'copy', 'qr', 'unknown'] as const).map((source) => {
+                      const count = analytics.sourceCounts[source] || 0
                       const share =
                         analytics.totalClicks > 0
                           ? ((count / analytics.totalClicks) * 100).toFixed(1) + '%'
@@ -665,8 +667,8 @@ export default function LinkInsightsPage({ params }: PageProps) {
                       const label =
                         source === 'profile'
                           ? 'Profile'
-                          : source === 'share'
-                          ? 'Shared link'
+                          : source === 'copy'
+                          ? 'Copy'
                           : source === 'qr'
                           ? 'QR code'
                           : 'Unknown'

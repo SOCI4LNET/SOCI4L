@@ -43,21 +43,25 @@ export function PublicProfileShareMenu({ address, slug, onOpenQR }: PublicProfil
     )
   }
 
-  const getProfileUrl = () => {
+  const getProfileUrl = (includeSource: boolean = false) => {
     if (typeof window === 'undefined') return ''
     const baseUrl = window.location.origin
+    let url = ''
     if (slug) {
-      return `${baseUrl}/p/${slug}`
+      url = `${baseUrl}/p/${slug}`
+    } else if (address) {
+      // Use address if it's valid, otherwise it might be a slug (which is also valid for URL)
+      url = `${baseUrl}/p/${address}`
     }
-    // Use address if it's valid, otherwise it might be a slug (which is also valid for URL)
-    if (address) {
-      return `${baseUrl}/p/${address}`
+    // Add source=copy parameter for copied link attribution
+    if (url && includeSource) {
+      url = `${url}?source=copy`
     }
-    return ''
+    return url
   }
 
   const handleShareOnX = () => {
-    const profileUrl = getProfileUrl()
+    const profileUrl = getProfileUrl(true) // Include source=copy for attribution
     if (!profileUrl) return
 
     // Use NEXT_PUBLIC_APP_URL or fallback to window.origin
@@ -84,7 +88,7 @@ export function PublicProfileShareMenu({ address, slug, onOpenQR }: PublicProfil
   }
 
   const handleCopyLink = async () => {
-    const profileUrl = getProfileUrl()
+    const profileUrl = getProfileUrl(true) // Include source=copy for attribution
     if (!profileUrl) return
 
     try {
@@ -106,7 +110,7 @@ export function PublicProfileShareMenu({ address, slug, onOpenQR }: PublicProfil
   }
 
   const handleSystemShare = async () => {
-    const profileUrl = getProfileUrl()
+    const profileUrl = getProfileUrl(true) // Include source=copy for attribution
     if (!profileUrl || typeof window === 'undefined' || !navigator.share) return
 
     try {

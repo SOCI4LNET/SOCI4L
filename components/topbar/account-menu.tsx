@@ -89,8 +89,9 @@ export function AccountMenu() {
   }
 
   const handleShare = async () => {
+    // Add source=copy parameter for attribution
     const profileUrl = publicProfileHref
-      ? `${typeof window !== 'undefined' ? window.location.origin : ''}${publicProfileHref}`
+      ? `${typeof window !== 'undefined' ? window.location.origin : ''}${publicProfileHref}?source=copy`
       : null
 
     if (!profileUrl) {

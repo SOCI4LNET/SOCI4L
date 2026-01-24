@@ -7,22 +7,29 @@
  * Schema version: 1
  */
 
-export type ProfileViewSource = 'direct' | 'share' | 'qr' | 'unknown'
-export type LinkClickSource = 'profile' | 'share' | 'qr' | 'unknown'
+/**
+ * Standardized analytics source attribution
+ * Used consistently across all analytics events
+ */
+export type AnalyticsSource = 'profile' | 'qr' | 'copy' | 'unknown'
+
+// Legacy type aliases for backward compatibility
+export type ProfileViewSource = AnalyticsSource
+export type LinkClickSource = AnalyticsSource
 
 export type AnalyticsEvent =
   | {
       type: 'profile_view'
       profileId: string
       ts: number
-      source: ProfileViewSource
+      source: AnalyticsSource
     }
   | {
       type: 'link_click'
       profileId: string
       linkId: string
       ts: number
-      source: LinkClickSource
+      source: AnalyticsSource
     }
 
 type StoredEventsV1 = {
@@ -139,7 +146,7 @@ function writeEvent(event: AnalyticsEvent): void {
 
 export function trackProfileView(
   profileId: string,
-  source: ProfileViewSource = 'unknown'
+  source: AnalyticsSource = 'unknown'
 ): void {
   if (!profileId) return
 
@@ -160,7 +167,7 @@ export function trackProfileView(
 export function trackLinkClick(
   profileId: string,
   linkId: string,
-  source: LinkClickSource = 'unknown'
+  source: AnalyticsSource = 'unknown'
 ): void {
   if (!profileId || !linkId) return
 
@@ -179,5 +186,24 @@ export function getEventsForProfile(profileId: string): AnalyticsEvent[] {
   if (!profileId) return []
   const all = readEventsFromStorage()
   return all.filter((event) => event.profileId === profileId)
+}
+
+/**
+ * Parse analytics source from URL query parameters
+ * Supports: ?source=profile|qr|copy
+ * Falls back to 'unknown' if not present or invalid
+ */
+export function getSourceFromUrl(searchParams: URLSearchParams | string): AnalyticsSource {
+  const params = typeof searchParams === 'string' 
+    ? new URLSearchParams(searchParams) 
+    : searchParams
+  
+  const source = params.get('source')
+  
+  if (source === 'profile' || source === 'qr' || source === 'copy') {
+    return source
+  }
+  
+  return 'unknown'
 }
 

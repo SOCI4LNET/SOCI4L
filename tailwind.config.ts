@@ -63,6 +63,10 @@ const config = {
   				ring: 'hsl(var(--sidebar-ring))',
   				'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))'
+  			},
+  			'accent-primary': {
+  				DEFAULT: 'hsl(var(--accent-primary))',
+  				muted: 'hsl(var(--accent-primary-muted))'
   			}
   		},
   		borderRadius: {

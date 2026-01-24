@@ -246,6 +246,7 @@ export default function DashboardPage() {
           variant="default"
           size="sm"
           disabled={isConnecting}
+          className="bg-accent-primary text-black hover:bg-accent-primary/90"
         >
           {isConnecting ? (
             <>
@@ -281,6 +282,7 @@ export default function DashboardPage() {
           variant="default"
           size="sm"
           asChild
+          className="bg-accent-primary text-black hover:bg-accent-primary/90"
         >
           <Link href={publicProfileHref}>
             View Public Profile
@@ -318,7 +320,7 @@ export default function DashboardPage() {
                 onClick={() => connect({ connector: connectors[0] })}
                 variant="default"
                 size="sm"
-                className="w-full"
+                className="w-full bg-accent-primary text-black hover:bg-accent-primary/90"
                 disabled={isConnecting}
               >
                 {isConnecting ? (
@@ -376,7 +378,10 @@ export default function DashboardPage() {
                     const profile = summaryData?.profile
                     const isClaimed = isProfileClaimed(profile)
                     return (
-                      <Badge variant={isClaimed ? 'default' : 'outline'}>
+                      <Badge 
+                        variant={isClaimed ? 'default' : 'outline'}
+                        className={isClaimed ? 'bg-accent-primary-muted text-accent-primary border-accent-primary/30' : ''}
+                      >
                         Profile Status: {isClaimed ? 'Claimed' : 'Unclaimed'}
                       </Badge>
                     )
@@ -386,7 +391,10 @@ export default function DashboardPage() {
               {summaryLoading ? (
                 <Skeleton className="h-5 w-16" />
               ) : (
-                <Badge variant={summaryData?.visibility === 'PUBLIC' ? 'default' : 'secondary'}>
+                <Badge 
+                  variant={summaryData?.visibility === 'PUBLIC' ? 'default' : 'secondary'}
+                  className={summaryData?.visibility === 'PUBLIC' ? 'bg-accent-primary-muted text-accent-primary border-accent-primary/30' : ''}
+                >
                   {summaryData?.visibility === 'PUBLIC' ? 'Public' : 'Private'}
                 </Badge>
               )}
@@ -466,7 +474,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {/* AVAX Balance */}
         <Card 
-          className="cursor-pointer hover:bg-accent/50 transition-colors"
+          className="cursor-pointer hover:bg-accent/50 transition-colors hover:border-accent-primary/30 hover:ring-1 hover:ring-accent-primary-muted"
           onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=assets`)}
         >
           <CardContent className="p-4">
@@ -507,7 +515,7 @@ export default function DashboardPage() {
 
         {/* Transactions */}
         <Card 
-          className="cursor-pointer hover:bg-accent/50 transition-colors"
+          className="cursor-pointer hover:bg-accent/50 transition-colors hover:border-accent-primary/30 hover:ring-1 hover:ring-accent-primary-muted"
           onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=activity`)}
         >
           <CardContent className="p-4">
@@ -546,7 +554,7 @@ export default function DashboardPage() {
 
         {/* Tokens */}
         <Card 
-          className="cursor-pointer hover:bg-accent/50 transition-colors"
+          className="cursor-pointer hover:bg-accent/50 transition-colors hover:border-accent-primary/30 hover:ring-1 hover:ring-accent-primary-muted"
           onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=assets&assetTab=tokens`)}
         >
           <CardContent className="p-4">
@@ -585,7 +593,7 @@ export default function DashboardPage() {
 
         {/* NFTs */}
         <Card 
-          className="cursor-pointer hover:bg-accent/50 transition-colors"
+          className="cursor-pointer hover:bg-accent/50 transition-colors hover:border-accent-primary/30 hover:ring-1 hover:ring-accent-primary-muted"
           onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=assets&assetTab=nfts`)}
         >
           <CardContent className="p-4">

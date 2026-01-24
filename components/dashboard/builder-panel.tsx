@@ -24,7 +24,23 @@ import {
 import { useDroppable } from '@dnd-kit/core'
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Sparkles, MoreVertical, Info } from 'lucide-react'
+import { GripVertical, Sparkles, MoreVertical, Info, ChevronDown, ChevronUp, X, Plus } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { useSignMessage } from 'wagmi'
+import { Loader2 } from 'lucide-react'
 
 import { PageShell } from '@/components/app-shell/page-shell'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -61,6 +77,15 @@ import {
 } from '@/lib/profile-appearance'
 
 type SectionId = ProfileBlockKey
+
+type SocialLinkPlatform = 'x' | 'instagram' | 'youtube' | 'github' | 'linkedin' | 'website'
+
+interface SocialLink {
+  id: string
+  platform: SocialLinkPlatform
+  url: string
+  label?: string
+}
 
 type PresetDefinition = {
   id: ProfilePreset
@@ -268,6 +293,7 @@ type BuilderPanelProps = {
 export function BuilderPanel({ address }: BuilderPanelProps) {
   const searchParams = useSearchParams()
   const linksSectionRef = useRef<HTMLDivElement>(null)
+  const { signMessageAsync } = useSignMessage()
   const [sections, setSections] = useState<ProfileSection[]>(INITIAL_SECTIONS)
   const [layoutConfig, setLayoutConfig] = useState<ProfileLayoutConfig>(() =>
     getDefaultProfileLayout()
@@ -281,6 +307,12 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
   const [highlightedLinkId, setHighlightedLinkId] = useState<string | null>(null)
   const [highlightedCategoryId, setHighlightedCategoryId] = useState<string | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
+  
+  // Profile Info state
+  const [profileInfoOpen, setProfileInfoOpen] = useState(true)
+  const [displayName, setDisplayName] = useState<string>('')
+  const [bio, setBio] = useState<string>('')
+  const [visibility, setVisibility] = useState<'PUBLIC' | 'PRIVATE'>('PUBLIC')
 
   // Load layout from API on mount
   useEffect(() => {
@@ -294,6 +326,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
         setLoading(true)
         const layoutResponse = await fetch(`/api/profile/layout?address=${encodeURIComponent(address)}`)
         const appearanceResponse = await fetch(`/api/profile/appearance?address=${encodeURIComponent(address)}`)
+        const profileResponse = await fetch(`/api/wallet?address=${encodeURIComponent(address)}`)
         
         if (!layoutResponse.ok) {
           const errorData = await layoutResponse.json().catch(() => ({ error: 'Bilinmeyen hata' }))
@@ -309,6 +342,16 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
         
         const config = layoutData.layout || getDefaultProfileLayout()
         setLayoutConfig(config)
+
+        // Load profile info
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json()
+          if (profileData.profile) {
+            setDisplayName(profileData.profile.displayName || '')
+            setBio(profileData.profile.bio || '')
+            setVisibility(profileData.profile.visibility === 'PRIVATE' ? 'PRIVATE' : 'PUBLIC')
+          }
+        }
 
         if (appearanceResponse.ok) {
           const appearanceData = await appearanceResponse.json()
@@ -512,7 +555,63 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
         console.error('[BuilderPanel] Failed to save appearance config:', appearanceResponse.status)
       }
 
-      toast.success('Layout ve görünüm kaydedildi. Public profile sayfasını yenileyin.')
+      // Save profile info (display name, bio, social links, visibility)
+      try {
+        // Step 1: Get nonce
+        const nonceResponse = await fetch('/api/auth/nonce')
+        if (!nonceResponse.ok) {
+          throw new Error('Nonce alınamadı')
+        }
+        const { nonce } = await nonceResponse.json()
+
+        // Step 2: Sign message
+        const message = `Update profile for ${address}. Nonce: ${nonce}`
+        const signature = await signMessageAsync({ message })
+
+        // Step 3: Update profile (display name and bio only - social links are managed in Links panel)
+        const profileResponse = await fetch('/api/profile/social', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            address,
+            displayName: displayName.trim() || null,
+            bio: bio.trim() || null,
+            signature,
+          }),
+        })
+
+        if (!profileResponse.ok) {
+          const errorData = await profileResponse.json().catch(() => ({ error: 'Unknown error' }))
+          throw new Error(errorData.error || 'Failed to save profile info')
+        }
+
+        // Update visibility
+        const visibilityResponse = await fetch('/api/profile/visibility', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            address,
+            visibility,
+            signature,
+          }),
+        })
+
+        if (!visibilityResponse.ok) {
+          const errorData = await visibilityResponse.json().catch(() => ({ error: 'Unknown error' }))
+          throw new Error(errorData.error || 'Failed to save visibility')
+        }
+
+        console.log('[BuilderPanel] Profile info saved successfully')
+      } catch (error) {
+        console.error('[BuilderPanel] Failed to save profile info:', error)
+        toast.error(error instanceof Error ? error.message : 'Profile info kaydedilemedi')
+      }
+
+      toast.success('Layout, görünüm ve profil bilgileri kaydedildi. Public profile sayfasını yenileyin.')
       setHasUnsavedChanges(false)
     } catch (error) {
       console.error('[BuilderPanel] Failed to save layout', error)
@@ -536,6 +635,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
     toast.success('Layout reset')
     setHasUnsavedChanges(false)
   }
+
 
   const handleThemeChange = (theme: ProfileTheme) => {
     setAppearanceConfig({ ...appearanceConfig, theme })
@@ -1032,74 +1132,168 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
           </Card>
           </div>
 
-          {/* Appearance Section */}
-          <Card className="bg-card border border-border/60 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Appearance</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {(['default', 'minimal', 'dense', 'spotlight'] as ProfileTheme[]).map((theme) => {
-                  const isSelected = appearanceConfig.theme === theme
-                  const themeDescriptions: Record<ProfileTheme, { short: string; long: string }> = {
-                    default: {
-                      short: 'Standard spacing and styling',
-                      long: 'Standard spacing and styling with balanced visual hierarchy.',
-                    },
-                    minimal: {
-                      short: 'Reduced borders, larger spacing',
-                      long: 'Clean and minimal design with reduced borders and larger spacing for better readability.',
-                    },
-                    dense: {
-                      short: 'Tighter spacing, compact cards',
-                      long: 'Compact layout with tighter spacing and smaller cards for information-dense profiles.',
-                    },
-                    spotlight: {
-                      short: 'Emphasized header and links',
-                      long: 'Spotlight design that emphasizes the header and links section for maximum visibility.',
-                    },
-                  }
-                  const description = themeDescriptions[theme]
+          {/* Right Column: Appearance + Profile Info */}
+          <div className="space-y-6">
+            {/* Appearance Section */}
+            <Card className="bg-card border border-border/60 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Appearance</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {(['default', 'minimal', 'dense', 'spotlight'] as ProfileTheme[]).map((theme) => {
+                    const isSelected = appearanceConfig.theme === theme
+                    const themeDescriptions: Record<ProfileTheme, { short: string; long: string }> = {
+                      default: {
+                        short: 'Standard spacing and styling',
+                        long: 'Standard spacing and styling with balanced visual hierarchy.',
+                      },
+                      minimal: {
+                        short: 'Reduced borders, larger spacing',
+                        long: 'Clean and minimal design with reduced borders and larger spacing for better readability.',
+                      },
+                      dense: {
+                        short: 'Tighter spacing, compact cards',
+                        long: 'Compact layout with tighter spacing and smaller cards for information-dense profiles.',
+                      },
+                      spotlight: {
+                        short: 'Emphasized header and links',
+                        long: 'Spotlight design that emphasizes the header and links section for maximum visibility.',
+                      },
+                    }
+                    const description = themeDescriptions[theme]
 
-                  return (
-                    <button
-                      key={theme}
-                      type="button"
-                      onClick={() => handleThemeChange(theme)}
-                      aria-pressed={isSelected}
-                      className={`w-full rounded-md border px-3 py-2.5 text-left transition-colors flex items-center justify-between gap-2 ${
-                        isSelected
-                          ? 'border-primary bg-primary/10 ring-1 ring-primary/20'
-                          : 'border-border/60 bg-background/60 hover:border-border hover:bg-background'
-                      }`}
-                    >
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium capitalize mb-0.5">{theme}</div>
-                        <div className="text-xs text-muted-foreground">{description.short}</div>
-                      </div>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              type="button"
-                              onClick={(e) => e.stopPropagation()}
-                              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
-                              aria-label={`${theme} theme information`}
-                            >
-                              <Info className="h-4 w-4" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="text-xs max-w-[200px]">{description.long}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </button>
-                  )
-                })}
-              </div>
-            </CardContent>
-          </Card>
+                    return (
+                      <button
+                        key={theme}
+                        type="button"
+                        onClick={() => handleThemeChange(theme)}
+                        aria-pressed={isSelected}
+                        className={`w-full rounded-md border px-3 py-2.5 text-left transition-colors flex items-center justify-between gap-2 ${
+                          isSelected
+                            ? 'border-primary bg-primary/10 ring-1 ring-primary/20'
+                            : 'border-border/60 bg-background/60 hover:border-border hover:bg-background'
+                        }`}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium capitalize mb-0.5">{theme}</div>
+                          <div className="text-xs text-muted-foreground">{description.short}</div>
+                        </div>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                                aria-label={`${theme} theme information`}
+                              >
+                                <Info className="h-4 w-4" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="text-xs max-w-[200px]">{description.long}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </button>
+                    )
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Profile Info Section */}
+            <Card className="bg-card border border-border/60 shadow-sm">
+              <CardHeader 
+                className="pb-3 cursor-pointer hover:bg-accent/50 transition-colors"
+                onClick={() => setProfileInfoOpen(!profileInfoOpen)}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-base">Profile Info</CardTitle>
+                    <CardDescription>
+                      Display name, bio, and visibility
+                    </CardDescription>
+                  </div>
+                  {profileInfoOpen ? (
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </div>
+              </CardHeader>
+              {profileInfoOpen && (
+                <CardContent className="space-y-4">
+                    {/* Display Name */}
+                    <div className="space-y-2">
+                      <Label>Display Name</Label>
+                      <Input
+                        value={displayName}
+                        onChange={(e) => {
+                          setDisplayName(e.target.value)
+                          setHasUnsavedChanges(true)
+                        }}
+                        placeholder="Display name (max 32 characters)"
+                        maxLength={32}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        {displayName.length}/32 characters
+                      </p>
+                    </div>
+
+                    {/* Bio */}
+                    <div className="space-y-2">
+                      <Label>Bio</Label>
+                      <Textarea
+                        value={bio}
+                        onChange={(e) => {
+                          setBio(e.target.value)
+                          setHasUnsavedChanges(true)
+                        }}
+                        placeholder="Bio (max 160 characters)"
+                        maxLength={160}
+                        rows={3}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        {bio.length}/160 characters
+                      </p>
+                    </div>
+
+                    {/* Visibility */}
+                    <div className="space-y-2">
+                      <Label>Visibility</Label>
+                      <RadioGroup 
+                        value={visibility} 
+                        onValueChange={(value) => {
+                          setVisibility(value as 'PUBLIC' | 'PRIVATE')
+                          setHasUnsavedChanges(true)
+                        }}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="PUBLIC" id="public" />
+                          <Label htmlFor="public" className="cursor-pointer text-sm">
+                            Public - Anyone can view your profile
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="PRIVATE" id="private" />
+                          <Label htmlFor="private" className="cursor-pointer text-sm">
+                            Private - Only you can view full details
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                    
+                    <div className="pt-2 border-t">
+                      <p className="text-xs text-muted-foreground">
+                        Sosyal linkleri yönetmek için <span className="font-medium">Builder → Links</span> sayfasına gidin.
+                      </p>
+                    </div>
+                </CardContent>
+              )}
+            </Card>
+          </div>
         </div>
       </div>
     </PageShell>

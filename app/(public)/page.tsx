@@ -6,7 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { BarChart2, Link2, QrCode, Shield, Sparkles, Wallet, LayoutDashboard } from 'lucide-react'
+import { BarChart2, Link2, Sparkles, Wallet, LayoutDashboard } from 'lucide-react'
+import { AppHeader } from '@/components/app-shell/app-header'
+import Footer15 from '@/components/blocks/footer15'
 
 const EXAMPLE_PROFILE_ADDRESS = '0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1'
 
@@ -22,8 +24,10 @@ export default function HomePage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-background via-background to-background/95">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 py-10 md:py-16">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-background/95 flex flex-col">
+      <AppHeader sticky={true} showNavigation={true} />
+      <main>
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 py-10 md:py-16">
         {/* Hero */}
         <section className="grid gap-8 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] items-start">
           <div className="space-y-6">
@@ -351,39 +355,9 @@ export default function HomePage() {
           </Tabs>
         </section>
 
-        {/* Footer */}
-        <footer className="mt-4 space-y-3 border-t border-border/60 pt-4 text-xs text-muted-foreground">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p>SOCI4L · Wallet-first profiles and link intelligence for Avalanche.</p>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 px-3 text-[11px]"
-                onClick={openDashboard}
-              >
-                Open Dashboard
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 px-3 text-[11px]"
-                onClick={viewExampleProfile}
-              >
-                View Example Profile
-              </Button>
-              <div className="flex items-center gap-1 text-[11px] text-muted-foreground/80">
-                <QrCode className="h-3 w-3" />
-                <span>QR sharing built-in</span>
-              </div>
-              <div className="flex items-center gap-1 text-[11px] text-muted-foreground/80">
-                <Shield className="h-3 w-3" />
-                <span>Privacy-first controls</span>
-              </div>
-            </div>
-          </div>
-        </footer>
-      </div>
-    </main>
+        </div>
+      </main>
+      <Footer15 className="mt-auto" />
+    </div>
   )
 }

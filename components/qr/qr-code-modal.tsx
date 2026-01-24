@@ -103,7 +103,8 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
     if (typeof window === 'undefined') return ''
     const baseUrl = window.location.origin
     const profilePath = getPublicProfileHref(profile.address, profile.slug)
-    return `${baseUrl}${profilePath}`
+    // Add source=qr parameter for QR code attribution
+    return `${baseUrl}${profilePath}?source=qr`
   }, [profile.address, profile.slug])
 
   const currentTheme = themeStyles[theme]
