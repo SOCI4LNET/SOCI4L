@@ -4,10 +4,12 @@ import { isValidAddress } from '@/lib/utils'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { address: string } }
+  { params }: { params: Promise<{ address: string }> | { address: string } }
 ) {
   try {
-    const address = params.address
+    // Handle both sync and async params (Next.js 14+)
+    const resolvedParams = await Promise.resolve(params)
+    const address = resolvedParams.address
 
     if (!address || !isValidAddress(address)) {
       return NextResponse.json(
@@ -32,12 +34,14 @@ export async function GET(
       },
     })
 
+    console.log('[Follow Stats API] Success:', { address: normalizedAddress, followersCount, followingCount })
+    
     return NextResponse.json({
       followersCount,
       followingCount,
     })
   } catch (error) {
-    console.error('Error fetching follow stats:', error)
+    console.error('[Follow Stats API] Error:', error)
     return NextResponse.json(
       { error: 'İstatistikler alınırken bir hata oluştu' },
       { status: 500 }

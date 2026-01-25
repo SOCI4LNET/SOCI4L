@@ -23,7 +23,8 @@ import {
 } from '@dnd-kit/sortable'
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Link2, Plus, Pencil, Trash2, ExternalLink, BarChart2, Twitter, Github, Linkedin, Globe, Youtube, Eye, EyeOff, ArrowUp, ArrowDown, Folder, ChevronDown, ChevronRight } from 'lucide-react'
+import { GripVertical, Link2, Plus, Pencil, Trash2, ExternalLink, BarChart2, Github, Linkedin, Globe, Youtube, Eye, EyeOff, ArrowUp, ArrowDown, Folder, ChevronDown, ChevronRight } from 'lucide-react'
+import { XIcon } from '@/components/icons/x-icon'
 import { useRouter } from 'next/navigation'
 import { useSignMessage } from 'wagmi'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -301,7 +302,7 @@ export function LinksPanel() {
   const getSocialIcon = (platform: SocialLinkPlatform) => {
     switch (platform) {
       case 'x':
-        return <Twitter className="h-4 w-4" />
+        return <XIcon className="h-4 w-4" />
       case 'github':
         return <Github className="h-4 w-4" />
       case 'youtube':

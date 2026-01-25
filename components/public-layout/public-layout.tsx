@@ -7,7 +7,6 @@ import { useAccount, useConnect } from 'wagmi'
 import { AccountMenu } from '@/components/topbar/account-menu'
 import { Wallet } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import Footer15 from '@/components/blocks/footer15'
 import { PAGE_GUTTER, CONTENT_MAX_WIDTH } from '@/lib/layout-constants'
 import { cn } from '@/lib/utils'
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
@@ -64,7 +63,6 @@ export function PublicLayout({ children }: PublicLayoutProps) {
           {children}
         </div>
       </main>
-      <Footer15 className="pb-12" />
     </div>
   )
 }

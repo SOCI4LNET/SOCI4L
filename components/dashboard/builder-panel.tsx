@@ -11,8 +11,11 @@ import {
   useSensor,
   useSensors,
   DragOverlay,
+  MeasuringStrategy,
   type DragEndEvent,
   type DragStartEvent,
+  type Active,
+  type Over,
 } from '@dnd-kit/core'
 import {
   SortableContext,
@@ -22,7 +25,7 @@ import {
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable'
 import { useDroppable } from '@dnd-kit/core'
-import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { CSS } from '@dnd-kit/utilities'
 import { GripVertical, Sparkles, MoreVertical, Info, ChevronDown, ChevronUp, X, Plus } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -63,11 +66,15 @@ import {
   type ProfileLayoutConfig,
   type ProfilePreset,
   type BlockVariant,
+  type LayoutRow,
+  type SectionId,
   getDefaultProfileLayout,
   applyPreset,
   detectPreset,
   normalizeLayoutConfig,
   getRecommendation,
+  gridToRowLayout,
+  rowToGridLayout,
 } from '@/lib/profile-layout'
 import {
   type ProfileAppearanceConfig,
@@ -152,22 +159,43 @@ const PRESETS: PresetDefinition[] = [
   },
 ]
 
-// Grid drop zone component
-function GridDropZone({ row, col, children }: { row: number; col: 0 | 1; children: React.ReactNode }) {
-  const { setNodeRef, isOver } = useDroppable({
-    id: `grid-${row}-${col}`,
-  })
+// Helper: Convert LayoutRow to slots format
+function rowToSlots(row: LayoutRow): string[] {
+  if (row.type === 'single') {
+    return [row.left || 'EMPTY']
+  } else {
+    return [row.left || 'EMPTY', row.right || 'EMPTY']
+  }
+}
 
-  return (
-    <div
-      ref={setNodeRef}
-      className={`min-h-[80px] rounded-md border-2 border-dashed transition-colors p-2 overflow-hidden ${
-        isOver ? 'border-primary bg-primary/5' : 'border-border/40 bg-muted/20'
-      }`}
-    >
-      {children}
-    </div>
-  )
+// Helper: Convert slots format to LayoutRow
+function slotsToRow(rowId: string, type: 'single' | 'double', slots: string[]): LayoutRow {
+  if (type === 'single') {
+    return {
+      id: rowId,
+      type: 'single',
+      left: slots[0] === 'EMPTY' ? null : (slots[0] as SectionId),
+    }
+  } else {
+    return {
+      id: rowId,
+      type: 'double',
+      left: slots[0] === 'EMPTY' ? null : (slots[0] as SectionId),
+      right: slots[1] === 'EMPTY' ? null : (slots[1] as SectionId),
+    }
+  }
+}
+
+// Helper: Get slot ID from row and slot index
+function getSlotId(rowId: string, slotIndex: number): string {
+  return `slot:${rowId}:${slotIndex}`
+}
+
+// Helper: Parse slot ID
+function parseSlotId(slotId: string): { rowId: string; slotIndex: number } | null {
+  const match = slotId.match(/^slot:(.+):(\d+)$/)
+  if (!match) return null
+  return { rowId: match[1], slotIndex: parseInt(match[2], 10) }
 }
 
 // Disabled sections drop zone component
@@ -188,15 +216,69 @@ function DisabledSectionsZone({ children }: { children: React.ReactNode }) {
   )
 }
 
-type SortableSectionRowProps = {
-  section: ProfileSection
-  onToggle: (id: ProfileSectionId, enabled: boolean) => void
-  onVariantChange?: (id: ProfileSectionId, variant: BlockVariant) => void
+
+// Row Slot Drop Zone Component (slot-based)
+function RowSlotDropZone({
+  rowId,
+  slotIndex,
+  children,
+  isDragging,
+}: {
+  rowId: string
+  slotIndex: number
+  children: React.ReactNode
+  isDragging: boolean
+}) {
+  const slotId = getSlotId(rowId, slotIndex)
+  const { setNodeRef, isOver } = useDroppable({
+    id: slotId,
+  })
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`min-h-[80px] rounded-md border-2 border-dashed transition-all duration-200 p-3 ${
+        isOver
+          ? 'border-primary bg-primary/10 shadow-sm scale-[1.02]'
+          : isDragging
+          ? 'border-border/60 bg-muted/30'
+          : 'border-border/40 bg-muted/20'
+      }`}
+    >
+      {children}
+    </div>
+  )
 }
 
-function SortableSectionRow({ section, onToggle, onVariantChange }: SortableSectionRowProps) {
+// Row Builder Component
+type RowBuilderProps = {
+  row: LayoutRow
+  sections: ProfileSection[]
+  onToggleSection: (id: ProfileSectionId, enabled: boolean) => void
+  onVariantChange: (id: ProfileSectionId, variant: BlockVariant) => void
+  onToggleRowType: () => void
+  onRemoveRow: () => void
+  sensors: ReturnType<typeof useSensors>
+  canRemove: boolean
+}
+
+function RowBuilder({
+  row,
+  sections,
+  onToggleSection,
+  onVariantChange,
+  onToggleRowType,
+  onRemoveRow,
+  sensors,
+  canRemove,
+  isDraggingCard,
+}: RowBuilderProps & { isDraggingCard: boolean }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: section.id,
+    id: row.id,
+    data: {
+      type: 'row',
+      rowId: row.id,
+    },
   })
 
   const style = {
@@ -204,13 +286,164 @@ function SortableSectionRow({ section, onToggle, onVariantChange }: SortableSect
     transition,
   }
 
+  const slots = rowToSlots(row)
+  const slotSections = slots.map((slotValue) =>
+    slotValue === 'EMPTY' ? null : sections.find((s) => s.id === slotValue)
+  )
+
   return (
     <div
       ref={setNodeRef}
       style={style}
+      className={`rounded-lg border border-border/60 bg-background/40 p-4 space-y-3 transition ${
+        isDragging ? 'ring-2 ring-primary/40 shadow-lg bg-background' : ''
+      }`}
+    >
+      {/* Row Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing"
+            aria-label="Drag row"
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
+          <span className="text-xs font-medium text-muted-foreground">
+            {row.type === 'single' ? 'Full Width' : 'Two Columns'}
+          </span>
+        </div>
+        <div className="flex items-center gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onToggleRowType}
+            className="h-7 px-2 text-xs"
+            title={row.type === 'single' ? 'Split into two columns' : 'Merge into full width'}
+          >
+            {row.type === 'single' ? 'Split' : 'Merge'}
+          </Button>
+          {canRemove && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onRemoveRow}
+              className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive transition-colors"
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Row Content - Drop Zones */}
+      {row.type === 'single' ? (
+        <div className="space-y-2">
+          <RowSlotDropZone rowId={row.id} slotIndex={0} isDragging={isDraggingCard}>
+            {slotSections[0] ? (
+              <SortableSectionRow
+                section={slotSections[0]}
+                onToggle={onToggleSection}
+                onVariantChange={onVariantChange}
+                rowId={row.id}
+                slotIndex={0}
+              />
+            ) : (
+              <div className="text-xs text-muted-foreground text-center py-4">
+                Drop section here
+              </div>
+            )}
+          </RowSlotDropZone>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-3">
+          <RowSlotDropZone rowId={row.id} slotIndex={0} isDragging={isDraggingCard}>
+            {slotSections[0] ? (
+              <SortableSectionRow
+                section={slotSections[0]}
+                onToggle={onToggleSection}
+                onVariantChange={onVariantChange}
+                rowId={row.id}
+                slotIndex={0}
+              />
+            ) : (
+              <div className="text-xs text-muted-foreground text-center py-4">
+                Drop section here
+              </div>
+            )}
+          </RowSlotDropZone>
+          <RowSlotDropZone rowId={row.id} slotIndex={1} isDragging={isDraggingCard}>
+            {slotSections[1] ? (
+              <SortableSectionRow
+                section={slotSections[1]}
+                onToggle={onToggleSection}
+                onVariantChange={onVariantChange}
+                rowId={row.id}
+                slotIndex={1}
+              />
+            ) : (
+              <div className="text-xs text-muted-foreground text-center py-4">
+                Drop section here
+              </div>
+            )}
+          </RowSlotDropZone>
+        </div>
+      )}
+    </div>
+  )
+}
+
+type SortableSectionRowProps = {
+  section: ProfileSection
+  onToggle: (id: ProfileSectionId, enabled: boolean) => void
+  onVariantChange?: (id: ProfileSectionId, variant: BlockVariant) => void
+  rowId?: string
+  slotIndex?: number
+}
+
+function SortableSectionRow({ section, onToggle, onVariantChange, rowId, slotIndex }: SortableSectionRowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: section.id,
+    data: {
+      type: 'card',
+      sectionId: section.id,
+      fromRowId: rowId,
+      fromSlotIndex: slotIndex,
+    },
+  })
+
+  // Make section card also droppable with the same slot ID
+  // This allows dropping on the card itself, not just the empty slot
+  const slotId = rowId && typeof slotIndex === 'number' ? getSlotId(rowId, slotIndex) : null
+  const { setNodeRef: setDroppableRef, isOver } = useDroppable({
+    id: slotId || section.id, // Fallback to section.id if no slot info
+    disabled: !slotId, // Only enable if we have slot info
+  })
+
+  // Combine refs
+  const combinedRef = (node: HTMLDivElement | null) => {
+    setNodeRef(node)
+    setDroppableRef(node)
+  }
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : undefined,
+  }
+
+  return (
+    <div
+      ref={combinedRef}
+      style={style}
       className={`rounded-md border border-border/60 bg-background/60 px-3 py-3 shadow-sm transition overflow-hidden
       ${!section.enabled ? 'opacity-60' : ''} 
-      ${isDragging ? 'ring-1 ring-primary/40 shadow-lg bg-background' : ''}`}
+      ${isDragging ? 'ring-1 ring-primary/40' : ''}
+      ${isOver && !isDragging ? 'ring-2 ring-primary/50 bg-primary/5' : ''}`}
     >
       <div className="flex items-start gap-3">
         <button
@@ -311,6 +544,11 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
   const [layoutConfig, setLayoutConfig] = useState<ProfileLayoutConfig>(() =>
     getDefaultProfileLayout()
   )
+  // Row-based layout state
+  const [layoutRows, setLayoutRows] = useState<LayoutRow[]>(() => {
+    const defaultConfig = getDefaultProfileLayout()
+    return defaultConfig.rows || gridToRowLayout(defaultConfig).rows
+  })
   const [appearanceConfig, setAppearanceConfig] = useState<ProfileAppearanceConfig>(() =>
     getDefaultAppearanceConfig()
   )
@@ -355,6 +593,14 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
         
         const config = layoutData.layout || getDefaultProfileLayout()
         setLayoutConfig(config)
+        
+        // Update row-based layout
+        if (config.rows && config.rows.length > 0) {
+          setLayoutRows(config.rows)
+        } else {
+          const rowLayout = gridToRowLayout(config)
+          setLayoutRows(rowLayout.rows)
+        }
 
         // Load profile info
         if (profileResponse.ok) {
@@ -496,28 +742,23 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
 
     try {
       setSaving(true)
-      // Convert sections to blocks with grid positions
-      const blocks: ProfileLayoutBlock[] = sections.map((section) => {
-        const row = section.row ?? 0
-        const col = section.col ?? 0
-        const span = section.span || 'half'
-        // Calculate order for backward compatibility
-        const order = span === 'full' ? row * 2 : row * 2 + col
-        return {
-          key: section.id,
-          enabled: section.enabled,
-          order,
-          row,
-          col,
-          span,
-          variant: section.variant || 'compact',
-        }
-      })
-
+      
+      // Convert row-based layout to grid-based for backward compatibility
+      const allBlocks = sections.map((section) => ({
+        key: section.id,
+        enabled: section.enabled,
+        variant: section.variant || 'compact',
+        order: 0,
+        row: 0,
+        col: 0,
+        span: 'half' as const,
+      }))
+      
+      const gridConfig = rowToGridLayout({ rows: layoutRows }, allBlocks)
       const nextConfig: ProfileLayoutConfig = {
-        layoutVariant: 'grid',
-        columns: 2,
-        blocks,
+        ...gridConfig,
+        rows: layoutRows,
+        layoutVariant: 'rows',
       }
 
       // Normalize before saving
@@ -642,8 +883,10 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
   }
 
   const handleResetLayout = () => {
+    const defaultConfig = getDefaultProfileLayout()
     setSections(INITIAL_SECTIONS)
-    setLayoutConfig(getDefaultProfileLayout())
+    setLayoutConfig(defaultConfig)
+    setLayoutRows(defaultConfig.rows || gridToRowLayout(defaultConfig).rows)
     setAppearanceConfig(getDefaultAppearanceConfig())
     toast.success('Layout reset')
     setHasUnsavedChanges(false)
@@ -655,83 +898,281 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
     setHasUnsavedChanges(true)
   }
 
+  const [activeDrag, setActiveDrag] = useState<{
+    type: 'row' | 'card'
+    id: string
+    data?: any
+  } | null>(null)
+
   const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string)
+    const { active } = event
+    setActiveId(active.id as string)
+    
+    // Determine drag type from data
+    const data = active.data.current
+    if (data?.type === 'row') {
+      setActiveDrag({ type: 'row', id: active.id as string, data })
+    } else if (data?.type === 'card') {
+      setActiveDrag({ type: 'card', id: active.id as string, data })
+    } else {
+      // Fallback: check ID pattern
+      const id = active.id as string
+      if (id.startsWith('row-')) {
+        setActiveDrag({ type: 'row', id })
+      } else {
+        setActiveDrag({ type: 'card', id })
+      }
+    }
   }
 
+  // Unified drag end handler for both rows and sections
   const handleDragEnd = (event: DragEndEvent) => {
-    setActiveId(null)
     const { active, over } = event
-    if (!over || active.id === over.id) return
-
-    // Handle disabled sections drop zone: disable the section
-    if (over.id === 'disabled-sections') {
-      setSections((prev) =>
-        prev.map((s) =>
-          s.id === active.id
-            ? { ...s, enabled: false }
-            : s
-        )
-      )
-      setHasUnsavedChanges(true)
+    
+    if (!over || !activeDrag) {
+      setActiveId(null)
+      setActiveDrag(null)
       return
     }
 
-    // Handle grid drop: over.id format is "grid-{row}-{col}"
-    if (typeof over.id === 'string' && over.id.startsWith('grid-')) {
-      const [, rowStr, colStr] = over.id.split('-')
-      const targetRow = parseInt(rowStr, 10)
-      const targetCol = parseInt(colStr, 10) as 0 | 1
+    if (activeDrag.type === 'row') {
+      // Handle row reordering
+      if (over.id === active.id) {
+        setActiveId(null)
+        setActiveDrag(null)
+        return
+      }
+      
+      // Check if dropping on another row
+      const isDroppingOnRow = typeof over.id === 'string' && over.id.startsWith('row-')
+      if (isDroppingOnRow) {
+        const oldIndex = layoutRows.findIndex((row) => row.id === active.id)
+        const newIndex = layoutRows.findIndex((row) => row.id === over.id)
+        if (oldIndex !== -1 && newIndex !== -1) {
+          setLayoutRows(arrayMove(layoutRows, oldIndex, newIndex))
+          setHasUnsavedChanges(true)
+        }
+      }
+      setActiveId(null)
+      setActiveDrag(null)
+      return
+    }
 
-      setSections((prev) => {
-        const draggedSection = prev.find((s) => s.id === active.id)
-        if (!draggedSection) return prev
+    // Handle card/section drag
+    handleCardDragEnd(event, activeDrag)
+  }
 
-        // Find if there's already a section at target position
-        const existingAtTarget = prev.find(
-          (s) => s.enabled && s.id !== active.id && s.row === targetRow && s.col === targetCol
-        )
+  const handleCardDragEnd = (event: DragEndEvent, activeDrag: { type: 'card'; id: string; data?: any }) => {
+    const { active, over } = event
+    if (!over) {
+      setActiveId(null)
+      setActiveDrag(null)
+      return
+    }
 
-        // If target position is occupied, shift the existing section
-        let updated = prev.map((s) => {
-          if (s.id === active.id) {
-            // Move dragged section to target
-            // Apply recommended span ONLY for HARD_HEAVY blocks if span is undefined
-            const recommendation = getRecommendation(s.id)
-            const recommendedSpan = !s.span && recommendation.defaultSpan ? recommendation.defaultSpan : (s.span || 'half')
-            return {
-              ...s,
-              enabled: true,
-              row: targetRow,
-              col: targetCol,
-              span: recommendedSpan,
+    const sectionId = active.id as SectionId
+    const dragData = activeDrag.data || {}
+
+    // Handle drop to disabled zone
+    if (over.id === 'disabled-sections') {
+      // Remove section from all rows (enforce uniqueness)
+      setLayoutRows((prev) =>
+        prev.map((r) => {
+          const slots = rowToSlots(r)
+          const newSlots = slots.map((slot) => (slot === sectionId ? 'EMPTY' : slot))
+          return slotsToRow(r.id, r.type, newSlots)
+        })
+      )
+      setSections((prev) =>
+        prev.map((s) => (s.id === sectionId ? { ...s, enabled: false } : s))
+      )
+      setHasUnsavedChanges(true)
+      setActiveId(null)
+      setActiveDrag(null)
+      return
+    }
+
+    // Handle drop to slot or section card (section cards are also droppable with slot ID)
+    let slotInfo = parseSlotId(over.id as string)
+    
+    // If over.id is a section ID (not a slot ID), find the slot that contains this section
+    if (!slotInfo) {
+      const overSectionId = over.id as string
+      // Check if it's a section ID by looking in layoutRows
+      for (const row of layoutRows) {
+        const slots = rowToSlots(row)
+        const slotIndex = slots.findIndex((s) => s === overSectionId)
+        if (slotIndex !== -1) {
+          slotInfo = { rowId: row.id, slotIndex }
+          break
+        }
+      }
+    }
+    
+    if (slotInfo) {
+      const { rowId: targetRowId, slotIndex: targetSlotIndex } = slotInfo
+      
+      // Find target row to determine max slot index
+      const targetRowForValidation = layoutRows.find((r) => r.id === targetRowId)
+      if (!targetRowForValidation) {
+        setActiveId(null)
+        setActiveDrag(null)
+        return
+      }
+
+      // Clamp slot index to valid range
+      const maxSlotIndex = targetRowForValidation.type === 'single' ? 0 : 1
+      const clampedSlotIndex = Math.min(targetSlotIndex, maxSlotIndex)
+
+      // Find source row and slot (if known from drag data)
+      const sourceRowId = dragData.fromRowId
+      const sourceSlotIndex = dragData.fromSlotIndex
+      
+      // Calculate swapped section ID before state update
+      let swappedSectionId: SectionId | null = null
+      const targetRowForSwap = layoutRows.find((r) => r.id === targetRowId)
+      if (targetRowForSwap) {
+        const targetSlots = rowToSlots(targetRowForSwap)
+        const targetSlotValue = targetSlots[clampedSlotIndex]
+        if (targetSlotValue !== 'EMPTY' && targetSlotValue !== sectionId) {
+          swappedSectionId = targetSlotValue as SectionId
+        }
+      }
+      
+      setLayoutRows((prev) => {
+        // Find target row and check if swap is needed
+        const targetRow = prev.find((r) => r.id === targetRowId)
+        if (!targetRow) return prev
+        
+        const targetSlots = rowToSlots(targetRow)
+        const targetSlotValue = targetSlots[clampedSlotIndex]
+        const needsSwap = targetSlotValue !== 'EMPTY' && targetSlotValue !== sectionId
+        
+        // Find source row to determine if it's same row swap
+        const sourceRow = sourceRowId ? prev.find((r) => r.id === sourceRowId) : null
+        const isSameRowSwap = sourceRowId === targetRowId && needsSwap
+        
+        return prev.map((r) => {
+          if (r.id === targetRowId) {
+            // Target row: place or swap section
+            const slots = [...targetSlots]
+            slots[clampedSlotIndex] = sectionId
+            
+            // If same row swap, also handle the swapped section
+            if (isSameRowSwap && swappedSectionId && typeof sourceSlotIndex === 'number') {
+              // Place swapped section in the original position of dragged section
+              slots[sourceSlotIndex] = swappedSectionId
+            } else if (sourceRowId === targetRowId && typeof sourceSlotIndex === 'number' && !needsSwap) {
+              // Same row, moving to empty slot - clear the source slot
+              slots[sourceSlotIndex] = 'EMPTY'
             }
+            
+            return slotsToRow(r.id, r.type, slots)
+          } else if (needsSwap && swappedSectionId && r.id === sourceRowId && typeof sourceSlotIndex === 'number' && !isSameRowSwap) {
+            // Source row (different from target): place swapped section in the slot where dragged section was
+            const slots = rowToSlots(r)
+            const newSlots = [...slots]
+            newSlots[sourceSlotIndex] = swappedSectionId
+            return slotsToRow(r.id, r.type, newSlots)
+          } else {
+            // Other rows: remove dragged section if present (enforce uniqueness)
+            const slots = rowToSlots(r)
+            const newSlots = slots.map((slot) => (slot === sectionId ? 'EMPTY' : slot))
+            
+            // If swap occurred and sourceRowId is unknown, we need to find where swapped section is
+            // and remove it from other rows (except target row which already handled it)
+            if (needsSwap && swappedSectionId && !isSameRowSwap) {
+              const swappedIndex = newSlots.findIndex((s) => s === swappedSectionId)
+              if (swappedIndex !== -1) {
+                // If this row is not the source row, remove swapped section (it will be placed in source row)
+                if (r.id !== sourceRowId) {
+                  newSlots[swappedIndex] = 'EMPTY'
+                }
+              }
+            }
+            
+            return slotsToRow(r.id, r.type, newSlots)
           }
-          if (existingAtTarget && s.id === existingAtTarget.id) {
-            // Move existing section to dragged section's old position
-            return {
-              ...s,
-              row: draggedSection.row ?? 0,
-              col: draggedSection.col ?? 0,
-            }
+        })
+      })
+      
+      // Update sections: enable dragged section and swapped section (if any)
+      setSections((prev) =>
+        prev.map((s) => {
+          if (s.id === sectionId) {
+            return { ...s, enabled: true }
+          }
+          // Also enable swapped section if it exists
+          if (swappedSectionId && s.id === swappedSectionId) {
+            return { ...s, enabled: true }
           }
           return s
         })
-
-        // Normalize grid positions (remove gaps, ensure compact layout)
-        return normalizeSectionsGrid(updated)
-      })
+      )
       setHasUnsavedChanges(true)
+      setActiveId(null)
+      setActiveDrag(null)
       return
     }
 
-    // Fallback: old vertical list behavior (for backward compatibility)
-    setSections((prev) => {
-      const oldIndex = prev.findIndex((section) => section.id === active.id)
-      const newIndex = prev.findIndex((section) => section.id === over.id)
-      if (oldIndex === -1 || newIndex === -1) return prev
-      return arrayMove(prev, oldIndex, newIndex)
+    setActiveId(null)
+    setActiveDrag(null)
+  }
+
+  const handleToggleRowType = (rowId: string) => {
+    setLayoutRows((prev) => {
+      let removedSectionId: SectionId | null = null
+      
+      const updatedRows = prev.map((row) => {
+        if (row.id !== rowId) return row
+        
+        const slots = rowToSlots(row)
+        
+        if (row.type === 'single') {
+          // Split: Convert single to double
+          // Preserve left content, right becomes empty
+          return slotsToRow(row.id, 'double', [slots[0], 'EMPTY'])
+        } else {
+          // Merge: Convert double to single
+          // Preserve left if exists, otherwise use right
+          const preservedSlot = slots[0] !== 'EMPTY' ? slots[0] : slots[1]
+          
+          // If both slots have content, the right one will be removed
+          if (slots[0] !== 'EMPTY' && slots[1] !== 'EMPTY') {
+            removedSectionId = slots[1] as SectionId
+          }
+          
+          return slotsToRow(row.id, 'single', [preservedSlot])
+        }
+      })
+      
+      // If a section was removed (right slot in double -> single conversion), disable it
+      if (removedSectionId) {
+        setSections((prevSections) =>
+          prevSections.map((s) =>
+            s.id === removedSectionId ? { ...s, enabled: false } : s
+          )
+        )
+      }
+      
+      return updatedRows
     })
+    setHasUnsavedChanges(true)
+  }
+
+  const handleAddRow = () => {
+    const newRow: LayoutRow = {
+      id: `row-${Date.now()}`,
+      type: 'double',
+      left: null,
+      right: null,
+    }
+    setLayoutRows((prev) => [...prev, newRow])
+    setHasUnsavedChanges(true)
+  }
+
+  const handleRemoveRow = (rowId: string) => {
+    setLayoutRows((prev) => prev.filter((row) => row.id !== rowId))
     setHasUnsavedChanges(true)
   }
 
@@ -845,6 +1286,14 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
 
       // Update state from saved config (single source of truth)
       setLayoutConfig(savedConfig)
+      
+      // Update row-based layout
+      if (savedConfig.rows && savedConfig.rows.length > 0) {
+        setLayoutRows(savedConfig.rows)
+      } else {
+        const rowLayout = gridToRowLayout(savedConfig)
+        setLayoutRows(rowLayout.rows)
+      }
 
       // Update sections UI to match saved config
       const byId = INITIAL_SECTIONS.reduce<Record<ProfileSectionId, ProfileSection>>(
@@ -1010,90 +1459,65 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
             <CardHeader className="pb-4">
               <CardTitle className="text-base">Profile Sections</CardTitle>
               <CardDescription>
-                Turn sections on or off and reorder them to control your public profile layout.
+                Compose your profile layout using rows. Each row can be full-width (single) or two columns (double).
+                Drag sections to add them to rows, or drag rows to reorder them.
                 <span className="block mt-1 text-xs text-muted-foreground">
-                  Note: Single blocks on a row will render full-width on the public profile.
+                  Tip: Full-width rows are great for heavy sections like Assets. Two-column rows work well for Links and Activity.
                 </span>
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-4">
               <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
+                measuring={{
+                  droppable: {
+                    strategy: MeasuringStrategy.Always,
+                  },
+                }}
               >
+                {/* SortableContext for rows (with vertical restriction) */}
                 <SortableContext
-                  items={sections.map((section) => section.id)}
+                  items={layoutRows.map((row) => row.id)}
                   strategy={verticalListSortingStrategy}
                 >
-                  {/* Grid Builder: 2 columns */}
-                  <div className="grid grid-cols-2 gap-3">
-                    {(() => {
-                      const enabledSections = sections.filter((s) => s.enabled)
-                      const maxRow = enabledSections.reduce((max, s) => {
-                        const row = s.row ?? 0
-                        return Math.max(max, row)
-                      }, 0)
-                      const rows = Math.max(maxRow + 1, 3) // At least 3 rows
-
-                      // Group sections by position
-                      const sectionsByPos = new Map<string, ProfileSection>()
-                      for (const section of enabledSections) {
-                        const row = section.row ?? 0
-                        const col = section.col ?? 0
-                        const key = `${row}-${col}`
-                        sectionsByPos.set(key, section)
-                      }
-
-                      // Render grid cells
-                      const cells: React.ReactNode[] = []
-                      for (let row = 0; row < rows; row++) {
-                        const leftSection = sectionsByPos.get(`${row}-0`)
-                        const rightSection = sectionsByPos.get(`${row}-1`)
-                        const isFullSpan = leftSection?.span === 'full'
-
-                        // Full-span section: render once, span both columns
-                        if (isFullSpan && leftSection) {
-                          cells.push(
-                            <div key={`${row}-full`} className="col-span-2">
-                              <GridDropZone row={row} col={0}>
-                                <SortableSectionRow
-                                  section={leftSection}
-                                  onToggle={handleToggleSection}
-                                  onVariantChange={handleVariantChange}
-                                />
-                              </GridDropZone>
-                            </div>
-                          )
-                          // Skip right column for full-span
-                          continue
-                        }
-
-                        // Regular cells: left and right columns
-                        for (let col = 0; col < 2; col++) {
-                          const key = `${row}-${col}`
-                          const section = sectionsByPos.get(key)
-                          cells.push(
-                            <GridDropZone key={key} row={row} col={col as 0 | 1}>
-                              {section ? (
-                                <SortableSectionRow
-                                  section={section}
-                                  onToggle={handleToggleSection}
-                                  onVariantChange={handleVariantChange}
-                                />
-                              ) : (
-                                <div className="text-xs text-muted-foreground text-center py-4">
-                                  Drop here
-                                </div>
-                              )}
-                            </GridDropZone>
-                          )
-                        }
-                      }
-                      return cells
-                    })()}
+                  {/* SortableContext for all sections/cards */}
+                  <SortableContext
+                    items={sections.map((s) => s.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {/* Row-based Layout Builder */}
+                    <div className="space-y-4">
+                      {layoutRows.map((row) => (
+                        <RowBuilder
+                          key={row.id}
+                          row={row}
+                          sections={sections}
+                          onToggleSection={handleToggleSection}
+                          onVariantChange={handleVariantChange}
+                          onToggleRowType={() => handleToggleRowType(row.id)}
+                          onRemoveRow={() => handleRemoveRow(row.id)}
+                          sensors={sensors}
+                          canRemove={layoutRows.length > 1}
+                          isDraggingCard={activeDrag?.type === 'card'}
+                        />
+                      ))}
+                    
+                    {/* Add Row Button */}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAddRow}
+                      className="w-full"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Row
+                    </Button>
                   </div>
+                  </SortableContext>
                 </SortableContext>
                 
                 {/* Disabled Sections Area */}
@@ -1107,16 +1531,21 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
                         Disabled Sections
                       </h3>
                       <DisabledSectionsZone>
-                        <div className="space-y-2">
-                          {disabledSections.map((section) => (
-                            <SortableSectionRow
-                              key={section.id}
-                              section={section}
-                              onToggle={handleToggleSection}
-                              onVariantChange={handleVariantChange}
-                            />
-                          ))}
-                        </div>
+                        <SortableContext
+                          items={disabledSections.map((s) => s.id)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          <div className="space-y-2">
+                            {disabledSections.map((section) => (
+                              <SortableSectionRow
+                                key={section.id}
+                                section={section}
+                                onToggle={handleToggleSection}
+                                onVariantChange={handleVariantChange}
+                              />
+                            ))}
+                          </div>
+                        </SortableContext>
                       </DisabledSectionsZone>
                     </div>
                   )
@@ -1124,18 +1553,48 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
                 
                 {/* Drag Overlay - shows preview while dragging */}
                 <DragOverlay>
-                  {activeId ? (() => {
-                    const activeSection = sections.find((s) => s.id === activeId)
+                  {activeDrag ? (() => {
+                    if (activeDrag.type === 'row') {
+                      const activeRow = layoutRows.find((r) => r.id === activeDrag.id)
+                      if (!activeRow) return null
+                      return (
+                        <div className="rounded-lg border border-border/60 bg-background/40 p-4 shadow-lg ring-1 ring-border/60">
+                          <div className="flex items-center gap-2">
+                            <GripVertical className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-xs font-medium text-muted-foreground">
+                              {activeRow.type === 'single' ? 'Full Width Row' : 'Two Columns Row'}
+                            </span>
+                          </div>
+                        </div>
+                      )
+                    }
+                    
+                    // Dragging a section card - show actual card component
+                    const activeSection = sections.find((s) => s.id === activeDrag.id)
                     if (!activeSection) return null
+                    
                     return (
-                      <div className="rounded-md border border-border/60 bg-background px-3 py-3 shadow-lg opacity-90 rotate-2">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground bg-muted/60">
+                      <div className="rounded-md border border-border/60 bg-background px-3 py-3 shadow-lg ring-1 ring-border/60">
+                        <div className="flex items-start gap-3">
+                          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground bg-muted/60">
                             <GripVertical className="h-4 w-4" />
                           </div>
-                          <div className="flex-1 space-y-1">
-                            <p className="text-sm font-medium leading-none">{activeSection.title}</p>
-                            <p className="text-xs text-muted-foreground">{activeSection.description}</p>
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="text-sm font-medium leading-none">{activeSection.title}</p>
+                              {(() => {
+                                const recommendation = getRecommendation(activeSection.id)
+                                if (!recommendation.badge) return null
+                                const isHardHeavy = activeSection.id === 'assets'
+                                const badgeText = isHardHeavy ? 'Recommended: Full width' : 'Optional: Full width'
+                                return (
+                                  <Badge variant="outline" className="text-[9px] px-1.5 py-0.5 font-normal h-4 border-muted-foreground/30 text-muted-foreground shrink-0">
+                                    {badgeText}
+                                  </Badge>
+                                )
+                              })()}
+                            </div>
+                            <p className="text-xs text-muted-foreground line-clamp-2">{activeSection.description}</p>
                           </div>
                         </div>
                       </div>

@@ -6,10 +6,12 @@ import { useParams } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
-import { X, Github } from 'lucide-react'
+import { Github } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { PAGE_GUTTER, CONTENT_MAX_WIDTH } from '@/lib/layout-constants'
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
+import { DiscordIcon } from '@/components/icons/discord-icon'
+import { XIcon } from '@/components/icons/x-icon'
 
 interface FooterLink {
   label: string
@@ -19,34 +21,20 @@ interface FooterLink {
 
 const footerLinks = {
   product: [
-    { label: 'Overview', href: 'overview' },
-    { label: 'Assets', href: 'assets' },
-    { label: 'Activity', href: 'activity' },
-    { label: 'Social', href: 'social' },
-    { label: 'Settings', href: 'settings' },
+    { label: 'Overview', href: '/' },
+    { label: 'Example Profile', href: '/p/0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1' },
+    { label: 'Dashboard', href: '/dashboard' },
   ] as FooterLink[],
   resources: [
-    { label: 'Docs', href: '#', external: false },
-    { label: 'Support', href: '#', external: false },
-    { label: 'Privacy', href: '#', external: false },
-    { label: 'Terms', href: '#', external: false },
+    { label: 'Docs', href: 'https://docs.soci4l.com', external: true },
+    { label: 'Support', href: 'https://discord.gg/soci4l', external: true },
+    { label: 'Privacy', href: '/privacy', external: false },
+    { label: 'Terms', href: '/terms', external: false },
   ] as FooterLink[],
 }
 
-// Discord icon as SVG component (lucide-react doesn't have Discord icon)
-const DiscordIcon = ({ className }: { className?: string }) => (
-  <svg
-    className={className}
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C2.451 6.018 1.73 7.58 1.43 9.175a.082.082 0 0 0-.031.057 19.9 19.9 0 0 0-.006 7.662.084.084 0 0 0 .031.058c.3 1.607 1.023 3.17 2.214 4.79a.075.075 0 0 0 .076.04c1.828-.427 3.583-.98 5.23-1.65a.076.076 0 0 1 .08.028l1.125 1.65a.076.076 0 0 1-.032.105 19.803 19.803 0 0 1-5.954 1.28.078.078 0 0 0-.056.03c-.184.4-.39.785-.606 1.154a.076.076 0 0 0 .041.106c2.3.883 4.717 1.338 7.16 1.338s4.858-.455 7.16-1.338a.077.077 0 0 0 .041-.106c-.216-.37-.422-.754-.606-1.154a.076.076 0 0 0-.056-.03 19.715 19.715 0 0 1-5.954-1.28.077.077 0 0 1-.032-.105l1.125-1.65a.076.076 0 0 1 .08-.028c1.647.67 3.402 1.223 5.23 1.65a.076.076 0 0 0 .076-.04c1.19-1.617 1.913-3.18 2.214-4.79a.077.077 0 0 0 .031-.058 19.9 19.9 0 0 0-.006-7.662.077.077 0 0 0-.031-.057c-.3-1.608-1.023-3.17-2.214-4.79a.061.061 0 0 0-.032-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
-  </svg>
-)
-
 const socialLinks = [
-  { icon: X, label: 'X', href: 'https://twitter.com/soci4l', ariaLabel: 'Follow us on X' },
+  { icon: XIcon, label: 'X', href: 'https://twitter.com/soci4l', ariaLabel: 'Follow us on X' },
   { icon: Github, label: 'GitHub', href: 'https://github.com/soci4l', ariaLabel: 'View our GitHub' },
   { icon: DiscordIcon, label: 'Discord', href: 'https://discord.gg/soci4l', ariaLabel: 'Join our Discord' },
 ]
@@ -77,23 +65,44 @@ export default function Footer15({ className }: Footer15Props = {}) {
     e.preventDefault()
     
     if (!email.trim()) {
-      toast.error('Please enter an email address')
+      toast.error('Lütfen bir email adresi giriniz')
       return
     }
 
     if (!validateEmail(email)) {
-      toast.error('Please enter a valid email address')
+      toast.error('Lütfen geçerli bir email adresi giriniz')
       return
     }
 
     setIsSubmitting(true)
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    toast.success('Thank you! We\'ll keep you updated.')
-    setEmail('')
-    setIsSubmitting(false)
+    try {
+      const response = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Bir hata oluştu')
+      }
+
+      toast.success('Teşekkürler! Sizi bilgilendireceğiz.')
+      setEmail('')
+    } catch (error) {
+      console.error('Email subscription error:', error)
+      toast.error(
+        error instanceof Error 
+          ? error.message 
+          : 'Email kaydı sırasında bir hata oluştu'
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -127,19 +136,16 @@ export default function Footer15({ className }: Footer15Props = {}) {
             <div className="space-y-4">
               <h3 className="text-sm font-semibold text-foreground">Product</h3>
               <ul className="space-y-2">
-                {footerLinks.product.map((link) => {
-                  const href = address ? getDashboardLink(link.href) : '#'
-                  return (
-                    <li key={link.href}>
-                      <Link
-                        href={href}
-                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        {link.label}
-                      </Link>
-                    </li>
-                  )
-                })}
+                {footerLinks.product.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
 
@@ -206,7 +212,6 @@ export default function Footer15({ className }: Footer15Props = {}) {
             <div className="flex items-center gap-4">
               {socialLinks.map((social) => {
                 const Icon = social.icon
-                const isDiscord = social.label === 'Discord'
                 return (
                   <a
                     key={social.label}
@@ -220,11 +225,7 @@ export default function Footer15({ className }: Footer15Props = {}) {
                     )}
                     aria-label={social.ariaLabel}
                   >
-                    {isDiscord ? (
-                      <Icon className="h-5 w-5" />
-                    ) : (
-                      <Icon className="h-5 w-5" />
-                    )}
+                    <Icon className="h-5 w-5" />
                     <span className="sr-only">{social.label}</span>
                   </a>
                 )

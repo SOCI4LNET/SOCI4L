@@ -1,5 +1,14 @@
 export type ProfileBlockKey = 'summary' | 'links' | 'activity' | 'assets'
 
+// Row-based layout types (new system)
+export type SectionId = ProfileBlockKey
+
+export type LayoutRow =
+  | { id: string; type: 'single'; left: SectionId | null }
+  | { id: string; type: 'double'; left: SectionId | null; right: SectionId | null }
+
+export type ProfileLayout = { rows: LayoutRow[] }
+
 export type BlockVariant = 'compact' | 'full' | 'hiddenAmounts'
 
 export interface ProfileLayoutBlock {
@@ -16,8 +25,10 @@ export interface ProfileLayoutBlock {
 
 export interface ProfileLayoutConfig {
   blocks: ProfileLayoutBlock[]
-  layoutVariant?: 'grid' | 'stack' // Deprecated: always use 'stack' now
+  layoutVariant?: 'grid' | 'stack' | 'rows' // 'rows' = new row-based system
   columns?: 2 | 3 // Deprecated: always single column now
+  // New row-based layout (optional, for migration)
+  rows?: LayoutRow[]
 }
 
 type StoredProfileLayoutV2 = {
@@ -81,6 +92,220 @@ export function getRecommendation(type: ProfileBlockKey): BlockRecommendation {
  */
 export function isHeavyBlock(type: ProfileBlockKey): boolean {
   return HARD_HEAVY_BLOCKS.has(type) || SOFT_HEAVY_BLOCKS.has(type)
+}
+
+/**
+ * Convert grid-based layout to row-based layout
+ * Groups blocks by row and creates LayoutRow objects
+ */
+export function gridToRowLayout(config: ProfileLayoutConfig): ProfileLayout {
+  const enabledBlocks = config.blocks.filter((b) => b.enabled)
+  
+  // Group blocks by row
+  const blocksByRow = new Map<number, ProfileLayoutBlock[]>()
+  for (const block of enabledBlocks) {
+    const row = block.row ?? 0
+    if (!blocksByRow.has(row)) {
+      blocksByRow.set(row, [])
+    }
+    blocksByRow.get(row)!.push(block)
+  }
+  
+  // Sort rows
+  const sortedRows = Array.from(blocksByRow.entries()).sort((a, b) => a[0] - b[0])
+  
+  // Convert to LayoutRow[]
+  const rows: LayoutRow[] = sortedRows.map(([rowIndex, blocks]) => {
+    // Sort blocks by col
+    blocks.sort((a, b) => (a.col ?? 0) - (b.col ?? 0))
+    
+    const span = blocks[0]?.span || 'half'
+    
+    if (span === 'full' || blocks.length === 1) {
+      // Single row: full-width
+      return {
+        id: `row-${rowIndex}`,
+        type: 'single',
+        left: blocks[0]?.key || null,
+      }
+    } else {
+      // Double row: two columns
+      return {
+        id: `row-${rowIndex}`,
+        type: 'double',
+        left: blocks[0]?.key || null,
+        right: blocks[1]?.key || null,
+      }
+    }
+  })
+  
+  return { rows }
+}
+
+/**
+ * Convert row-based layout to grid-based layout
+ * Creates blocks with row/col positions from LayoutRow[]
+ */
+export function rowToGridLayout(layout: ProfileLayout, allBlocks: ProfileLayoutBlock[]): ProfileLayoutConfig {
+  const blockMap = new Map<ProfileBlockKey, ProfileLayoutBlock>()
+  for (const block of allBlocks) {
+    blockMap.set(block.key, block)
+  }
+  
+  const blocks: ProfileLayoutBlock[] = []
+  let rowIndex = 0
+  
+  for (const layoutRow of layout.rows) {
+    if (layoutRow.type === 'single') {
+      // Single row: full-width
+      if (layoutRow.left) {
+        const block = blockMap.get(layoutRow.left)
+        if (block) {
+          blocks.push({
+            ...block,
+            enabled: true,
+            row: rowIndex,
+            col: 0,
+            span: 'full',
+            order: rowIndex * 2,
+          })
+        }
+      }
+      rowIndex++
+    } else {
+      // Double row: two columns
+      if (layoutRow.left) {
+        const leftBlock = blockMap.get(layoutRow.left)
+        if (leftBlock) {
+          blocks.push({
+            ...leftBlock,
+            enabled: true,
+            row: rowIndex,
+            col: 0,
+            span: 'half',
+            order: rowIndex * 2,
+          })
+        }
+      }
+      if (layoutRow.right) {
+        const rightBlock = blockMap.get(layoutRow.right)
+        if (rightBlock) {
+          blocks.push({
+            ...rightBlock,
+            enabled: true,
+            row: rowIndex,
+            col: 1,
+            span: 'half',
+            order: rowIndex * 2 + 1,
+          })
+        }
+      }
+      rowIndex++
+    }
+  }
+  
+  // Add disabled blocks
+  for (const block of allBlocks) {
+    if (!blocks.find((b) => b.key === block.key)) {
+      blocks.push({
+        ...block,
+        enabled: false,
+        row: rowIndex,
+        col: 0,
+        span: 'half',
+        order: rowIndex * 2,
+      })
+    }
+  }
+  
+  return {
+    layoutVariant: 'grid',
+    columns: 2,
+    blocks,
+  }
+}
+
+/**
+ * Normalize layout config - supports both grid and row-based layouts
+ * If rows exist, use row-based. Otherwise, convert grid to rows.
+ */
+export function normalizeLayoutConfigV3(config: ProfileLayoutConfig): ProfileLayoutConfig & { rows?: LayoutRow[] } {
+  // If rows already exist, use them
+  if (config.rows && Array.isArray(config.rows) && config.rows.length > 0) {
+    // Validate and normalize rows
+    const normalizedRows: LayoutRow[] = config.rows
+      .filter((row): row is LayoutRow => {
+        if (!row || typeof row !== 'object') return false
+        if (row.type === 'single') {
+          return typeof row.id === 'string' && (row.left === null || typeof row.left === 'string')
+        }
+        if (row.type === 'double') {
+          return (
+            typeof row.id === 'string' &&
+            (row.left === null || typeof row.left === 'string') &&
+            (row.right === null || typeof row.right === 'string')
+          )
+        }
+        return false
+      })
+      .map((row, index) => ({
+        ...row,
+        id: row.id || `row-${index}`,
+      }))
+    
+    // Ensure no duplicate sections
+    const usedSections = new Set<SectionId>()
+    const deduplicatedRows: LayoutRow[] = []
+    
+    for (const row of normalizedRows) {
+      if (row.type === 'single') {
+        if (row.left && !usedSections.has(row.left)) {
+          usedSections.add(row.left)
+          deduplicatedRows.push(row)
+        } else if (!row.left) {
+          // Empty row, skip it
+        }
+      } else {
+        const newRow: LayoutRow = {
+          id: row.id,
+          type: 'double',
+          left: null,
+          right: null,
+        }
+        if (row.left && !usedSections.has(row.left)) {
+          usedSections.add(row.left)
+          newRow.left = row.left
+        }
+        if (row.right && !usedSections.has(row.right)) {
+          usedSections.add(row.right)
+          newRow.right = row.right
+        }
+        // Only add row if at least one section is present
+        if (newRow.left || newRow.right) {
+          deduplicatedRows.push(newRow)
+        }
+      }
+    }
+    
+    // Convert back to grid for backward compatibility
+    const gridConfig = rowToGridLayout({ rows: deduplicatedRows }, config.blocks)
+    
+    return {
+      ...gridConfig,
+      rows: deduplicatedRows,
+      layoutVariant: 'rows',
+    }
+  }
+  
+  // Otherwise, use existing grid-based normalization and convert to rows
+  const normalized = normalizeLayoutConfig(config)
+  const rowLayout = gridToRowLayout(normalized)
+  
+  return {
+    ...normalized,
+    rows: rowLayout.rows,
+    layoutVariant: 'rows',
+  }
 }
 
 /**
@@ -193,8 +418,14 @@ function normalizeGridPositions(blocks: ProfileLayoutBlock[]): ProfileLayoutBloc
  * - Removes unknown blocks safely
  * - Ensures required blocks exist
  * - Normalizes grid positions to be compact (no gaps)
+ * - If rows exist, uses row-based layout; otherwise converts grid to rows
  */
 export function normalizeLayoutConfig(config: ProfileLayoutConfig): ProfileLayoutConfig {
+  // If rows exist, use row-based normalization
+  if (config.rows && Array.isArray(config.rows) && config.rows.length > 0) {
+    const v3Result = normalizeLayoutConfigV3(config)
+    return v3Result
+  }
   const byKey = new Map<ProfileBlockKey, ProfileLayoutBlock>()
   
   // Collect existing blocks
@@ -230,17 +461,17 @@ export function normalizeLayoutConfig(config: ProfileLayoutConfig): ProfileLayou
     }
   }
 
-  // Build result array
-  const result: ProfileLayoutBlock[] = []
+  // Build blocks array
+  const blocks: ProfileLayoutBlock[] = []
   for (const key of ALL_BLOCK_KEYS) {
     const block = byKey.get(key)
     if (block) {
-      result.push(block)
+      blocks.push(block)
     }
   }
 
   // Migrate old order-based configs to grid
-  const migrated = migrateOrderToGrid(result)
+  const migrated = migrateOrderToGrid(blocks)
 
   // Normalize grid positions (compact layout, no gaps)
   const normalized = normalizeGridPositions(migrated)
@@ -258,26 +489,39 @@ export function normalizeLayoutConfig(config: ProfileLayoutConfig): ProfileLayou
     }
   })
 
-  return {
+  const result: ProfileLayoutConfig = {
     layoutVariant: 'grid',
     columns: 2,
     blocks: withOrder,
+  }
+  
+  // Convert to row-based layout for new system
+  const rowLayout = gridToRowLayout(result)
+  return {
+    ...result,
+    rows: rowLayout.rows,
+    layoutVariant: 'rows',
   }
 }
 
 export function getDefaultProfileLayout(): ProfileLayoutConfig {
   // Default layout: Links, Activity, Assets (summary removed, header always shown)
-  // Grid layout: Heavy blocks (links, activity, assets) default to full-width
-  // Each heavy block gets its own row with full span
+  // Row-based layout: Links and Activity side-by-side, Assets full-width
   // Default variant: compact for all
+  const defaultRows: LayoutRow[] = [
+    { id: 'row-0', type: 'double', left: 'links', right: 'activity' },
+    { id: 'row-1', type: 'single', left: 'assets' },
+  ]
+  
   return {
-    layoutVariant: 'grid',
+    layoutVariant: 'rows',
     columns: 2,
+    rows: defaultRows,
     blocks: [
-      { key: 'links', enabled: true, order: 0, row: 0, col: 0, span: 'half', variant: 'compact' }, // SOFT_HEAVY: badge only
-      { key: 'activity', enabled: true, order: 1, row: 0, col: 1, span: 'half', variant: 'compact' }, // SOFT_HEAVY: badge only
-      { key: 'assets', enabled: true, order: 2, row: 1, col: 0, span: 'full', variant: 'compact' }, // HARD_HEAVY: badge + default full
-      { key: 'summary', enabled: false, order: 3, row: 2, col: 0, span: 'half', variant: 'compact' }, // Summary deprecated, keep for migration
+      { key: 'links', enabled: true, order: 0, row: 0, col: 0, span: 'half', variant: 'compact' },
+      { key: 'activity', enabled: true, order: 1, row: 0, col: 1, span: 'half', variant: 'compact' },
+      { key: 'assets', enabled: true, order: 2, row: 1, col: 0, span: 'full', variant: 'compact' },
+      { key: 'summary', enabled: false, order: 3, row: 2, col: 0, span: 'half', variant: 'compact' },
     ],
   }
 }

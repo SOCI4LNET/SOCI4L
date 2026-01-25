@@ -43,6 +43,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Twitter, QrCode } from "lucide-react"
+import { useAccount } from "wagmi"
 
 interface WalletData {
   address: string
@@ -103,6 +104,7 @@ interface QuickStats {
 export function OverviewPanel({ walletData, profile, address, loading: propLoading, error: propError, onRetry, onClaimSuccess }: OverviewPanelProps) {
   const router = useRouter()
   const pathname = usePathname()
+  const { address: connectedAddress } = useAccount()
   const [mounted, setMounted] = useState(false)
   const [quickStats, setQuickStats] = useState<QuickStats>({
     followers: null,
@@ -118,6 +120,9 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
   const targetAddress = urlAddress || address?.toLowerCase() || ''
   const normalizedAddress = targetAddress.toLowerCase()
   
+  // Check if the profile belongs to the connected wallet
+  const isOwnProfile = connectedAddress && normalizedAddress === connectedAddress.toLowerCase()
+  
   useEffect(() => {
     setMounted(true)
   }, [])
@@ -129,15 +134,32 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
     const fetchQuickStats = async () => {
       try {
         // Fetch follow stats
-        const followStatsRes = await fetch(`/api/profile/${normalizedAddress}/follow-stats`, {
-          cache: 'no-store',
-        })
-        if (followStatsRes.ok) {
-          const followStats = await followStatsRes.json()
+        try {
+          const followStatsRes = await fetch(`/api/profile/${normalizedAddress}/follow-stats`, {
+            cache: 'no-store',
+          })
+          if (followStatsRes.ok) {
+            const followStats = await followStatsRes.json()
+            setQuickStats((prev) => ({
+              ...prev,
+              followers: followStats.followersCount ?? 0,
+              following: followStats.followingCount ?? 0,
+            }))
+          } else {
+            // API isteği başarısız oldu, 0 olarak set et
+            setQuickStats((prev) => ({
+              ...prev,
+              followers: 0,
+              following: 0,
+            }))
+          }
+        } catch (followError) {
+          // Network hatası veya parse hatası, 0 olarak set et
+          console.error('[Overview] Error fetching follow stats:', followError)
           setQuickStats((prev) => ({
             ...prev,
-            followers: followStats.followersCount || 0,
-            following: followStats.followingCount || 0,
+            followers: 0,
+            following: 0,
           }))
         }
 
@@ -149,13 +171,28 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
         }))
 
         // Fetch links count
-        const linksRes = await fetch(`/api/profile/links?address=${encodeURIComponent(normalizedAddress)}`)
-        if (linksRes.ok) {
-          const linksData = await linksRes.json()
-          const enabledLinks = (linksData.links || []).filter((link: any) => link.enabled)
+        try {
+          const linksRes = await fetch(`/api/profile/links?address=${encodeURIComponent(normalizedAddress)}`)
+          if (linksRes.ok) {
+            const linksData = await linksRes.json()
+            const enabledLinks = (linksData.links || []).filter((link: any) => link.enabled)
+            setQuickStats((prev) => ({
+              ...prev,
+              totalLinks: enabledLinks.length,
+            }))
+          } else {
+            // API isteği başarısız oldu, 0 olarak set et
+            setQuickStats((prev) => ({
+              ...prev,
+              totalLinks: 0,
+            }))
+          }
+        } catch (linksError) {
+          // Network hatası veya parse hatası, 0 olarak set et
+          console.error('[Overview] Error fetching links:', linksError)
           setQuickStats((prev) => ({
             ...prev,
-            totalLinks: enabledLinks.length,
+            totalLinks: 0,
           }))
         }
       } catch (error) {
@@ -167,7 +204,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
   }, [mounted, normalizedAddress])
 
   const ACTIVITY_LIMIT = 7
-  const ASSETS_LIMIT = 7
+  const ASSETS_LIMIT = 5
 
   // Fetch activity data
   const { 
@@ -356,7 +393,13 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
     if (!publicProfileHref) return
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
     const profileUrl = `${baseUrl}${publicProfileHref}`
-    const shareText = 'Just claimed my SOCI4L profile on Avalanche.\n\nTrack my on-chain identity and links in one place.\n\n' + profileUrl
+    let shareText: string
+    if (isOwnProfile) {
+      shareText = 'Just claimed my SOCI4L profile on Avalanche.\n\nTrack my on-chain identity and links in one place.\n\n' + profileUrl
+    } else {
+      const profileName = profile?.displayName || formatAddress(normalizedAddress, 4)
+      shareText = `Check out this SOCI4L profile on Avalanche: ${profileName}\n\nTrack on-chain identity and links in one place.\n\n` + profileUrl
+    }
     const text = encodeURIComponent(shareText)
     window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank', 'noopener,noreferrer')
   }
@@ -493,7 +536,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
               </div>
               {quickStats.followers !== null ? (
                 <p className="text-xl font-semibold tracking-tight">
-                  {quickStats.followers > 0 ? quickStats.followers.toLocaleString('en-US') : '—'}
+                  {quickStats.followers.toLocaleString('en-US')}
                 </p>
               ) : (
                 <Skeleton className="h-7 w-16" />
@@ -508,7 +551,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
               </div>
               {quickStats.following !== null ? (
                 <p className="text-xl font-semibold tracking-tight">
-                  {quickStats.following > 0 ? quickStats.following.toLocaleString('en-US') : '—'}
+                  {quickStats.following.toLocaleString('en-US')}
                 </p>
               ) : (
                 <Skeleton className="h-7 w-16" />
@@ -523,7 +566,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
               </div>
               {quickStats.views7d !== null ? (
                 <p className="text-xl font-semibold tracking-tight">
-                  {quickStats.views7d > 0 ? quickStats.views7d.toLocaleString('en-US') : '—'}
+                  {quickStats.views7d.toLocaleString('en-US')}
                 </p>
               ) : (
                 <Skeleton className="h-7 w-16" />
@@ -538,7 +581,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
               </div>
               {quickStats.totalLinks !== null ? (
                 <p className="text-xl font-semibold tracking-tight">
-                  {quickStats.totalLinks > 0 ? quickStats.totalLinks.toLocaleString('en-US') : '—'}
+                  {quickStats.totalLinks.toLocaleString('en-US')}
                 </p>
               ) : (
                 <Skeleton className="h-7 w-16" />

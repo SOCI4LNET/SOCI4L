@@ -15,8 +15,9 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Share2, Twitter, Copy, QrCode } from 'lucide-react'
 import { toast } from 'sonner'
-import { isValidAddress } from '@/lib/utils'
+import { isValidAddress, formatAddress } from '@/lib/utils'
 import { getPublicProfileHref } from '@/lib/routing'
+import { useAccount } from 'wagmi'
 
 interface PublicProfileShareMenuProps {
   address: string
@@ -25,6 +26,7 @@ interface PublicProfileShareMenuProps {
 }
 
 export function PublicProfileShareMenu({ address, slug, onOpenQR }: PublicProfileShareMenuProps) {
+  const { address: connectedAddress } = useAccount()
   const [mounted, setMounted] = useState(false)
   const [supportsShare, setSupportsShare] = useState(false)
 
@@ -34,6 +36,9 @@ export function PublicProfileShareMenu({ address, slug, onOpenQR }: PublicProfil
       setSupportsShare('share' in navigator)
     }
   }, [])
+
+  // Check if the profile belongs to the connected wallet
+  const isOwnProfile = connectedAddress && address && address.toLowerCase() === connectedAddress.toLowerCase()
 
   if (!mounted) {
     return (
@@ -74,10 +79,19 @@ export function PublicProfileShareMenu({ address, slug, onOpenQR }: PublicProfil
     const finalUrl = profileUrl.replace(window.location.origin, baseUrl)
 
     // Share copy with line breaks - link on its own line
-    const shareText =
-      'Just claimed my SOCI4L profile on Avalanche.\n\n' +
-      'Track my on-chain identity and links in one place.\n\n' +
-      finalUrl
+    let shareText: string
+    if (isOwnProfile) {
+      shareText =
+        'Just claimed my SOCI4L profile on Avalanche.\n\n' +
+        'Track my on-chain identity and links in one place.\n\n' +
+        finalUrl
+    } else {
+      const profileName = slug || formatAddress(address, 4)
+      shareText =
+        `Check out this SOCI4L profile on Avalanche: ${profileName}\n\n` +
+        'Track on-chain identity and links in one place.\n\n' +
+        finalUrl
+    }
 
     const text = encodeURIComponent(shareText)
     const intentUrl = `https://twitter.com/intent/tweet?text=${text}`
@@ -114,9 +128,19 @@ export function PublicProfileShareMenu({ address, slug, onOpenQR }: PublicProfil
     if (!profileUrl || typeof window === 'undefined' || !navigator.share) return
 
     try {
+      let shareTitle: string
+      let shareText: string
+      if (isOwnProfile) {
+        shareTitle = 'My Avalanche Profile'
+        shareText = 'Check out my SOCI4L profile on Avalanche. Track my on-chain identity and links in one place.'
+      } else {
+        const profileName = slug || formatAddress(address, 4)
+        shareTitle = 'Avalanche Profile'
+        shareText = `Check out this SOCI4L profile on Avalanche: ${profileName}. Track on-chain identity and links in one place.`
+      }
       await navigator.share({
-        title: 'Avalanche Profile',
-        text: 'View this profile',
+        title: shareTitle,
+        text: shareText,
         url: profileUrl,
       })
       toast.success('Shared')

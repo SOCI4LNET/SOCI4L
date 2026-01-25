@@ -5,7 +5,6 @@ import { useParams } from 'next/navigation'
 import { useAccount } from 'wagmi'
 import { useRouter } from 'next/navigation'
 import { AppShell } from '@/components/app-shell/app-shell'
-import { DashboardFooter } from '@/components/app-shell/dashboard-footer'
 import { toast } from 'sonner'
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -78,9 +77,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <div className="flex flex-1 flex-col">
         <AppShell address={displayAddress}>{children}</AppShell>
       </div>
-      <footer className="flex-shrink-0 w-full">
-        <DashboardFooter />
-      </footer>
     </div>
   )
 }

@@ -268,6 +268,17 @@ async function fetchFromSnowTrace(
   // Apply filters
   let filtered = transactions
 
+  // Apply date range filter FIRST (before other filters for better performance)
+  if (options.dateRange && options.dateRange !== 'all') {
+    const now = Math.floor(Date.now() / 1000)
+    let cutoff = 0
+    if (options.dateRange === '24h') cutoff = now - 24 * 60 * 60
+    else if (options.dateRange === '7d') cutoff = now - 7 * 24 * 60 * 60
+    else if (options.dateRange === '30d') cutoff = now - 30 * 24 * 60 * 60
+    
+    filtered = filtered.filter(tx => tx.timestamp >= cutoff)
+  }
+
   if (options.type && options.type !== 'all') {
     filtered = filtered.filter(tx => tx.type === options.type)
   }
@@ -311,6 +322,9 @@ function generateMockTransactions(address: string, count: number = 10): Activity
     { symbol: 'WBTC', name: 'Wrapped Bitcoin', decimals: 8, contract: '0x50b7545627a5162f82a992c33b87adc75187b218' },
   ]
 
+  // Classic burn address for example transactions
+  const BURN_ADDRESS = '0x0000000000000000000000000000000000000000'
+
   for (let i = 0; i < count; i++) {
     const isOutgoing = i % 3 === 0
     const isContract = i % 5 === 0
@@ -328,9 +342,9 @@ function generateMockTransactions(address: string, count: number = 10): Activity
       timestamp,
       type: isContract ? 'contract' : hasTokenTransfer ? 'transfer' : 'transfer',
       direction: isOutgoing ? 'outgoing' : 'incoming',
-      // CRITICAL: Always use the provided address - either as sender (outgoing) or receiver (incoming)
-      from: isOutgoing ? normalizedAddress : randomAddress(),
-      to: isOutgoing ? randomAddress() : normalizedAddress,
+      // Use burn address for outgoing transactions (classic burn address)
+      from: isOutgoing ? BURN_ADDRESS : randomAddress(),
+      to: isOutgoing ? normalizedAddress : normalizedAddress, // For outgoing: to is the target address, for incoming: to is also the target address
       nativeValueAvax: (Math.random() * 10).toFixed(6),
       feeAvax: (Math.random() * 0.01).toFixed(6),
       tokenTransfers: hasTokenTransfer ? [{

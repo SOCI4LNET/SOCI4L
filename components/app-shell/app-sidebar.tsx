@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { usePathname, useSearchParams, useRouter } from 'next/navigation'
+import Link from 'next/link'
 import {
   Sidebar,
   SidebarContent,
@@ -100,18 +101,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
      pathname.includes('/settings'))
   const isProfileRoute = isProfileTabFromQuery || isProfileRouteFromPath
 
-  // Default state: Desktop = open (if profile route), Mobile = closed
+  // Default state: Desktop = always open, Mobile = closed
   const getDefaultOpenState = () => {
     if (isMobile) {
       return false // Mobile: default closed
     }
-    return isProfileRoute // Desktop: open if on profile route
+    return true // Desktop: always open by default
   }
 
   // Profile collapsible state
   const [isProfileOpen, setIsProfileOpen] = React.useState(getDefaultOpenState)
 
-  // Auto-expand when navigating to a profile route
+  // Auto-expand when navigating to a profile route (for mobile or when manually closed)
   React.useEffect(() => {
     if (isProfileRoute && !isMobile) {
       setIsProfileOpen(true)
@@ -152,13 +153,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <div className={`flex items-center justify-center w-full ${isCollapsed ? 'px-0' : 'px-2'}`}>
+        <Link href="/" className={`flex items-center justify-center w-full ${isCollapsed ? 'px-0' : 'px-2'} hover:opacity-80 transition-opacity`}>
           {isCollapsed ? (
             <Soci4LLogo variant="icon" width={18} height={19} />
           ) : (
             <Soci4LLogo variant="combination" width={100} height={19} />
           )}
-        </div>
+        </Link>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -185,7 +186,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
               {/* Profile Collapsible */}
               <Collapsible
-                open={isCollapsed ? true : isProfileOpen}
+                open={isCollapsed ? false : isProfileOpen}
                 onOpenChange={isCollapsed ? undefined : setIsProfileOpen}
                 className="group/collapsible"
               >
@@ -193,13 +194,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <CollapsibleTrigger asChild>
                     <SidebarMenuButton tooltip={isCollapsed ? navGroups[1].label : undefined}>
                       <User className="h-4 w-4" />
-                      {!isCollapsed ? (
+                      {!isCollapsed && (
                         <>
                           <span>{navGroups[1].label}</span>
                           <ChevronDown className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
                         </>
-                      ) : (
-                        <ChevronDown className="h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
                       )}
                     </SidebarMenuButton>
                   </CollapsibleTrigger>

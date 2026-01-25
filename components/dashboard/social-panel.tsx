@@ -8,11 +8,22 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ExternalLink, Users, UserPlus, Share2 } from 'lucide-react'
+import { ExternalLink, Users, UserPlus, Share2, Copy, Twitter, QrCode } from 'lucide-react'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { PageShell } from '@/components/app-shell/page-shell'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { QRCodeModal } from '@/components/qr/qr-code-modal'
+import { getPublicProfileHref } from '@/lib/routing'
+import { useQuery } from '@tanstack/react-query'
+import { useAccount } from 'wagmi'
 
 interface SocialPanelProps {
   address: string
@@ -28,11 +39,16 @@ export function SocialPanel({ address }: SocialPanelProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const { address: connectedAddress } = useAccount()
   const [mounted, setMounted] = useState(false)
   const [followers, setFollowers] = useState<FollowItem[]>([])
   const [following, setFollowing] = useState<FollowItem[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const [qrModalOpen, setQrModalOpen] = useState(false)
+  
+  // Check if the profile belongs to the connected wallet
+  const isOwnProfile = connectedAddress && address.toLowerCase() === connectedAddress.toLowerCase()
   
   // Get active tab from URL query param 'subtab' (to avoid conflict with dashboard's 'tab' param)
   // Default to 'following'
@@ -68,6 +84,91 @@ export function SocialPanel({ address }: SocialPanelProps) {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Fetch profile data for sharing
+  const { data: profileData } = useQuery<{
+    profile?: {
+      slug?: string | null
+      displayName?: string | null
+    }
+  }>({
+    queryKey: ['profile-for-share', address],
+    queryFn: async () => {
+      if (!address || !isValidAddress(address)) throw new Error('Invalid address')
+      const normalizedAddress = address.toLowerCase()
+      const response = await fetch(`/api/wallet/${normalizedAddress}/summary`)
+      if (!response.ok) throw new Error('Failed to fetch profile')
+      return response.json()
+    },
+    enabled: mounted && isValidAddress(address),
+  })
+
+  // Share functions
+  const getShareUrl = (): string => {
+    if (typeof window === 'undefined') {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || ''
+      const profilePath = getPublicProfileHref(address, profileData?.profile?.slug)
+      return `${appUrl}${profilePath}`
+    }
+    const baseUrl = window.location.origin
+    const profilePath = getPublicProfileHref(address, profileData?.profile?.slug)
+    return `${baseUrl}${profilePath}`
+  }
+
+  const handleCopyLink = async () => {
+    const url = getShareUrl()
+    try {
+      await navigator.clipboard.writeText(url)
+      toast.success('Profil linki kopyalandı')
+    } catch {
+      toast.error('Kopyalama başarısız')
+    }
+  }
+
+  const handleShareTwitter = () => {
+    const url = getShareUrl()
+    let shareText: string
+    if (isOwnProfile) {
+      shareText = 'Just claimed my SOCI4L profile on Avalanche.\n\nTrack my on-chain identity and links in one place.\n\n' + url
+    } else {
+      const profileName = profileData?.profile?.displayName || formatAddress(address, 4)
+      shareText = `Check out this SOCI4L profile on Avalanche: ${profileName}\n\nTrack on-chain identity and links in one place.\n\n` + url
+    }
+    const text = encodeURIComponent(shareText)
+    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank', 'noopener,noreferrer')
+  }
+
+  const handleShareNative = async () => {
+    const url = getShareUrl()
+    if (navigator.share) {
+      try {
+        let shareTitle: string
+        let shareText: string
+        if (isOwnProfile) {
+          shareTitle = 'My Avalanche Profile'
+          shareText = 'Check out my SOCI4L profile on Avalanche. Track my on-chain identity and links in one place.'
+        } else {
+          const profileName = profileData?.profile?.displayName || formatAddress(address, 4)
+          shareTitle = 'Avalanche Profile'
+          shareText = `Check out this SOCI4L profile on Avalanche: ${profileName}. Track on-chain identity and links in one place.`
+        }
+        await navigator.share({
+          title: shareTitle,
+          text: shareText,
+          url: url,
+        })
+      } catch (error: any) {
+        // User cancelled or share failed, fall back to clipboard
+        if (error.name !== 'AbortError') {
+          console.error('Share failed:', error)
+          handleCopyLink()
+        }
+      }
+    } else {
+      // Fallback to clipboard if Web Share API is not available
+      handleCopyLink()
+    }
+  }
 
   useEffect(() => {
     if (!mounted || !isValidAddress(address)) return
@@ -205,16 +306,38 @@ export function SocialPanel({ address }: SocialPanelProps) {
             </p>
           </div>
           {emptyTitle === 'No followers yet' && (
-            <Button
-              variant="outline"
-              size="sm"
-              asChild
-            >
-              <Link href={`/p/${address}`}>
-                <Share2 className="mr-2 h-3.5 w-3.5" />
-                Share your profile
-              </Link>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                >
+                  <Share2 className="mr-2 h-3.5 w-3.5" />
+                  Share your profile
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center">
+                <DropdownMenuItem onClick={handleCopyLink}>
+                  <Copy className="mr-2 h-4 w-4" />
+                  Copy profile link
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleShareTwitter}>
+                  <Twitter className="mr-2 h-4 w-4" />
+                  Share on X
+                </DropdownMenuItem>
+                {typeof navigator !== 'undefined' && navigator.share && (
+                  <DropdownMenuItem onClick={handleShareNative}>
+                    <Share2 className="mr-2 h-4 w-4" />
+                    Share via...
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setQrModalOpen(true)}>
+                  <QrCode className="mr-2 h-4 w-4" />
+                  Show QR code
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
           {emptyTitle === "You're not following anyone yet" && (
             <Button
@@ -352,6 +475,20 @@ export function SocialPanel({ address }: SocialPanelProps) {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* QR Code Modal */}
+      {address && isValidAddress(address) && (
+        <QRCodeModal
+          open={qrModalOpen}
+          onOpenChange={setQrModalOpen}
+          profile={{
+            address: address,
+            slug: profileData?.profile?.slug || null,
+            displayName: profileData?.profile?.displayName || null,
+            avatarUrl: `https://effigy.im/a/${address.toLowerCase()}.svg`,
+          }}
+        />
+      )}
     </PageShell>
   )
 }

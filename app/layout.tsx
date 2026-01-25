@@ -3,12 +3,13 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { Providers } from "./providers"
 import { Toaster } from "@/components/ui/sonner"
+import Footer15 from "@/components/blocks/footer15"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Avalanche Wallet Profile Hub",
-  description: "Search and view Avalanche wallet profiles",
+  title: "SOCI4L - Avalanche Wallet Profile Hub",
+  description: "SOCI4L turns your Avalanche wallet into a measurable, privacy-first public profile. Search and view Avalanche wallet profiles.",
 }
 
 export default function RootLayout({
@@ -20,7 +21,10 @@ export default function RootLayout({
     <html lang="en" className="dark" suppressHydrationWarning>
       <body className={inter.className}>
         <Providers>
-          {children}
+          <div className="flex min-h-screen flex-col">
+            {children}
+            <Footer15 className="mt-auto" />
+          </div>
           <Toaster />
         </Providers>
       </body>

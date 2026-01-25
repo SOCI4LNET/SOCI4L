@@ -13,6 +13,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
 } from '@/components/ui/dropdown-menu'
 import { Copy, Share2, QrCode, LogOut, LayoutDashboard, User, Settings, Loader2, Sparkles, Link2, BarChart2 } from 'lucide-react'
 import { formatAddress } from '@/lib/utils'
@@ -254,43 +255,58 @@ export function HeaderActions() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleDashboard}>
-              <LayoutDashboard className="mr-2 h-4 w-4" />
-              <span>Dashboard</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handlePublicProfile} disabled={!publicProfileHref}>
-              <User className="mr-2 h-4 w-4" />
-              <span>Public Profile</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleBuilder}>
-              <Sparkles className="mr-2 h-4 w-4" />
-              <span>Builder</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleLinks}>
-              <Link2 className="mr-2 h-4 w-4" />
-              <span>Links</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleInsights}>
-              <BarChart2 className="mr-2 h-4 w-4" />
-              <span>Insights</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleSettings}>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleCopyAddress}>
-              <Copy className="mr-2 h-4 w-4" />
-              <span>Copy Address</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleShare} disabled={!publicProfileHref}>
-              <Share2 className="mr-2 h-4 w-4" />
-              <span>Share</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setQrModalOpen(true)}>
-              <QrCode className="mr-2 h-4 w-4" />
-              <span>QR Code</span>
-            </DropdownMenuItem>
+            
+            {/* My Account Section */}
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuItem onClick={handleDashboard}>
+                <LayoutDashboard className="mr-2 h-4 w-4" />
+                <span>Dashboard</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handlePublicProfile} disabled={!publicProfileHref}>
+                <User className="mr-2 h-4 w-4" />
+                <span>Public Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleBuilder}>
+                <Sparkles className="mr-2 h-4 w-4" />
+                <span>Builder</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLinks}>
+                <Link2 className="mr-2 h-4 w-4" />
+                <span>Links</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleInsights}>
+                <BarChart2 className="mr-2 h-4 w-4" />
+                <span>Insights</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSettings}>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            
             <DropdownMenuSeparator />
+            
+            {/* Actions Section */}
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem onClick={handleCopyAddress}>
+                <Copy className="mr-2 h-4 w-4" />
+                <span>Copy Address</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleShare} disabled={!publicProfileHref}>
+                <Share2 className="mr-2 h-4 w-4" />
+                <span>Share</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setQrModalOpen(true)}>
+                <QrCode className="mr-2 h-4 w-4" />
+                <span>QR Code</span>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            
+            <DropdownMenuSeparator />
+            
+            {/* Disconnect Section */}
             <DropdownMenuItem onClick={handleDisconnect} className="text-destructive focus:text-destructive">
               <LogOut className="mr-2 h-4 w-4" />
               <span>Disconnect</span>

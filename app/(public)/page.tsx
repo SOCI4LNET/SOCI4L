@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useAccount } from 'wagmi'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -8,15 +9,26 @@ import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BarChart2, Link2, Sparkles, Wallet, LayoutDashboard } from 'lucide-react'
 import { AppHeader } from '@/components/app-shell/app-header'
-import Footer15 from '@/components/blocks/footer15'
+import { toast } from 'sonner'
+import { getConnectedDashboardHref } from '@/lib/routing'
 
 const EXAMPLE_PROFILE_ADDRESS = '0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1'
 
 export default function HomePage() {
   const router = useRouter()
+  const { address: connectedAddress, isConnected } = useAccount()
 
   const openDashboard = () => {
-    router.push('/dashboard')
+    if (!isConnected || !connectedAddress) {
+      toast.error('Lütfen önce cüzdanınızı bağlayın')
+      return
+    }
+    const dashboardHref = getConnectedDashboardHref(connectedAddress)
+    if (dashboardHref) {
+      router.push(dashboardHref)
+    } else {
+      toast.error('Geçersiz cüzdan adresi')
+    }
   }
 
   const viewExampleProfile = () => {
@@ -357,7 +369,6 @@ export default function HomePage() {
 
         </div>
       </main>
-      <Footer15 className="mt-auto" />
     </div>
   )
 }

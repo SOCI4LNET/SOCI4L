@@ -11,7 +11,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import { getPublicProfileHref } from '@/lib/routing'
 import Link from 'next/link'
-import { ExternalLink, Twitter, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Eye, Share2 } from 'lucide-react'
+import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Eye, Share2 } from 'lucide-react'
+import { XIcon } from '@/components/icons/x-icon'
 import { ClaimProfileButton } from '@/components/claim-profile-button'
 import { FollowToggle, FollowStats } from '@/components/follow-toggle'
 import { QRCodeModal } from '@/components/qr/qr-code-modal'
@@ -28,6 +29,9 @@ import { type ProfileLink } from '@/lib/profile-links'
 import {
   type ProfileLayoutConfig,
   type ProfileLayoutBlock,
+  type LayoutRow,
+  type SectionId,
+  type ProfileBlockKey,
   getDefaultProfileLayout,
   normalizeLayoutConfig,
 } from '@/lib/profile-layout'
@@ -424,7 +428,7 @@ export default function ProfilePage({ params }: PageProps) {
     const normalizedPlatform = platform.toLowerCase()
     switch (normalizedPlatform) {
       case 'x':
-        return <Twitter className="h-3.5 w-3.5" />
+        return <XIcon className="h-3.5 w-3.5" />
       case 'instagram':
         return <Globe className="h-3.5 w-3.5" />
       case 'youtube':
@@ -473,7 +477,19 @@ export default function ProfilePage({ params }: PageProps) {
   const effectiveLayoutConfig = layoutConfig
   const effectiveAppearanceConfig = appearanceConfig
 
-  // Get visible blocks sorted by grid position (row, then col)
+  // Use row-based layout if available, otherwise fall back to grid-based
+  const useRowLayout = effectiveLayoutConfig.rows && effectiveLayoutConfig.rows.length > 0
+  const layoutRows: LayoutRow[] = useRowLayout 
+    ? effectiveLayoutConfig.rows! 
+    : []
+
+  // Create block map for quick lookup
+  const blockMap = new Map<ProfileBlockKey, ProfileLayoutBlock>()
+  for (const block of effectiveLayoutConfig.blocks) {
+    blockMap.set(block.key, block)
+  }
+
+  // Get visible blocks sorted by grid position (row, then col) - for backward compatibility
   const visibleBlocks: ProfileLayoutBlock[] = effectiveLayoutConfig.blocks
     .filter((block) => block.enabled)
     .slice()
@@ -683,11 +699,18 @@ export default function ProfilePage({ params }: PageProps) {
                             const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
                             const profilePath = getPublicProfileHref(resolvedAddress, profile?.slug)
                             const profileUrl = `${baseUrl}${profilePath}`
-                            const shareText = 'Just claimed my SOCI4L profile on Avalanche.\n\nTrack my on-chain identity and links in one place.\n\n' + profileUrl
+                            const isOwnProfile = connectedAddress && resolvedAddress && resolvedAddress.toLowerCase() === connectedAddress.toLowerCase()
+                            let shareText: string
+                            if (isOwnProfile) {
+                              shareText = 'Just claimed my SOCI4L profile on Avalanche.\n\nTrack my on-chain identity and links in one place.\n\n' + profileUrl
+                            } else {
+                              const profileName = profile?.displayName || formatAddress(resolvedAddress, 4)
+                              shareText = `Check out this SOCI4L profile on Avalanche: ${profileName}\n\nTrack on-chain identity and links in one place.\n\n` + profileUrl
+                            }
                             const text = encodeURIComponent(shareText)
                             window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank', 'noopener,noreferrer')
                           }}>
-                            <Twitter className="mr-2 h-4 w-4" />
+                            <XIcon className="mr-2 h-4 w-4" />
                             <span>Share on X</span>
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => setQrModalOpen(true)}>
@@ -733,17 +756,23 @@ export default function ProfilePage({ params }: PageProps) {
             </Card>
           )}
 
-          {/* Grid layout - 12 columns on desktop, 1 column on mobile */}
+          {/* Row-based layout - supports single and double rows */}
           {/* Configs are always initialized with defaults, so safe to render immediately */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full">
-              {blocksWithComputedSpan.map((block) => {
-                const variant = block.variant || 'compact'
-                const computedSpan = block.computedSpan || 'half'
-                // Full-span blocks: 12 cols, half-span blocks: 6 cols
-                // IMPORTANT: Single blocks in a row automatically become full-width (computedSpan handles this)
-                const gridColSpan = computedSpan === 'full' ? 'md:col-span-12' : 'md:col-span-6'
+          {useRowLayout ? (
+            // Row-based layout
+            <div className="space-y-6 w-full">
+              {layoutRows.map((row) => {
+                // Helper function to render a block by sectionId
+                const renderBlockBySectionId = (sectionId: SectionId | null, colSpan: string) => {
+                  if (!sectionId) return null
+                  const block = blockMap.get(sectionId)
+                  if (!block || !block.enabled) return null
+                  const variant = block.variant || 'compact'
+                  
+                  // Determine grid column span based on row type
+                  const gridColSpan = colSpan === 'full' ? 'md:col-span-12' : 'md:col-span-6'
 
-              if (block.key === 'links') {
+                  if (sectionId === 'links') {
                 // Unified Link Hub: Merge social links and custom links into single system
                 type UnifiedLink = {
                   id: string
@@ -974,10 +1003,10 @@ export default function ProfilePage({ params }: PageProps) {
                       )}
                     </CardContent>
                   </Card>
-                )
-              }
+                  )
+                }
 
-              if (block.key === 'activity') {
+                if (sectionId === 'activity') {
                 const showAmounts = variant !== 'hiddenAmounts'
                 const isCompact = variant === 'compact'
                 const isFull = variant === 'full'
@@ -1055,10 +1084,10 @@ export default function ProfilePage({ params }: PageProps) {
                       )}
                     </CardContent>
                   </Card>
-                )
-              }
+                  )
+                }
 
-              if (block.key === 'assets') {
+                if (sectionId === 'assets') {
                 const showAmounts = variant !== 'hiddenAmounts'
                 const isCompact = variant === 'compact'
                 const isFull = variant === 'full'
@@ -1126,20 +1155,62 @@ export default function ProfilePage({ params }: PageProps) {
                       )}
                     </CardContent>
                   </Card>
-                )
-              }
+                  )
+                }
 
-              // Summary block is deprecated but kept for migration compatibility
-              if (block.key === 'summary') {
+                // Summary block is deprecated
+                if (sectionId === 'summary') {
+                  return null
+                }
+
                 return null
               }
 
-              return null
+              // Render row based on type
+              if (row.type === 'single') {
+                return (
+                  <div key={row.id} className="w-full">
+                    {renderBlockBySectionId(row.left, 'full')}
+                  </div>
+                )
+              } else {
+                return (
+                  <div key={row.id} className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full">
+                    {renderBlockBySectionId(row.left, 'half')}
+                    {renderBlockBySectionId(row.right, 'half')}
+                  </div>
+                )
+              }
             })}
             </div>
-          </div>
-        ) : null}
-      
+          ) : (
+            // Fallback to grid-based layout
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full">
+              {blocksWithComputedSpan.map((block) => {
+                const variant = block.variant || 'compact'
+                const computedSpan = block.computedSpan || 'half'
+                const gridColSpan = computedSpan === 'full' ? 'md:col-span-12' : 'md:col-span-6'
+
+                if (block.key === 'links') {
+                  // Links block rendering - same as row-based
+                  return null // Will be implemented with full block rendering
+                }
+
+                if (block.key === 'activity') {
+                  return null // Will be implemented with full block rendering
+                }
+
+                if (block.key === 'assets') {
+                  return null // Will be implemented with full block rendering
+                }
+
+                return null
+              })}
+            </div>
+          )}
+        </div>
+      ) : null}
+
       {/* QR Code Modal for current profile */}
       {resolvedAddress && isValidAddress(resolvedAddress) && (
         <QRCodeModal

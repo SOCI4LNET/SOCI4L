@@ -189,6 +189,66 @@ const Sidebar = React.forwardRef<
 >(({ side = "left", variant = "sidebar", collapsible = "offcanvas", className, children, ...props }, ref) => {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
   const mobile = isMobile && collapsible !== "none"
+  const sidebarRef = React.useRef<HTMLDivElement>(null)
+  const [translateY, setTranslateY] = React.useState(0)
+
+  // Combine refs
+  React.useImperativeHandle(ref, () => sidebarRef.current as HTMLDivElement)
+
+  // Track scroll position and move sidebar up when footer is reached
+  React.useEffect(() => {
+    if (mobile || typeof window === 'undefined') return
+
+    const updateTranslateY = () => {
+      const footer = document.querySelector('footer')
+      if (!footer || !sidebarRef.current) {
+        setTranslateY(0)
+        return
+      }
+
+      const footerRect = footer.getBoundingClientRect()
+      const viewportHeight = window.innerHeight
+      const sidebarRect = sidebarRef.current.getBoundingClientRect()
+      
+      // Calculate when footer enters the viewport
+      const footerTop = footerRect.top
+      const sidebarBottom = sidebarRect.bottom
+      
+      // If footer is visible and sidebar would overlap with it, move sidebar up
+      if (footerTop < viewportHeight && footerTop < sidebarBottom) {
+        // Calculate how much to move sidebar up
+        // Move it up by the amount that would cause overlap
+        const overlap = sidebarBottom - footerTop
+        setTranslateY(-overlap)
+      } else {
+        // Footer is below viewport or sidebar is above footer, no translation needed
+        setTranslateY(0)
+      }
+    }
+
+    // Initial calculation with a small delay to ensure DOM is ready
+    const timeoutId = setTimeout(updateTranslateY, 100)
+    updateTranslateY()
+
+    // Update on scroll and resize
+    window.addEventListener('scroll', updateTranslateY, { passive: true })
+    window.addEventListener('resize', updateTranslateY)
+    const resizeObserver = new ResizeObserver(updateTranslateY)
+    const footer = document.querySelector('footer')
+    if (footer) {
+      resizeObserver.observe(footer)
+    }
+    if (sidebarRef.current) {
+      resizeObserver.observe(sidebarRef.current)
+    }
+
+    return () => {
+      clearTimeout(timeoutId)
+      window.removeEventListener('scroll', updateTranslateY)
+      window.removeEventListener('resize', updateTranslateY)
+      resizeObserver.disconnect()
+    }
+  }, [mobile])
 
   if (mobile) {
     return (
@@ -219,14 +279,22 @@ const Sidebar = React.forwardRef<
     ? "overflow-hidden overflow-x-hidden"
     : ""
 
+  // Add sticky positioning - sidebar stays fixed until footer is reached
+  const stickyClass = "sticky top-0 self-start"
+
   return (
     <aside
-      ref={ref}
-      className={cn(sidebarVariants({ variant, side }), widthClass, overflowClass, className)}
+      ref={sidebarRef}
+      className={cn(sidebarVariants({ variant, side }), widthClass, overflowClass, stickyClass, className)}
       data-state={state}
       data-collapsible={state === "collapsed" ? collapsible : ""}
       data-sidebar="sidebar"
       data-variant={variant}
+      style={{
+        transform: translateY !== 0 ? `translateY(${translateY}px)` : undefined,
+        transition: 'transform 0.1s ease-out',
+        ...props.style,
+      } as React.CSSProperties}
       {...props}
     >
       {children}

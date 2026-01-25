@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 import { HeaderActions } from './header-actions'
 import { PAGE_GUTTER } from '@/lib/layout-constants'
@@ -28,6 +28,12 @@ interface AppHeaderProps {
 
 const EXAMPLE_PROFILE_ADDRESS = '0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1'
 
+const navigationItems = [
+  { label: 'Overview', href: '/', exact: true },
+  { label: 'Example Profile', href: `/p/${EXAMPLE_PROFILE_ADDRESS}` },
+  { label: 'Docs', href: 'https://docs.soci4l.com', external: true },
+]
+
 /**
  * AppHeader - Reusable header component for both landing and dashboard pages
  * 
@@ -40,56 +46,85 @@ const EXAMPLE_PROFILE_ADDRESS = '0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1'
  */
 export function AppHeader({ showSidebarTrigger = false, sticky = true, showNavigation = false }: AppHeaderProps) {
   const router = useRouter()
+  const pathname = usePathname()
 
   const viewExampleProfile = () => {
     router.push(`/p/${EXAMPLE_PROFILE_ADDRESS}`)
   }
 
+  const isActive = (href: string, exact?: boolean) => {
+    if (exact) {
+      return pathname === href
+    }
+    return pathname?.startsWith(href)
+  }
+
   return (
     <header 
       className={cn(
-        'flex h-14 min-h-[3.5rem] items-center gap-2 border-b border-border bg-background/80',
+        'flex h-16 min-h-[4rem] items-center gap-4 border-b border-border/60 bg-background/95',
         PAGE_GUTTER,
         sticky && 'sticky top-0 z-50',
-        'backdrop-blur transition-[width] ease-linear'
+        'backdrop-blur-sm transition-all ease-linear shadow-sm'
       )}
     >
       {/* Left: Logo */}
       <div className="flex items-center gap-2 shrink-0">
-        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <Soci4LLogo variant="combination" className="h-6 w-auto" />
+        <Link 
+          href="/" 
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity group"
+        >
+          <Soci4LLogo variant="combination" className="h-7 w-auto transition-transform group-hover:scale-105" />
         </Link>
       </div>
 
       {/* Center: Navigation (optional, for marketing pages) */}
       {showNavigation && (
         <nav className="hidden md:flex flex-1 items-center justify-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push('/')}
-            className="text-xs"
-          >
-            Overview
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={viewExampleProfile}
-            className="text-xs"
-          >
-            Example Profile
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            asChild
-            className="text-xs"
-          >
-            <Link href="#" onClick={(e) => e.preventDefault()}>
-              Docs
-            </Link>
-          </Button>
+          {navigationItems.map((item) => {
+            const active = !item.external && isActive(item.href, item.exact)
+            
+            if (item.external) {
+              return (
+                <Button
+                  key={item.href}
+                  variant="ghost"
+                  size="sm"
+                  asChild
+                  className={cn(
+                    'text-sm font-medium transition-colors',
+                    'hover:bg-accent hover:text-accent-foreground',
+                    'h-9 px-4'
+                  )}
+                >
+                  <a
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {item.label}
+                  </a>
+                </Button>
+              )
+            }
+
+            return (
+              <Button
+                key={item.href}
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push(item.href)}
+                className={cn(
+                  'text-sm font-medium transition-colors',
+                  'hover:bg-accent hover:text-accent-foreground',
+                  'h-9 px-4',
+                  active && 'bg-accent text-accent-foreground'
+                )}
+              >
+                {item.label}
+              </Button>
+            )
+          })}
         </nav>
       )}
 
