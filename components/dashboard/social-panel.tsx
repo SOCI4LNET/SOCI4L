@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ExternalLink, Users, UserPlus } from 'lucide-react'
+import { ExternalLink, Users, UserPlus, Share2 } from 'lucide-react'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import { toast } from 'sonner'
 import Link from 'next/link'
@@ -48,8 +48,22 @@ export function SocialPanel({ address }: SocialPanelProps) {
     const subtab = searchParams.get('subtab')
     if (subtab === 'followers' || subtab === 'following') {
       setActiveTab(subtab)
+    } else {
+      // If subtab param is missing, set default to 'following' and update URL
+      const params = new URLSearchParams(searchParams.toString())
+      if (!params.has('subtab')) {
+        params.set('subtab', 'following')
+        // Ensure 'tab=social' is set
+        if (!params.has('tab') || params.get('tab') !== 'social') {
+          params.set('tab', 'social')
+        }
+        // Only update query params, keep the same pathname - no navigation
+        if (pathname) {
+          router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+        }
+      }
     }
-  }, [searchParams])
+  }, [searchParams, pathname, router])
 
   useEffect(() => {
     setMounted(true)
@@ -126,6 +140,29 @@ export function SocialPanel({ address }: SocialPanelProps) {
     item.address.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
+  const handleUnfollow = async (targetAddress: string) => {
+    try {
+      const normalizedTargetAddress = targetAddress.toLowerCase()
+      const response = await fetch(`/api/profile/${normalizedTargetAddress}/follow`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Unfollow failed')
+      }
+
+      // Remove from following list
+      setFollowing((prev) => prev.filter((item) => item.address.toLowerCase() !== normalizedTargetAddress))
+      
+      toast.success('Unfollowed successfully')
+    } catch (error: any) {
+      console.error('Error unfollowing:', error)
+      toast.error(error.message || 'Failed to unfollow')
+    }
+  }
+
   if (!mounted) {
     return (
       <div className="space-y-4">
@@ -138,7 +175,8 @@ export function SocialPanel({ address }: SocialPanelProps) {
   const renderList = (
     items: FollowItem[],
     emptyTitle: string,
-    emptyHelper: string
+    emptyHelper: string,
+    showUnfollow: boolean = false
   ) => {
     if (loading) {
       return (
@@ -154,11 +192,40 @@ export function SocialPanel({ address }: SocialPanelProps) {
 
     if (items.length === 0) {
       return (
-        <div className="text-center py-10 space-y-2">
-          <p className="text-sm text-muted-foreground">{emptyTitle}</p>
-          <p className="text-xs text-muted-foreground">
-            {emptyHelper}
-          </p>
+        <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
+          {emptyTitle === 'No followers yet' ? (
+            <Users className="h-10 w-10 text-muted-foreground" />
+          ) : (
+            <UserPlus className="h-10 w-10 text-muted-foreground" />
+          )}
+          <div>
+            <p className="text-sm font-medium mb-1">{emptyTitle}</p>
+            <p className="text-xs text-muted-foreground mb-4">
+              {emptyHelper}
+            </p>
+          </div>
+          {emptyTitle === 'No followers yet' && (
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+            >
+              <Link href={`/p/${address}`}>
+                <Share2 className="mr-2 h-3.5 w-3.5" />
+                Share your profile
+              </Link>
+            </Button>
+          )}
+          {emptyTitle === "You're not following anyone yet" && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push('/')}
+            >
+              <ExternalLink className="mr-2 h-3.5 w-3.5" />
+              Explore profiles
+            </Button>
+          )}
         </div>
       )
     }
@@ -188,9 +255,11 @@ export function SocialPanel({ address }: SocialPanelProps) {
                 <p className="text-xs font-mono text-muted-foreground truncate">
                   {shortAddress}
                 </p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  Followed on {new Date(item.createdAt).toLocaleDateString('tr-TR')}
-                </p>
+                {showUnfollow && (
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Followed on {new Date(item.createdAt).toLocaleDateString('tr-TR')}
+                  </p>
+                )}
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 <Button
@@ -203,6 +272,16 @@ export function SocialPanel({ address }: SocialPanelProps) {
                     View profile
                   </Link>
                 </Button>
+                {showUnfollow && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleUnfollow(item.address)}
+                    className="h-8 text-xs"
+                  >
+                    Unfollow
+                  </Button>
+                )}
               </div>
             </div>
           )
@@ -258,15 +337,16 @@ export function SocialPanel({ address }: SocialPanelProps) {
             <TabsContent value="followers" className="mt-4">
               {renderList(
                 filteredFollowers,
-                'This wallet has no followers yet.',
-                'On-chain followers will appear here as they connect to this wallet.'
+                'No followers yet',
+                'Share your profile to get discovered.'
               )}
             </TabsContent>
             <TabsContent value="following" className="mt-4">
               {renderList(
                 filteredFollowing,
-                'This wallet is not following anyone.',
-                'On-chain following relationships will appear here when this wallet connects to others.'
+                "You're not following anyone yet",
+                'Explore profiles and follow creators.',
+                true // showUnfollow
               )}
             </TabsContent>
           </Tabs>

@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
         url: link.url,
         enabled: link.enabled ?? true,
         order: link.order ?? 0,
+        categoryId: link.categoryId || null,
         createdAt: link.createdAt.toISOString(),
         updatedAt: link.updatedAt.toISOString(),
       })),
@@ -88,6 +89,28 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    // Ensure default category exists
+    let defaultCategory = await prisma.linkCategory.findFirst({
+      where: {
+        profileId: profile.id,
+        isDefault: true,
+      },
+    })
+
+    if (!defaultCategory) {
+      defaultCategory = await prisma.linkCategory.create({
+        data: {
+          profileId: profile.id,
+          name: 'General',
+          slug: 'general',
+          description: null,
+          order: 0,
+          isVisible: true,
+          isDefault: true,
+        },
+      })
+    }
+
     // Validate links
     for (const link of links) {
       if (!link.url || typeof link.url !== 'string') {
@@ -103,19 +126,38 @@ export async function POST(request: NextRequest) {
       where: { profileId: profile.id },
     })
 
-    // Create new links with order
+    // Create new links with order and category
     const createdLinks = await Promise.all(
-      links.map((link: any, index: number) =>
-        prisma.profileLink.create({
+      links.map(async (link: any, index: number) => {
+        // If categoryId is provided, verify it exists and belongs to this profile
+        let categoryId = link.categoryId || null
+        if (categoryId) {
+          const category = await prisma.linkCategory.findFirst({
+            where: {
+              id: categoryId,
+              profileId: profile.id,
+            },
+          })
+          if (!category) {
+            // Invalid category, use default
+            categoryId = defaultCategory.id
+          }
+        } else {
+          // No category specified, use default
+          categoryId = defaultCategory.id
+        }
+
+        return prisma.profileLink.create({
           data: {
             profileId: profile.id,
+            categoryId,
             title: link.title || '',
             url: link.url,
             enabled: link.enabled !== undefined ? link.enabled : true,
             order: link.order !== undefined ? link.order : index,
           },
         })
-      )
+      })
     )
 
     return NextResponse.json({
@@ -126,6 +168,7 @@ export async function POST(request: NextRequest) {
         url: link.url,
         enabled: link.enabled ?? true,
         order: link.order ?? 0,
+        categoryId: link.categoryId || null,
         createdAt: link.createdAt.toISOString(),
         updatedAt: link.updatedAt.toISOString(),
       })),

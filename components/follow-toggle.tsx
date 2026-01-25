@@ -233,6 +233,27 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
   const normalizedConnectedAddress = connectedAddress?.toLowerCase()
   const isSelfProfile = normalizedConnectedAddress === normalizedAddress
 
+  const handleConnect = () => {
+    if (connectors.length > 0) {
+      connect({ connector: connectors[0] })
+      setShowConnectDialog(false)
+    }
+  }
+
+  // Determine tooltip text based on state
+  const getTooltipText = () => {
+    if (isSelfProfile) {
+      return "You can't follow yourself"
+    }
+    if (!isConnected) {
+      return 'Connect your wallet to follow profiles'
+    }
+    if (isFollowing) {
+      return 'Unfollow this profile'
+    }
+    return 'Follow this profile'
+  }
+
   const toggleButton = (
     <Toggle
       aria-label="Follow profile"
@@ -248,42 +269,18 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
     </Toggle>
   )
 
-  const handleConnect = () => {
-    if (connectors.length > 0) {
-      connect({ connector: connectors[0] })
-      setShowConnectDialog(false)
-    }
-  }
-
-  if (isSelfProfile) {
-    return (
+  return (
+    <>
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
             <div>{toggleButton}</div>
           </TooltipTrigger>
           <TooltipContent>
-            <p>You can't follow yourself</p>
+            <p>{getTooltipText()}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
-    )
-  }
-
-  return (
-    <>
-      <Toggle
-        aria-label="Follow profile"
-        size="sm"
-        variant="outline"
-        pressed={isFollowing}
-        onPressedChange={handleToggle}
-        disabled={isPending || isSelfProfile}
-        className="gap-2"
-      >
-        <BookmarkIcon className="h-3.5 w-3.5 group-data-[state=on]/toggle:fill-foreground" />
-        {isFollowing ? 'Following' : 'Follow'}
-      </Toggle>
 
       <AlertDialog open={showConnectDialog} onOpenChange={setShowConnectDialog}>
         <AlertDialogContent>

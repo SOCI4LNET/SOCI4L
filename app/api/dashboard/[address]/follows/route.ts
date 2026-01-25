@@ -59,7 +59,7 @@ export async function GET(
       )
     }
 
-    let follows: Array<{ address: string; createdAt: Date }> = []
+    let follows: Array<{ address: string; createdAt: Date; displayName?: string | null }> = []
 
     try {
       if (type === 'followers') {
@@ -79,9 +79,25 @@ export async function GET(
         skip: offset,
       })
 
+      // Fetch profile data for each follower to get displayName
+      const profiles = await prisma.profile.findMany({
+        where: {
+          address: {
+            in: followRecords.map((f) => f.followerAddress),
+          },
+        },
+        select: {
+          address: true,
+          displayName: true,
+        },
+      })
+
+      const profileMap = new Map(profiles.map((p) => [p.address.toLowerCase(), p.displayName]))
+
       follows = followRecords.map((f) => ({
         address: f.followerAddress,
         createdAt: f.createdAt,
+        displayName: profileMap.get(f.followerAddress.toLowerCase()) || null,
       }))
       } else {
         // Get wallets this address follows
@@ -100,9 +116,25 @@ export async function GET(
           skip: offset,
         })
 
+        // Fetch profile data for each following to get displayName
+        const profiles = await prisma.profile.findMany({
+          where: {
+            address: {
+              in: followRecords.map((f) => f.followingAddress),
+            },
+          },
+          select: {
+            address: true,
+            displayName: true,
+          },
+        })
+
+        const profileMap = new Map(profiles.map((p) => [p.address.toLowerCase(), p.displayName]))
+
         follows = followRecords.map((f) => ({
           address: f.followingAddress,
           createdAt: f.createdAt,
+          displayName: profileMap.get(f.followingAddress.toLowerCase()) || null,
         }))
       }
     } catch (dbError) {

@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Download, Share2, ChevronDown, X } from 'lucide-react'
 import { formatAddress } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -45,7 +46,7 @@ type QRCodeStylingInstance = {
   download: (options: { extension: string }) => void
 }
 
-type QRTheme = 'classic' | 'soft-gradient' | 'chrome'
+type QRTheme = 'light' | 'dark' | 'soft-gradient'
 
 const themeStyles: Record<QRTheme, {
   cardBg: string
@@ -55,13 +56,21 @@ const themeStyles: Record<QRTheme, {
   qrColor: string
   exportBg: string
 }> = {
-  classic: {
+  light: {
     cardBg: 'bg-white',
     cardBorder: 'border-border',
     cardShadow: 'shadow-md',
     qrBg: '#ffffff',
     qrColor: '#000000',
     exportBg: '#ffffff',
+  },
+  dark: {
+    cardBg: 'bg-background',
+    cardBorder: 'border-border',
+    cardShadow: 'shadow-md',
+    qrBg: '#1f2937', // Dark background for QR
+    qrColor: '#ffffff', // White QR code on dark background
+    exportBg: '#1f2937',
   },
   'soft-gradient': {
     cardBg: 'bg-gradient-to-br from-white to-gray-100',
@@ -71,20 +80,13 @@ const themeStyles: Record<QRTheme, {
     qrColor: '#4a5568', // Soft dark gray instead of pure black
     exportBg: '#f8f9fa',
   },
-  chrome: {
-    cardBg: 'bg-background',
-    cardBorder: 'border-border',
-    cardShadow: 'shadow-md',
-    qrBg: '#1f2937', // Dark background for QR
-    qrColor: '#ffffff', // White QR code on dark background
-    exportBg: '#ffffff',
-  },
 }
 
 export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
   const [mounted, setMounted] = useState(false)
   const [qrReady, setQrReady] = useState(false)
-  const [theme, setTheme] = useState<QRTheme>('classic')
+  const [theme, setTheme] = useState<QRTheme>('light')
+  const [exportAvailable, setExportAvailable] = useState(true)
   const qrContainerRef = useRef<HTMLDivElement>(null)
   const qrCodeWrapperRef = useRef<HTMLDivElement>(null) // QR code wrapper (with border/padding)
   const cardContainerRef = useRef<HTMLDivElement>(null)
@@ -92,7 +94,7 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
   const qrLibraryRef = useRef<any>(null)
   const didAppendRef = useRef(false)
   const lastDataRef = useRef<string>('')
-  const lastThemeRef = useRef<QRTheme>('classic')
+  const lastThemeRef = useRef<QRTheme>('light')
   const isAppendingRef = useRef(false)
 
   useEffect(() => {
@@ -227,6 +229,7 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
         qrInstanceRef.current.append(qrContainerRef.current)
         didAppendRef.current = true
         setQrReady(true)
+        setExportAvailable(true)
       } catch (error) {
         console.error('Failed to append QR code:', error)
         setQrReady(false)
@@ -258,7 +261,8 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
     // Export only the QR code itself, not the wrapper with padding
     if (!qrContainerRef.current) {
       toast.error('QR code container not found')
-      return
+      setExportAvailable(false)
+      throw new Error('QR code container not found')
     }
     
     // Get the actual QR SVG element inside the container
@@ -308,9 +312,11 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
 
       // Determine background color based on theme
       let backgroundColor = currentTheme.qrBg
-      if (theme === 'chrome') {
+      if (theme === 'dark') {
         backgroundColor = '#1f2937'
       } else if (theme === 'soft-gradient') {
+        backgroundColor = '#ffffff'
+      } else {
         backgroundColor = '#ffffff'
       }
 
@@ -483,7 +489,8 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
     // Export only the QR code itself, not the wrapper with padding
     if (!qrContainerRef.current) {
       toast.error('QR code container not found')
-      return
+      setExportAvailable(false)
+      throw new Error('QR code container not found')
     }
     
     // Get the actual QR SVG element inside the container
@@ -525,9 +532,11 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
 
       // Determine background color based on theme
       let backgroundColor = currentTheme.qrBg
-      if (theme === 'chrome') {
+      if (theme === 'dark') {
         backgroundColor = '#1f2937'
       } else if (theme === 'soft-gradient') {
+        backgroundColor = '#ffffff'
+      } else {
         backgroundColor = '#ffffff'
       }
 
@@ -665,9 +674,41 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
     }
   }
 
-  const handleDownloadPNG2x = () => exportToPng(2)
-  const handleDownloadPNG4x = () => exportToPng(4)
-  const handleDownloadSVG = () => exportToSvg()
+  const handleDownloadPNG2x = async () => {
+    if (!qrReady || !exportAvailable) {
+      toast.error('Export unavailable')
+      return
+    }
+    try {
+      await exportToPng(2)
+    } catch (error) {
+      setExportAvailable(false)
+    }
+  }
+  
+  const handleDownloadPNG4x = async () => {
+    if (!qrReady || !exportAvailable) {
+      toast.error('Export unavailable')
+      return
+    }
+    try {
+      await exportToPng(4)
+    } catch (error) {
+      setExportAvailable(false)
+    }
+  }
+  
+  const handleDownloadSVG = async () => {
+    if (!qrReady || !exportAvailable) {
+      toast.error('Export unavailable')
+      return
+    }
+    try {
+      await exportToSvg()
+    } catch (error) {
+      setExportAvailable(false)
+    }
+  }
 
   const handleShare = async () => {
     if (!profileUrl) {
@@ -695,7 +736,7 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
     // Fallback to clipboard
     try {
       await navigator.clipboard.writeText(profileUrl)
-      toast.success('Link copied')
+      toast.success('Profile link copied')
     } catch (error) {
       toast.error('Copy failed')
     }
@@ -711,7 +752,18 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md bg-card border shadow-lg p-6 [&>button]:block">
+      <DialogContent className="max-w-md bg-card border shadow-lg p-0 overflow-hidden [&>button]:hidden">
+        {/* Close button - top right */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-4 right-4 z-10 h-8 w-8"
+          onClick={() => handleOpenChange(false)}
+          aria-label="Close"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+        
         <DialogTitle className="sr-only">QR Code for {displayName}</DialogTitle>
         <DialogDescription className="sr-only">
           Scan this QR code to open the profile for {displayName} ({formatAddress(profile.address, 4)})
@@ -774,38 +826,56 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="classic">Classic</SelectItem>
+                <SelectItem value="light">Light</SelectItem>
+                <SelectItem value="dark">Dark</SelectItem>
                 <SelectItem value="soft-gradient">Soft Gradient</SelectItem>
-                <SelectItem value="chrome">Chrome</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-center gap-2 w-full">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="default" size="sm" className="gap-2">
-                  <Download className="h-4 w-4" />
-                  Download
-                  <ChevronDown className="h-3.5 w-3.5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="center">
-                <DropdownMenuItem onClick={handleDownloadPNG2x}>
-                  <Download className="mr-2 h-4 w-4" />
-                  <span>PNG (2x)</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleDownloadPNG4x}>
-                  <Download className="mr-2 h-4 w-4" />
-                  <span>PNG (4x)</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleDownloadSVG}>
-                  <Download className="mr-2 h-4 w-4" />
-                  <span>SVG</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          <div className="flex items-center justify-center gap-2 w-full pt-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        className="gap-2"
+                        disabled={!exportAvailable || !qrReady}
+                      >
+                        <Download className="h-4 w-4" />
+                        Download
+                        <ChevronDown className="h-3.5 w-3.5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="center">
+                      <DropdownMenuItem 
+                        onClick={handleDownloadPNG2x}
+                        disabled={!exportAvailable || !qrReady}
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        <span>Download PNG</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={handleDownloadSVG}
+                        disabled={!exportAvailable || !qrReady}
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        <span>Download SVG</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TooltipTrigger>
+                {(!exportAvailable || !qrReady) && (
+                  <TooltipContent>
+                    <p>Export unavailable</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
             
             <Button 
               variant="outline" 

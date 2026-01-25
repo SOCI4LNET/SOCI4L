@@ -18,6 +18,12 @@ import {
   ArrowDownRight,
   ExternalLink,
   AlertCircle,
+  Copy,
+  Share2,
+  Eye,
+  Users,
+  UserPlus,
+  Link2,
 } from "lucide-react"
 import { formatAddress } from "@/lib/utils"
 import Link from "next/link"
@@ -26,6 +32,17 @@ import { toast } from "sonner"
 import { formatDistanceToNow } from "date-fns"
 import type { ActivityTransaction } from "@/lib/activity/fetchActivity"
 import { getPublicProfileHref } from "@/lib/routing"
+import { getProfileViewCount } from "@/lib/analytics"
+import { isProfileClaimed } from "@/lib/profile/isProfileClaimed"
+import { ClaimProfileButton } from "@/components/claim-profile-button"
+import { QRCodeModal } from "@/components/qr/qr-code-modal"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Twitter, QrCode } from "lucide-react"
 
 interface WalletData {
   address: string
@@ -75,77 +92,25 @@ interface OverviewPanelProps {
   onClaimSuccess?: () => void
 }
 
-interface WalletHeaderProps {
-  address: string
-  isLoading: boolean
-  lastUpdatedText?: string | null
-  publicProfileHref?: string | null
+interface QuickStats {
+  followers: number | null
+  following: number | null
+  views7d: number | null
+  totalLinks: number | null
 }
 
-function WalletHeader({
-  address,
-  isLoading,
-  lastUpdatedText,
-  publicProfileHref,
-}: WalletHeaderProps) {
-  const hasAddress = !!address
-  const shortAddress = hasAddress ? formatAddress(address, 4) : ""
 
-  return (
-    <Card className="bg-card border border-border/60 shadow-sm">
-      <CardContent className="px-4 py-3">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <Avatar className="h-9 w-9">
-              {hasAddress ? (
-                <>
-                  <AvatarImage src={`https://effigy.im/a/${address}.svg`} alt={shortAddress || address} />
-                  <AvatarFallback className="text-xs">
-                    {address.slice(2, 4).toUpperCase()}
-                  </AvatarFallback>
-                </>
-              ) : (
-                <AvatarFallback className="text-xs">??</AvatarFallback>
-              )}
-            </Avatar>
-            <div className="min-w-0">
-              {isLoading && !shortAddress ? (
-                <div className="space-y-1">
-                  <Skeleton className="h-3 w-24" />
-                  <Skeleton className="h-3 w-32" />
-                </div>
-              ) : (
-                <>
-                  <p className="text-sm font-semibold font-mono truncate">
-                    {shortAddress || "Wallet"}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground">
-                    Avalanche
-                    {lastUpdatedText ? ` • ${lastUpdatedText}` : ""}
-                  </p>
-                </>
-              )}
-            </div>
-          </div>
-
-          {publicProfileHref && (
-            <Button variant="outline" size="sm" asChild>
-              <Link href={publicProfileHref}>
-                <span className="mr-1.5">View Public Profile</span>
-                <ExternalLink className="h-3.5 w-3.5" />
-              </Link>
-            </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-export function OverviewPanel({ walletData, profile, address, loading: propLoading, error: propError, onRetry }: OverviewPanelProps) {
+export function OverviewPanel({ walletData, profile, address, loading: propLoading, error: propError, onRetry, onClaimSuccess }: OverviewPanelProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [mounted, setMounted] = useState(false)
+  const [quickStats, setQuickStats] = useState<QuickStats>({
+    followers: null,
+    following: null,
+    views7d: null,
+    totalLinks: null,
+  })
+  const [qrModalOpen, setQrModalOpen] = useState(false)
   
   // Get address from route param (primary) or prop (fallback)
   const addressMatch = pathname?.match(/\/dashboard\/(0x[a-fA-F0-9]{40})/)
@@ -156,6 +121,50 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Fetch quick stats
+  useEffect(() => {
+    if (!mounted || !normalizedAddress) return
+
+    const fetchQuickStats = async () => {
+      try {
+        // Fetch follow stats
+        const followStatsRes = await fetch(`/api/profile/${normalizedAddress}/follow-stats`, {
+          cache: 'no-store',
+        })
+        if (followStatsRes.ok) {
+          const followStats = await followStatsRes.json()
+          setQuickStats((prev) => ({
+            ...prev,
+            followers: followStats.followersCount || 0,
+            following: followStats.followingCount || 0,
+          }))
+        }
+
+        // Fetch view count (7d) from analytics
+        const views7d = getProfileViewCount(normalizedAddress, 7)
+        setQuickStats((prev) => ({
+          ...prev,
+          views7d,
+        }))
+
+        // Fetch links count
+        const linksRes = await fetch(`/api/profile/links?address=${encodeURIComponent(normalizedAddress)}`)
+        if (linksRes.ok) {
+          const linksData = await linksRes.json()
+          const enabledLinks = (linksData.links || []).filter((link: any) => link.enabled)
+          setQuickStats((prev) => ({
+            ...prev,
+            totalLinks: enabledLinks.length,
+          }))
+        }
+      } catch (error) {
+        console.error('[Overview] Error fetching quick stats:', error)
+      }
+    }
+
+    fetchQuickStats()
+  }, [mounted, normalizedAddress])
 
   const ACTIVITY_LIMIT = 7
   const ASSETS_LIMIT = 7
@@ -284,22 +293,6 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
   const isLoading = propLoading !== undefined ? propLoading : walletData === null
   const error = propError
 
-  const getLastUpdatedText = (): string | null => {
-    let lastUpdatedMs: number | null = null
-
-    if (walletData?.lastSeen) {
-      lastUpdatedMs = walletData.lastSeen * 1000
-    } else if (activityData?.items && activityData.items.length > 0) {
-      lastUpdatedMs = activityData.items[0].timestamp * 1000
-    }
-
-    if (!lastUpdatedMs) return null
-
-    return `Last updated ${formatDistanceToNow(new Date(lastUpdatedMs), { addSuffix: true })}`
-  }
-
-  const lastUpdatedText = getLastUpdatedText()
-
   // Show error state if there's an error and no data
   if (error && !walletData && !isLoading) {
     return (
@@ -332,73 +325,228 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
     )
   }
 
+  const isClaimed = isProfileClaimed(profile)
+  const displayName = profile?.displayName || formatAddress(normalizedAddress, 4)
+  const bio = profile?.bio || null
+  const publicProfileHref = normalizedAddress ? getPublicProfileHref(normalizedAddress, profile?.slug) : null
+
+  const handleCopyAddress = async () => {
+    if (!normalizedAddress) return
+    try {
+      await navigator.clipboard.writeText(normalizedAddress)
+      toast.success('Address copied')
+    } catch {
+      toast.error('Copy failed')
+    }
+  }
+
+  const handleCopyProfileLink = async () => {
+    if (!publicProfileHref) return
+    try {
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+      const profileUrl = `${baseUrl}${publicProfileHref}`
+      await navigator.clipboard.writeText(profileUrl)
+      toast.success('Profile link copied')
+    } catch {
+      toast.error('Copy failed')
+    }
+  }
+
+  const handleShareOnX = () => {
+    if (!publicProfileHref) return
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+    const profileUrl = `${baseUrl}${publicProfileHref}`
+    const shareText = 'Just claimed my SOCI4L profile on Avalanche.\n\nTrack my on-chain identity and links in one place.\n\n' + profileUrl
+    const text = encodeURIComponent(shareText)
+    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank', 'noopener,noreferrer')
+  }
+
   return (
     <PageShell title="Overview" subtitle="Wallet summary and activity">
       <div className="space-y-6">
-        <WalletHeader
-          address={normalizedAddress}
-          isLoading={isLoading}
-          lastUpdatedText={lastUpdatedText}
-          publicProfileHref={normalizedAddress ? getPublicProfileHref(normalizedAddress, profile?.slug) : undefined}
-        />
+        {/* Profile Snapshot */}
+        <Card className="bg-card border border-border/60 shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-start justify-between gap-4">
+              {/* Left: Avatar + Name/Bio */}
+              <div className="flex items-start gap-4 min-w-0 flex-1">
+                <Avatar className="h-12 w-12 flex-shrink-0">
+                  {normalizedAddress ? (
+                    <>
+                      <AvatarImage src={`https://effigy.im/a/${normalizedAddress}.svg`} alt={displayName} />
+                      <AvatarFallback className="text-xs">
+                        {normalizedAddress.slice(2, 4).toUpperCase()}
+                      </AvatarFallback>
+                    </>
+                  ) : (
+                    <AvatarFallback className="text-xs">??</AvatarFallback>
+                  )}
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  {isLoading ? (
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-48" />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h2 className="text-base font-semibold truncate">{displayName}</h2>
+                        {!isClaimed && (
+                          <ClaimProfileButton address={normalizedAddress} onSuccess={onClaimSuccess} />
+                        )}
+                      </div>
+                      {bio && (
+                        <p className="text-sm text-muted-foreground line-clamp-2">{bio}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground font-mono mt-1">
+                        {formatAddress(normalizedAddress, 4)}
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
 
-        {/* Wallet Stats */}
-        {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <Card key={i} className="bg-card border border-border/60 shadow-sm">
-                <CardContent className="p-4">
-                  <Skeleton className="h-3 w-16 mb-2" />
-                  <Skeleton className="h-7 w-24" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : walletData ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="bg-card border border-border/60 shadow-sm">
-              <CardContent className="p-4">
-                <p className="text-xs text-muted-foreground mb-2">AVAX Balance</p>
-                <p className="text-xl font-semibold tracking-tight">
-                  {parseFloat(walletData.nativeBalance).toFixed(4)} AVAX
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="bg-card border border-border/60 shadow-sm">
-              <CardContent className="p-4">
-                <p className="text-xs text-muted-foreground mb-2">Transactions</p>
-                <p className="text-xl font-semibold tracking-tight">
-                  {walletData.txCount.toLocaleString('en-US')}
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="bg-card border border-border/60 shadow-sm">
-              <CardContent className="p-4">
-                <p className="text-xs text-muted-foreground mb-2">Tokens</p>
-                <p className="text-xl font-semibold tracking-tight">
-                  {(walletData.tokenBalances?.length || 0).toLocaleString('en-US')}
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="bg-card border border-border/60 shadow-sm">
-              <CardContent className="p-4">
-                <p className="text-xs text-muted-foreground mb-2">NFTs</p>
-                <p className="text-xl font-semibold tracking-tight">
-                  {(walletData.nfts?.length || 0).toLocaleString('en-US')}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        ) : (
+              {/* Right: Quick Actions */}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon-sm"
+                        onClick={handleCopyAddress}
+                        aria-label="Copy address"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Copy address</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                {publicProfileHref && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon-sm"
+                          asChild
+                          aria-label="Open public profile"
+                        >
+                          <Link href={publicProfileHref}>
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </Link>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Open public profile</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+                {publicProfileHref && (
+                  <DropdownMenu>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="icon-sm"
+                              className="h-7 w-7"
+                              aria-label="Share profile"
+                            >
+                              <Share2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent>Share profile</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={handleCopyProfileLink}>
+                        <Copy className="mr-2 h-4 w-4" />
+                        <span>Copy profile link</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleShareOnX}>
+                        <Twitter className="mr-2 h-4 w-4" />
+                        <span>Share on X</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setQrModalOpen(true)}>
+                        <QrCode className="mr-2 h-4 w-4" />
+                        <span>Show QR code</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="bg-card border border-border/60 shadow-sm">
             <CardContent className="p-4">
-              <div className="text-center py-4">
-                <p className="text-xs font-medium mb-1">No data available</p>
-                <p className="text-xs text-muted-foreground">Unable to load wallet overview</p>
+              <div className="flex items-center gap-2 mb-1">
+                <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                <p className="text-xs text-muted-foreground">Followers</p>
               </div>
+              {quickStats.followers !== null ? (
+                <p className="text-xl font-semibold tracking-tight">
+                  {quickStats.followers > 0 ? quickStats.followers.toLocaleString('en-US') : '—'}
+                </p>
+              ) : (
+                <Skeleton className="h-7 w-16" />
+              )}
             </CardContent>
           </Card>
-        )}
+          <Card className="bg-card border border-border/60 shadow-sm">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <UserPlus className="h-3.5 w-3.5 text-muted-foreground" />
+                <p className="text-xs text-muted-foreground">Following</p>
+              </div>
+              {quickStats.following !== null ? (
+                <p className="text-xl font-semibold tracking-tight">
+                  {quickStats.following > 0 ? quickStats.following.toLocaleString('en-US') : '—'}
+                </p>
+              ) : (
+                <Skeleton className="h-7 w-16" />
+              )}
+            </CardContent>
+          </Card>
+          <Card className="bg-card border border-border/60 shadow-sm">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <Eye className="h-3.5 w-3.5 text-muted-foreground" />
+                <p className="text-xs text-muted-foreground">Views (7d)</p>
+              </div>
+              {quickStats.views7d !== null ? (
+                <p className="text-xl font-semibold tracking-tight">
+                  {quickStats.views7d > 0 ? quickStats.views7d.toLocaleString('en-US') : '—'}
+                </p>
+              ) : (
+                <Skeleton className="h-7 w-16" />
+              )}
+            </CardContent>
+          </Card>
+          <Card className="bg-card border border-border/60 shadow-sm">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <Link2 className="h-3.5 w-3.5 text-muted-foreground" />
+                <p className="text-xs text-muted-foreground">Total Links</p>
+              </div>
+              {quickStats.totalLinks !== null ? (
+                <p className="text-xl font-semibold tracking-tight">
+                  {quickStats.totalLinks > 0 ? quickStats.totalLinks.toLocaleString('en-US') : '—'}
+                </p>
+              ) : (
+                <Skeleton className="h-7 w-16" />
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
 
         {/* Recent Activity and Assets Section */}
         <div className="grid md:grid-cols-2 gap-6">
@@ -413,17 +561,16 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
+                      variant="outline"
+                      size="icon-sm"
                       onClick={() => refetchActivity()}
                       disabled={activityLoading}
-                      aria-label="Yenile"
+                      aria-label="Refresh activity"
                     >
-                      <RefreshCw className={`h-4 w-4 ${activityLoading ? 'animate-spin' : ''}`} />
+                      <RefreshCw className={`h-3.5 w-3.5 ${activityLoading ? 'animate-spin' : ''}`} />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Yenile</TooltipContent>
+                  <TooltipContent>Refresh activity</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </CardHeader>
@@ -455,7 +602,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
                 </div>
               ) : activityData?.items && activityData.items.length > 0 ? (
                 <div className="space-y-3 relative">
-                  {activityData.items.map((tx, idx) => {
+                  {activityData.items.slice(0, 5).map((tx, idx) => {
                     return (
                       <div key={tx.hash || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
                         <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
@@ -523,8 +670,8 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
                       </div>
                     )
                   })}
-                  {activityData.items.length >= ACTIVITY_LIMIT && (
-                    <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-background/90 backdrop-blur-sm pointer-events-none" />
+                  {activityData.items.length >= 5 && (
+                    <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent via-background/60 to-background pointer-events-none" />
                   )}
                   <div className="pt-2 relative z-10">
                     <Button
@@ -533,17 +680,24 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
                       className="w-full"
                       onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=activity`)}
                     >
-                      Tümünü Gör
+                      View all
                     </Button>
                   </div>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
                   <Activity className="h-10 w-10 text-muted-foreground mb-3" />
-                  <p className="text-sm font-medium mb-1">Henüz aktivite yok</p>
-                  <p className="text-xs text-muted-foreground">
-                    Bu cüzdan için henüz işlem bulunamadı.
+                  <p className="text-sm font-medium mb-1">No recent transactions detected</p>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Activity will appear as your wallet interacts on-chain.
                   </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=activity`)}
+                  >
+                    View all activity
+                  </Button>
                 </div>
               )}
             </CardContent>
@@ -560,17 +714,16 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
+                      variant="outline"
+                      size="icon-sm"
                       onClick={() => refetchAssets()}
                       disabled={assetsLoading}
-                      aria-label="Yenile"
+                      aria-label="Refresh assets"
                     >
-                      <RefreshCw className={`h-4 w-4 ${assetsLoading ? 'animate-spin' : ''}`} />
+                      <RefreshCw className={`h-3.5 w-3.5 ${assetsLoading ? 'animate-spin' : ''}`} />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Yenile</TooltipContent>
+                  <TooltipContent>Refresh assets</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </CardHeader>
@@ -656,22 +809,43 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
                       className="w-full"
                       onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=assets&assetTab=tokens`)}
                     >
-                      Tümünü Gör
+                      View all
                     </Button>
                   </div>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
                   <Coins className="h-10 w-10 text-muted-foreground mb-3" />
-                  <p className="text-sm font-medium mb-1">Varlık bulunamadı</p>
-                  <p className="text-xs text-muted-foreground">
-                    Bu cüzdan için token veya NFT bulunamadı.
+                  <p className="text-sm font-medium mb-1">No assets detected</p>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Tokens and NFTs will appear here once this wallet holds assets.
                   </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=assets&assetTab=tokens`)}
+                  >
+                    View all assets
+                  </Button>
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
+
+        {/* QR Code Modal */}
+        {normalizedAddress && publicProfileHref && (
+          <QRCodeModal
+            open={qrModalOpen}
+            onOpenChange={setQrModalOpen}
+            profile={{
+              address: normalizedAddress,
+              slug: profile?.slug || null,
+              displayName: profile?.displayName || null,
+              avatarUrl: `https://effigy.im/a/${normalizedAddress}.svg`,
+            }}
+          />
+        )}
       </div>
     </PageShell>
   )

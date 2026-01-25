@@ -28,6 +28,7 @@ export type AnalyticsEvent =
       type: 'link_click'
       profileId: string
       linkId: string
+      categoryId?: string | null
       ts: number
       source: AnalyticsSource
     }
@@ -60,8 +61,9 @@ function shouldLogProfileView(profileId: string): boolean {
       return false
     }
 
-    // Short TTL guard to avoid accidental duplicates
-    if (lastTs && now - lastTs < 10_000) {
+    // Dedupe window: 30 minutes per profile per sessionKey
+    const DEDUPE_WINDOW_MS = 30 * 60 * 1000 // 30 minutes
+    if (lastTs && now - lastTs < DEDUPE_WINDOW_MS) {
       return false
     }
 
@@ -76,7 +78,9 @@ function shouldLogProfileView(profileId: string): boolean {
       const raw = window.localStorage.getItem(tsKey)
       const lastTs = raw ? Number(raw) || 0 : 0
 
-      if (lastTs && now - lastTs < 10_000) {
+      // Dedupe window: 30 minutes per profile per sessionKey
+      const DEDUPE_WINDOW_MS = 30 * 60 * 1000 // 30 minutes
+      if (lastTs && now - lastTs < DEDUPE_WINDOW_MS) {
         return false
       }
 
@@ -167,7 +171,8 @@ export function trackProfileView(
 export function trackLinkClick(
   profileId: string,
   linkId: string,
-  source: AnalyticsSource = 'unknown'
+  source: AnalyticsSource = 'unknown',
+  categoryId?: string | null
 ): void {
   if (!profileId || !linkId) return
 
@@ -175,6 +180,7 @@ export function trackLinkClick(
     type: 'link_click',
     profileId,
     linkId,
+    categoryId: categoryId || null,
     ts: Date.now(),
     source,
   }
@@ -186,6 +192,61 @@ export function getEventsForProfile(profileId: string): AnalyticsEvent[] {
   if (!profileId) return []
   const all = readEventsFromStorage()
   return all.filter((event) => event.profileId === profileId)
+}
+
+/**
+ * Get profile view count for a specific time range
+ * @param profileId - Profile address or ID
+ * @param days - Number of days to look back (default: 7)
+ * @returns Count of profile views in the specified time range
+ */
+export function getProfileViewCount(profileId: string, days: number = 7): number {
+  if (!profileId) return 0
+  const events = getEventsForProfile(profileId)
+  const now = Date.now()
+  const fromTs = now - days * 24 * 60 * 60 * 1000
+  
+  return events.filter(
+    (e): e is Extract<AnalyticsEvent, { type: 'profile_view' }> =>
+      e.type === 'profile_view' && e.ts >= fromTs
+  ).length
+}
+
+/**
+ * Get profile view count breakdown by source for a specific time range
+ * @param profileId - Profile address or ID
+ * @param days - Number of days to look back (default: 7)
+ * @returns Map of source to count
+ */
+export function getProfileViewCountBySource(
+  profileId: string,
+  days: number = 7
+): Record<AnalyticsSource, number> {
+  if (!profileId) {
+    return { profile: 0, qr: 0, copy: 0, unknown: 0 }
+  }
+  
+  const events = getEventsForProfile(profileId)
+  const now = Date.now()
+  const fromTs = now - days * 24 * 60 * 60 * 1000
+  
+  const views = events.filter(
+    (e): e is Extract<AnalyticsEvent, { type: 'profile_view' }> =>
+      e.type === 'profile_view' && e.ts >= fromTs
+  )
+  
+  const breakdown: Record<AnalyticsSource, number> = {
+    profile: 0,
+    qr: 0,
+    copy: 0,
+    unknown: 0,
+  }
+  
+  for (const view of views) {
+    breakdown[view.source] = (breakdown[view.source] || 0) + 1
+  }
+  
+  return breakdown
 }
 
 /**

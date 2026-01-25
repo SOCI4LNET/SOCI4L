@@ -3,6 +3,7 @@ export type ProfileLink = {
   title: string
   url: string
   enabled: boolean
+  categoryId?: string | null
   createdAt: string
   updatedAt: string
 }

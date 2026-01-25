@@ -2,21 +2,28 @@
 
 import React, { useEffect, useState, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useAccount } from 'wagmi'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { formatAddress, isValidAddress } from '@/lib/utils'
+import { getPublicProfileHref } from '@/lib/routing'
 import Link from 'next/link'
-import { ExternalLink, Twitter, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight } from 'lucide-react'
+import { ExternalLink, Twitter, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Eye, Share2 } from 'lucide-react'
 import { ClaimProfileButton } from '@/components/claim-profile-button'
-import { PublicProfileShareMenu } from '@/components/public-profile-share-menu'
 import { FollowToggle, FollowStats } from '@/components/follow-toggle'
 import { QRCodeModal } from '@/components/qr/qr-code-modal'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
-import { trackProfileView, trackLinkClick, getSourceFromUrl } from '@/lib/analytics'
+import { trackProfileView, trackLinkClick, getSourceFromUrl, getProfileViewCount } from '@/lib/analytics'
 import { type ProfileLink } from '@/lib/profile-links'
 import {
   type ProfileLayoutConfig,
@@ -72,6 +79,7 @@ interface WalletData {
 export default function ProfilePage({ params }: PageProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { address: connectedAddress } = useAccount()
   const [walletData, setWalletData] = useState<WalletData | null>(null)
   const [profileStatus, setProfileStatus] = useState<'UNCLAIMED' | 'CLAIMED+PUBLIC' | 'CLAIMED+PRIVATE'>('UNCLAIMED')
   const [profile, setProfile] = useState<{ 
@@ -85,6 +93,7 @@ export default function ProfilePage({ params }: PageProps) {
   const [error, setError] = useState<string | null>(null)
   const [qrModalOpen, setQrModalOpen] = useState(false)
   const [profileLinks, setProfileLinks] = useState<ProfileLink[]>([])
+  const [linkCategories, setLinkCategories] = useState<Array<{ id: string; name: string; slug: string; description: string | null; order: number; isVisible?: boolean }>>([])
   // useRef guard to prevent double tracking (React Strict Mode + hydration safe)
   // Stores the profile ID that was already tracked to detect profile changes
   const trackedProfileIdRef = useRef<string | null>(null)
@@ -93,6 +102,7 @@ export default function ProfilePage({ params }: PageProps) {
   const [layoutConfig, setLayoutConfig] = useState<ProfileLayoutConfig | null>(null)
   const [appearanceConfig, setAppearanceConfig] = useState<ProfileAppearanceConfig | null>(null)
   const linksBlockRef = useRef<HTMLDivElement>(null)
+  const [viewCount, setViewCount] = useState<number | null>(null)
 
   const addressFromProfile = profile?.address && isValidAddress(profile.address)
     ? profile.address.toLowerCase()
@@ -179,11 +189,26 @@ export default function ProfilePage({ params }: PageProps) {
                 title: link.title || '',
                 url: link.url,
                 enabled: link.enabled,
+                categoryId: link.categoryId || null,
                 order: link.order || 0,
                 createdAt: link.createdAt || new Date().toISOString(),
                 updatedAt: link.updatedAt || new Date().toISOString(),
               }))
             setProfileLinks(enabledLinks)
+          }
+
+          // Load categories from API response
+          if (data.categories && Array.isArray(data.categories)) {
+            setLinkCategories(data.categories.map((cat: any) => ({
+              id: cat.id,
+              name: cat.name,
+              slug: cat.slug,
+              description: cat.description || null,
+              order: cat.order || 0,
+              isVisible: cat.isVisible ?? true, // Default to true if not provided
+            })))
+          } else {
+            setLinkCategories([])
           }
 
           // Load layout config from API response
@@ -228,6 +253,7 @@ export default function ProfilePage({ params }: PageProps) {
   // Track profile view (MVP - local analytics)
   // useRef guard prevents double tracking in React Strict Mode / hydration
   // Tracks per profile ID to handle slug -> address transitions
+  // Ignore owner self-views (privacy-first: owner viewing their own profile doesn't count)
   useEffect(() => {
     // Guard: only track on client
     if (typeof window === 'undefined') return
@@ -244,13 +270,35 @@ export default function ProfilePage({ params }: PageProps) {
       return
     }
 
+    // Guard: ignore owner self-views (privacy-first: owner viewing their own profile doesn't count)
+    if (connectedAddress && stableProfileId) {
+      const normalizedConnected = connectedAddress.toLowerCase()
+      const normalizedProfileId = stableProfileId.toLowerCase()
+      if (normalizedConnected === normalizedProfileId) {
+        // Owner viewing their own profile - don't track
+        return
+      }
+    }
+
     // Track view with source attribution from URL query params
     const source = getSourceFromUrl(searchParams)
     trackProfileView(stableProfileId, source)
     
     // Mark as tracked for this profile ID to prevent double invoke
     trackedProfileIdRef.current = stableProfileId
-  }, [stableProfileId, searchParams])
+  }, [stableProfileId, searchParams, connectedAddress])
+
+  // Load view count (7 days) for display
+  useEffect(() => {
+    if (!stableProfileId || typeof window === 'undefined') {
+      setViewCount(null)
+      return
+    }
+
+    // Get view count for last 7 days
+    const count = getProfileViewCount(stableProfileId, 7)
+    setViewCount(count)
+  }, [stableProfileId])
 
   const getStatusBadge = () => {
     const baseClass = 'text-[11px] px-2 py-0 font-normal'
@@ -335,6 +383,19 @@ export default function ProfilePage({ params }: PageProps) {
     try {
       await navigator.clipboard.writeText(resolvedAddress)
       toast.success('Address copied')
+    } catch {
+      toast.error('Copy failed')
+    }
+  }
+
+  const handleCopyProfileLink = async () => {
+    if (!resolvedAddress) return
+    try {
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+      const profilePath = getPublicProfileHref(resolvedAddress, profile?.slug)
+      const profileUrl = `${baseUrl}${profilePath}`
+      await navigator.clipboard.writeText(profileUrl)
+      toast.success('Profile link copied')
     } catch {
       toast.error('Copy failed')
     }
@@ -568,39 +629,87 @@ export default function ProfilePage({ params }: PageProps) {
                             <FollowStats address={resolvedAddress} />
                           </span>
                         )}
+                        {resolvedAddress && isValidAddress(resolvedAddress) && (
+                          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Eye className="h-3.5 w-3.5" />
+                            <span className="font-medium">Views</span>
+                            {viewCount !== null ? (
+                              <span className="font-semibold text-foreground">{viewCount}</span>
+                            ) : (
+                              <Skeleton className="h-3.5 w-6" />
+                            )}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
-                  {/* Right: Actions (Follow, QR, Share, Claim) */}
+                  {/* Right: Actions (Follow, Share, Claim) */}
                   <div className="flex items-center gap-2 flex-shrink-0 flex-wrap sm:justify-end">
                     {resolvedAddress && isValidAddress(resolvedAddress) && (
                       <FollowToggle address={resolvedAddress} />
+                    )}
+                    {resolvedAddress && isValidAddress(resolvedAddress) && (
+                      <DropdownMenu>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  className="h-8"
+                                >
+                                  <Share2 className="mr-2 h-4 w-4" />
+                                  Share profile
+                                </Button>
+                              </DropdownMenuTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent>Share profile</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={handleCopyProfileLink}>
+                            <Copy className="mr-2 h-4 w-4" />
+                            <span>Copy profile link</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => {
+                            const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+                            const profilePath = getPublicProfileHref(resolvedAddress, profile?.slug)
+                            const profileUrl = `${baseUrl}${profilePath}`
+                            const shareText = 'Just claimed my SOCI4L profile on Avalanche.\n\nTrack my on-chain identity and links in one place.\n\n' + profileUrl
+                            const text = encodeURIComponent(shareText)
+                            window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank', 'noopener,noreferrer')
+                          }}>
+                            <Twitter className="mr-2 h-4 w-4" />
+                            <span>Share on X</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setQrModalOpen(true)}>
+                            <QrCode className="mr-2 h-4 w-4" />
+                            <span>Show QR code</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     )}
                     {resolvedAddress && isValidAddress(resolvedAddress) && (
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button
-                              variant="outline"
+                              variant="ghost"
                               size="icon-sm"
-                              onClick={() => setQrModalOpen(true)}
-                              aria-label="QR Code"
+                              onClick={handleCopyProfileLink}
+                              aria-label="Copy profile link"
                               className="h-7 w-7"
                             >
-                              <QrCode className="h-3.5 w-3.5" />
+                              <Copy className="h-3.5 w-3.5" />
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>QR Code</p>
+                            <p>Copy profile link</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     )}
-                    <PublicProfileShareMenu 
-                      address={profile?.address || params.id} 
-                      slug={profile?.slug}
-                      onOpenQR={() => setQrModalOpen(true)}
-                    />
                     {profileStatus === 'UNCLAIMED' && profile?.address && (
                       <ClaimProfileButton address={profile.address} onSuccess={handleClaimSuccess} />
                     )}
@@ -641,19 +750,33 @@ export default function ProfilePage({ params }: PageProps) {
 
                 const allLinks: UnifiedLink[] = []
 
-                // Add custom links (default to "Featured" category)
+                // Create category map for quick lookup
+                const categoryMap = new Map<string, { id: string; name: string; order: number }>()
+                linkCategories.forEach((cat) => {
+                  categoryMap.set(cat.id, { id: cat.id, name: cat.name, order: cat.order })
+                })
+
+                // Find default category (usually "General")
+                const defaultCategory = linkCategories.find(cat => cat.slug === 'general') || linkCategories[0]
+                const defaultCategoryName = defaultCategory?.name || 'Links'
+
+                // Add custom profile links with their categories
                 enabledProfileLinks.forEach((link, index) => {
+                  // Links without category go to "Uncategorized"
+                  const category = link.categoryId && categoryMap.has(link.categoryId)
+                    ? categoryMap.get(link.categoryId)!.name
+                    : 'Uncategorized'
                   allLinks.push({
                     id: link.id,
                     title: link.title || link.url,
                     url: link.url,
-                    category: 'Featured', // Default category for custom links
+                    category,
                     type: 'featured',
                     order: link.order || index,
                   })
                 })
 
-                // Add social links to "Socials" category
+                // Add social links to "Socials" category (keep as special category)
                 if (profile?.socialLinks && profile.socialLinks.length > 0) {
                   profile.socialLinks.forEach((link, index) => {
                     allLinks.push({
@@ -680,17 +803,49 @@ export default function ProfilePage({ params }: PageProps) {
                   linksByCategory.get(link.category)!.push(link)
                 })
 
-                // Sort categories: Featured first, then Socials, then others alphabetically
-                const categoryOrder = ['Featured', 'Socials']
-                const categories = Array.from(linksByCategory.keys()).sort((a, b) => {
-                  const indexA = categoryOrder.indexOf(a)
-                  const indexB = categoryOrder.indexOf(b)
-                  if (indexA !== -1 && indexB !== -1) return indexA - indexB
-                  if (indexA !== -1) return -1
-                  if (indexB !== -1) return 1
-                  return a.localeCompare(b)
+                // Sort categories: Use category order from database, then Socials, then Uncategorized last
+                const categoryOrderMap = new Map<string, number>()
+                linkCategories.forEach((cat) => {
+                  categoryOrderMap.set(cat.name, cat.order)
                 })
+                
+                const categories = Array.from(linksByCategory.keys())
+                  .filter(cat => {
+                    // Only show categories that have links
+                    const categoryLinks = linksByCategory.get(cat) || []
+                    if (categoryLinks.length === 0) return false
+                    
+                    // "Uncategorized" and "Socials" are always visible (they're virtual categories)
+                    if (cat === 'Uncategorized' || cat === 'Socials') return true
+                    
+                    // Check visibility for database categories
+                    const categoryData = linkCategories.find(c => c.name === cat)
+                    // If category exists in database, check visibility. If not found, show it (might be a new category)
+                    if (categoryData) {
+                      return categoryData.isVisible !== false // Default to true if undefined
+                    }
+                    
+                    // If category not found in database, show it (might be a legacy category)
+                    return true
+                  })
+                  .sort((a, b) => {
+                    // Uncategorized always comes last
+                    if (a === 'Uncategorized') return 1
+                    if (b === 'Uncategorized') return -1
+                    // Socials comes before Uncategorized
+                    if (a === 'Socials') return 1
+                    if (b === 'Socials') return -1
+                    
+                    const orderA = categoryOrderMap.get(a) ?? 999
+                    const orderB = categoryOrderMap.get(b) ?? 999
+                    if (orderA !== orderB) return orderA - orderB
+                    return a.localeCompare(b)
+                  })
+                
                 const totalLinks = allLinks.length
+                
+                // Show category headers if more than one category, or if the only category is not "Uncategorized"
+                const shouldShowCategoryHeaders = categories.length > 1 || (categories.length === 1 && categories[0] !== 'Uncategorized')
 
                 return (
                   <Card 
@@ -724,24 +879,37 @@ export default function ProfilePage({ params }: PageProps) {
                     </CardHeader>
                     <CardContent>
                       {totalLinks === 0 ? (
-                        <p className="text-xs text-muted-foreground text-center py-4">
-                          No public links enabled
-                        </p>
+                        <div className="flex flex-col items-center justify-center py-8 text-center">
+                          <Link2 className="h-8 w-8 text-muted-foreground mb-2" />
+                          <p className="text-sm text-muted-foreground">
+                            This profile hasn't shared any links yet.
+                          </p>
+                        </div>
                       ) : (
                         <div className="space-y-4">
                           {categories.map((category) => {
                             const categoryLinks = linksByCategory.get(category) || []
+                            const categoryData = linkCategories.find(cat => cat.name === category)
                             return (
                               <div key={category} className="space-y-2">
-                                <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                  {category}
-                                </h3>
+                                {shouldShowCategoryHeaders && (
+                                  <>
+                                    <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                      {category}
+                                    </h3>
+                                    {categoryData?.description && (
+                                      <p className="text-xs text-muted-foreground">{categoryData.description}</p>
+                                    )}
+                                  </>
+                                )}
                                 <div className="space-y-2">
                                   {categoryLinks.map((link) => {
                                     const handleLinkClick = () => {
                                       if (stableProfileId && link.id) {
+                                        // Find categoryId for this link
+                                        const linkCategoryId = enabledProfileLinks.find(l => l.id === link.id)?.categoryId || null
                                         // Links clicked from profile page always have source="profile"
-                                        trackLinkClick(stableProfileId, link.id, 'profile')
+                                        trackLinkClick(stableProfileId, link.id, 'profile', linkCategoryId)
                                       }
                                     }
                                     
@@ -851,7 +1019,12 @@ export default function ProfilePage({ params }: PageProps) {
                           </div>
                         ))
                       ) : (
-                        <p className="text-sm text-muted-foreground">No recent transactions</p>
+                        <div className="flex flex-col items-center justify-center py-6 text-center">
+                          <Activity className="h-8 w-8 text-muted-foreground mb-2" />
+                          <p className="text-sm text-muted-foreground">
+                            No recent transactions
+                          </p>
+                        </div>
                       )}
                     </CardContent>
                   </Card>
@@ -889,7 +1062,7 @@ export default function ProfilePage({ params }: PageProps) {
                             </div>
                           ))
                         ) : (
-                          <p className="text-xs text-muted-foreground">No tokens found</p>
+                          <p className="text-xs text-muted-foreground">—</p>
                         )}
                       </div>
                       <div className="pt-4 border-t">
@@ -908,7 +1081,7 @@ export default function ProfilePage({ params }: PageProps) {
                             </div>
                           ))
                         ) : (
-                          <p className="text-xs text-muted-foreground">No NFTs found</p>
+                          <p className="text-xs text-muted-foreground">—</p>
                         )}
                       </div>
                       {walletData.address && (

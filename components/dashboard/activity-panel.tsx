@@ -346,24 +346,26 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
             <div className="flex flex-col items-center justify-center text-center space-y-3">
               <Activity className="h-10 w-10 text-muted-foreground" />
               <div>
-                <p className="text-sm font-medium mb-1">No recent transactions found.</p>
+                <p className="text-sm font-medium mb-1">No recent transactions detected</p>
                 <p className="text-xs text-muted-foreground">
                   This wallet hasn’t interacted with the Avalanche network recently.
                 </p>
               </div>
               <div className="flex items-center justify-center gap-2 pt-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setDateRange('all')
-                    setType('all')
-                    setDirection('all')
-                    setSearchQuery('')
-                  }}
-                >
-                  Clear filters
-                </Button>
+                {(searchQuery || dateRange !== 'all' || type !== 'all' || direction !== 'all') && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setDateRange('all')
+                      setType('all')
+                      setDirection('all')
+                      setSearchQuery('')
+                    }}
+                  >
+                    Clear filters
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   size="sm"

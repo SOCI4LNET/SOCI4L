@@ -103,6 +103,9 @@ export async function GET(request: NextRequest) {
       updatedAt: string
     }> = []
     
+    // Load categories (only visible ones for public profile)
+    let categories: Array<{ id: string; name: string; slug: string; description: string | null; order: number }> = []
+    
     // Get layout config
     let layoutConfig: ProfileLayoutConfig = getDefaultProfileLayout()
     
@@ -110,26 +113,62 @@ export async function GET(request: NextRequest) {
       const profileId = fullProfile?.id || profile?.id
       
       if (profileId) {
-        const links = await prisma.profileLink.findMany({
-          where: {
-            profileId: profileId,
-            enabled: true,
-          },
-          orderBy: [
-            { order: 'asc' },
-            { createdAt: 'asc' }, // Fallback to createdAt if order is same
-          ],
-        })
-        
-        profileLinks = links.map((link) => ({
-          id: link.id,
-          title: link.title,
-          url: link.url,
-          enabled: link.enabled,
-          order: link.order,
-          createdAt: link.createdAt.toISOString(),
-          updatedAt: link.updatedAt.toISOString(),
-        }))
+        try {
+          const links = await prisma.profileLink.findMany({
+            where: {
+              profileId: profileId,
+              enabled: true,
+            },
+            orderBy: [
+              { order: 'asc' },
+              { createdAt: 'asc' }, // Fallback to createdAt if order is same
+            ],
+          })
+          
+          profileLinks = links.map((link) => ({
+            id: link.id,
+            title: link.title,
+            url: link.url,
+            enabled: link.enabled,
+            order: link.order,
+            categoryId: link.categoryId || null,
+            createdAt: link.createdAt.toISOString(),
+            updatedAt: link.updatedAt.toISOString(),
+          }))
+        } catch (linksError) {
+          console.error('[Wallet API] Error loading links:', linksError)
+          // Continue without links if there's an error
+          profileLinks = []
+        }
+      }
+
+      // Load all categories (frontend will filter by visibility)
+      // We need all categories to properly map links to their categories
+      try {
+        const profileId = fullProfile?.id || profile?.id
+        if (profileId) {
+          const categoryData = await prisma.linkCategory.findMany({
+            where: {
+              profileId: profileId,
+            },
+            orderBy: [
+              { order: 'asc' },
+              { createdAt: 'asc' },
+            ],
+          })
+          categories = categoryData.map((cat) => ({
+            id: cat.id,
+            name: cat.name,
+            slug: cat.slug,
+            description: cat.description || null,
+            order: cat.order,
+            isVisible: cat.isVisible ?? true,
+          }))
+        }
+      } catch (categoryError) {
+        console.error('[Wallet API] Error loading categories:', categoryError)
+        // Continue without categories if there's an error
+        categories = []
       }
 
       // Parse layout config from fullProfile (which has layoutConfig field)
@@ -193,6 +232,7 @@ export async function GET(request: NextRequest) {
         })() : null,
       } : null,
       links: profileLinks,
+      categories: categories || [],
       layout: layoutConfig,
       appearance: appearanceConfig,
     }

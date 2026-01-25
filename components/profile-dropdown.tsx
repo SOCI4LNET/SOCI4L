@@ -216,15 +216,15 @@ export function ProfileDropdown() {
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleCopyAddress}>
           <Copy className="mr-2 h-4 w-4" />
-          <span>Copy Address</span>
+          <span>Copy address</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleShare} disabled={!publicProfileHref}>
           <Share2 className="mr-2 h-4 w-4" />
-          <span>Share</span>
+          <span>Share profile</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setQrModalOpen(true)}>
           <QrCode className="mr-2 h-4 w-4" />
-          <span>QR Code</span>
+          <span>Show QR code</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleDisconnect} className="text-destructive focus:text-destructive">

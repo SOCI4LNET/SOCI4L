@@ -37,6 +37,7 @@ import {
   Coins,
   Image as ImageIcon,
   FileText,
+  Activity,
 } from 'lucide-react'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -213,7 +214,7 @@ export default function DashboardPage() {
     const url = getShareUrl(connectedAddress, summaryData?.profile?.slug)
     try {
       await navigator.clipboard.writeText(url)
-      toast.success('Link copied')
+      toast.success('Profile link copied')
     } catch {
       toast.error('Copy failed')
     }
@@ -222,8 +223,9 @@ export default function DashboardPage() {
   const handleShareTwitter = () => {
     if (!connectedAddress) return
     const url = getShareUrl(connectedAddress, summaryData?.profile?.slug)
-    const text = encodeURIComponent(`Check out my Avalanche profile!`)
-    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(url)}`, '_blank')
+    const shareText = 'Just claimed my SOCI4L profile on Avalanche.\n\nTrack my on-chain identity and links in one place.\n\n' + url
+    const text = encodeURIComponent(shareText)
+    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank', 'noopener,noreferrer')
   }
 
   const getSocialIcon = (type: string) => {
@@ -445,7 +447,7 @@ export default function DashboardPage() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleCopyLink}>
                     <Copy className="mr-2 h-4 w-4" />
-                    Copy link
+                    Copy profile link
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -546,7 +548,9 @@ export default function DashboardPage() {
             ) : (
               <>
                 <p className="text-xs text-muted-foreground mb-1">Transactions</p>
-                <p className="text-lg font-semibold">{summaryData?.txCount || 0}</p>
+                <p className="text-lg font-semibold">
+                  {summaryData?.txCount !== undefined ? summaryData.txCount.toLocaleString('en-US') : '—'}
+                </p>
               </>
             )}
           </CardContent>
@@ -585,7 +589,9 @@ export default function DashboardPage() {
             ) : (
               <>
                 <p className="text-xs text-muted-foreground mb-1">Tokens</p>
-                <p className="text-lg font-semibold">{summaryData?.tokenCount || 0}</p>
+                <p className="text-lg font-semibold">
+                  {summaryData?.tokenCount !== undefined ? summaryData.tokenCount.toLocaleString('en-US') : '—'}
+                </p>
               </>
             )}
           </CardContent>
@@ -624,7 +630,9 @@ export default function DashboardPage() {
             ) : (
               <>
                 <p className="text-xs text-muted-foreground mb-1">NFTs</p>
-                <p className="text-lg font-semibold">{summaryData?.nftCount || 0}</p>
+                <p className="text-lg font-semibold">
+                  {summaryData?.nftCount !== undefined ? summaryData.nftCount.toLocaleString('en-US') : '—'}
+                </p>
               </>
             )}
           </CardContent>
@@ -766,20 +774,19 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-8 text-center">
-                <p className="text-sm font-medium mb-1">No recent activity found</p>
+                <Activity className="h-10 w-10 text-muted-foreground mb-3" />
+                <p className="text-sm font-medium mb-1">No recent transactions detected</p>
                 <p className="text-xs text-muted-foreground mb-4">
-                  {isConnected ? 'No transactions detected yet' : 'Connect a wallet to see activity'}
+                  Activity will appear as your wallet interacts on-chain.
                 </p>
-                {isConnected && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => refetchActivity()}
-                  >
-                    <RefreshCw className="mr-2 h-3 w-3" />
-                    Refresh
-                  </Button>
-                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refetchActivity()}
+                >
+                  <RefreshCw className="mr-2 h-3 w-3" />
+                  Refresh
+                </Button>
               </div>
             )}
           </CardContent>
@@ -883,9 +890,10 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-8 text-center">
-                <p className="text-sm font-medium mb-1">No tokens or NFTs detected</p>
+                <Coins className="h-10 w-10 text-muted-foreground mb-3" />
+                <p className="text-sm font-medium mb-1">No assets detected</p>
                 <p className="text-xs text-muted-foreground mb-4">
-                  This wallet has no tokens or NFTs to display
+                  Tokens and NFTs will appear here once this wallet holds assets.
                 </p>
                 <Button
                   variant="outline"

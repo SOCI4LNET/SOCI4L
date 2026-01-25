@@ -73,14 +73,14 @@ export function PublicProfileShareMenu({ address, slug, onOpenQR }: PublicProfil
     // Build final URL (replace localhost with production URL if needed)
     const finalUrl = profileUrl.replace(window.location.origin, baseUrl)
 
-    // Share copy with blank line before link
+    // Share copy with line breaks - link on its own line
     const shareText =
       'Just claimed my SOCI4L profile on Avalanche.\n\n' +
-      'Track my on-chain identity and links in one place.\n\n'
+      'Track my on-chain identity and links in one place.\n\n' +
+      finalUrl
 
     const text = encodeURIComponent(shareText)
-    const url = encodeURIComponent(finalUrl)
-    const intentUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`
+    const intentUrl = `https://twitter.com/intent/tweet?text=${text}`
 
     if (typeof window !== 'undefined') {
       window.open(intentUrl, '_blank', 'noopener,noreferrer')
@@ -93,7 +93,7 @@ export function PublicProfileShareMenu({ address, slug, onOpenQR }: PublicProfil
 
     try {
       await navigator.clipboard.writeText(profileUrl)
-      toast.success('Link copied')
+      toast.success('Profile link copied')
     } catch (error) {
       toast.error('Copy failed')
     }
@@ -165,7 +165,7 @@ export function PublicProfileShareMenu({ address, slug, onOpenQR }: PublicProfil
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleOpenQR}>
                 <QrCode className="mr-2 h-4 w-4" />
-                <span>QR Code</span>
+                <span>Show QR code</span>
               </DropdownMenuItem>
               {supportsShare && (
                 <>

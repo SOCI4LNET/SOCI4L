@@ -10,7 +10,15 @@ import { PageShell } from '@/components/app-shell/page-shell'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-import { getEventsForProfile, type AnalyticsEvent } from '@/lib/analytics'
+import { Badge } from '@/components/ui/badge'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
+import { getEventsForProfile, getProfileViewCountBySource, type AnalyticsEvent, type AnalyticsSource } from '@/lib/analytics'
 import {
   LINK_CATEGORIES_STORAGE_KEY,
   type LinkCategory,
@@ -85,6 +93,7 @@ type GlobalAnalytics = {
   categoryRows: CategoryRow[]
   maxCategoryClicks: number
   recentActivity: RecentActivity[]
+  sourceBreakdown: Record<AnalyticsSource, number>
 }
 
 type InsightsPanelProps = {
@@ -164,6 +173,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
   const [layoutConfig, setLayoutConfig] = useState<ProfileLayoutConfig | null>(null)
   const [profile, setProfile] = useState<{ slug?: string | null } | null>(null)
   const [loading, setLoading] = useState(true)
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
 
   useEffect(() => {
     setCategories(loadCategoriesFromStorage())
@@ -245,6 +255,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
         categoryRows: [],
         maxCategoryClicks: 0,
         recentActivity: [],
+        sourceBreakdown: { profile: 0, qr: 0, copy: 0, unknown: 0 },
       }
     }
 
@@ -282,6 +293,17 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
     const totalProfileViews = profileViewEventsInRange.length
     const totalLinkClicks = linkClickEventsInRange.length
     const ctr = totalProfileViews > 0 ? totalLinkClicks / totalProfileViews : null
+
+    // Calculate source breakdown for profile views
+    const sourceBreakdown: Record<AnalyticsSource, number> = {
+      profile: 0,
+      qr: 0,
+      copy: 0,
+      unknown: 0,
+    }
+    for (const view of profileViewEventsInRange) {
+      sourceBreakdown[view.source] = (sourceBreakdown[view.source] || 0) + 1
+    }
 
     const linkById = new Map<string, LinkItem>()
     links.forEach((link) => {
@@ -376,7 +398,10 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
 
     for (const event of linkClickEventsInRange) {
       const link = linkById.get(event.linkId)
-      const rawCategoryId = (link as LinkItem | undefined)?.categoryId
+      // Prefer categoryId from event (for historical data), fallback to link's categoryId
+      const eventCategoryId = event.categoryId
+      const linkCategoryId = (link as LinkItem | undefined)?.categoryId
+      const rawCategoryId = eventCategoryId || linkCategoryId
 
       const effectiveCategoryId =
         typeof rawCategoryId === 'string' && rawCategoryId && categoryMap.has(rawCategoryId)
@@ -442,6 +467,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
       categoryRows,
       maxCategoryClicks,
       recentActivity,
+      sourceBreakdown,
     }
   }, [address, range, links, categories])
 
@@ -660,6 +686,78 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
           </Card>
         </div>
 
+        {/* Profile Views with Source Breakdown */}
+        <Card className="bg-card border border-border/60 shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">Profile Views</CardTitle>
+            <CardDescription className="text-xs">
+              View count and source breakdown for the selected time range.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-baseline gap-2">
+                <p className="text-3xl font-semibold">{totalViewsLabel}</p>
+                <p className="text-xs text-muted-foreground">total views</p>
+              </div>
+              
+              {analytics.totalProfileViews === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
+                  <Activity className="h-10 w-10 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium mb-1">No views in the selected time range</p>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      Try selecting a different time range or share your profile to get started.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => router.push(`/p/${address}`)}
+                  >
+                    <Share2 className="mr-2 h-3.5 w-3.5" />
+                    View public profile
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Source breakdown</p>
+                  <div className="space-y-1.5">
+                    {Object.entries(analytics.sourceBreakdown)
+                      .filter(([_, count]) => count > 0)
+                      .sort(([_, a], [__, b]) => b - a)
+                      .map(([source, count]) => {
+                        const percentage = analytics.totalProfileViews > 0
+                          ? Math.round((count / analytics.totalProfileViews) * 100)
+                          : 0
+                        const sourceLabel = source === 'profile' ? 'Profile' 
+                          : source === 'qr' ? 'QR Code'
+                          : source === 'copy' ? 'Copy Link'
+                          : 'Unknown'
+                        
+                        return (
+                          <div
+                            key={source}
+                            className="flex items-center justify-between rounded-md border border-border/40 bg-background/60 px-3 py-2 text-xs"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{sourceLabel}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-muted-foreground">{percentage}%</span>
+                              <span className="font-semibold">{count.toLocaleString('en-US')}</span>
+                            </div>
+                          </div>
+                        )
+                      })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Top Links */}
         <Card className="bg-card border border-border/60 shadow-sm">
           <CardHeader className="pb-3">
@@ -755,12 +853,33 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
           </CardHeader>
           <CardContent>
             {!analytics.hasAnyLinkClicksEver ? (
-              <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-6 text-center text-xs text-muted-foreground">
-                No activity yet. Share your profile to start tracking.
+              <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
+                <BarChart2 className="h-10 w-10 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium mb-1">No category data yet</p>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Share your profile to start collecting clicks.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push(`/p/${address}`)}
+                >
+                  <Share2 className="mr-2 h-3.5 w-3.5" />
+                  View public profile
+                </Button>
               </div>
             ) : analytics.categoryRows.length === 0 || analytics.categoryRows.every((r) => r.totalClicks === 0) ? (
-              <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-6 text-center text-xs text-muted-foreground">
-                No category data in the selected time range.
+              <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
+                <BarChart2 className="h-10 w-10 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium mb-1">No category data in this time range</p>
+                  <p className="text-xs text-muted-foreground">
+                    Try selecting a different time range.
+                  </p>
+                </div>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -777,17 +896,29 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                   <tbody>
                     {analytics.categoryRows
                       .filter((row) => row.totalClicks > 0)
-                      .map((row) => {
+                      .map((row, index) => {
                         const percentage = Math.round(row.percentageShare * 100)
                         const widthPercent =
                           analytics.maxCategoryClicks > 0
                             ? Math.max(4, (row.totalClicks / analytics.maxCategoryClicks) * 100)
                             : 0
+                        const isTopCategory = index === 0
 
                         return (
-                          <tr key={row.id} className="border-b border-border/40 last:border-0">
+                          <tr 
+                            key={row.id} 
+                            className="border-b border-border/40 last:border-0 hover:bg-accent/50 transition-colors cursor-pointer"
+                            onClick={() => setSelectedCategoryId(row.id)}
+                          >
                             <td className="py-2">
-                              <p className="font-medium">{row.name}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="font-medium">{row.name}</p>
+                                {isTopCategory && (
+                                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                                    Top
+                                  </Badge>
+                                )}
+                              </div>
                             </td>
                             <td className="py-2 text-right font-medium">
                               {row.totalClicks.toLocaleString('en-US')}
@@ -811,7 +942,8 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                                 variant="outline"
                                 size="sm"
                                 className="h-7 px-2 text-[11px]"
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation()
                                   // Navigate to Links panel for category optimization
                                   const params = new URLSearchParams()
                                   params.set('tab', 'links')
@@ -844,8 +976,23 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
           </CardHeader>
           <CardContent>
             {analytics.recentActivity.length === 0 ? (
-              <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-6 text-center text-xs text-muted-foreground">
-                No activity yet. Share your profile to start tracking.
+              <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
+                <Activity className="h-10 w-10 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium mb-1">No recent activity</p>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Share your profile to start tracking views and clicks.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push(`/p/${address}`)}
+                >
+                  <Share2 className="mr-2 h-3.5 w-3.5" />
+                  View public profile
+                </Button>
               </div>
             ) : (
               <div className="space-y-2">
@@ -936,8 +1083,163 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
             </CardContent>
           </Card>
         )}
+
+        {/* Category Detail Sheet */}
+        <CategoryDetailSheet
+          categoryId={selectedCategoryId}
+          open={selectedCategoryId !== null}
+          onOpenChange={(open) => !open && setSelectedCategoryId(null)}
+          address={address}
+          links={links}
+          categories={categories}
+          analytics={analytics}
+          range={range}
+          router={router}
+        />
       </div>
     </PageShell>
+  )
+}
+
+interface CategoryDetailSheetProps {
+  categoryId: string | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  address: string
+  links: LinkItem[]
+  categories: LinkCategory[]
+  analytics: GlobalAnalytics
+  range: TimeRange
+  router: ReturnType<typeof useRouter>
+}
+
+function CategoryDetailSheet({
+  categoryId,
+  open,
+  onOpenChange,
+  address,
+  links,
+  categories,
+  analytics,
+  range,
+  router,
+}: CategoryDetailSheetProps) {
+  const category = categoryId ? categories.find((c) => c.id === categoryId) : null
+  const categoryName = category?.name || (categoryId === GENERAL_CATEGORY_ID ? 'General' : 'Unknown')
+
+  // Get links in this category with click counts
+  const categoryLinks = useMemo(() => {
+    if (!categoryId) return []
+
+    const linkById = new Map<string, LinkItem>()
+    links.forEach((link) => {
+      linkById.set(link.id, link)
+    })
+
+    // Get all link click events for this category
+    const allEvents = getEventsForProfile(address)
+    const now = Date.now()
+    const fromTs =
+      range === 'all'
+        ? 0
+        : range === '24h'
+        ? now - 24 * 60 * 60 * 1000
+        : range === '7d'
+        ? now - 7 * 24 * 60 * 60 * 1000
+        : now - 30 * 24 * 60 * 60 * 1000
+
+    const linkClickEventsInRange = allEvents.filter(
+      (e): e is Extract<AnalyticsEvent, { type: 'link_click' }> =>
+        e.type === 'link_click' && e.ts >= fromTs
+    )
+
+    // Filter events for this category
+    const categoryEvents = linkClickEventsInRange.filter((event) => {
+      const eventCategoryId = event.categoryId
+      const linkCategoryId = linkById.get(event.linkId)?.categoryId
+      const effectiveCategoryId = eventCategoryId || linkCategoryId || GENERAL_CATEGORY_ID
+      return effectiveCategoryId === categoryId
+    })
+
+    // Count clicks per link
+    const linkClickCounts = new Map<string, number>()
+    for (const event of categoryEvents) {
+      const count = linkClickCounts.get(event.linkId) || 0
+      linkClickCounts.set(event.linkId, count + 1)
+    }
+
+    // Get links in this category
+    const linksInCategory = links.filter((link) => {
+      const linkCategoryId = link.categoryId || GENERAL_CATEGORY_ID
+      return linkCategoryId === categoryId
+    })
+
+    // Create link rows with click counts
+    return linksInCategory
+      .map((link) => ({
+        id: link.id,
+        title: link.title || link.url || 'Untitled link',
+        url: link.url,
+        clicks: linkClickCounts.get(link.id) || 0,
+      }))
+      .sort((a, b) => b.clicks - a.clicks)
+  }, [categoryId, links, address, range])
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full sm:max-w-lg">
+        <SheetHeader>
+          <SheetTitle>{categoryName}</SheetTitle>
+          <SheetDescription>
+            Links in this category ranked by clicks ({range}).
+          </SheetDescription>
+        </SheetHeader>
+        <div className="mt-6 space-y-4">
+          {categoryLinks.length === 0 ? (
+            <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-6 text-center text-xs text-muted-foreground">
+              <p className="text-sm font-medium mb-1">No links in this category</p>
+              <p className="text-xs">Add links to this category to see analytics.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {categoryLinks.map((link) => (
+                <div
+                  key={link.id}
+                  className="flex items-center justify-between rounded-md border border-border/40 bg-background/60 px-3 py-2.5 hover:bg-accent/50 transition-colors cursor-pointer"
+                  onClick={() => {
+                    router.push(`/dashboard/${address}/links/${link.id}`)
+                    onOpenChange(false)
+                  }}
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{link.title}</p>
+                    <p className="text-xs text-muted-foreground truncate">{link.url}</p>
+                  </div>
+                  <div className="flex items-center gap-3 ml-4">
+                    <div className="text-right">
+                      <p className="text-sm font-semibold">{link.clicks.toLocaleString('en-US')}</p>
+                      <p className="text-[10px] text-muted-foreground">clicks</p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-[11px]"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        router.push(`/dashboard/${address}/links/${link.id}`)
+                        onOpenChange(false)
+                      }}
+                    >
+                      View
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </SheetContent>
+    </Sheet>
   )
 }
 

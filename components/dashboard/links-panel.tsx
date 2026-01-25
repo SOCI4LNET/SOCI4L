@@ -11,6 +11,7 @@ import {
   KeyboardSensor,
   useSensor,
   useSensors,
+  useDroppable,
   type DragEndEvent,
 } from '@dnd-kit/core'
 import {
@@ -22,7 +23,7 @@ import {
 } from '@dnd-kit/sortable'
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Link2, Plus, Pencil, Trash2, ExternalLink, BarChart2, Twitter, Github, Linkedin, Globe, Youtube } from 'lucide-react'
+import { GripVertical, Link2, Plus, Pencil, Trash2, ExternalLink, BarChart2, Twitter, Github, Linkedin, Globe, Youtube, Eye, EyeOff, ArrowUp, ArrowDown, Folder, ChevronDown, ChevronRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useSignMessage } from 'wagmi'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -31,6 +32,7 @@ import { PageShell } from '@/components/app-shell/page-shell'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -60,11 +62,25 @@ type LinkItem = {
   title: string
   url: string
   enabled: boolean
+  categoryId?: string | null
   createdAt: string
   updatedAt: string
 }
 
-type SocialLinkPlatform = 'website' | 'x' | 'github' | 'youtube' | 'linkedin'
+type LinkCategory = {
+  id: string
+  name: string
+  slug: string
+  description?: string | null
+  order: number
+  isVisible: boolean
+  isDefault: boolean
+  linkCount?: number
+  createdAt: string
+  updatedAt: string
+}
+
+type SocialLinkPlatform = 'website' | 'x' | 'instagram' | 'github' | 'youtube' | 'linkedin'
 
 interface SocialLink {
   id: string
@@ -89,6 +105,22 @@ type SortableLinkRowProps = {
   onToggleEnabled: (id: string, enabled: boolean) => void
   onEdit: (link: LinkItem) => void
   onDelete: (id: string) => void
+}
+
+// Category Drop Zone Component
+function CategoryDropZone({ categoryId, children }: { categoryId: string; children: React.ReactNode }) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `category-${categoryId}`,
+  })
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`transition-colors ${isOver ? 'bg-primary/5 border-primary/20 border-2 border-dashed rounded-md' : ''}`}
+    >
+      {children}
+    </div>
+  )
 }
 
 function SortableLinkRow({ link, targetAddress, highlighted, onToggleEnabled, onEdit, onDelete }: SortableLinkRowProps) {
@@ -233,13 +265,24 @@ export function LinksPanel() {
   const { signMessageAsync } = useSignMessage()
   const linksListRef = useRef<HTMLDivElement>(null)
   const [links, setLinks] = useState<LinkItem[]>([])
+  const [categories, setCategories] = useState<LinkCategory[]>([])
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingLink, setEditingLink] = useState<LinkItem | null>(null)
   const [formTitle, setFormTitle] = useState('')
   const [formUrl, setFormUrl] = useState('')
+  const [formCategoryId, setFormCategoryId] = useState<string>('')
   const [loading, setLoading] = useState(true)
+  const [categoriesLoading, setCategoriesLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [categoriesSaving, setCategoriesSaving] = useState(false)
   const [highlightedLinkId, setHighlightedLinkId] = useState<string | null>(null)
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set())
+  
+  // Category management state
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
+  const [editingCategory, setEditingCategory] = useState<LinkCategory | null>(null)
+  const [categoryFormName, setCategoryFormName] = useState('')
+  const [categoryFormDescription, setCategoryFormDescription] = useState('')
   
   // Social Links state
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([])
@@ -265,6 +308,8 @@ export function LinksPanel() {
         return <Youtube className="h-4 w-4" />
       case 'linkedin':
         return <Linkedin className="h-4 w-4" />
+      case 'instagram':
+        return <Globe className="h-4 w-4" />
       case 'website':
       default:
         return <Globe className="h-4 w-4" />
@@ -281,6 +326,8 @@ export function LinksPanel() {
         return 'YouTube'
       case 'linkedin':
         return 'LinkedIn'
+      case 'instagram':
+        return 'Instagram'
       case 'website':
       default:
         return 'Website'
@@ -288,7 +335,7 @@ export function LinksPanel() {
   }
 
   // Fixed order for social links
-  const SOCIAL_LINK_ORDER: SocialLinkPlatform[] = ['website', 'x', 'github', 'youtube', 'linkedin']
+  const SOCIAL_LINK_ORDER: SocialLinkPlatform[] = ['website', 'x', 'instagram', 'github', 'youtube', 'linkedin']
   
   const sortSocialLinks = (links: SocialLink[]): SocialLink[] => {
     return [...links].sort((a, b) => {
@@ -336,6 +383,67 @@ export function LinksPanel() {
     })
   )
 
+  // Load categories from API
+  useEffect(() => {
+    if (!targetAddress) {
+      setCategoriesLoading(false)
+      return
+    }
+
+    const loadCategories = async () => {
+      try {
+        setCategoriesLoading(true)
+        const response = await fetch(`/api/profile/categories?address=${encodeURIComponent(targetAddress)}`)
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Bilinmeyen hata' }))
+          throw new Error(errorData.error || `HTTP ${response.status}: Kategoriler yüklenemedi`)
+        }
+        
+        const data = await response.json()
+        
+        if (data.error) {
+          throw new Error(data.error)
+        }
+        
+        const loadedCategories = (data.categories || []).map((cat: any) => ({
+          id: cat.id,
+          name: cat.name,
+          slug: cat.slug,
+          description: cat.description || null,
+          order: cat.order || 0,
+          isVisible: cat.isVisible ?? true,
+          isDefault: cat.isDefault ?? false,
+          linkCount: cat.linkCount || 0,
+          createdAt: cat.createdAt || new Date().toISOString(),
+          updatedAt: cat.updatedAt || new Date().toISOString(),
+        }))
+        
+        setCategories(loadedCategories)
+        
+        // If no categories exist, create default "General" category
+        if (loadedCategories.length === 0) {
+          await saveCategories([{
+            name: 'General',
+            slug: 'general',
+            description: null,
+            order: 0,
+            isVisible: true,
+            isDefault: true,
+          }])
+        }
+      } catch (error) {
+        console.error('[LinksPanel] Failed to load categories from API', error)
+        // Don't show error toast for empty categories
+        setCategories([])
+      } finally {
+        setCategoriesLoading(false)
+      }
+    }
+
+    loadCategories()
+  }, [targetAddress])
+
   // Load links from API
   useEffect(() => {
     if (!targetAddress) {
@@ -366,6 +474,7 @@ export function LinksPanel() {
             title: link.title || '',
             url: link.url,
             enabled: link.enabled,
+            categoryId: link.categoryId || null,
             order: link.order || 0,
             createdAt: link.createdAt || new Date().toISOString(),
             updatedAt: link.updatedAt || new Date().toISOString(),
@@ -482,6 +591,68 @@ export function LinksPanel() {
     }
   }
 
+  const saveCategories = async (categoriesToSave: Omit<LinkCategory, 'id' | 'createdAt' | 'updatedAt' | 'linkCount'>[]) => {
+    if (!targetAddress) {
+      toast.error('Cüzdan adresi bulunamadı')
+      return false
+    }
+
+    try {
+      setCategoriesSaving(true)
+      const response = await fetch('/api/profile/categories', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          address: targetAddress,
+          categories: categoriesToSave.map((cat, index) => ({
+            id: cat.id || undefined,
+            name: cat.name,
+            slug: cat.slug,
+            description: cat.description || null,
+            order: cat.order !== undefined ? cat.order : index,
+            isVisible: cat.isVisible !== undefined ? cat.isVisible : true,
+            isDefault: cat.isDefault || false,
+          })),
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Bilinmeyen hata' }))
+        throw new Error(errorData.error || `HTTP ${response.status}: Kategoriler kaydedilemedi`)
+      }
+
+      const data = await response.json()
+      
+      if (data.error) {
+        throw new Error(data.error)
+      }
+      
+      setCategories(
+        (data.categories || []).map((cat: any) => ({
+          id: cat.id,
+          name: cat.name,
+          slug: cat.slug,
+          description: cat.description || null,
+          order: cat.order ?? 0,
+          isVisible: cat.isVisible ?? true,
+          isDefault: cat.isDefault ?? false,
+          linkCount: cat.linkCount || 0,
+          createdAt: cat.createdAt || new Date().toISOString(),
+          updatedAt: cat.updatedAt || new Date().toISOString(),
+        }))
+      )
+      return true
+    } catch (error) {
+      console.error('[LinksPanel] Failed to save categories', error)
+      toast.error(error instanceof Error ? error.message : 'Kategoriler kaydedilirken bir hata oluştu')
+      return false
+    } finally {
+      setCategoriesSaving(false)
+    }
+  }
+
   const saveLinks = async (linksToSave: LinkItem[]) => {
     if (!targetAddress) {
       toast.error('Cüzdan adresi bulunamadı')
@@ -502,6 +673,7 @@ export function LinksPanel() {
             title: link.title,
             url: link.url,
             enabled: link.enabled,
+            categoryId: link.categoryId || null,
             order: link.order !== undefined ? link.order : index,
           })),
         }),
@@ -525,6 +697,7 @@ export function LinksPanel() {
           title: link.title || '',
           url: link.url,
           enabled: link.enabled ?? true,
+          categoryId: link.categoryId || null,
           order: link.order ?? 0,
           createdAt: link.createdAt || new Date().toISOString(),
           updatedAt: link.updatedAt || new Date().toISOString(),
@@ -546,28 +719,118 @@ export function LinksPanel() {
     await saveLinks(next)
   }
 
+  // Group links by category
+  const linksByCategory = (() => {
+    const grouped = new Map<string | null, LinkItem[]>()
+    
+    // Initialize with all categories
+    categories.forEach(cat => {
+      grouped.set(cat.id, [])
+    })
+    
+    // Add uncategorized bucket
+    grouped.set(null, [])
+    
+    // Group links
+    links.forEach(link => {
+      const categoryId = link.categoryId || null
+      if (!grouped.has(categoryId)) {
+        grouped.set(categoryId, [])
+      }
+      grouped.get(categoryId)!.push(link)
+    })
+    
+    // Sort links within each category by order
+    grouped.forEach((linkList, categoryId) => {
+      linkList.sort((a, b) => (a.order || 0) - (b.order || 0))
+    })
+    
+    return grouped
+  })()
+
+  // Get sorted categories (by order, with uncategorized last)
+  const sortedCategories = [...categories].sort((a, b) => {
+    if (a.isDefault && !b.isDefault) return -1
+    if (!a.isDefault && b.isDefault) return 1
+    return (a.order || 0) - (b.order || 0)
+  })
+
+  // Get link count for a category
+  const getCategoryLinkCount = (categoryId: string | null) => {
+    return linksByCategory.get(categoryId)?.length || 0
+  }
+
+  const toggleCategoryCollapse = (categoryId: string) => {
+    setCollapsedCategories(prev => {
+      const next = new Set(prev)
+      if (next.has(categoryId)) {
+        next.delete(categoryId)
+      } else {
+        next.add(categoryId)
+      }
+      return next
+    })
+  }
+
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
     if (!over || active.id === over.id) return
 
-    const oldIndex = links.findIndex((link) => link.id === active.id)
-    const newIndex = links.findIndex((link) => link.id === over.id)
-    if (oldIndex === -1 || newIndex === -1) return
+    // Check if dragging to a category drop zone
+    if (typeof over.id === 'string' && over.id.startsWith('category-')) {
+      const targetCategoryId = over.id.replace('category-', '') || null
+      const link = links.find(l => l.id === active.id)
+      if (link) {
+        const updated = links.map(l =>
+          l.id === active.id
+            ? { ...l, categoryId: targetCategoryId === 'null' ? null : targetCategoryId }
+            : l
+        )
+        setLinks(updated)
+        await saveLinks(updated)
+      }
+      return
+    }
 
-    const reordered = arrayMove(links, oldIndex, newIndex)
-    // Update order values
-    const withOrder = reordered.map((link, index) => ({
-      ...link,
-      order: index,
-    }))
-    setLinks(withOrder)
-    await saveLinks(withOrder)
+    // Regular link reordering within category
+    const activeLink = links.find(l => l.id === active.id)
+    const overLink = links.find(l => l.id === over.id)
+    
+    if (!activeLink || !overLink) return
+    
+    // If same category, reorder within category
+    if (activeLink.categoryId === overLink.categoryId) {
+      const categoryLinks = linksByCategory.get(activeLink.categoryId || null) || []
+      const oldIndex = categoryLinks.findIndex(l => l.id === active.id)
+      const newIndex = categoryLinks.findIndex(l => l.id === over.id)
+      
+      if (oldIndex === -1 || newIndex === -1) return
+      
+      const reordered = arrayMove(categoryLinks, oldIndex, newIndex)
+      const withOrder = reordered.map((link, index) => ({
+        ...link,
+        order: index,
+      }))
+      
+      // Update all links, preserving other categories
+      const updated = links.map(l => {
+        const found = withOrder.find(wl => wl.id === l.id)
+        return found || l
+      })
+      
+      setLinks(updated)
+      await saveLinks(updated)
+    } else {
+      // Moving between categories - handled by category drop zone above
+    }
   }
 
   const openAddDialog = () => {
     setEditingLink(null)
     setFormTitle('')
     setFormUrl('')
+    // New links go to "Uncategorized" (null category)
+    setFormCategoryId('')
     setDialogOpen(true)
   }
 
@@ -575,6 +838,7 @@ export function LinksPanel() {
     setEditingLink(link)
     setFormTitle(link.title)
     setFormUrl(link.url)
+    setFormCategoryId(link.categoryId || '')
     setDialogOpen(true)
   }
 
@@ -617,6 +881,9 @@ export function LinksPanel() {
       return
     }
 
+    // New links go to "Uncategorized" (null) if no category selected
+    const categoryId = formCategoryId || null
+
     const now = new Date().toISOString()
 
     if (editingLink) {
@@ -626,6 +893,7 @@ export function LinksPanel() {
               ...link,
               title: trimmedTitle,
               url: trimmedUrl,
+              categoryId,
               updatedAt: now,
             }
           : link
@@ -642,6 +910,7 @@ export function LinksPanel() {
         title: trimmedTitle,
         url: trimmedUrl,
         enabled: true,
+        categoryId,
         order: links.length,
         createdAt: now,
         updatedAt: now,
@@ -654,6 +923,150 @@ export function LinksPanel() {
         setDialogOpen(false)
       }
     }
+  }
+
+  // Category management functions
+  const openAddCategoryDialog = () => {
+    setEditingCategory(null)
+    setCategoryFormName('')
+    setCategoryFormDescription('')
+    setCategoryDialogOpen(true)
+  }
+
+  const openEditCategoryDialog = (category: LinkCategory) => {
+    setEditingCategory(category)
+    setCategoryFormName(category.name)
+    setCategoryFormDescription(category.description || '')
+    setCategoryDialogOpen(true)
+  }
+
+  const handleCategorySubmit = async () => {
+    const trimmedName = categoryFormName.trim()
+    if (!trimmedName) {
+      toast.error('Kategori ismi gerekli')
+      return
+    }
+
+    const slug = trimmedName
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+
+    if (editingCategory) {
+      const updated = categories.map((cat) =>
+        cat.id === editingCategory.id
+          ? {
+              ...cat,
+              name: trimmedName,
+              slug,
+              description: categoryFormDescription.trim() || null,
+            }
+          : cat
+      )
+      const success = await saveCategories(updated)
+      if (success) {
+        toast.success('Kategori güncellendi')
+        setCategoryDialogOpen(false)
+      }
+    } else {
+      const newCategory: Omit<LinkCategory, 'id' | 'createdAt' | 'updatedAt' | 'linkCount'> = {
+        name: trimmedName,
+        slug,
+        description: categoryFormDescription.trim() || null,
+        order: categories.length,
+        isVisible: true,
+        isDefault: false,
+      }
+      const updated = [...categories, newCategory as LinkCategory]
+      const success = await saveCategories(updated.map(cat => ({
+        ...(cat.id ? { id: cat.id } : {}),
+        name: cat.name,
+        slug: cat.slug,
+        description: cat.description,
+        order: cat.order,
+        isVisible: cat.isVisible,
+        isDefault: cat.isDefault,
+      })))
+      if (success) {
+        toast.success('Kategori eklendi')
+        setCategoryDialogOpen(false)
+      }
+    }
+  }
+
+  const handleDeleteCategory = async (id: string) => {
+    const category = categories.find(cat => cat.id === id)
+    if (category?.isDefault) {
+      toast.error('Varsayılan kategori silinemez')
+      return
+    }
+
+    // Move links from deleted category to default category
+    const defaultCategory = categories.find(cat => cat.isDefault)
+    if (defaultCategory) {
+      const updatedLinks = links.map(link =>
+        link.categoryId === id
+          ? { ...link, categoryId: defaultCategory.id }
+          : link
+      )
+      await saveLinks(updatedLinks)
+    }
+
+    const updated = categories.filter(cat => cat.id !== id)
+    const success = await saveCategories(updated.map(cat => ({
+      ...(cat.id ? { id: cat.id } : {}),
+      name: cat.name,
+      slug: cat.slug,
+      description: cat.description,
+      order: cat.order,
+      isVisible: cat.isVisible,
+      isDefault: cat.isDefault,
+    })))
+    if (success) {
+      toast.success('Kategori silindi')
+    }
+  }
+
+  const handleToggleCategoryVisibility = async (id: string) => {
+    const updated = categories.map((cat) =>
+      cat.id === id
+        ? { ...cat, isVisible: !cat.isVisible }
+        : cat
+    )
+    await saveCategories(updated.map(cat => ({
+      ...(cat.id ? { id: cat.id } : {}),
+      name: cat.name,
+      slug: cat.slug,
+      description: cat.description,
+      order: cat.order,
+      isVisible: cat.isVisible,
+      isDefault: cat.isDefault,
+    })))
+  }
+
+  const handleMoveCategory = async (id: string, direction: 'up' | 'down') => {
+    const index = categories.findIndex(cat => cat.id === id)
+    if (index === -1) return
+
+    const newIndex = direction === 'up' ? index - 1 : index + 1
+    if (newIndex < 0 || newIndex >= categories.length) return
+
+    const reordered = arrayMove(categories, index, newIndex)
+    const withOrder = reordered.map((cat, idx) => ({
+      ...cat,
+      order: idx,
+    }))
+    await saveCategories(withOrder.map(cat => ({
+      id: cat.id,
+      name: cat.name,
+      slug: cat.slug,
+      description: cat.description,
+      order: cat.order,
+      isVisible: cat.isVisible,
+      isDefault: cat.isDefault,
+    })))
   }
 
   const enabledLinks = links.filter((link) => link.enabled)
@@ -779,6 +1192,24 @@ export function LinksPanel() {
                     <span className="font-mono">https://</span>.
                   </p>
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="link-category">Category</Label>
+                  <Select value={formCategoryId} onValueChange={setFormCategoryId}>
+                    <SelectTrigger id="link-category">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories
+                        .sort((a, b) => a.order - b.order)
+                        .map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {cat.name}
+                            {cat.isDefault && ' (Default)'}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <DialogFooter>
                 <Button type="button" variant="outline" size="sm" onClick={() => setDialogOpen(false)}>
@@ -792,23 +1223,207 @@ export function LinksPanel() {
           </Dialog>
         </div>
 
+        {/* Categories Management */}
+        <Card className="bg-card border border-border/60 shadow-sm">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base">Link Categories</CardTitle>
+                <CardDescription>
+                  Organize your links into categories. Categories can be shown or hidden on your public profile.
+                </CardDescription>
+              </div>
+              <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button type="button" size="sm" variant="outline" onClick={openAddCategoryDialog}>
+                    <Plus className="mr-2 h-3.5 w-3.5" />
+                    Add Category
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{editingCategory ? 'Edit category' : 'Add category'}</DialogTitle>
+                    <DialogDescription>
+                      Create a category to organize your links.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="category-name">Name</Label>
+                      <Input
+                        id="category-name"
+                        value={categoryFormName}
+                        onChange={(e) => setCategoryFormName(e.target.value)}
+                        placeholder="e.g. Projects, Resources"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="category-description">Description (optional)</Label>
+                      <Input
+                        id="category-description"
+                        value={categoryFormDescription}
+                        onChange={(e) => setCategoryFormDescription(e.target.value)}
+                        placeholder="Short description"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button type="button" variant="outline" size="sm" onClick={() => setCategoryDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button type="button" size="sm" onClick={handleCategorySubmit} disabled={categoriesSaving}>
+                      {editingCategory ? 'Save changes' : 'Add category'}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {categoriesLoading ? (
+              <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-6 text-center text-xs text-muted-foreground">
+                Kategoriler yükleniyor...
+              </div>
+            ) : categories.length === 0 ? (
+              <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-6 text-center text-xs text-muted-foreground">
+                No categories yet. Create your first category above.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {categories
+                  .sort((a, b) => a.order - b.order)
+                  .map((category, index) => (
+                    <div
+                      key={category.id}
+                      className="flex items-center gap-3 rounded-md border border-border/60 bg-background/60 px-3 py-2.5"
+                    >
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleMoveCategory(category.id, 'up')}
+                          disabled={index === 0}
+                          className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                          aria-label="Move up"
+                        >
+                          <ArrowUp className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleMoveCategory(category.id, 'down')}
+                          disabled={index === categories.length - 1}
+                          className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                          aria-label="Move down"
+                        >
+                          <ArrowDown className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                      <Folder className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <div className="flex-1 min-w-0 space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium">
+                            {category.name}
+                            {category.isDefault && (
+                              <Badge variant="secondary" className="ml-2 text-xs">Default</Badge>
+                            )}
+                          </p>
+                        </div>
+                        {category.description && (
+                          <p className="text-xs text-muted-foreground">{category.description}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          {category.linkCount || 0} {category.linkCount === 1 ? 'link' : 'links'}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Toggle
+                          aria-label={`Toggle ${category.name} visibility`}
+                          size="sm"
+                          variant="outline"
+                          pressed={category.isVisible}
+                          onPressedChange={() => handleToggleCategoryVisibility(category.id)}
+                        >
+                          {category.isVisible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                        </Toggle>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => openEditCategoryDialog(category)}
+                          aria-label="Edit category"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        {!category.isDefault && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-destructive hover:text-destructive"
+                                aria-label="Delete category"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete category?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will move all links in this category to the default category. The category will be removed.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  onClick={() => handleDeleteCategory(category.id)}
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         <Card className="bg-card border border-border/60 shadow-sm">
           <CardHeader className="pb-4">
             <CardTitle className="text-base">Profile Links</CardTitle>
             <CardDescription>
-              Drag links to reorder them. Disable a link to hide it from your public profile without
-              deleting it.
+              Organize links into categories. Drag links to reorder them within or between categories.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {loading ? (
+            {loading || categoriesLoading ? (
               <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-6 text-center text-xs text-muted-foreground">
                 Linkler yükleniyor...
               </div>
-            ) : links.length === 0 ? (
-              <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-6 text-center text-xs text-muted-foreground">
-                No links added yet. Use the <span className="font-medium">Add link</span> button
-                above to create your first link.
+            ) : links.length === 0 && categories.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
+                <Link2 className="h-10 w-10 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium mb-1">No links yet</p>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Add your first link to start building your profile.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="default"
+                  onClick={openAddDialog}
+                >
+                  <Plus className="mr-2 h-3.5 w-3.5" />
+                  Add your first link
+                </Button>
               </div>
             ) : (
               <DndContext
@@ -817,266 +1432,144 @@ export function LinksPanel() {
                 onDragEnd={handleDragEnd}
                 modifiers={[restrictToVerticalAxis, restrictToParentElement]}
               >
-                <SortableContext
-                  items={links.map((link) => link.id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <div ref={linksListRef} className="space-y-2">
-                    {links.map((link) => (
-                      <SortableLinkRow
-                        key={link.id}
-                        link={link}
-                        targetAddress={targetAddress}
-                        highlighted={highlightedLinkId === link.id}
-                        onToggleEnabled={handleToggleEnabled}
-                        onEdit={openEditDialog}
-                        onDelete={handleDelete}
-                      />
-                    ))}
-                  </div>
-                </SortableContext>
+                <div ref={linksListRef} className="space-y-4">
+                  {sortedCategories.map((category) => {
+                    const categoryLinks = linksByCategory.get(category.id) || []
+                    const isCollapsed = collapsedCategories.has(category.id)
+                    const linkCount = categoryLinks.length
+                    
+                    // Don't show empty categories
+                    if (linkCount === 0) return null
+                    
+                    return (
+                      <div key={category.id} className="space-y-2">
+                        {/* Category Header */}
+                        <div className="flex items-center gap-2 px-2 py-1.5 rounded-md border border-border/40 bg-muted/20">
+                          <button
+                            type="button"
+                            onClick={() => toggleCategoryCollapse(category.id)}
+                            className="flex items-center justify-center h-6 w-6 rounded hover:bg-muted/60 transition-colors"
+                            aria-label={isCollapsed ? 'Expand category' : 'Collapse category'}
+                          >
+                            {isCollapsed ? (
+                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </button>
+                          <GripVertical className="h-4 w-4 text-muted-foreground" />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-medium">{category.name}</p>
+                              <Badge variant="secondary" className="text-xs">
+                                {linkCount}
+                              </Badge>
+                              {category.isDefault && (
+                                <Badge variant="outline" className="text-xs">Default</Badge>
+                              )}
+                            </div>
+                          </div>
+                          <Toggle
+                            aria-label={`Toggle ${category.name} visibility`}
+                            size="sm"
+                            variant="outline"
+                            pressed={category.isVisible}
+                            onPressedChange={() => handleToggleCategoryVisibility(category.id)}
+                          >
+                            {category.isVisible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                          </Toggle>
+                        </div>
+                        
+                        {/* Category Links */}
+                        {!isCollapsed && (
+                          <CategoryDropZone categoryId={category.id}>
+                            <div className="space-y-2 pl-4">
+                            <SortableContext
+                              items={categoryLinks.map(l => l.id)}
+                              strategy={verticalListSortingStrategy}
+                            >
+                              {categoryLinks.map((link) => (
+                                <SortableLinkRow
+                                  key={link.id}
+                                  link={link}
+                                  targetAddress={targetAddress}
+                                  highlighted={highlightedLinkId === link.id}
+                                  onToggleEnabled={handleToggleEnabled}
+                                  onEdit={openEditDialog}
+                                  onDelete={handleDelete}
+                                />
+                              ))}
+                            </SortableContext>
+                            </div>
+                          </CategoryDropZone>
+                        )}
+                      </div>
+                    )
+                  })}
+                  
+                  {/* Uncategorized Links */}
+                  {(() => {
+                    const uncategorizedLinks = linksByCategory.get(null) || []
+                    if (uncategorizedLinks.length === 0) return null
+                    
+                    const isCollapsed = collapsedCategories.has('uncategorized')
+                    
+                    return (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 px-2 py-1.5 rounded-md border border-border/40 bg-muted/20">
+                          <button
+                            type="button"
+                            onClick={() => toggleCategoryCollapse('uncategorized')}
+                            className="flex items-center justify-center h-6 w-6 rounded hover:bg-muted/60 transition-colors"
+                            aria-label={isCollapsed ? 'Expand uncategorized' : 'Collapse uncategorized'}
+                          >
+                            {isCollapsed ? (
+                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </button>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-medium">Uncategorized</p>
+                              <Badge variant="secondary" className="text-xs">
+                                {uncategorizedLinks.length}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {!isCollapsed && (
+                          <CategoryDropZone categoryId="null">
+                            <div className="space-y-2 pl-4">
+                              <SortableContext
+                                items={uncategorizedLinks.map(l => l.id)}
+                                strategy={verticalListSortingStrategy}
+                              >
+                                {uncategorizedLinks.map((link) => (
+                                  <SortableLinkRow
+                                    key={link.id}
+                                    link={link}
+                                    targetAddress={targetAddress}
+                                    highlighted={highlightedLinkId === link.id}
+                                    onToggleEnabled={handleToggleEnabled}
+                                    onEdit={openEditDialog}
+                                    onDelete={handleDelete}
+                                  />
+                                ))}
+                              </SortableContext>
+                            </div>
+                          </CategoryDropZone>
+                        )}
+                      </div>
+                    )
+                  })()}
+                </div>
               </DndContext>
             )}
           </CardContent>
         </Card>
 
-        {/* Social Links Section */}
-        <Card className="bg-card border border-border/60 shadow-sm">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-base">Social Links</CardTitle>
-            <CardDescription>
-              Your public social identities connected to this wallet.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {socialLinksLoading ? (
-              <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-6 text-center text-xs text-muted-foreground">
-                Sosyal linkler yükleniyor...
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {sortSocialLinks(socialLinks).map((link) => (
-                  <div
-                    key={link.id}
-                    className="flex items-center gap-3 rounded-md border border-border/40 bg-background/40 px-3 py-2.5"
-                  >
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted/60 text-muted-foreground">
-                      {getSocialIcon(link.platform)}
-                    </div>
-                    <div className="flex-1 min-w-0 space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium">
-                          {link.label || getSocialLabel(link.platform)}
-                        </p>
-                      </div>
-                      <a
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-muted-foreground truncate hover:text-primary transition-colors block"
-                        title={link.url}
-                      >
-                        {link.url}
-                      </a>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => openEditSocialDialog(link)}
-                        aria-label="Edit social link"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-destructive hover:text-destructive"
-                            aria-label="Delete social link"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Sosyal linki sil?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Bu sosyal link profilinizden kaldırılacak. İsterseniz daha sonra tekrar ekleyebilirsiniz.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>İptal</AlertDialogCancel>
-                            <AlertDialogAction
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              onClick={() => handleDeleteSocialLink(link.id)}
-                            >
-                              Sil
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </div>
-                ))}
-                {socialLinks.length === 0 && (
-                  <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-6 text-center text-xs text-muted-foreground">
-                    Henüz sosyal link eklenmedi. Aşağıdaki butonu kullanarak ilk sosyal linkinizi ekleyin.
-                  </div>
-                )}
-                {socialLinks.length < SOCIAL_LINK_ORDER.length && (
-                  <Dialog open={socialDialogOpen} onOpenChange={setSocialDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={openAddSocialDialog}
-                        className="w-full mt-2"
-                      >
-                        <Plus className="mr-2 h-3.5 w-3.5" />
-                        Sosyal link ekle
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>
-                          {editingSocialLink ? 'Sosyal linki düzenle' : 'Sosyal link ekle'}
-                        </DialogTitle>
-                        <DialogDescription>
-                          Profilinize bağlanacak sosyal medya hesabınızı ekleyin.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="social-platform">Platform</Label>
-                          <Select
-                            value={newSocialPlatform}
-                            onValueChange={(value) =>
-                              setNewSocialPlatform(value as SocialLinkPlatform)
-                            }
-                            disabled={!!editingSocialLink}
-                          >
-                            <SelectTrigger id="social-platform">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {SOCIAL_LINK_ORDER.map((platform) => {
-                                const alreadyExists = socialLinks.some(
-                                  (link) => link.platform === platform && link.id !== editingSocialLink?.id
-                                )
-                                return (
-                                  <SelectItem
-                                    key={platform}
-                                    value={platform}
-                                    disabled={alreadyExists}
-                                  >
-                                    {getSocialLabel(platform)}
-                                    {alreadyExists && ' (zaten ekli)'}
-                                  </SelectItem>
-                                )
-                              })}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="social-url">URL</Label>
-                          <Input
-                            id="social-url"
-                            value={newSocialUrl}
-                            onChange={(e) => setNewSocialUrl(e.target.value)}
-                            placeholder="https://..."
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            URL <span className="font-mono">http://</span> veya{' '}
-                            <span className="font-mono">https://</span> ile başlamalı.
-                          </p>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="social-label">Etiket (opsiyonel)</Label>
-                          <Input
-                            id="social-label"
-                            value={newSocialLabel}
-                            onChange={(e) => setNewSocialLabel(e.target.value)}
-                            placeholder="Özel etiket"
-                          />
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setSocialDialogOpen(false)}
-                        >
-                          İptal
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          onClick={handleSaveSocialLink}
-                          disabled={socialLinksSaving}
-                        >
-                          {editingSocialLink ? 'Güncelle' : 'Ekle'}
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card border border-border/60 shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Preview summary</CardTitle>
-            <CardDescription className="text-xs">
-              This is a quick snapshot of which links are currently active on your profile and in
-              which order they will appear.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-xs text-muted-foreground">
-            {enabledLinks.length === 0 && socialLinks.length === 0 ? (
-              <p>No active links. Enable at least one link above to show it on your profile.</p>
-            ) : (
-              <div className="space-y-3">
-                {enabledLinks.length > 0 && (
-                  <div>
-                    <p className="font-medium mb-1">Profile Links:</p>
-                    <ol className="list-decimal list-inside space-y-1">
-                      {enabledLinks.map((link) => (
-                        <li key={link.id}>
-                          <span className="font-medium">{link.title || link.url}</span>
-                          <span className="text-muted-foreground"> — {link.url}</span>
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                )}
-                {socialLinks.length > 0 && (
-                  <div>
-                    <p className="font-medium mb-1">Social Links:</p>
-                    <ol className="list-decimal list-inside space-y-1">
-                      {sortSocialLinks(socialLinks).map((link) => (
-                        <li key={link.id}>
-                          <span className="font-medium">
-                            {link.label || getSocialLabel(link.platform)}
-                          </span>
-                          <span className="text-muted-foreground"> — {link.url}</span>
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
     </PageShell>
   )

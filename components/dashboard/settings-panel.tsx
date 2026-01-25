@@ -11,6 +11,7 @@ import { Loader2, Copy } from "lucide-react"
 import { toast } from "sonner"
 import { PageShell } from "@/components/app-shell/page-shell"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { formatAddress } from "@/lib/utils"
 import { getPublicProfileHref } from "@/lib/routing"
 
@@ -66,7 +67,7 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
   const handleCopyProfileUrl = async () => {
     try {
       await navigator.clipboard.writeText(publicProfileUrl)
-      toast.success('Profile URL copied')
+      toast.success('Profile link copied')
     } catch (error) {
       toast.error('Copy failed')
     }
@@ -153,15 +154,24 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
                   <p className="text-sm font-mono font-semibold truncate">
                     {shortAddress}
                   </p>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={handleCopyAddress}
-                    aria-label="Copy address"
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={handleCopyAddress}
+                          aria-label="Copy address"
+                        >
+                          <Copy className="h-3.5 w-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Copy address</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Avalanche C-Chain
@@ -187,15 +197,24 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
                   >
                     {publicProfileUrl}
                   </a>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={handleCopyProfileUrl}
-                    aria-label="Copy profile URL"
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={handleCopyProfileUrl}
+                          aria-label="Copy profile link"
+                        >
+                          <Copy className="h-3.5 w-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Copy profile link</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
             </div>

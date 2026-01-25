@@ -30,6 +30,7 @@ model Profile {
 
   showcase ShowcaseItem[]
   links    ProfileLink[]
+  categories LinkCategory[]
 
   @@index([address])
   @@index([slug])
@@ -59,17 +60,40 @@ model Follow {
   @@index([followingAddress])
 }
 
+model LinkCategory {
+  id          String   @id @default(cuid())
+  profileId   String
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  name        String
+  slug        String
+  description String?
+  order       Int      @default(0) // Order for sorting (lower = first)
+  isVisible   Boolean  @default(true)
+  isDefault   Boolean  @default(false) // Cannot be deleted if true
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  links ProfileLink[]
+
+  @@unique([profileId, slug])
+  @@index([profileId])
+  @@index([profileId, isVisible])
+}
+
 model ProfileLink {
-  id        String   @id @default(cuid())
-  profileId String
-  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  title     String   @default("")
-  url       String
-  enabled   Boolean  @default(true)
-  order     Int      @default(0) // Order for sorting (lower = first)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String       @id @default(cuid())
+  profileId  String
+  profile    Profile      @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  categoryId String?
+  category   LinkCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  title      String       @default("")
+  url        String
+  enabled    Boolean      @default(true)
+  order      Int          @default(0) // Order for sorting (lower = first)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
 
   @@index([profileId])
   @@index([profileId, enabled])
+  @@index([categoryId])
 }
