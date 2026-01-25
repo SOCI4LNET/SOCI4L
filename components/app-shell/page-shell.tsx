@@ -28,8 +28,8 @@ export function PageShell({ title, subtitle, children, mode = 'constrained' }: P
     <PageContent mode={mode}>
       <div className="space-y-6 min-h-0">
         {/* Page Header */}
-        <div className="shrink-0">
-          <h1 className="text-2xl font-semibold">{title}</h1>
+        <div className="shrink-0 border-b border-border pb-4 mb-6">
+          <h1 className="text-lg font-semibold">{title}</h1>
           {subtitle && (
             <p className="text-sm text-muted-foreground mt-1">
               {subtitle}

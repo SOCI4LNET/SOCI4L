@@ -97,10 +97,10 @@ export default function ProfilePage({ params }: PageProps) {
   // useRef guard to prevent double tracking (React Strict Mode + hydration safe)
   // Stores the profile ID that was already tracked to detect profile changes
   const trackedProfileIdRef = useRef<string | null>(null)
-  // Initialize as null to prevent rendering legacy layout on first paint
-  // Will be set from API response or default after data loads
-  const [layoutConfig, setLayoutConfig] = useState<ProfileLayoutConfig | null>(null)
-  const [appearanceConfig, setAppearanceConfig] = useState<ProfileAppearanceConfig | null>(null)
+  // Initialize with defaults to prevent FOUC (Flash of Unstyled Content)
+  // Will be updated from API response after data loads
+  const [layoutConfig, setLayoutConfig] = useState<ProfileLayoutConfig>(() => getDefaultProfileLayout())
+  const [appearanceConfig, setAppearanceConfig] = useState<ProfileAppearanceConfig>(() => getDefaultAppearanceConfig())
   const linksBlockRef = useRef<HTMLDivElement>(null)
   const [viewCount, setViewCount] = useState<number | null>(null)
 
@@ -123,17 +123,26 @@ export default function ProfilePage({ params }: PageProps) {
         const isAddress = params.id.startsWith('0x') && isValidAddress(params.id)
         
         let response: Response
-        // Add cache bust timestamp to ensure fresh data
-        const cacheBust = Date.now()
+        // Add cache bust timestamp to ensure fresh data (especially after Builder changes)
+        // Use both timestamp and random to prevent aggressive caching
+        const cacheBust = `${Date.now()}-${Math.random().toString(36).substring(7)}`
         if (isAddress) {
           // Normalize address to lowercase for consistent API calls
           const normalizedAddress = params.id.toLowerCase()
           response = await fetch(`/api/wallet?address=${normalizedAddress}&_t=${cacheBust}`, {
             cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+            },
           })
         } else {
           response = await fetch(`/api/wallet?slug=${params.id}&_t=${cacheBust}`, {
             cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+            },
           })
         }
 
@@ -218,7 +227,7 @@ export default function ProfilePage({ params }: PageProps) {
             console.log('[PublicProfile] Layout config loaded:', normalizedLayout)
             setLayoutConfig(normalizedLayout)
           } else {
-            // Use default if no layout config (prevents null state)
+            // Use default if no layout config (already initialized with default, but update for consistency)
             console.warn('[PublicProfile] No layout config in API response, using default')
             setLayoutConfig(getDefaultProfileLayout())
           }
@@ -229,7 +238,7 @@ export default function ProfilePage({ params }: PageProps) {
             console.log('[PublicProfile] Appearance config loaded:', normalizedAppearance)
             setAppearanceConfig(normalizedAppearance)
           } else {
-            // Use default if no appearance config (prevents null state)
+            // Use default if no appearance config (already initialized with default, but update for consistency)
             console.warn('[PublicProfile] No appearance config in API response, using default')
             setAppearanceConfig(getDefaultAppearanceConfig())
           }
@@ -237,9 +246,7 @@ export default function ProfilePage({ params }: PageProps) {
       } catch (err) {
         setError('Veri yüklenirken bir hata oluştu')
         console.error(err)
-        // Set default configs on error to prevent null state
-        setLayoutConfig(getDefaultProfileLayout())
-        setAppearanceConfig(getDefaultAppearanceConfig())
+        // Configs already initialized with defaults, no need to set again
       } finally {
         setLoading(false)
       }
@@ -462,9 +469,9 @@ export default function ProfilePage({ params }: PageProps) {
 
   const enabledProfileLinks = profileLinks.filter((link) => link.enabled)
 
-  // Use default configs if not loaded yet (for initial render calculations)
-  const effectiveLayoutConfig = layoutConfig || getDefaultProfileLayout()
-  const effectiveAppearanceConfig = appearanceConfig || getDefaultAppearanceConfig()
+  // Configs are always initialized with defaults, so no need for fallback
+  const effectiveLayoutConfig = layoutConfig
+  const effectiveAppearanceConfig = appearanceConfig
 
   // Get visible blocks sorted by grid position (row, then col)
   const visibleBlocks: ProfileLayoutBlock[] = effectiveLayoutConfig.blocks
@@ -606,7 +613,7 @@ export default function ProfilePage({ params }: PageProps) {
                                 <TooltipTrigger asChild>
                                   <Button
                                     variant="ghost"
-                                    size="icon-sm"
+                                    size="icon"
                                     onClick={handleCopyAddress}
                                     className="h-5 w-5"
                                     aria-label="Copy address"
@@ -696,7 +703,7 @@ export default function ProfilePage({ params }: PageProps) {
                           <TooltipTrigger asChild>
                             <Button
                               variant="ghost"
-                              size="icon-sm"
+                              size="icon"
                               onClick={handleCopyProfileLink}
                               aria-label="Copy profile link"
                               className="h-7 w-7"
@@ -727,13 +734,13 @@ export default function ProfilePage({ params }: PageProps) {
           )}
 
           {/* Grid layout - 12 columns on desktop, 1 column on mobile */}
-          {/* Only render if layout config is loaded to prevent FOUC */}
-          {layoutConfig && appearanceConfig ? (
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full">
+          {/* Configs are always initialized with defaults, so safe to render immediately */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full">
               {blocksWithComputedSpan.map((block) => {
                 const variant = block.variant || 'compact'
                 const computedSpan = block.computedSpan || 'half'
                 // Full-span blocks: 12 cols, half-span blocks: 6 cols
+                // IMPORTANT: Single blocks in a row automatically become full-width (computedSpan handles this)
                 const gridColSpan = computedSpan === 'full' ? 'md:col-span-12' : 'md:col-span-6'
 
               if (block.key === 'links') {
@@ -761,6 +768,7 @@ export default function ProfilePage({ params }: PageProps) {
                 const defaultCategoryName = defaultCategory?.name || 'Links'
 
                 // Add custom profile links with their categories
+                // IMPORTANT: Sort by categoryId first, then by link.order within each category
                 enabledProfileLinks.forEach((link, index) => {
                   // Links without category go to "Uncategorized"
                   const category = link.categoryId && categoryMap.has(link.categoryId)
@@ -772,7 +780,7 @@ export default function ProfilePage({ params }: PageProps) {
                     url: link.url,
                     category,
                     type: 'featured',
-                    order: link.order || index,
+                    order: (link as any).order ?? index, // Use explicit order from database
                   })
                 })
 
@@ -791,10 +799,7 @@ export default function ProfilePage({ params }: PageProps) {
                   })
                 }
 
-                // Sort all links by order
-                allLinks.sort((a, b) => a.order - b.order)
-
-                // Group links by category
+                // Group links by category FIRST (before sorting)
                 const linksByCategory = new Map<string, UnifiedLink[]>()
                 allLinks.forEach((link) => {
                   if (!linksByCategory.has(link.category)) {
@@ -803,10 +808,23 @@ export default function ProfilePage({ params }: PageProps) {
                   linksByCategory.get(link.category)!.push(link)
                 })
 
-                // Sort categories: Use category order from database, then Socials, then Uncategorized last
+                // Sort links WITHIN each category by order (deterministic ordering)
+                linksByCategory.forEach((links, categoryName) => {
+                  links.sort((a, b) => {
+                    // Primary sort: order field
+                    if (a.order !== b.order) {
+                      return a.order - b.order
+                    }
+                    // Fallback: sort by id for stability
+                    return a.id.localeCompare(b.id)
+                  })
+                })
+
+                // Sort categories: Use category order from database (STRICT ordering by category.order)
+                // Build category order map from database categories
                 const categoryOrderMap = new Map<string, number>()
                 linkCategories.forEach((cat) => {
-                  categoryOrderMap.set(cat.name, cat.order)
+                  categoryOrderMap.set(cat.name, cat.order ?? 0) // Use explicit order from database
                 })
                 
                 const categories = Array.from(linksByCategory.keys())
@@ -829,16 +847,25 @@ export default function ProfilePage({ params }: PageProps) {
                     return true
                   })
                   .sort((a, b) => {
-                    // Uncategorized always comes last
+                    // Deterministic ordering: Uncategorized always comes last
                     if (a === 'Uncategorized') return 1
                     if (b === 'Uncategorized') return -1
-                    // Socials comes before Uncategorized
-                    if (a === 'Socials') return 1
-                    if (b === 'Socials') return -1
+                    // Socials comes before Uncategorized but after all database categories
+                    if (a === 'Socials') {
+                      // Socials should come after all database categories (order >= 1000)
+                      return 1
+                    }
+                    if (b === 'Socials') {
+                      return -1
+                    }
                     
+                    // For database categories: use strict order from database
                     const orderA = categoryOrderMap.get(a) ?? 999
                     const orderB = categoryOrderMap.get(b) ?? 999
-                    if (orderA !== orderB) return orderA - orderB
+                    if (orderA !== orderB) {
+                      return orderA - orderB // Strict ordering by category.order
+                    }
+                    // If order is same, sort alphabetically for stability
                     return a.localeCompare(b)
                   })
                 
@@ -1110,9 +1137,8 @@ export default function ProfilePage({ params }: PageProps) {
               return null
             })}
             </div>
-          ) : null}
-        </div>
-      ) : null}
+          </div>
+        ) : null}
       
       {/* QR Code Modal for current profile */}
       {resolvedAddress && isValidAddress(resolvedAddress) && (

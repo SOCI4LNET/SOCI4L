@@ -44,6 +44,7 @@ export async function GET(
       networkOk,
       profile: profile ? {
         displayName: profile.displayName,
+        bio: profile.bio,
         slug: profile.slug,
         status: profile.status,
       } : null,

@@ -250,6 +250,24 @@ export function getProfileViewCountBySource(
 }
 
 /**
+ * Get total link clicks for a profile in a specific time range
+ * @param profileId - Profile address or ID
+ * @param days - Number of days to look back (default: 7)
+ * @returns Count of link clicks in the specified time range
+ */
+export function getTotalLinkClicks(profileId: string, days: number = 7): number {
+  if (!profileId) return 0
+  const events = getEventsForProfile(profileId)
+  const now = Date.now()
+  const fromTs = now - days * 24 * 60 * 60 * 1000
+  
+  return events.filter(
+    (e): e is Extract<AnalyticsEvent, { type: 'link_click' }> =>
+      e.type === 'link_click' && e.ts >= fromTs
+  ).length
+}
+
+/**
  * Parse analytics source from URL query parameters
  * Supports: ?source=profile|qr|copy
  * Falls back to 'unknown' if not present or invalid

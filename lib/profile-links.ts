@@ -4,6 +4,7 @@ export type ProfileLink = {
   url: string
   enabled: boolean
   categoryId?: string | null
+  order?: number
   createdAt: string
   updatedAt: string
 }

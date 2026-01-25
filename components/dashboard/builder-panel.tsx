@@ -227,20 +227,33 @@ function SortableSectionRow({ section, onToggle, onVariantChange }: SortableSect
         <div className="flex-1 min-w-0 space-y-1">
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm font-medium leading-none">{section.title}</p>
-            {getRecommendation(section.id).badge && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Badge variant="outline" className="text-[9px] px-1.5 py-0.5 font-normal h-4 border-muted-foreground/30 text-muted-foreground shrink-0">
-                      Recommended
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">This section usually looks better full width on public profiles.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
+            {(() => {
+              const recommendation = getRecommendation(section.id)
+              if (!recommendation.badge) return null
+              
+              // HARD_HEAVY (assets): "Recommended: Full width"
+              // SOFT_HEAVY (activity, links): "Optional: Full width"
+              const isHardHeavy = section.id === 'assets'
+              const badgeText = isHardHeavy ? 'Recommended: Full width' : 'Optional: Full width'
+              const tooltipText = isHardHeavy 
+                ? 'Assets section is recommended to be full width for better display.'
+                : 'This section can optionally be set to full width for better display.'
+              
+              return (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge variant="outline" className="text-[9px] px-1.5 py-0.5 font-normal h-4 border-muted-foreground/30 text-muted-foreground shrink-0">
+                        {badgeText}
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">{tooltipText}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )
+            })()}
           </div>
           <p className="text-xs text-muted-foreground line-clamp-2">{section.description}</p>
         </div>
@@ -884,7 +897,9 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
 
       setSections(nextSections)
       setHasUnsavedChanges(false)
-      toast.success(`Preset uygulandı: ${preset.name}`)
+      toast.success(`Preset uygulandı: ${preset.name}. Public profile sayfasını yenileyin.`, {
+        duration: 4000,
+      })
     } catch (error) {
       console.error('[BuilderPanel] Failed to apply preset', error)
       toast.error(error instanceof Error ? error.message : 'Preset uygulanamadı')

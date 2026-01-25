@@ -120,8 +120,8 @@ export async function GET(request: NextRequest) {
               enabled: true,
             },
             orderBy: [
-              { order: 'asc' },
-              { createdAt: 'asc' }, // Fallback to createdAt if order is same
+              { order: 'asc' }, // Primary sort: explicit order from database (deterministic)
+              { createdAt: 'asc' }, // Fallback: creation time for stability
             ],
           })
           
@@ -152,8 +152,8 @@ export async function GET(request: NextRequest) {
               profileId: profileId,
             },
             orderBy: [
-              { order: 'asc' },
-              { createdAt: 'asc' },
+              { order: 'asc' }, // Primary sort: explicit order from database (deterministic)
+              { createdAt: 'asc' }, // Fallback: creation time for stability
             ],
           })
           categories = categoryData.map((cat) => ({

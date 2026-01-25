@@ -47,6 +47,9 @@ import { ClaimProfileButton } from '@/components/claim-profile-button'
 import { QRCodeModal } from '@/components/qr/qr-code-modal'
 import { getPublicProfileHref } from '@/lib/routing'
 import { isProfileClaimed } from '@/lib/profile/isProfileClaimed'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { getProfileViewCount, getTotalLinkClicks, getEventsForProfile } from '@/lib/analytics'
+import { Users, UserPlus, Link2 } from 'lucide-react'
 
 interface SummaryData {
   avaxBalance: string
@@ -58,6 +61,7 @@ interface SummaryData {
   networkOk: boolean
   profile: {
     displayName?: string | null
+    bio?: string | null
     slug?: string | null
     status?: string
   } | null
@@ -122,6 +126,19 @@ export default function DashboardPage() {
   const [mounted, setMounted] = useState(false)
   const [addressInput, setAddressInput] = useState('')
   const [qrModalOpen, setQrModalOpen] = useState(false)
+  const [quickStats, setQuickStats] = useState<{
+    followers: number
+    following: number
+    views7d: number
+    totalLinks: number
+    totalClicks7d: number
+  }>({
+    followers: 0,
+    following: 0,
+    views7d: 0,
+    totalLinks: 0,
+    totalClicks7d: 0,
+  })
   const { address: connectedAddress, isConnected } = useAccount()
   const { connect, connectors, isPending: isConnecting } = useConnect()
   const router = useRouter()
@@ -129,6 +146,59 @@ export default function DashboardPage() {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Fetch quick stats (followers, following, views, links, clicks)
+  useEffect(() => {
+    if (!mounted || !connectedAddress || !isConnected) return
+
+    const fetchQuickStats = async () => {
+      try {
+        const normalizedAddress = connectedAddress.toLowerCase()
+
+        // Fetch follow stats
+        const followStatsRes = await fetch(`/api/profile/${normalizedAddress}/follow-stats`, {
+          cache: 'no-store',
+        })
+        if (followStatsRes.ok) {
+          const followStats = await followStatsRes.json()
+          setQuickStats((prev) => ({
+            ...prev,
+            followers: followStats.followersCount || 0,
+            following: followStats.followingCount || 0,
+          }))
+        }
+
+        // Fetch view count (7d) from analytics
+        const views7d = getProfileViewCount(normalizedAddress, 7)
+        
+        // Fetch total clicks (7d) from analytics
+        const totalClicks7d = getTotalLinkClicks(normalizedAddress, 7)
+
+        // Fetch links count
+        const linksRes = await fetch(`/api/profile/links?address=${encodeURIComponent(normalizedAddress)}`)
+        if (linksRes.ok) {
+          const linksData = await linksRes.json()
+          const enabledLinks = (linksData.links || []).filter((link: any) => link.enabled)
+          setQuickStats((prev) => ({
+            ...prev,
+            totalLinks: enabledLinks.length,
+            views7d,
+            totalClicks7d,
+          }))
+        } else {
+          setQuickStats((prev) => ({
+            ...prev,
+            views7d,
+            totalClicks7d,
+          }))
+        }
+      } catch (error) {
+        console.error('[Dashboard] Error fetching quick stats:', error)
+      }
+    }
+
+    fetchQuickStats()
+  }, [mounted, connectedAddress, isConnected])
 
   // Fetch summary data
   const { 
@@ -148,7 +218,7 @@ export default function DashboardPage() {
     enabled: mounted && isConnected && !!connectedAddress,
   })
 
-  // Fetch activity data
+  // Fetch activity data (limit to 7 for preview)
   const { 
     data: activityData, 
     isLoading: activityLoading, 
@@ -159,7 +229,7 @@ export default function DashboardPage() {
     queryFn: async () => {
       if (!connectedAddress) throw new Error('No address')
       const normalizedAddress = connectedAddress.toLowerCase()
-      const response = await fetch(`/api/wallet/${normalizedAddress}/activity?limit=5`)
+      const response = await fetch(`/api/wallet/${normalizedAddress}/activity?limit=7`)
       if (!response.ok) throw new Error('Failed to fetch activity')
       return response.json()
     },
@@ -197,6 +267,16 @@ export default function DashboardPage() {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleAddressSubmit()
+    }
+  }
+
+  const handleCopyAddress = async () => {
+    if (!connectedAddress) return
+    try {
+      await navigator.clipboard.writeText(connectedAddress)
+      toast.success('Address copied')
+    } catch {
+      toast.error('Copy failed')
     }
   }
 
@@ -239,63 +319,13 @@ export default function DashboardPage() {
     }
   }
 
-  const getPrimaryCTA = () => {
-    // Guard: if address is missing, show connect wallet
-    if (!isConnected || !connectedAddress) {
-      return (
-        <Button
-          onClick={() => connect({ connector: connectors[0] })}
-          variant="default"
-          size="sm"
-          disabled={isConnecting}
-          className="bg-accent-primary text-black hover:bg-accent-primary/90"
-        >
-          {isConnecting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Connecting...
-            </>
-          ) : (
-            'Connect Wallet to Claim'
-          )}
-        </Button>
-      )
-    }
-
-    // While loading, do not show the Claim button
-    if (summaryLoading) {
-      return null
-    }
-
-    const normalizedConnected = connectedAddress.toLowerCase()
-    // Claim status must come from profile record only - using single source of truth
-    const profile = summaryData?.profile
-    const isClaimed = isProfileClaimed(profile)
-
-    // If profile is claimed, show "View Public Profile" button
-    if (isClaimed) {
-      const publicProfileHref = summaryData?.profile?.slug 
-        ? `/p/${summaryData.profile.slug}` 
-        : `/p/${normalizedConnected}`
-      
-      return (
-        <Button
-          onClick={() => router.push(publicProfileHref)}
-          variant="default"
-          size="sm"
-          asChild
-          className="bg-accent-primary text-black hover:bg-accent-primary/90"
-        >
-          <Link href={publicProfileHref}>
-            View Public Profile
-          </Link>
-        </Button>
-      )
-    }
-
-    // If not claimed, show single "Claim Profile" CTA
-    return <ClaimProfileButton address={normalizedConnected} />
-  }
+  // Get claim status (only used in Profile Snapshot for unclaimed state)
+  const normalizedAddress = connectedAddress?.toLowerCase() || ''
+  const profile = summaryData?.profile
+  const isClaimed = isProfileClaimed(profile)
+  const shortAddress = normalizedAddress ? formatAddress(normalizedAddress, 4) : ''
+  const displayName = profile?.displayName || shortAddress
+  const bio = profile?.bio || null
 
   if (!mounted) {
     return (
@@ -359,66 +389,94 @@ export default function DashboardPage() {
     )
   }
 
-  const normalizedAddress = connectedAddress?.toLowerCase() || ''
   const publicProfileHref = summaryData?.profile?.slug 
     ? `/p/${summaryData.profile.slug}` 
     : `/p/${normalizedAddress}`
 
   return (
-    <PageShell title="Dashboard" subtitle="Overview">
-      {/* Status Bar */}
+    <PageShell title="Dashboard" subtitle="Overview" mode="full-width">
+      {/* Profile Snapshot */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-2 flex-wrap">
-              <Badge variant="secondary">Avalanche C-Chain</Badge>
-              {summaryLoading ? (
-                <Skeleton className="h-5 w-32" />
-              ) : (
-                <>
-                  {(() => {
-                    const profile = summaryData?.profile
-                    const isClaimed = isProfileClaimed(profile)
-                    return (
-                      <Badge 
-                        variant={isClaimed ? 'default' : 'outline'}
-                        className={isClaimed ? 'bg-accent-primary-muted text-accent-primary border-accent-primary/30' : ''}
-                      >
-                        Profile Status: {isClaimed ? 'Claimed' : 'Unclaimed'}
-                      </Badge>
-                    )
-                  })()}
-                </>
-              )}
-              {summaryLoading ? (
-                <Skeleton className="h-5 w-16" />
-              ) : (
-                <Badge 
-                  variant={summaryData?.visibility === 'PUBLIC' ? 'default' : 'secondary'}
-                  className={summaryData?.visibility === 'PUBLIC' ? 'bg-accent-primary-muted text-accent-primary border-accent-primary/30' : ''}
-                >
-                  {summaryData?.visibility === 'PUBLIC' ? 'Public' : 'Private'}
-                </Badge>
-              )}
+          <div className="flex items-start justify-between gap-4">
+            {/* Left: Avatar + Name + Bio */}
+            <div className="flex items-start gap-4 min-w-0 flex-1">
+              <Avatar className="h-12 w-12 shrink-0">
+                {normalizedAddress ? (
+                  <>
+                    <AvatarImage
+                      src={`https://effigy.im/a/${normalizedAddress}.svg`}
+                      alt={displayName}
+                    />
+                    <AvatarFallback className="text-xs">
+                      {normalizedAddress.slice(2, 4).toUpperCase()}
+                    </AvatarFallback>
+                  </>
+                ) : (
+                  <AvatarFallback className="text-xs">??</AvatarFallback>
+                )}
+              </Avatar>
+              <div className="min-w-0 space-y-1.5 flex-1">
+                <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                  <h1 className="text-lg font-semibold truncate">{displayName}</h1>
+                  {summaryLoading ? (
+                    <Skeleton className="h-5 w-16" />
+                  ) : (
+                    <>
+                      {summaryData?.visibility === 'PUBLIC' ? (
+                        <Badge variant="default" className="text-[10px] px-1.5 py-0.5 h-5">
+                          Public
+                        </Badge>
+                      ) : summaryData?.visibility === 'PRIVATE' ? (
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5 h-5">
+                          Private
+                        </Badge>
+                      ) : null}
+                      {!isClaimed && !summaryLoading && (
+                        <ClaimProfileButton address={normalizedAddress} />
+                      )}
+                    </>
+                  )}
+                </div>
+                {bio && (
+                  <p className="text-sm text-muted-foreground line-clamp-2">{bio}</p>
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              {getPrimaryCTA()}
+            {/* Right: Quick Actions */}
+            <div className="flex items-center gap-1 shrink-0">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant="ghost"
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={handleCopyAddress}
+                      aria-label="Copy address"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Copy address</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
                       size="icon"
                       className="h-8 w-8"
                       asChild
-                      aria-label="View public profile"
+                      aria-label="Open public profile"
                     >
-                      <Link href={publicProfileHref}>
+                      <Link href={publicProfileHref} target="_blank" rel="noopener noreferrer">
                         <Eye className="h-4 w-4" />
                       </Link>
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>View public profile</TooltipContent>
+                  <TooltipContent>Open public profile</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
               <DropdownMenu>
@@ -427,9 +485,9 @@ export default function DashboardPage() {
                     <TooltipTrigger asChild>
                       <DropdownMenuTrigger asChild>
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="icon"
-                      className="h-8 w-8"
+                          className="h-8 w-8"
                           aria-label="Share profile"
                         >
                           <Share2 className="h-4 w-4" />
@@ -440,200 +498,72 @@ export default function DashboardPage() {
                   </Tooltip>
                 </TooltipProvider>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleCopyLink}>
+                    <Copy className="mr-2 h-4 w-4" />
+                    Copy profile link
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleShareTwitter}>
                     <Twitter className="mr-2 h-4 w-4" />
                     Share on X
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleCopyLink}>
-                    <Copy className="mr-2 h-4 w-4" />
-                    Copy profile link
+                  <DropdownMenuItem onClick={() => setQrModalOpen(true)}>
+                    <QrCode className="mr-2 h-4 w-4" />
+                    Show QR code
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => setQrModalOpen(true)}
-                      aria-label="Show QR code"
-                    >
-                      <QrCode className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Show QR code</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* KPI Cards */}
+      {/* Quick Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {/* AVAX Balance */}
-        <Card 
-          className="cursor-pointer hover:bg-accent/50 transition-colors hover:border-accent-primary/30 hover:ring-1 hover:ring-accent-primary-muted"
-          onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=assets`)}
-        >
+        {/* Followers */}
+        <Card>
           <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground mb-1">Followers</p>
             {summaryLoading ? (
-              <>
-                <Skeleton className="h-3 w-16 mb-2" />
-                <Skeleton className="h-6 w-24" />
-              </>
-            ) : summaryError ? (
-              <div className="space-y-2">
-                <p className="text-xs text-muted-foreground">AVAX Balance</p>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-destructive">Error</p>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      refetchSummary()
-                    }}
-                    aria-label="Retry"
-                  >
-                    <RefreshCw className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
+              <Skeleton className="h-6 w-16" />
             ) : (
-              <>
-                <p className="text-xs text-muted-foreground mb-1">AVAX Balance</p>
-                <p className="text-lg font-semibold">
-                  {parseFloat(summaryData?.avaxBalance || '0').toFixed(4)} AVAX
-                </p>
-              </>
+              <p className="text-lg font-semibold">{quickStats.followers}</p>
             )}
           </CardContent>
         </Card>
 
-        {/* Transactions */}
-        <Card 
-          className="cursor-pointer hover:bg-accent/50 transition-colors hover:border-accent-primary/30 hover:ring-1 hover:ring-accent-primary-muted"
-          onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=activity`)}
-        >
+        {/* Following */}
+        <Card>
           <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground mb-1">Following</p>
             {summaryLoading ? (
-              <>
-                <Skeleton className="h-3 w-20 mb-2" />
-                <Skeleton className="h-6 w-16" />
-              </>
-            ) : summaryError ? (
-              <div className="space-y-2">
-                <p className="text-xs text-muted-foreground">Transactions</p>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-destructive">Error</p>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      refetchSummary()
-                    }}
-                    aria-label="Retry"
-                  >
-                    <RefreshCw className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
+              <Skeleton className="h-6 w-16" />
             ) : (
-              <>
-                <p className="text-xs text-muted-foreground mb-1">Transactions</p>
-                <p className="text-lg font-semibold">
-                  {summaryData?.txCount !== undefined ? summaryData.txCount.toLocaleString('en-US') : '—'}
-                </p>
-              </>
+              <p className="text-lg font-semibold">{quickStats.following}</p>
             )}
           </CardContent>
         </Card>
 
-        {/* Tokens */}
-        <Card 
-          className="cursor-pointer hover:bg-accent/50 transition-colors hover:border-accent-primary/30 hover:ring-1 hover:ring-accent-primary-muted"
-          onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=assets&assetTab=tokens`)}
-        >
+        {/* Views (7d) */}
+        <Card>
           <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground mb-1">Views (7d)</p>
             {summaryLoading ? (
-              <>
-                <Skeleton className="h-3 w-16 mb-2" />
-                <Skeleton className="h-6 w-16" />
-              </>
-            ) : summaryError ? (
-              <div className="space-y-2">
-                <p className="text-xs text-muted-foreground">Tokens</p>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-destructive">Error</p>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      refetchSummary()
-                    }}
-                    aria-label="Retry"
-                  >
-                    <RefreshCw className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
+              <Skeleton className="h-6 w-16" />
             ) : (
-              <>
-                <p className="text-xs text-muted-foreground mb-1">Tokens</p>
-                <p className="text-lg font-semibold">
-                  {summaryData?.tokenCount !== undefined ? summaryData.tokenCount.toLocaleString('en-US') : '—'}
-                </p>
-              </>
+              <p className="text-lg font-semibold">{quickStats.views7d}</p>
             )}
           </CardContent>
         </Card>
 
-        {/* NFTs */}
-        <Card 
-          className="cursor-pointer hover:bg-accent/50 transition-colors hover:border-accent-primary/30 hover:ring-1 hover:ring-accent-primary-muted"
-          onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=assets&assetTab=nfts`)}
-        >
+        {/* Total Links */}
+        <Card>
           <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground mb-1">Total Links</p>
             {summaryLoading ? (
-              <>
-                <Skeleton className="h-3 w-16 mb-2" />
-                <Skeleton className="h-6 w-16" />
-              </>
-            ) : summaryError ? (
-              <div className="space-y-2">
-                <p className="text-xs text-muted-foreground">NFTs</p>
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-destructive">Error</p>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      refetchSummary()
-                    }}
-                    aria-label="Retry"
-                  >
-                    <RefreshCw className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
+              <Skeleton className="h-6 w-16" />
             ) : (
-              <>
-                <p className="text-xs text-muted-foreground mb-1">NFTs</p>
-                <p className="text-lg font-semibold">
-                  {summaryData?.nftCount !== undefined ? summaryData.nftCount.toLocaleString('en-US') : '—'}
-                </p>
-              </>
+              <p className="text-lg font-semibold">{quickStats.totalLinks}</p>
             )}
           </CardContent>
         </Card>
@@ -646,24 +576,24 @@ export default function DashboardPage() {
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <div>
               <CardTitle className="text-base font-semibold">Recent Activity</CardTitle>
-              <CardDescription className="text-xs">Last 5 transactions</CardDescription>
+              <CardDescription className="text-xs">Last 5-7 transactions</CardDescription>
             </div>
             <div className="flex items-center gap-2">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-7 w-7"
                       onClick={() => refetchActivity()}
                       disabled={activityLoading}
-                      aria-label="Refresh"
+                      aria-label="Refresh activity"
                     >
-                      <RefreshCw className={`h-4 w-4 ${activityLoading ? 'animate-spin' : ''}`} />
+                      <RefreshCw className={`h-3.5 w-3.5 ${activityLoading ? 'animate-spin' : ''}`} />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Refresh</TooltipContent>
+                  <TooltipContent>Refresh activity</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </div>
@@ -695,73 +625,77 @@ export default function DashboardPage() {
                 </Button>
               </div>
             ) : activityData?.items && activityData.items.length > 0 ? (
-              <div className="space-y-3">
-                {activityData.items.map((item, idx) => {
-                  const isOutgoing = item.from.toLowerCase() === normalizedAddress
-                  return (
-                    <div key={item.hash || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
-                      <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-                        {isOutgoing ? (
-                          <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <ArrowDownRight className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button
-                                  onClick={() => handleCopyHash(item.hash)}
-                                  className="text-sm font-mono truncate hover:text-primary"
-                                >
-                                  {formatAddress(item.hash, 4)}
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="font-mono text-xs">{item.hash}</p>
-                                <p className="text-xs mt-1">Click to copy</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+              <div className="relative">
+                <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                  {activityData.items.map((item, idx) => {
+                    const isOutgoing = item.from.toLowerCase() === normalizedAddress
+                    return (
+                      <div key={item.hash || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
+                        <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+                          {isOutgoing ? (
+                            <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <ArrowDownRight className="h-4 w-4 text-muted-foreground" />
+                          )}
                         </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <p className="text-xs text-muted-foreground">
-                            {parseFloat(item.value).toFixed(4)} AVAX
-                          </p>
-                          <span className="text-xs text-muted-foreground">•</span>
-                          <p className="text-xs text-muted-foreground">
-                            {formatRelativeTime(item.timestamp)}
-                          </p>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={() => handleCopyHash(item.hash)}
+                                    className="text-sm font-mono truncate hover:text-primary"
+                                  >
+                                    {formatAddress(item.hash, 4)}
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="font-mono text-xs">{item.hash}</p>
+                                  <p className="text-xs mt-1">Click to copy</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <p className="text-xs text-muted-foreground">
+                              {parseFloat(item.value).toFixed(4)} AVAX
+                            </p>
+                            <span className="text-xs text-muted-foreground">•</span>
+                            <p className="text-xs text-muted-foreground">
+                              {formatRelativeTime(item.timestamp)}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                      className="h-8 w-8"
-                              asChild
-                              aria-label="View on explorer"
-                            >
-                              <a
-                                href={getExplorerLink(item.hash)}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                asChild
+                                aria-label="View on explorer"
                               >
-                                <ExternalLink className="h-4 w-4" />
-                              </a>
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>View on explorer</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  )
-                })}
-                <div className="pt-2">
+                                <a
+                                  href={getExplorerLink(item.hash)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <ExternalLink className="h-4 w-4" />
+                                </a>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>View on explorer</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                    )
+                  })}
+                </div>
+                {/* Bottom fade + View all link */}
+                <div className="relative mt-3 pt-3 border-t">
+                  <div className="absolute inset-x-0 top-0 h-6 bg-gradient-to-t from-background to-transparent pointer-events-none" />
                   <Button
                     variant="outline"
                     size="sm"
@@ -804,17 +738,17 @@ export default function DashboardPage() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="icon"
-                      className="h-8 w-8"
+                      className="h-7 w-7"
                       onClick={() => refetchAssets()}
                       disabled={assetsLoading}
-                      aria-label="Refresh"
+                      aria-label="Refresh assets"
                     >
-                      <RefreshCw className={`h-4 w-4 ${assetsLoading ? 'animate-spin' : ''}`} />
+                      <RefreshCw className={`h-3.5 w-3.5 ${assetsLoading ? 'animate-spin' : ''}`} />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Refresh</TooltipContent>
+                  <TooltipContent>Refresh assets</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </div>
@@ -848,36 +782,45 @@ export default function DashboardPage() {
             ) : assetsData &&
               ((assetsData.topTokens && assetsData.topTokens.length > 0) ||
                 (assetsData.nfts && assetsData.nfts.length > 0)) ? (
-              <div className="space-y-3">
-                {(assetsData.topTokens || []).map((token, idx) => (
-                  <div key={token.contractAddress || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
-                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                      <Coins className="h-5 w-5 text-muted-foreground" />
+              <div className="relative">
+                <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                  {/* Filter out invalid tokens (0x0000... contracts) */}
+                  {(assetsData.topTokens || []).filter((token) => {
+                    // Filter out zero address or invalid contracts
+                    const addr = token.contractAddress?.toLowerCase() || ''
+                    return addr && addr !== '0x0000000000000000000000000000000000000000' && parseFloat(token.balance) > 0
+                  }).map((token, idx) => (
+                    <div key={token.contractAddress || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
+                      <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                        <Coins className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{token.symbol}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {parseFloat(token.balance).toFixed(4)} {token.symbol}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{token.symbol}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {parseFloat(token.balance).toFixed(4)} {token.symbol}
-                      </p>
+                  ))}
+                  {(assetsData.nfts || []).map((nft, idx) => (
+                    <div key={`${nft.contractAddress}-${nft.tokenId}` || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
+                      <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden">
+                        {nft.image ? (
+                          <img src={nft.image} alt={nft.name} className="h-10 w-10 rounded-full object-cover" />
+                        ) : (
+                          <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{nft.name || `NFT #${nft.tokenId}`}</p>
+                        <p className="text-xs text-muted-foreground">Token ID: {formatAddress(nft.tokenId, 4)}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
-                {(assetsData.nfts || []).map((nft, idx) => (
-                  <div key={`${nft.contractAddress}-${nft.tokenId}` || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
-                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden">
-                      {nft.image ? (
-                        <img src={nft.image} alt={nft.name} className="h-10 w-10 rounded-full object-cover" />
-                      ) : (
-                        <ImageIcon className="h-5 w-5 text-muted-foreground" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{nft.name || `NFT #${nft.tokenId}`}</p>
-                      <p className="text-xs text-muted-foreground">Token ID: {formatAddress(nft.tokenId, 4)}</p>
-                    </div>
-                  </div>
-                ))}
-                <div className="pt-2">
+                  ))}
+                </div>
+                {/* Bottom fade + View all link */}
+                <div className="relative mt-3 pt-3 border-t">
+                  <div className="absolute inset-x-0 top-0 h-6 bg-gradient-to-t from-background to-transparent pointer-events-none" />
                   <Button
                     variant="outline"
                     size="sm"
