@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAccount, useConnect, useSignMessage } from 'wagmi'
+import { useAccount, useSignMessage } from 'wagmi'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
+import { WalletConnectButtons } from '@/components/wallet-connect-buttons'
 
 interface ClaimProfileButtonProps {
   address: string
@@ -19,7 +20,6 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isClaimed, setIsClaimed] = useState(false)
   const { address: connectedAddress, isConnected } = useAccount()
-  const { connect, connectors, isPending: isConnecting } = useConnect()
   const { signMessageAsync } = useSignMessage()
 
   useEffect(() => {
@@ -28,10 +28,7 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
 
   const handleClaim = async () => {
     if (!isConnected || !connectedAddress) {
-      // Try to connect if not connected
-      if (connectors.length > 0) {
-        connect({ connector: connectors[0] })
-      }
+      // Connection will be handled by WalletConnectButtons component
       return
     }
 
@@ -122,26 +119,11 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
 
   if (!isConnected) {
     return (
-      <Button
-        onClick={() => {
-          if (connectors.length > 0) {
-            connect({ connector: connectors[0] })
-          }
-        }}
+      <WalletConnectButtons
         variant="default"
         size="sm"
-        disabled={isConnecting}
         className="bg-accent-primary text-black hover:bg-accent-primary/90"
-      >
-        {isConnecting ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Connecting...
-          </>
-        ) : (
-          'Connect Wallet to Claim'
-        )}
-      </Button>
+      />
     )
   }
 

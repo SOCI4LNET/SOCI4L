@@ -24,31 +24,40 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check slug uniqueness if provided
-    if (slug) {
-      const slugLower = slug.toLowerCase().trim()
-      const existing = await prisma.profile.findFirst({
-        where: {
-          slug: slugLower,
-          NOT: { address: normalizedAddress },
-        },
-      })
+    // Update profile with transaction to ensure slug uniqueness
+    const slugLower = slug ? slug.toLowerCase().trim() : null
+    
+    const updated = await prisma.$transaction(async (tx) => {
+      // Check slug uniqueness if provided (within transaction)
+      if (slugLower) {
+        const existing = await tx.profile.findFirst({
+          where: {
+            slug: slugLower,
+            NOT: { address: normalizedAddress },
+          },
+        })
 
-      if (existing) {
-        return NextResponse.json(
-          { error: 'This slug is already in use' },
-          { status: 400 }
-        )
+        if (existing) {
+          throw new Error('This slug is already in use')
+        }
       }
-    }
 
-    // Update profile
-    const updated = await prisma.profile.update({
-      where: { address: normalizedAddress },
-      data: {
-        slug: slug ? slug.toLowerCase().trim() : null,
-        isPublic: isPublic ?? false,
-      },
+      // Update profile with unique constraint error handling
+      try {
+        return await tx.profile.update({
+          where: { address: normalizedAddress },
+          data: {
+            slug: slugLower,
+            isPublic: isPublic ?? false,
+          },
+        })
+      } catch (error: any) {
+        // Handle unique constraint violation
+        if (error.code === 'P2002' || error.message?.includes('UNIQUE constraint') || error.message?.includes('unique')) {
+          throw new Error('This slug is already in use')
+        }
+        throw error
+      }
     })
 
     // Update showcase items
@@ -76,8 +85,25 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json({ success: true, profile: profileWithShowcase })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating profile:', error)
+    
+    // Handle specific error cases
+    if (error.message === 'This slug is already in use') {
+      return NextResponse.json(
+        { error: 'This slug is already in use' },
+        { status: 400 }
+      )
+    }
+    
+    // Handle Prisma unique constraint violation
+    if (error.code === 'P2002' || error.message?.includes('UNIQUE constraint') || error.message?.includes('unique')) {
+      return NextResponse.json(
+        { error: 'This slug is already in use' },
+        { status: 400 }
+      )
+    }
+    
     return NextResponse.json(
       { error: 'An error occurred while updating profile' },
       { status: 500 }

@@ -2,14 +2,13 @@
 
 import { ReactNode } from 'react'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { useAccount, useConnect } from 'wagmi'
+import { useAccount } from 'wagmi'
 import { AccountMenu } from '@/components/topbar/account-menu'
-import { Wallet } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { PAGE_GUTTER, CONTENT_MAX_WIDTH } from '@/lib/layout-constants'
 import { cn } from '@/lib/utils'
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
+import { WalletConnectButtons } from '@/components/wallet-connect-buttons'
 
 interface PublicLayoutProps {
   children: ReactNode
@@ -18,7 +17,6 @@ interface PublicLayoutProps {
 export function PublicLayout({ children }: PublicLayoutProps) {
   const [mounted, setMounted] = useState(false)
   const { isConnected } = useAccount()
-  const { connect, connectors, isPending: isConnecting } = useConnect()
 
   useEffect(() => {
     setMounted(true)
@@ -39,19 +37,7 @@ export function PublicLayout({ children }: PublicLayoutProps) {
                 ) : isConnected ? (
                   <AccountMenu />
                 ) : (
-                  <>
-                    {connectors.length > 0 && (
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => connect({ connector: connectors[0] })}
-                        disabled={isConnecting}
-                      >
-                        <Wallet className="mr-2 h-4 w-4" />
-                        {isConnecting ? 'Connecting...' : 'Connect Wallet'}
-                      </Button>
-                    )}
-                  </>
+                  <WalletConnectButtons variant="default" size="sm" />
                 )}
               </div>
             </div>

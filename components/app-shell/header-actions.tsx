@@ -15,12 +15,13 @@ import {
   DropdownMenuTrigger,
   DropdownMenuGroup,
 } from '@/components/ui/dropdown-menu'
-import { Copy, Share2, QrCode, LogOut, LayoutDashboard, User, Settings, Loader2, Sparkles, Link2, BarChart2 } from 'lucide-react'
+import { Copy, Share2, QrCode, LogOut, LayoutDashboard, User, Settings, Sparkles, Link2, BarChart2 } from 'lucide-react'
 import { formatAddress } from '@/lib/utils'
 import { toast } from 'sonner'
 import { getConnectedDashboardHref, getCurrentProfileAddressFromRoute, getPublicProfileHref } from '@/lib/routing'
 import { QRCodeModal } from '@/components/qr/qr-code-modal'
-import { useDisconnect, useConnect } from 'wagmi'
+import { useDisconnect } from 'wagmi'
+import { WalletConnectButtons } from '@/components/wallet-connect-buttons'
 
 export function HeaderActions() {
   const [mounted, setMounted] = useState(false)
@@ -29,7 +30,6 @@ export function HeaderActions() {
   const [qrModalOpen, setQrModalOpen] = useState(false)
   const { address: connectedAddress, isConnected } = useAccount()
   const { disconnect } = useDisconnect()
-  const { connect, connectors, isPending: isConnecting } = useConnect()
   const router = useRouter()
   const params = useParams()
   const pathname = usePathname()
@@ -73,26 +73,11 @@ export function HeaderActions() {
   // Handle wallet not connected - show Connect Wallet button
   if (!mounted || !isConnected || !connectedAddress) {
     return (
-      <Button
-        onClick={() => {
-          if (connectors.length > 0) {
-            connect({ connector: connectors[0] })
-          }
-        }}
-        variant="default"
-        size="sm"
-        disabled={isConnecting}
+      <WalletConnectButtons 
+        variant="default" 
+        size="sm" 
         className="bg-accent-primary text-black hover:bg-accent-primary/90"
-      >
-        {isConnecting ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Connecting...
-          </>
-        ) : (
-          'Connect Wallet'
-        )}
-      </Button>
+      />
     )
   }
 

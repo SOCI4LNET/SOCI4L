@@ -2,16 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { useAccount, useConnect } from 'wagmi'
+import { useAccount } from 'wagmi'
 import { ProfileDropdown } from '@/components/profile-dropdown'
-import { Wallet } from 'lucide-react'
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
+import { WalletConnectButtons } from '@/components/wallet-connect-buttons'
 
 export function SiteHeader() {
   const [mounted, setMounted] = useState(false)
   const { isConnected } = useAccount()
-  const { connect, connectors, isPending: isConnecting } = useConnect()
 
   useEffect(() => {
     setMounted(true)
@@ -30,19 +28,7 @@ export function SiteHeader() {
             ) : isConnected ? (
               <ProfileDropdown />
             ) : (
-              <>
-                {connectors.length > 0 && (
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={() => connect({ connector: connectors[0] })}
-                    disabled={isConnecting}
-                  >
-                    <Wallet className="mr-2 h-4 w-4" />
-                    {isConnecting ? 'Connecting...' : 'Connect Wallet'}
-                  </Button>
-                )}
-              </>
+              <WalletConnectButtons variant="default" size="sm" />
             )}
           </div>
         </div>

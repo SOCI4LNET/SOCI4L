@@ -1,18 +1,17 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useAccount, useConnect } from 'wagmi'
+import { useAccount } from 'wagmi'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Loader2, Wallet } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { PageShell } from '@/components/app-shell/page-shell'
 import { getConnectedDashboardHref } from '@/lib/routing'
+import { WalletConnectButtons } from '@/components/wallet-connect-buttons'
 
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false)
   const { address: connectedAddress, isConnected } = useAccount()
-  const { connect, connectors, isPending: isConnecting } = useConnect()
   const router = useRouter()
 
   useEffect(() => {
@@ -57,31 +56,11 @@ export default function DashboardPage() {
             <CardDescription className="text-xs">Please connect your wallet to access the dashboard</CardDescription>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            {connectors.length > 0 ? (
-              <Button
-                onClick={() => connect({ connector: connectors[0] })}
-                variant="default"
-                size="sm"
-                className="w-full bg-accent-primary text-black hover:bg-accent-primary/90"
-                disabled={isConnecting}
-              >
-                {isConnecting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Connecting...
-                  </>
-                ) : (
-                  <>
-                    <Wallet className="mr-2 h-4 w-4" />
-                    Connect Wallet
-                  </>
-                )}
-              </Button>
-            ) : (
-              <p className="text-center text-sm text-muted-foreground">
-                Wallet connector not available
-              </p>
-            )}
+            <WalletConnectButtons 
+              variant="default" 
+              size="sm" 
+              className="w-full bg-accent-primary text-black hover:bg-accent-primary/90"
+            />
           </CardContent>
         </Card>
       </PageShell>
