@@ -2,11 +2,34 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Activity, BarChart2, Clock, Lightbulb, ArrowRight, Share2 } from 'lucide-react'
+import { Activity, BarChart2, Clock, Lightbulb, ArrowRight, Share2, TrendingUp, Eye } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts'
 
 import { PageShell } from '@/components/app-shell/page-shell'
+import {
+  CustomTooltip,
+  chartAxisProps,
+  chartGridProps,
+  chartBarProps,
+  chartLineProps,
+} from '@/components/insights/chart-theme'
+import { SectionHeader } from '@/components/insights/section-header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -603,111 +626,439 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
     }
   }
 
+  // Prepare chart data from analytics
+  const chartData = useMemo(() => {
+    // For now, we'll create placeholder data structure
+    // In the future, this can be enhanced with time-series data
+    const sourceData = Object.entries(analytics.sourceBreakdown)
+      .filter(([_, count]) => count > 0)
+      .map(([source, count]) => ({
+        name: source === 'profile' ? 'Profile' 
+          : source === 'qr' ? 'QR Code'
+          : source === 'copy' ? 'Copy Link'
+          : 'Unknown',
+        value: count,
+      }))
+
+    const categoryChartData = analytics.categoryRows
+      .filter((row) => row.totalClicks > 0)
+      .slice(0, 5)
+      .map((row) => ({
+        name: row.name,
+        clicks: row.totalClicks,
+        share: Math.round(row.percentageShare * 100),
+      }))
+
+    // Check if source data should show empty state
+    // Show empty state if: no views, no source data, or only Unknown with 100%
+    const shouldShowSourceEmptyState = 
+      analytics.totalProfileViews === 0 ||
+      sourceData.length === 0 ||
+      (sourceData.length === 1 && sourceData[0].name === 'Unknown')
+
+    return {
+      sourceData,
+      categoryChartData,
+      shouldShowSourceEmptyState,
+    }
+  }, [analytics])
+
+  const COLORS = ['hsl(var(--primary))', 'hsl(var(--primary)) / 0.8', 'hsl(var(--primary)) / 0.6', 'hsl(var(--primary)) / 0.4', 'hsl(var(--primary)) / 0.2']
+
   return (
     <PageShell
       title="Insights"
       subtitle="Profile performance and interaction metrics."
     >
-      <div className="space-y-6">
-        {/* Time range selector */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Clock className="h-3.5 w-3.5" />
-            <span>Time range</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Tabs value={range} onValueChange={(value) => setRange(value as TimeRange)}>
-              <TabsList className="h-8">
-                <TabsTrigger value="24h" className="px-2 text-xs">
-                  24h
-                </TabsTrigger>
-                <TabsTrigger value="7d" className="px-2 text-xs">
-                  7d
-                </TabsTrigger>
-                <TabsTrigger value="30d" className="px-2 text-xs">
-                  30d
-                </TabsTrigger>
-                <TabsTrigger value="all" className="px-2 text-xs">
-                  All
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleShareInsights}
-              className="flex items-center gap-2"
-            >
-              <Share2 className="h-3.5 w-3.5" />
-              Share Insights
-            </Button>
-          </div>
-        </div>
-
-        {/* Global KPIs */}
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Card className="bg-card border border-border/60 shadow-sm">
-            <CardHeader className="pb-2 flex flex-row items-center justify-between">
-              <CardTitle className="text-xs font-medium text-muted-foreground">
-                Profile Views
-              </CardTitle>
-              <Activity className="h-3.5 w-3.5 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="pt-0">
-              <p className="text-2xl font-semibold">{totalViewsLabel}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border border-border/60 shadow-sm">
-            <CardHeader className="pb-2 flex flex-row items-center justify-between">
-              <CardTitle className="text-xs font-medium text-muted-foreground">
-                Link Clicks
-              </CardTitle>
-              <BarChart2 className="h-3.5 w-3.5 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="pt-0">
-              <p className="text-2xl font-semibold">{totalClicksLabel}</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border border-border/60 shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-medium text-muted-foreground">
-                CTR
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <p className="text-2xl font-semibold">{ctrLabel}</p>
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Click-through rate
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Profile Views with Source Breakdown */}
-        <Card className="bg-card border border-border/60 shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Profile Views</CardTitle>
-            <CardDescription className="text-xs">
-              View count and source breakdown for the selected time range.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-baseline gap-2">
-                <p className="text-3xl font-semibold">{totalViewsLabel}</p>
-                <p className="text-xs text-muted-foreground">total views</p>
+      <div className="space-y-8">
+        {/* 1. TOP KPI SUMMARY */}
+        <section className="space-y-4">
+          <SectionHeader
+            title="Overview"
+            description="Key performance indicators at a glance"
+            rightSlot={
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Time range:</span>
+                <Tabs value={range} onValueChange={(value) => setRange(value as TimeRange)}>
+                  <TabsList className="h-8">
+                    <TabsTrigger value="24h" className="px-2 text-xs">
+                      24h
+                    </TabsTrigger>
+                    <TabsTrigger value="7d" className="px-2 text-xs">
+                      7d
+                    </TabsTrigger>
+                    <TabsTrigger value="30d" className="px-2 text-xs">
+                      30d
+                    </TabsTrigger>
+                    <TabsTrigger value="all" className="px-2 text-xs">
+                      All
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleShareInsights}
+                  className="flex items-center gap-2"
+                >
+                  <Share2 className="h-3.5 w-3.5" />
+                  Share Insights
+                </Button>
               </div>
-              
-              {analytics.totalProfileViews === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
+            }
+          />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="bg-card border border-border/60 shadow-sm hover:shadow-md transition-shadow h-[120px] flex flex-col min-w-0">
+              <CardHeader className="px-6 pt-6 pb-2.5 flex flex-row items-center gap-2 min-w-0">
+                <Eye className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide truncate">
+                  Profile Views
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-6 pt-0 pb-6 flex-1 flex flex-col justify-between min-w-0">
+                <p className="text-3xl font-bold truncate">{totalViewsLabel}</p>
+                <p className="text-xs text-muted-foreground truncate">Total profile views</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-card border border-border/60 shadow-sm hover:shadow-md transition-shadow h-[120px] flex flex-col min-w-0">
+              <CardHeader className="px-6 pt-6 pb-2.5 flex flex-row items-center gap-2 min-w-0">
+                <BarChart2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide truncate">
+                  Link Clicks
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-6 pt-0 pb-6 flex-1 flex flex-col justify-between min-w-0">
+                <p className="text-3xl font-bold truncate">{totalClicksLabel}</p>
+                <p className="text-xs text-muted-foreground truncate">Total link clicks</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-card border border-border/60 shadow-sm hover:shadow-md transition-shadow h-[120px] flex flex-col min-w-0">
+              <CardHeader className="px-6 pt-6 pb-2.5 flex flex-row items-center gap-2 min-w-0">
+                <TrendingUp className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide truncate">
+                  CTR
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-6 pt-0 pb-6 flex-1 flex flex-col justify-between min-w-0">
+                <p className="text-3xl font-bold truncate">{ctrLabel}</p>
+                <p className="text-xs text-muted-foreground truncate">Click-through rate</p>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        {/* 2. CHARTS & TRENDS */}
+        <section className="space-y-4">
+          <SectionHeader
+            title="Charts & Trends"
+            description="Visual analytics and performance trends"
+          />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Profile Views Source Breakdown Chart */}
+            <Card className="bg-card border border-border/60 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Profile Views by Source</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0 min-h-[220px] flex items-center justify-center">
+                {chartData.shouldShowSourceEmptyState ? (
+                  <div className="flex flex-col items-center justify-center text-center gap-2 w-full">
+                    <Activity className="h-10 w-10 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium mb-1">No source attribution yet</p>
+                      <p className="text-xs text-muted-foreground">
+                        {analytics.totalProfileViews === 0
+                          ? 'Share your profile to start collecting analytics'
+                          : 'Source tracking will appear here once available.'}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-transparent w-full">
+                    <ResponsiveContainer width="100%" height={260}>
+                      <PieChart>
+                        <Pie
+                          data={chartData.sourceData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          outerRadius={60}
+                          innerRadius={30}
+                          fill="transparent"
+                          dataKey="value"
+                        >
+                          {chartData.sourceData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip content={<CustomTooltip />} />
+                        <text
+                          x="50%"
+                          y="48%"
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          style={{ fontSize: '12px', fontWeight: 600, fill: 'hsl(var(--foreground))' }}
+                        >
+                          {analytics.totalProfileViews.toLocaleString('en-US')}
+                        </text>
+                        <text
+                          x="50%"
+                          y="52%"
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          style={{ fontSize: '10px', fill: 'hsl(var(--muted-foreground))' }}
+                        >
+                          total views
+                        </text>
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Category Performance Chart */}
+            <Card className="bg-card border border-border/60 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Category Performance</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0 min-h-[220px] flex items-center justify-center">
+                {!analytics.hasAnyLinkClicksEver || chartData.categoryChartData.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center text-center gap-2 w-full">
+                    <BarChart2 className="h-10 w-10 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium mb-1">No category data</p>
+                      <p className="text-xs text-muted-foreground">
+                        {analytics.hasAnyLinkClicksEver
+                          ? 'No clicks in the selected time range'
+                          : 'Share your profile to start collecting clicks'}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-transparent w-full">
+                    <ResponsiveContainer width="100%" height={260}>
+                      <BarChart data={chartData.categoryChartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                        <CartesianGrid {...chartGridProps} />
+                        <XAxis 
+                          dataKey="name" 
+                          {...chartAxisProps}
+                        />
+                        <YAxis 
+                          {...chartAxisProps}
+                        />
+                        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--foreground))', fillOpacity: 0.04 }} />
+                        <Bar dataKey="clicks" fill="hsl(var(--primary))" {...chartBarProps} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        {/* 3. PERFORMANCE BREAKDOWNS */}
+        <section className="space-y-4">
+          <SectionHeader
+            title="Performance Breakdowns"
+            description="Detailed analysis by links and categories"
+          />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Top Links */}
+            <Card className="bg-card border border-border/60 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium">Top Links</CardTitle>
+                <CardDescription className="text-xs">
+                  Most clicked links in the selected time range
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-6 text-center text-xs text-muted-foreground">
+                    Loading links...
+                  </div>
+                ) : analytics.topLinks.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
+                    <BarChart2 className="h-10 w-10 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium mb-1">
+                        {analytics.hasAnyLinkClicksEver
+                          ? 'No clicks in the selected time range'
+                          : 'No activity yet'}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {analytics.hasAnyLinkClicksEver
+                          ? 'Try selecting a different time range'
+                          : 'Share your profile to start tracking'}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {analytics.topLinks.slice(0, 5).map((link, index) => (
+                      <div
+                        key={link.id}
+                        className="grid grid-cols-[auto,1fr,auto] items-center gap-3 rounded-md border border-border/40 bg-background/60 px-3 py-2.5 hover:bg-accent/50 transition-colors min-w-0"
+                      >
+                        {/* Index badge */}
+                        <Badge variant="secondary" className="w-6 h-6 flex items-center justify-center p-0 text-xs font-semibold shrink-0">
+                          {index + 1}
+                        </Badge>
+                        
+                        {/* Main content */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium truncate mb-0.5">{link.title}</p>
+                          <p className="text-[11px] text-muted-foreground truncate break-words">
+                            {link.url}
+                          </p>
+                          {link.categoryName && (
+                            <Badge variant="outline" className="text-[10px] mt-1">
+                              {link.categoryName}
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        {/* Right meta + button */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          <div className="text-right">
+                            <p className="text-sm font-semibold">{link.clicks.toLocaleString('en-US')}</p>
+                            <p className="text-[10px] text-muted-foreground">clicks</p>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            className="h-7 px-2 text-[11px] shrink-0"
+                            onClick={() => router.push(`/dashboard/${address}/links/${link.id}`)}
+                          >
+                            View
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    {analytics.topLinks.length > 5 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="w-full text-xs"
+                        onClick={() => {
+                          const params = new URLSearchParams()
+                          params.set('tab', 'links')
+                          router.push(`/dashboard/${address}?${params.toString()}`)
+                        }}
+                      >
+                        View all {analytics.topLinks.length} links
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Top Categories */}
+            <Card className="bg-card border border-border/60 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium">Top Categories</CardTitle>
+                <CardDescription className="text-xs">
+                  Category performance sorted by clicks
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {!analytics.hasAnyLinkClicksEver ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
+                    <BarChart2 className="h-10 w-10 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium mb-1">No category data yet</p>
+                      <p className="text-xs text-muted-foreground">
+                        Share your profile to start collecting clicks
+                      </p>
+                    </div>
+                  </div>
+                ) : analytics.categoryRows.length === 0 || analytics.categoryRows.every((r) => r.totalClicks === 0) ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
+                    <BarChart2 className="h-10 w-10 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium mb-1">No category data in this time range</p>
+                      <p className="text-xs text-muted-foreground">
+                        Try selecting a different time range
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {analytics.categoryRows
+                      .filter((row) => row.totalClicks > 0)
+                      .map((row, index) => {
+                        const percentage = Math.round(row.percentageShare * 100)
+                        const widthPercent =
+                          analytics.maxCategoryClicks > 0
+                            ? Math.max(4, (row.totalClicks / analytics.maxCategoryClicks) * 100)
+                            : 0
+                        const isTopCategory = index === 0
+
+                        return (
+                          <div
+                            key={row.id}
+                            className="rounded-md border border-border/40 bg-background/60 px-3 py-2.5 hover:bg-accent/50 transition-colors cursor-pointer"
+                            onClick={() => setSelectedCategoryId(row.id)}
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <p className="text-xs font-medium truncate">{row.name}</p>
+                                {isTopCategory && (
+                                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">
+                                    Top
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="text-right shrink-0 ml-2">
+                                <p className="text-xs font-semibold">{row.totalClicks.toLocaleString('en-US')}</p>
+                                <p className="text-[10px] text-muted-foreground">{percentage}%</p>
+                              </div>
+                            </div>
+                            <div className="h-1.5 rounded-full bg-muted/40 overflow-hidden mb-1">
+                              <div
+                                className="h-full rounded-full bg-primary transition-all"
+                                style={{
+                                  width: `${widthPercent}%`,
+                                }}
+                              />
+                            </div>
+                            {row.topLinkLabel && (
+                              <p className="text-[10px] text-muted-foreground truncate">
+                                Top: {row.topLinkLabel}
+                              </p>
+                            )}
+                          </div>
+                        )
+                      })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        {/* 4. RECENT ACTIVITY TIMELINE */}
+        <section className="space-y-4">
+          <SectionHeader
+            title="Recent Activity"
+            description="Latest events timeline (privacy-first, no user identity)"
+          />
+          <Card className="bg-card border border-border/60 shadow-sm">
+            <CardContent className="pt-6">
+              {analytics.recentActivity.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
                   <Activity className="h-10 w-10 text-muted-foreground" />
                   <div>
-                    <p className="text-sm font-medium mb-1">No views in the selected time range</p>
+                    <p className="text-sm font-medium mb-1">No recent activity</p>
                     <p className="text-xs text-muted-foreground mb-4">
-                      Try selecting a different time range or share your profile to get started.
+                      Share your profile to start tracking views and clicks
                     </p>
                   </div>
                   <Button
@@ -721,367 +1072,107 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground mb-2">Source breakdown</p>
-                  <div className="space-y-1.5">
-                    {Object.entries(analytics.sourceBreakdown)
-                      .filter(([_, count]) => count > 0)
-                      .sort(([_, a], [__, b]) => b - a)
-                      .map(([source, count]) => {
-                        const percentage = analytics.totalProfileViews > 0
-                          ? Math.round((count / analytics.totalProfileViews) * 100)
-                          : 0
-                        const sourceLabel = source === 'profile' ? 'Profile' 
-                          : source === 'qr' ? 'QR Code'
-                          : source === 'copy' ? 'Copy Link'
-                          : 'Unknown'
-                        
-                        return (
-                          <div
-                            key={source}
-                            className="flex items-center justify-between rounded-md border border-border/40 bg-background/60 px-3 py-2 text-xs"
-                          >
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium">{sourceLabel}</span>
+                <div className="relative">
+                  {/* Vertical timeline line */}
+                  <div className="absolute left-[11px] top-0 bottom-0 w-0.5 bg-border/40" />
+                  
+                  {/* Activity items */}
+                  <div className="space-y-3">
+                    {analytics.recentActivity.map((activity, idx) => {
+                      const timeAgo = formatDistanceToNow(new Date(activity.timestamp), {
+                        addSuffix: true,
+                      })
+
+                      return (
+                        <div
+                          key={`${activity.type}-${activity.timestamp}-${idx}`}
+                          className="relative flex items-center gap-3"
+                        >
+                          {/* Timeline dot - centered with card */}
+                          <div className="relative z-10 flex items-center justify-center w-6 shrink-0">
+                            <div className="w-2 h-2 rounded-full bg-muted-foreground/60 border-2 border-background" />
+                          </div>
+                          
+                          {/* Activity card */}
+                          <div className="flex-1 flex items-center gap-3 rounded-md border border-border/40 bg-background/60 px-3 py-2.5 min-w-0">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <div className="flex h-5 w-5 items-center justify-center rounded-md bg-muted/60 text-muted-foreground shrink-0">
+                                {activity.type === 'link_click' ? (
+                                  <BarChart2 className="h-3 w-3" />
+                                ) : (
+                                  <Activity className="h-3 w-3" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                {activity.type === 'link_click' ? (
+                                  <p className="text-xs truncate">
+                                    <span className="text-muted-foreground">Link clicked: </span>
+                                    <span className="font-medium">{activity.linkTitle}</span>
+                                  </p>
+                                ) : (
+                                  <p className="text-xs">
+                                    <span className="font-medium">Profile viewed</span>
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-muted-foreground">{percentage}%</span>
-                              <span className="font-semibold">{count.toLocaleString('en-US')}</span>
+                            <div className="text-[11px] text-muted-foreground whitespace-nowrap shrink-0">
+                              {timeAgo}
                             </div>
                           </div>
-                        )
-                      })}
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Top Links */}
-        <Card className="bg-card border border-border/60 shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Top Links</CardTitle>
-            <CardDescription className="text-xs">
-              Most clicked links in the selected time range.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-6 text-center text-xs text-muted-foreground">
-                Loading links...
-              </div>
-            ) : analytics.topLinks.length === 0 ? (
-              <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-6 text-center text-xs text-muted-foreground">
-                {analytics.hasAnyLinkClicksEver
-                  ? 'No clicks in the selected time range.'
-                  : 'No activity yet. Share your profile to start tracking.'}
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="border-b border-border/60 text-muted-foreground">
-                      <th className="py-2 text-left font-medium">Link</th>
-                      <th className="py-2 text-left font-medium">Category</th>
-                      <th className="py-2 text-right font-medium">Clicks</th>
-                      <th className="py-2 text-right font-medium">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {analytics.topLinks.map((link) => (
-                      <tr key={link.id} className="border-b border-border/40 last:border-0">
-                        <td className="py-2">
-                          <div className="min-w-0">
-                            <p className="font-medium truncate">{link.title}</p>
-                            <p className="text-[11px] text-muted-foreground truncate">{link.url}</p>
-                          </div>
-                        </td>
-                        <td className="py-2 text-muted-foreground">
-                          {link.categoryName || '—'}
-                        </td>
-                        <td className="py-2 text-right font-medium">
-                          {link.clicks.toLocaleString('en-US')}
-                        </td>
-                        <td className="py-2 text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 px-2 text-[11px]"
-                              onClick={() => router.push(`/dashboard/${address}/links/${link.id}`)}
-                            >
-                              Details
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="h-7 px-2 text-[11px]"
-                              onClick={() => {
-                                // Navigate to Links panel (where links are actually managed)
-                                const linkItem = links.find((l) => l.id === link.id)
-                                const categoryId = linkItem?.categoryId
-                                const params = new URLSearchParams()
-                                params.set('tab', 'links')
-                                if (link.id) params.set('link', link.id)
-                                if (categoryId) params.set('category', categoryId)
-                                router.push(`/dashboard/${address}?${params.toString()}`)
-                              }}
-                            >
-                              Optimize
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Top Categories */}
-        <Card className="bg-card border border-border/60 shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Top Categories</CardTitle>
-            <CardDescription className="text-xs">
-              Category performance sorted by clicks.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {!analytics.hasAnyLinkClicksEver ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
-                <BarChart2 className="h-10 w-10 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium mb-1">No category data yet</p>
-                  <p className="text-xs text-muted-foreground mb-4">
-                    Share your profile to start collecting clicks.
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => router.push(`/p/${address}`)}
-                >
-                  <Share2 className="mr-2 h-3.5 w-3.5" />
-                  View public profile
-                </Button>
-              </div>
-            ) : analytics.categoryRows.length === 0 || analytics.categoryRows.every((r) => r.totalClicks === 0) ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
-                <BarChart2 className="h-10 w-10 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium mb-1">No category data in this time range</p>
-                  <p className="text-xs text-muted-foreground">
-                    Try selecting a different time range.
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="border-b border-border/60 text-muted-foreground">
-                      <th className="py-2 text-left font-medium">Category</th>
-                      <th className="py-2 text-right font-medium">Clicks</th>
-                      <th className="py-2 text-right font-medium">Share</th>
-                      <th className="py-2 w-32"></th>
-                      <th className="py-2 text-right font-medium">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {analytics.categoryRows
-                      .filter((row) => row.totalClicks > 0)
-                      .map((row, index) => {
-                        const percentage = Math.round(row.percentageShare * 100)
-                        const widthPercent =
-                          analytics.maxCategoryClicks > 0
-                            ? Math.max(4, (row.totalClicks / analytics.maxCategoryClicks) * 100)
-                            : 0
-                        const isTopCategory = index === 0
-
-                        return (
-                          <tr 
-                            key={row.id} 
-                            className="border-b border-border/40 last:border-0 hover:bg-accent/50 transition-colors cursor-pointer"
-                            onClick={() => setSelectedCategoryId(row.id)}
-                          >
-                            <td className="py-2">
-                              <div className="flex items-center gap-2">
-                                <p className="font-medium">{row.name}</p>
-                                {isTopCategory && (
-                                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                                    Top
-                                  </Badge>
-                                )}
-                              </div>
-                            </td>
-                            <td className="py-2 text-right font-medium">
-                              {row.totalClicks.toLocaleString('en-US')}
-                            </td>
-                            <td className="py-2 text-right text-muted-foreground">
-                              {percentage}%
-                            </td>
-                            <td className="py-2">
-                              <div className="h-1.5 rounded-full bg-muted/40 overflow-hidden">
-                                <div
-                                  className="h-full rounded-full bg-primary transition-all"
-                                  style={{
-                                    width: `${widthPercent}%`,
-                                  }}
-                                />
-                              </div>
-                            </td>
-                            <td className="py-2 text-right">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                className="h-7 px-2 text-[11px]"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  // Navigate to Links panel for category optimization
-                                  const params = new URLSearchParams()
-                                  params.set('tab', 'links')
-                                  if (row.id !== GENERAL_CATEGORY_ID) {
-                                    params.set('category', row.id)
-                                  }
-                                  router.push(`/dashboard/${address}?${params.toString()}`)
-                                }}
-                              >
-                                Optimize
-                              </Button>
-                            </td>
-                          </tr>
-                        )
-                      })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Recent Activity */}
-        <Card className="bg-card border border-border/60 shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Recent Activity</CardTitle>
-            <CardDescription className="text-xs">
-              Last 10 events (privacy-first, no user identity).
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {analytics.recentActivity.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
-                <Activity className="h-10 w-10 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium mb-1">No recent activity</p>
-                  <p className="text-xs text-muted-foreground mb-4">
-                    Share your profile to start tracking views and clicks.
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => router.push(`/p/${address}`)}
-                >
-                  <Share2 className="mr-2 h-3.5 w-3.5" />
-                  View public profile
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {analytics.recentActivity.map((activity, idx) => {
-                  const timeAgo = formatDistanceToNow(new Date(activity.timestamp), {
-                    addSuffix: true,
-                  })
-
-                  return (
-                    <div
-                      key={`${activity.type}-${activity.timestamp}-${idx}`}
-                      className="flex items-center gap-3 rounded-md border border-border/40 bg-background/60 px-3 py-2 text-xs"
-                    >
-                      <div className="flex h-6 w-6 items-center justify-center rounded-md bg-muted/60 text-muted-foreground">
-                        {activity.type === 'link_click' ? (
-                          <BarChart2 className="h-3 w-3" />
-                        ) : (
-                          <Activity className="h-3 w-3" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        {activity.type === 'link_click' ? (
-                          <p className="truncate">
-                            Someone clicked{' '}
-                            <span className="font-medium">{activity.linkTitle}</span>
-                          </p>
-                        ) : (
-                          <p>Profile viewed</p>
-                        )}
-                      </div>
-                      <div className="text-[11px] text-muted-foreground whitespace-nowrap">
-                        {timeAgo}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Suggestions */}
-        {suggestions.length > 0 && (
-          <Card className="bg-card border border-border/60 shadow-sm">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <Lightbulb className="h-4 w-4 text-muted-foreground" />
-                <CardTitle className="text-sm font-medium">Suggestions</CardTitle>
-              </div>
-              <CardDescription className="text-xs">
-                Optimization tips based on your analytics data.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {suggestions.map((suggestion) => (
-                  <div
-                    key={suggestion.id}
-                    className="flex items-start gap-3 rounded-md border border-border/40 bg-background/60 px-3 py-2.5 text-xs"
-                  >
-                    <Lightbulb className="h-3.5 w-3.5 text-muted-foreground mt-0.5 shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm leading-relaxed">{suggestion.message}</p>
-                    </div>
-                    {suggestion.action && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="h-7 px-2 text-[11px] shrink-0"
-                        onClick={() => {
-                          if (suggestion.action?.preset) {
-                            // Apply preset via Builder
-                            router.push(`${suggestion.action.href}`)
-                            // Note: Preset application would need to be handled in Builder
-                          } else {
-                            router.push(suggestion.action.href)
-                          }
-                        }}
-                      >
-                        {suggestion.action.label}
-                        <ArrowRight className="ml-1 h-3 w-3" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
             </CardContent>
           </Card>
+        </section>
+
+        {/* Suggestions (Optional Section) */}
+        {suggestions.length > 0 && (
+          <section className="space-y-4">
+            <SectionHeader
+              title="Optimization Suggestions"
+              description="AI-powered tips to improve your profile performance"
+            />
+            <Card className="bg-card border border-border/60 shadow-sm">
+              <CardContent className="pt-6">
+                <div className="space-y-2">
+                  {suggestions.map((suggestion) => (
+                    <div
+                      key={suggestion.id}
+                      className="flex items-start gap-3 rounded-md border border-border/40 bg-background/60 px-3 py-2.5 hover:bg-accent/50 transition-colors"
+                    >
+                      <Lightbulb className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs leading-relaxed">{suggestion.message}</p>
+                      </div>
+                      {suggestion.action && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-7 px-2 text-[11px] shrink-0"
+                          onClick={() => {
+                            if (suggestion.action?.preset) {
+                              router.push(`${suggestion.action.href}`)
+                            } else {
+                              router.push(suggestion.action.href)
+                            }
+                          }}
+                        >
+                          {suggestion.action.label}
+                          <ArrowRight className="ml-1 h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </section>
         )}
 
         {/* Category Detail Sheet */}
