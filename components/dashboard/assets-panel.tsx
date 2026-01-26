@@ -205,6 +205,9 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
       return data
     },
     enabled: mounted && !!targetAddress,
+    // Summary can be cached for 60 seconds
+    staleTime: 60 * 1000, // 60 seconds
+    refetchOnWindowFocus: false,
   })
 
   // Fetch tokens
@@ -270,6 +273,12 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
       return data
     },
     enabled: mounted && !!targetAddress && activeTab === 'tokens',
+    // Cache tokens for 60 seconds (balances change less frequently)
+    staleTime: 60 * 1000, // 60 seconds
+    // Don't refetch on window focus if data is fresh
+    refetchOnWindowFocus: false,
+    // Background refetch every 2 minutes to keep data fresh
+    refetchInterval: 2 * 60 * 1000, // 2 minutes
   })
 
   // Fetch NFTs
@@ -317,11 +326,28 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
       console.log('[Assets Panel] NFTs data received:', {
         nftCount: data.nfts?.length || 0,
         nextCursor: data.nextCursor,
+        hasNfts: !!data.nfts,
+        nftsArray: data.nfts,
+        fullResponse: data,
       })
+      
+      // Log warning if API returned success but no NFTs
+      if (data.nfts && Array.isArray(data.nfts) && data.nfts.length === 0) {
+        console.warn('[Assets Panel] API returned empty NFT array. This could mean:')
+        console.warn('  1. Wallet has no NFTs on Avalanche C-Chain')
+        console.warn('  2. OpenSea API failed silently (check server logs)')
+        console.warn('  3. RPC fallback returned empty (RPC does not support NFT discovery)')
+      }
       
       return data
     },
     enabled: mounted && !!targetAddress && activeTab === 'nfts',
+    // Cache NFTs for 2 minutes (NFTs change less frequently than tokens)
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    // Don't refetch on window focus if data is fresh
+    refetchOnWindowFocus: false,
+    // Background refetch every 5 minutes to keep data fresh
+    refetchInterval: 5 * 60 * 1000, // 5 minutes
   })
 
   // Fetch profile for share/QR
@@ -335,6 +361,9 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
       return data.profile || null
     },
     enabled: mounted && !!targetAddress,
+    // Profile data changes rarely, cache for 5 minutes
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
   })
 
   // Update current time for relative time display

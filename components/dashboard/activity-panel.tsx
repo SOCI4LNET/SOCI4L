@@ -149,7 +149,11 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
       return data
     },
     enabled: mounted && !!targetAddress,
-    staleTime: 30000, // 30 seconds
+    staleTime: 30 * 1000, // 30 seconds
+    // Don't refetch on window focus if data is fresh
+    refetchOnWindowFocus: false,
+    // Background refetch every 1 minute to keep activity data fresh
+    refetchInterval: 60 * 1000, // 1 minute
   })
 
   const handleRefresh = () => {

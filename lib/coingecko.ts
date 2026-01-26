@@ -174,16 +174,19 @@ export async function getTokenLogos(coingeckoIds: string[]): Promise<Record<stri
 }
 
 /**
- * CoinGecko token list cache (in-memory, refreshed daily)
+ * CoinGecko token list cache (in-memory, refreshed every 6 hours)
  * Maps contract address -> { id, logoUrl }
+ * 
+ * Note: Cache duration reduced from 24h to 6h to catch new tokens faster
+ * while still avoiding excessive API calls
  */
 let tokenListCache: Map<string, { id: string; logoUrl: string }> | null = null
 let tokenListCacheTime: number = 0
-const TOKEN_LIST_CACHE_DURATION = 24 * 60 * 60 * 1000 // 24 hours
+const TOKEN_LIST_CACHE_DURATION = 6 * 60 * 60 * 1000 // 6 hours (reduced from 24h for faster new token detection)
 
 /**
  * Fetches Avalanche C-Chain token list from CoinGecko and builds address -> logo map
- * This is cached for 24 hours to avoid repeated API calls
+ * This is cached for 6 hours to balance between freshness and API rate limits
  * Uses aggressive caching to speed up logo fetching
  * 
  * @internal - Exported for use in rpc-assets.ts to pre-fetch token list
@@ -204,8 +207,8 @@ export async function getAvalancheTokenList(): Promise<Map<string, { id: string;
         headers: {
           'Accept': 'application/json',
         },
-        // Use longer cache for server-side, but also cache in memory
-        next: { revalidate: 86400 }, // Cache for 24 hours on server
+        // Cache for 6 hours on server (matches in-memory cache)
+        next: { revalidate: 6 * 60 * 60 }, // 6 hours
       }
     )
 
@@ -242,27 +245,96 @@ export async function getAvalancheTokenList(): Promise<Map<string, { id: string;
 }
 
 /**
- * Fetches token logo URL by contract address on Avalanche C-Chain
- * @param contractAddress Token contract address
+ * Searches CoinGecko for a token by symbol (fallback method)
+ * @param symbol Token symbol (e.g., 'JOE', 'KET')
  * @returns Logo URL or undefined if not found
  */
-export async function getTokenLogoByAddress(contractAddress: string): Promise<string | undefined> {
+async function searchTokenBySymbol(symbol: string): Promise<string | undefined> {
+  if (!symbol) return undefined
+
+  try {
+    // Search CoinGecko by symbol
+    const response = await fetch(
+      `${COINGECKO_API_URL}/search?query=${encodeURIComponent(symbol)}`,
+      {
+        headers: {
+          'Accept': 'application/json',
+        },
+        next: { revalidate: 3600 }, // Cache for 1 hour
+      }
+    )
+
+    if (!response.ok) {
+      return undefined
+    }
+
+    const data = await response.json()
+    
+    // Look for exact symbol match in coins
+    if (data.coins && Array.isArray(data.coins)) {
+      for (const coin of data.coins) {
+        if (coin.symbol?.toUpperCase() === symbol.toUpperCase()) {
+          // Found matching symbol, fetch logo using coin ID
+          const logoUrl = await getTokenLogoUrl(coin.id)
+          if (logoUrl) {
+            console.log(`[CoinGecko] Found logo for ${symbol} via symbol search:`, logoUrl)
+            return logoUrl
+          }
+        }
+      }
+    }
+
+    return undefined
+  } catch (error) {
+    console.warn(`[CoinGecko] Error searching token by symbol ${symbol}:`, error)
+    return undefined
+  }
+}
+
+/**
+ * Fetches token logo URL by contract address on Avalanche C-Chain
+ * @param contractAddress Token contract address
+ * @param symbol Optional token symbol for fallback search
+ * @returns Logo URL or undefined if not found
+ */
+export async function getTokenLogoByAddress(
+  contractAddress: string,
+  symbol?: string
+): Promise<string | undefined> {
   if (!contractAddress) return undefined
 
   const normalizedAddress = contractAddress.toLowerCase()
   
   try {
-    // Get token list to find CoinGecko ID
+    // First, try to get token list to find CoinGecko ID
     const tokenList = await getAvalancheTokenList()
     const tokenInfo = tokenList.get(normalizedAddress)
     
-    if (!tokenInfo) {
-      // Token not found in CoinGecko
-      return undefined
+    if (tokenInfo) {
+      // Found in token list, fetch logo using the coin ID
+      const logoUrl = await getTokenLogoUrl(tokenInfo.id)
+      if (logoUrl) {
+        return logoUrl
+      }
     }
 
-    // Fetch logo using the coin ID
-    return await getTokenLogoUrl(tokenInfo.id)
+    // If not found in token list and symbol is provided, try symbol search as fallback
+    if (symbol) {
+      console.log(`[CoinGecko] Token ${symbol} (${contractAddress}) not in cached list, trying symbol search...`)
+      const logoUrl = await searchTokenBySymbol(symbol)
+      if (logoUrl) {
+        // Cache the result in token list for future use
+        if (tokenList && logoUrl) {
+          // Extract coin ID from logo URL or search result
+          // For now, just return the logo - we can improve this later
+          return logoUrl
+        }
+        return logoUrl
+      }
+    }
+
+    // Token not found in CoinGecko
+    return undefined
   } catch (error) {
     console.warn(`[CoinGecko] Error fetching logo for address ${contractAddress}:`, error)
     return undefined
@@ -272,9 +344,13 @@ export async function getTokenLogoByAddress(contractAddress: string): Promise<st
 /**
  * Fetches multiple token logos by contract addresses in batch
  * @param addresses Array of token contract addresses
+ * @param symbols Optional map of address -> symbol for fallback search
  * @returns Map of address -> logoUrl
  */
-export async function getTokenLogosByAddresses(addresses: string[]): Promise<Record<string, string>> {
+export async function getTokenLogosByAddresses(
+  addresses: string[],
+  symbols?: Record<string, string>
+): Promise<Record<string, string>> {
   if (addresses.length === 0) return {}
 
   const normalizedAddresses = addresses.map(addr => addr.toLowerCase())
@@ -286,14 +362,20 @@ export async function getTokenLogosByAddresses(addresses: string[]): Promise<Rec
     
     // Find all matching tokens
     const tokensToFetch: Array<{ address: string; id: string }> = []
+    const tokensWithoutId: Array<{ address: string; symbol?: string }> = []
+    
     for (const address of normalizedAddresses) {
       const tokenInfo = tokenList.get(address)
       if (tokenInfo) {
         tokensToFetch.push({ address, id: tokenInfo.id })
+      } else {
+        // Token not in cached list, will try symbol search
+        const symbol = symbols?.[address]
+        tokensWithoutId.push({ address, symbol })
       }
     }
 
-    // Fetch logos in batches
+    // Fetch logos for tokens found in list
     const batchSize = 10
     for (let i = 0; i < tokensToFetch.length; i += batchSize) {
       const batch = tokensToFetch.slice(i, i + batchSize)
@@ -313,6 +395,17 @@ export async function getTokenLogosByAddresses(addresses: string[]): Promise<Rec
       // Small delay between batches
       if (i + batchSize < tokensToFetch.length) {
         await new Promise(resolve => setTimeout(resolve, 200))
+      }
+    }
+
+    // Try symbol search for tokens not found in cached list
+    for (const { address, symbol } of tokensWithoutId) {
+      if (symbol && !results[address]) {
+        console.log(`[CoinGecko] Trying symbol search for ${symbol} (${address})...`)
+        const logoUrl = await searchTokenBySymbol(symbol)
+        if (logoUrl) {
+          results[address] = logoUrl
+        }
       }
     }
 

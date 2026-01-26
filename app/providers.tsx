@@ -20,7 +20,24 @@ const config = createConfig({
 })
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient())
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        // Data is considered fresh for 30 seconds (prevents unnecessary refetches)
+        staleTime: 30 * 1000, // 30 seconds
+        // Cache data for 5 minutes after component unmounts
+        gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)
+        // Refetch on window focus only if data is stale
+        refetchOnWindowFocus: true,
+        // Don't refetch on mount if data is fresh
+        refetchOnMount: false,
+        // Retry failed requests once
+        retry: 1,
+        // Retry delay of 1 second
+        retryDelay: 1000,
+      },
+    },
+  }))
 
   return (
     <WagmiProvider config={config}>

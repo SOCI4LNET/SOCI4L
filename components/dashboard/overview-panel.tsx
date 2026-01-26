@@ -294,6 +294,9 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
     enabled: mounted && !!targetAddress,
     retry: 1,
     retryDelay: 1000,
+    // Assets preview can be cached for 60 seconds
+    staleTime: 60 * 1000, // 60 seconds
+    refetchOnWindowFocus: false,
   })
 
   // Cache logos when assets data is loaded

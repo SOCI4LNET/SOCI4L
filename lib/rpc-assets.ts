@@ -431,10 +431,18 @@ export async function fetchAssetsFromRPC(
         .map(t => (t as RPCToken & { coingeckoId?: string }).coingeckoId)
         .filter((id): id is string => !!id)
       
-      // Get addresses of tokens without coingeckoId (for logo lookup by address)
+      // Get addresses and symbols of tokens without coingeckoId (for logo lookup by address)
       const tokensWithoutId = tokens
         .filter(t => !(t as RPCToken & { coingeckoId?: string }).coingeckoId)
         .map(t => t.contractAddress)
+      
+      // Build symbol map for fallback search
+      const symbolMap: Record<string, string> = {}
+      for (const token of tokens) {
+        if (!(token as RPCToken & { coingeckoId?: string }).coingeckoId) {
+          symbolMap[token.contractAddress.toLowerCase()] = token.symbol
+        }
+      }
       
       // Pre-fetch token list in parallel with prices to speed up logo fetching
       // This ensures the token list is ready when we need to fetch logos by address
@@ -464,8 +472,9 @@ export async function fetchAssetsFromRPC(
       ])
       
       // Now fetch logos by address (token list is already cached)
+      // Pass symbol map for fallback search if token not in cached list
       const logosByAddress = tokensWithoutId.length > 0 && tokenListReady.size > 0
-        ? await getTokenLogosByAddresses(tokensWithoutId)
+        ? await getTokenLogosByAddresses(tokensWithoutId, symbolMap)
         : {} as Record<string, string>
       
       // Create maps for easy lookup

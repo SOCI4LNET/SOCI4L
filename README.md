@@ -82,7 +82,11 @@ echo 'DATABASE_URL="file:./dev.db"' > .env
 
 Opsiyonel değişkenler:
 - `NEXT_PUBLIC_AVALANCHE_RPC`: Avalanche RPC endpoint (varsayılan: public RPC)
-- `MORALIS_API_KEY`: **Önerilen** - Moralis API anahtarı (token ve NFT bakiyeleri için gerekli)
+- `OPENSEA_API_KEY`: **Önerilen** - OpenSea API v2 anahtarı (NFT'leri görüntülemek için)
+  - OpenSea API v2 kullanarak Avalanche zincirindeki NFT'leri çeker
+  - Ücretsiz API anahtarı almak için: https://opensea.io/api
+  - API anahtarı olmadan NFT'ler RPC fallback ile gösterilir (sınırlı)
+- `MORALIS_API_KEY`: Moralis API anahtarı (token ve NFT bakiyeleri için - opsiyonel)
   - **ÜCRETSİZ PLAN**: 40,000 Compute Units/gün, süresiz (trial yok!)
   - Ücretsiz API anahtarı almak için: https://moralis.io/
   - API anahtarı olmadan sadece native AVAX bakiyesi gösterilir
