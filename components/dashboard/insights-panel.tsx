@@ -30,6 +30,7 @@ import {
   chartLineProps,
 } from '@/components/insights/chart-theme'
 import { SectionHeader } from '@/components/insights/section-header'
+import { KpiCard } from '@/components/insights/kpi-card'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -708,45 +709,25 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
               </div>
             }
           />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="bg-card border border-border/60 shadow-sm hover:shadow-md transition-shadow h-[120px] flex flex-col min-w-0">
-              <CardHeader className="px-6 pt-6 pb-2.5 flex flex-row items-center gap-2 min-w-0">
-                <Eye className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide truncate">
-                  Profile Views
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-6 pt-0 pb-6 flex-1 flex flex-col justify-between min-w-0">
-                <p className="text-3xl font-bold truncate">{totalViewsLabel}</p>
-                <p className="text-xs text-muted-foreground truncate">Total profile views</p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card border border-border/60 shadow-sm hover:shadow-md transition-shadow h-[120px] flex flex-col min-w-0">
-              <CardHeader className="px-6 pt-6 pb-2.5 flex flex-row items-center gap-2 min-w-0">
-                <BarChart2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide truncate">
-                  Link Clicks
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-6 pt-0 pb-6 flex-1 flex flex-col justify-between min-w-0">
-                <p className="text-3xl font-bold truncate">{totalClicksLabel}</p>
-                <p className="text-xs text-muted-foreground truncate">Total link clicks</p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card border border-border/60 shadow-sm hover:shadow-md transition-shadow h-[120px] flex flex-col min-w-0">
-              <CardHeader className="px-6 pt-6 pb-2.5 flex flex-row items-center gap-2 min-w-0">
-                <TrendingUp className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide truncate">
-                  CTR
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-6 pt-0 pb-6 flex-1 flex flex-col justify-between min-w-0">
-                <p className="text-3xl font-bold truncate">{ctrLabel}</p>
-                <p className="text-xs text-muted-foreground truncate">Click-through rate</p>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            <KpiCard
+              icon={Eye}
+              label="Profile Views"
+              value={totalViewsLabel}
+              description="Total profile views"
+            />
+            <KpiCard
+              icon={BarChart2}
+              label="Link Clicks"
+              value={totalClicksLabel}
+              description="Total link clicks"
+            />
+            <KpiCard
+              icon={TrendingUp}
+              label="CTR"
+              value={ctrLabel}
+              description="Click-through rate"
+            />
           </div>
         </section>
 
@@ -784,7 +765,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                           cx="50%"
                           cy="50%"
                           labelLine={false}
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          label={({ name, percent }) => `${name} ${percent ? (percent * 100).toFixed(0) : 0}%`}
                           outerRadius={60}
                           innerRadius={30}
                           fill="transparent"
@@ -902,17 +883,17 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                     {analytics.topLinks.slice(0, 5).map((link, index) => (
                       <div
                         key={link.id}
-                        className="grid grid-cols-[auto,1fr,auto] items-center gap-3 rounded-md border border-border/40 bg-background/60 px-3 py-2.5 hover:bg-accent/50 transition-colors min-w-0"
+                        className="flex items-center gap-3 rounded-md border border-border/40 bg-background/60 px-3 py-2.5 hover:bg-accent/50 transition-colors min-w-0"
                       >
-                        {/* Index badge */}
-                        <Badge variant="secondary" className="w-6 h-6 flex items-center justify-center p-0 text-xs font-semibold shrink-0">
+                        {/* A) Sol: Rank badge (secondary/low emphasis) */}
+                        <Badge variant="secondary" className="w-6 h-6 flex items-center justify-center p-0 text-xs font-medium shrink-0">
                           {index + 1}
                         </Badge>
                         
-                        {/* Main content */}
+                        {/* B) Orta: Link adı + URL (primary content) */}
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-medium truncate mb-0.5">{link.title}</p>
-                          <p className="text-[11px] text-muted-foreground truncate break-words">
+                          <p className="text-[11px] text-muted-foreground truncate">
                             {link.url}
                           </p>
                           {link.categoryName && (
@@ -922,15 +903,15 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                           )}
                         </div>
                         
-                        {/* Right meta + button */}
-                        <div className="flex items-center gap-2 shrink-0">
-                          <div className="text-right">
-                            <p className="text-sm font-semibold">{link.clicks.toLocaleString('en-US')}</p>
-                            <p className="text-[10px] text-muted-foreground">clicks</p>
-                          </div>
+                        {/* C) Sağ: Metric + View butonu (right actions) */}
+                        <div className="flex items-center gap-3 shrink-0">
+                          <span className="text-xs font-semibold whitespace-nowrap">
+                            {link.clicks.toLocaleString('en-US')}{' '}
+                            <span className="text-muted-foreground font-normal">clicks</span>
+                          </span>
                           <Button
                             type="button"
-                            variant="secondary"
+                            variant="ghost"
                             size="sm"
                             className="h-7 px-2 text-[11px] shrink-0"
                             onClick={() => router.push(`/dashboard/${address}/links/${link.id}`)}
@@ -1155,13 +1136,13 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                           variant="outline"
                           size="sm"
                           className="h-7 px-2 text-[11px] shrink-0"
-                          onClick={() => {
-                            if (suggestion.action?.preset) {
-                              router.push(`${suggestion.action.href}`)
-                            } else {
-                              router.push(suggestion.action.href)
-                            }
-                          }}
+                        onClick={() => {
+                          if (suggestion.action?.preset) {
+                            router.push(`${suggestion.action.href}`)
+                          } else if (suggestion.action) {
+                            router.push(suggestion.action.href)
+                          }
+                        }}
                         >
                           {suggestion.action.label}
                           <ArrowRight className="ml-1 h-3 w-3" />
