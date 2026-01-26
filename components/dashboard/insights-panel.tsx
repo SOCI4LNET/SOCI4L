@@ -606,14 +606,14 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
   return (
     <PageShell
       title="Insights"
-      subtitle="Profil performansı ve etkileşim metrikleri."
+      subtitle="Profile performance and interaction metrics."
     >
       <div className="space-y-6">
         {/* Time range selector */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Clock className="h-3.5 w-3.5" />
-            <span>Zaman aralığı</span>
+            <span>Time range</span>
           </div>
           <div className="flex items-center gap-3">
             <Tabs value={range} onValueChange={(value) => setRange(value as TimeRange)}>

@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
   const address = searchParams.get('address')
 
   if (!address || !isValidAddress(address)) {
-    return NextResponse.json({ error: 'Geçersiz cüzdan adresi' }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid wallet address' }, { status: 400 })
   }
 
   try {
@@ -66,9 +66,9 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error fetching link categories:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Bilinmeyen hata'
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: `Kategoriler alınırken bir hata oluştu: ${errorMessage}` },
+      { error: `An error occurred while fetching categories: ${errorMessage}` },
       { status: 500 }
     )
   }
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     const { address, categories } = body
 
     if (!address || !isValidAddress(address)) {
-      return NextResponse.json({ error: 'Geçersiz cüzdan adresi' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid wallet address' }, { status: 400 })
     }
 
     if (!Array.isArray(categories)) {
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
     // Validate categories
     for (const cat of categories) {
       if (!cat.name || typeof cat.name !== 'string' || cat.name.trim().length === 0) {
-        return NextResponse.json({ error: 'Her kategori için isim gerekli' }, { status: 400 })
+        return NextResponse.json({ error: 'Name is required for each category' }, { status: 400 })
       }
     }
 
@@ -304,9 +304,9 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error saving link categories:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Bilinmeyen hata'
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: `Kategoriler kaydedilirken bir hata oluştu: ${errorMessage}` },
+      { error: `An error occurred while saving categories: ${errorMessage}` },
       { status: 500 }
     )
   }

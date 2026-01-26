@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   const address = searchParams.get('address')
 
   if (!address || !isValidAddress(address)) {
-    return NextResponse.json({ error: 'Geçersiz cüzdan adresi' }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid wallet address' }, { status: 400 })
   }
 
   try {
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching profile:', error)
     return NextResponse.json(
-      { error: 'Profil alınırken bir hata oluştu' },
+      { error: 'An error occurred while fetching profile' },
       { status: 500 }
     )
   }

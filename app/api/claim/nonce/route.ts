@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
     const { address } = await request.json()
 
     if (!address || !isValidAddress(address)) {
-      return NextResponse.json({ error: 'Geçersiz cüzdan adresi' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid wallet address' }, { status: 400 })
     }
 
     // Generate a random nonce
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error generating nonce:', error)
     return NextResponse.json(
-      { error: 'Nonce oluşturulurken bir hata oluştu' },
+      { error: 'An error occurred while generating nonce' },
       { status: 500 }
     )
   }

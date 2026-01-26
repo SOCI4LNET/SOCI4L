@@ -12,7 +12,7 @@ export async function GET(
 
     if (!address || !isValidAddress(address)) {
       return NextResponse.json(
-        { error: 'Geçersiz cüzdan adresi' },
+        { error: 'Invalid wallet address' },
         { status: 400 }
       )
     }
@@ -52,7 +52,7 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching wallet summary:', error)
     return NextResponse.json(
-      { error: 'Cüzdan özeti alınırken bir hata oluştu' },
+      { error: 'An error occurred while fetching wallet summary' },
       { status: 500 }
     )
   }

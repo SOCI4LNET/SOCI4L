@@ -102,7 +102,7 @@ export function ActivityTable({ transactions, address, isLoading }: ActivityTabl
                         {getStatusIcon(tx.status)}
                       </TooltipTrigger>
                       <TooltipContent>
-                        {tx.status === 'success' ? 'Başarılı' : tx.status === 'failed' ? 'Başarısız' : 'Beklemede'}
+                        {tx.status === 'success' ? 'Success' : tx.status === 'failed' ? 'Failed' : 'Pending'}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

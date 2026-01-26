@@ -22,7 +22,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!mounted) return
     
-    // Eğer cüzdan bağlıysa, dashboard/[address] formatına yönlendir
+    // If wallet is connected, redirect to dashboard/[address] format
     if (isConnected && connectedAddress) {
       const dashboardHref = getConnectedDashboardHref(connectedAddress)
       if (dashboardHref) {
@@ -32,7 +32,7 @@ export default function DashboardPage() {
     }
   }, [mounted, isConnected, connectedAddress, router])
 
-  // Hydration mismatch'i önlemek için mounted kontrolü
+  // Mounted check to prevent hydration mismatch
   if (!mounted) {
     return (
       <PageShell title="Dashboard" subtitle="Overview">
@@ -47,14 +47,14 @@ export default function DashboardPage() {
     )
   }
 
-  // Cüzdan bağlı değilse, bağlama ekranı göster
+  // If wallet is not connected, show connection screen
   if (!isConnected) {
     return (
       <PageShell title="Dashboard" subtitle="Overview">
         <Card>
           <CardHeader className="p-4 pb-3">
-            <CardTitle className="text-base font-semibold">Cüzdan Bağlantısı Gerekli</CardTitle>
-            <CardDescription className="text-xs">Dashboard'a erişmek için cüzdanınızı bağlayın</CardDescription>
+            <CardTitle className="text-base font-semibold">Wallet Connection Required</CardTitle>
+            <CardDescription className="text-xs">Please connect your wallet to access the dashboard</CardDescription>
           </CardHeader>
           <CardContent className="p-4 pt-0">
             {connectors.length > 0 ? (
@@ -68,18 +68,18 @@ export default function DashboardPage() {
                 {isConnecting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Bağlanıyor...
+                    Connecting...
                   </>
                 ) : (
                   <>
                     <Wallet className="mr-2 h-4 w-4" />
-                    Cüzdan Bağla
+                    Connect Wallet
                   </>
                 )}
               </Button>
             ) : (
               <p className="text-center text-sm text-muted-foreground">
-                Cüzdan bağlayıcı mevcut değil
+                Wallet connector not available
               </p>
             )}
           </CardContent>
@@ -88,14 +88,14 @@ export default function DashboardPage() {
     )
   }
 
-  // Cüzdan bağlı ama adres yoksa veya yönlendirme bekleniyorsa loading göster
+  // If wallet is connected but address is missing or redirect is pending, show loading
   return (
     <PageShell title="Dashboard" subtitle="Overview">
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            <span className="ml-2 text-sm text-muted-foreground">Yönlendiriliyor...</span>
+            <span className="ml-2 text-sm text-muted-foreground">Redirecting...</span>
           </div>
         </CardContent>
       </Card>

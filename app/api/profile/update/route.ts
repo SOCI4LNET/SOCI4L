@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
     const { address, slug, isPublic, showcase } = await request.json()
 
     if (!address || !isValidAddress(address)) {
-      return NextResponse.json({ error: 'Geçersiz cüzdan adresi' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid wallet address' }, { status: 400 })
     }
 
     const normalizedAddress = address.toLowerCase()
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
     if (!profile || profile.owner?.toLowerCase() !== normalizedAddress) {
       return NextResponse.json(
-        { error: 'Bu profili güncelleme yetkiniz yok' },
+        { error: 'You do not have permission to update this profile' },
         { status: 403 }
       )
     }
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
       if (existing) {
         return NextResponse.json(
-          { error: 'Bu slug zaten kullanılıyor' },
+          { error: 'This slug is already in use' },
           { status: 400 }
         )
       }
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error updating profile:', error)
     return NextResponse.json(
-      { error: 'Profil güncellenirken bir hata oluştu' },
+      { error: 'An error occurred while updating profile' },
       { status: 500 }
     )
   }

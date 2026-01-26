@@ -397,8 +397,8 @@ export function LinksPanel() {
         const response = await fetch(`/api/profile/categories?address=${encodeURIComponent(targetAddress)}`)
         
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ error: 'Bilinmeyen hata' }))
-          throw new Error(errorData.error || `HTTP ${response.status}: Kategoriler yüklenemedi`)
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+          throw new Error(errorData.error || `HTTP ${response.status}: Failed to load categories`)
         }
         
         const data = await response.json()
@@ -458,8 +458,8 @@ export function LinksPanel() {
         const response = await fetch(`/api/profile/links?address=${encodeURIComponent(targetAddress)}`)
         
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ error: 'Bilinmeyen hata' }))
-          throw new Error(errorData.error || `HTTP ${response.status}: Linkler yüklenemedi`)
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+          throw new Error(errorData.error || `HTTP ${response.status}: Failed to load links`)
         }
         
         const data = await response.json()
@@ -483,7 +483,7 @@ export function LinksPanel() {
         )
       } catch (error) {
         console.error('[LinksPanel] Failed to load links from API', error)
-        const errorMessage = error instanceof Error ? error.message : 'Linkler yüklenirken bir hata oluştu'
+        const errorMessage = error instanceof Error ? error.message : 'An error occurred while loading links'
         toast.error(errorMessage)
         // Set empty links array on error to prevent UI blocking
         setLinks([])
@@ -533,7 +533,7 @@ export function LinksPanel() {
   // Save social links
   const saveSocialLinks = async (linksToSave: SocialLink[]) => {
     if (!targetAddress) {
-      toast.error('Cüzdan adresi bulunamadı')
+      toast.error('Wallet address not found')
       return false
     }
 
@@ -543,7 +543,7 @@ export function LinksPanel() {
       // Step 1: Get nonce
       const nonceResponse = await fetch('/api/auth/nonce')
       if (!nonceResponse.ok) {
-        throw new Error('Nonce alınamadı')
+        throw new Error('Failed to get nonce')
       }
       const { nonce } = await nonceResponse.json()
 
@@ -565,8 +565,8 @@ export function LinksPanel() {
       })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Bilinmeyen hata' }))
-        throw new Error(errorData.error || `HTTP ${response.status}: Sosyal linkler kaydedilemedi`)
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(errorData.error || `HTTP ${response.status}: Failed to save social links`)
       }
 
       const data = await response.json()
@@ -585,7 +585,7 @@ export function LinksPanel() {
       return true
     } catch (error) {
       console.error('[LinksPanel] Failed to save social links', error)
-      toast.error(error instanceof Error ? error.message : 'Sosyal linkler kaydedilirken bir hata oluştu')
+      toast.error(error instanceof Error ? error.message : 'An error occurred while saving social links')
       return false
     } finally {
       setSocialLinksSaving(false)
@@ -594,7 +594,7 @@ export function LinksPanel() {
 
   const saveCategories = async (categoriesToSave: Omit<LinkCategory, 'id' | 'createdAt' | 'updatedAt' | 'linkCount'>[]) => {
     if (!targetAddress) {
-      toast.error('Cüzdan adresi bulunamadı')
+      toast.error('Wallet address not found')
       return false
     }
 
@@ -620,8 +620,8 @@ export function LinksPanel() {
       })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Bilinmeyen hata' }))
-        throw new Error(errorData.error || `HTTP ${response.status}: Kategoriler kaydedilemedi`)
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(errorData.error || `HTTP ${response.status}: Failed to save categories`)
       }
 
       const data = await response.json()
@@ -647,7 +647,7 @@ export function LinksPanel() {
       return true
     } catch (error) {
       console.error('[LinksPanel] Failed to save categories', error)
-      toast.error(error instanceof Error ? error.message : 'Kategoriler kaydedilirken bir hata oluştu')
+      toast.error(error instanceof Error ? error.message : 'An error occurred while saving categories')
       return false
     } finally {
       setCategoriesSaving(false)
@@ -656,7 +656,7 @@ export function LinksPanel() {
 
   const saveLinks = async (linksToSave: LinkItem[]) => {
     if (!targetAddress) {
-      toast.error('Cüzdan adresi bulunamadı')
+      toast.error('Wallet address not found')
       return false
     }
 
@@ -681,8 +681,8 @@ export function LinksPanel() {
       })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Bilinmeyen hata' }))
-        throw new Error(errorData.error || `HTTP ${response.status}: Linkler kaydedilemedi`)
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(errorData.error || `HTTP ${response.status}: Failed to save links`)
       }
 
       const data = await response.json()
@@ -707,7 +707,7 @@ export function LinksPanel() {
       return true
     } catch (error) {
       console.error('[LinksPanel] Failed to save links', error)
-      toast.error(error instanceof Error ? error.message : 'Linkler kaydedilirken bir hata oluştu')
+      toast.error(error instanceof Error ? error.message : 'An error occurred while saving links')
       return false
     } finally {
       setSaving(false)
@@ -902,7 +902,7 @@ export function LinksPanel() {
       setLinks(updated)
       const success = await saveLinks(updated)
       if (success) {
-        toast.success('Link güncellendi')
+        toast.success('Link updated')
         setDialogOpen(false)
       }
     } else {
@@ -920,7 +920,7 @@ export function LinksPanel() {
       setLinks(updated)
       const success = await saveLinks(updated)
       if (success) {
-        toast.success('Link eklendi')
+        toast.success('Link added')
         setDialogOpen(false)
       }
     }
@@ -944,7 +944,7 @@ export function LinksPanel() {
   const handleCategorySubmit = async () => {
     const trimmedName = categoryFormName.trim()
     if (!trimmedName) {
-      toast.error('Kategori ismi gerekli')
+      toast.error('Category name is required')
       return
     }
 
@@ -968,7 +968,7 @@ export function LinksPanel() {
       )
       const success = await saveCategories(updated)
       if (success) {
-        toast.success('Kategori güncellendi')
+        toast.success('Category updated')
         setCategoryDialogOpen(false)
       }
     } else {
@@ -991,7 +991,7 @@ export function LinksPanel() {
         isDefault: cat.isDefault,
       })))
       if (success) {
-        toast.success('Kategori eklendi')
+        toast.success('Category added')
         setCategoryDialogOpen(false)
       }
     }
@@ -1000,7 +1000,7 @@ export function LinksPanel() {
   const handleDeleteCategory = async (id: string) => {
     const category = categories.find(cat => cat.id === id)
     if (category?.isDefault) {
-      toast.error('Varsayılan kategori silinemez')
+      toast.error('Default category cannot be deleted')
       return
     }
 
@@ -1026,7 +1026,7 @@ export function LinksPanel() {
       isDefault: cat.isDefault,
     })))
     if (success) {
-      toast.success('Kategori silindi')
+      toast.success('Category deleted')
     }
   }
 
@@ -1111,7 +1111,7 @@ export function LinksPanel() {
     } else {
       // Check if platform already exists
       if (socialLinks.some(link => link.platform === newSocialPlatform)) {
-        toast.error(`${getSocialLabel(newSocialPlatform)} zaten eklenmiş`)
+        toast.error(`${getSocialLabel(newSocialPlatform)} is already added`)
         return
       }
       
@@ -1131,7 +1131,7 @@ export function LinksPanel() {
     setSocialLinks(sorted)
     const success = await saveSocialLinks(sorted)
     if (success) {
-      toast.success(editingSocialLink ? 'Sosyal link güncellendi' : 'Sosyal link eklendi')
+      toast.success(editingSocialLink ? 'Social link updated' : 'Social link added')
       setSocialDialogOpen(false)
     }
   }
@@ -1141,7 +1141,7 @@ export function LinksPanel() {
     setSocialLinks(updated)
     const success = await saveSocialLinks(updated)
     if (success) {
-      toast.success('Sosyal link silindi')
+      toast.success('Social link deleted')
     }
   }
 
@@ -1283,7 +1283,7 @@ export function LinksPanel() {
           <CardContent>
             {categoriesLoading ? (
               <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-6 text-center text-xs text-muted-foreground">
-                Kategoriler yükleniyor...
+                Loading categories...
               </div>
             ) : categories.length === 0 ? (
               <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-6 text-center text-xs text-muted-foreground">
@@ -1405,7 +1405,7 @@ export function LinksPanel() {
           <CardContent>
             {loading || categoriesLoading ? (
               <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-6 text-center text-xs text-muted-foreground">
-                Linkler yükleniyor...
+                Loading links...
               </div>
             ) : links.length === 0 && categories.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">

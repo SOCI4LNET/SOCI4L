@@ -98,7 +98,7 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
           credentials: 'include',
         })
         if (!nonceResponse.ok) {
-          toast.error('Nonce alınamadı')
+          toast.error('Failed to get nonce')
           return false
         }
         const { nonce } = await nonceResponse.json()
@@ -110,9 +110,9 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
           signature = await signMessageAsync({ message })
         } catch (error: any) {
           if (error.code === 4001) {
-            toast.error('İmza reddedildi')
+            toast.error('Signature rejected')
           } else {
-            toast.error('İmza hatası')
+            toast.error('Signature error')
           }
           return false
         }
@@ -127,7 +127,7 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
 
         if (!verifyResponse.ok) {
           const error = await verifyResponse.json()
-          toast.error(error.error || 'Oturum oluşturulamadı')
+          toast.error(error.error || 'Failed to create session')
           return false
         }
       }
@@ -135,7 +135,7 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
       return true
     } catch (error) {
       console.error('Error ensuring session:', error)
-      toast.error('Oturum kontrolü başarısız')
+      toast.error('Session check failed')
       return false
     }
   }
@@ -162,7 +162,7 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
 
     // Prevent self-follow
     if (normalizedConnectedAddress === normalizedAddress) {
-      toast.error('Kendinizi takip edemezsiniz')
+      toast.error('You cannot follow yourself')
       return
     }
 
@@ -187,7 +187,7 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
 
         if (!response.ok) {
           const error = await response.json()
-          throw new Error(error.error || 'Takip başarısız')
+          throw new Error(error.error || 'Follow failed')
         }
 
         const data = await response.json()
@@ -203,7 +203,7 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
 
         if (!response.ok) {
           const error = await response.json()
-          throw new Error(error.error || 'Takibi bırakma başarısız')
+          throw new Error(error.error || 'Unfollow failed')
         }
 
         const data = await response.json()
@@ -219,7 +219,7 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
       } else {
         setFollowersCount((prev) => prev + 1)
       }
-      toast.error(error.message || 'Bir hata oluştu')
+      toast.error(error.message || 'An error occurred')
     } finally {
       setIsPending(false)
     }

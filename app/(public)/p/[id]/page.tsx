@@ -248,7 +248,7 @@ export default function ProfilePage({ params }: PageProps) {
           }
         }
       } catch (err) {
-        setError('Veri yüklenirken bir hata oluştu')
+        setError('An error occurred while loading data')
         console.error(err)
         // Configs already initialized with defaults, no need to set again
       } finally {
@@ -347,7 +347,7 @@ export default function ProfilePage({ params }: PageProps) {
         <div className="text-center py-8">
           <p className="text-destructive">{error}</p>
           <Link href="/" className="text-muted-foreground hover:text-foreground mt-4 inline-block">
-            ← Ana Sayfaya Dön
+            ← Back to Home
           </Link>
         </div>
       </div>

@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   const address = searchParams.get('address')
 
   if (!address || !isValidAddress(address)) {
-    return NextResponse.json({ error: 'Geçersiz cüzdan adresi' }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid wallet address' }, { status: 400 })
   }
 
   try {
@@ -49,9 +49,9 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error fetching profile links:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Bilinmeyen hata'
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: `Linkler alınırken bir hata oluştu: ${errorMessage}` },
+      { error: `An error occurred while fetching links: ${errorMessage}` },
       { status: 500 }
     )
   }
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     const { address, links } = body
 
     if (!address || !isValidAddress(address)) {
-      return NextResponse.json({ error: 'Geçersiz cüzdan adresi' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid wallet address' }, { status: 400 })
     }
 
     if (!Array.isArray(links)) {
@@ -114,10 +114,10 @@ export async function POST(request: NextRequest) {
     // Validate links
     for (const link of links) {
       if (!link.url || typeof link.url !== 'string') {
-        return NextResponse.json({ error: 'Her link için URL gerekli' }, { status: 400 })
+        return NextResponse.json({ error: 'URL is required for each link' }, { status: 400 })
       }
       if (!link.url.startsWith('http://') && !link.url.startsWith('https://')) {
-        return NextResponse.json({ error: 'URL http:// veya https:// ile başlamalı' }, { status: 400 })
+        return NextResponse.json({ error: 'URL must start with http:// or https://' }, { status: 400 })
       }
     }
 
@@ -175,9 +175,9 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error saving profile links:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Bilinmeyen hata'
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: `Linkler kaydedilirken bir hata oluştu: ${errorMessage}` },
+      { error: `An error occurred while saving links: ${errorMessage}` },
       { status: 500 }
     )
   }

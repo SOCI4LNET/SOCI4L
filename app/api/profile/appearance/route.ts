@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
   const address = searchParams.get('address')
 
   if (!address || !isValidAddress(address)) {
-    return NextResponse.json({ error: 'Geçersiz cüzdan adresi' }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid wallet address' }, { status: 400 })
   }
 
   try {
@@ -45,9 +45,9 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error fetching profile appearance:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Bilinmeyen hata'
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: `Appearance alınırken bir hata oluştu: ${errorMessage}` },
+      { error: `An error occurred while fetching appearance: ${errorMessage}` },
       { status: 500 }
     )
   }
@@ -60,11 +60,11 @@ export async function POST(request: NextRequest) {
     const { address, appearance } = body
 
     if (!address || !isValidAddress(address)) {
-      return NextResponse.json({ error: 'Geçersiz cüzdan adresi' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid wallet address' }, { status: 400 })
     }
 
     if (!appearance || typeof appearance.theme !== 'string') {
-      return NextResponse.json({ error: 'Geçersiz appearance config' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid appearance config' }, { status: 400 })
     }
 
     const normalizedAddress = address.toLowerCase()
@@ -108,9 +108,9 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error saving profile appearance:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Bilinmeyen hata'
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: `Appearance kaydedilirken bir hata oluştu: ${errorMessage}` },
+      { error: `An error occurred while saving appearance: ${errorMessage}` },
       { status: 500 }
     )
   }

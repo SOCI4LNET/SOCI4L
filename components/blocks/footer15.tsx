@@ -65,12 +65,12 @@ export default function Footer15({ className }: Footer15Props = {}) {
     e.preventDefault()
     
     if (!email.trim()) {
-      toast.error('Lütfen bir email adresi giriniz')
+      toast.error('Please enter an email address')
       return
     }
 
     if (!validateEmail(email)) {
-      toast.error('Lütfen geçerli bir email adresi giriniz')
+      toast.error('Please enter a valid email address')
       return
     }
 
@@ -88,17 +88,17 @@ export default function Footer15({ className }: Footer15Props = {}) {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Bir hata oluştu')
+        throw new Error(data.error || 'An error occurred')
       }
 
-      toast.success('Teşekkürler! Sizi bilgilendireceğiz.')
+      toast.success('Thank you! We will keep you informed.')
       setEmail('')
     } catch (error) {
       console.error('Email subscription error:', error)
       toast.error(
         error instanceof Error 
           ? error.message 
-          : 'Email kaydı sırasında bir hata oluştu'
+          : 'An error occurred while saving email'
       )
     } finally {
       setIsSubmitting(false)

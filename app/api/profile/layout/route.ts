@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
   const address = searchParams.get('address')
 
   if (!address || !isValidAddress(address)) {
-    return NextResponse.json({ error: 'Geçersiz cüzdan adresi' }, { status: 400 })
+    return NextResponse.json({ error: 'Invalid wallet address' }, { status: 400 })
   }
 
   try {
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching profile layout:', error)
     const errorMessage = error instanceof Error ? error.message : 'Bilinmeyen hata'
     return NextResponse.json(
-      { error: `Layout alınırken bir hata oluştu: ${errorMessage}` },
+      { error: `An error occurred while fetching layout: ${errorMessage}` },
       { status: 500 }
     )
   }
@@ -65,11 +65,11 @@ export async function POST(request: NextRequest) {
     const { address, layout } = body
 
     if (!address || !isValidAddress(address)) {
-      return NextResponse.json({ error: 'Geçersiz cüzdan adresi' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid wallet address' }, { status: 400 })
     }
 
     if (!layout || !Array.isArray(layout.blocks)) {
-      return NextResponse.json({ error: 'Geçersiz layout config' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid layout config' }, { status: 400 })
     }
 
     const normalizedAddress = address.toLowerCase()
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
     console.error('Error saving profile layout:', error)
     const errorMessage = error instanceof Error ? error.message : 'Bilinmeyen hata'
     return NextResponse.json(
-      { error: `Layout kaydedilirken bir hata oluştu: ${errorMessage}` },
+      { error: `An error occurred while saving layout: ${errorMessage}` },
       { status: 500 }
     )
   }

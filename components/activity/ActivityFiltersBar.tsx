@@ -46,16 +46,16 @@ export function ActivityFiltersBar({
             }}
             className="border rounded-md p-0.5 bg-muted/50"
           >
-            <ToggleGroupItem value="24h" aria-label="24 Saat" className="text-xs px-3 h-9">
+            <ToggleGroupItem value="24h" aria-label="24 Hours" className="text-xs px-3 h-9">
               24h
             </ToggleGroupItem>
-            <ToggleGroupItem value="7d" aria-label="7 Gün" className="text-xs px-3 h-9">
+            <ToggleGroupItem value="7d" aria-label="7 Days" className="text-xs px-3 h-9">
               7d
             </ToggleGroupItem>
-            <ToggleGroupItem value="30d" aria-label="30 Gün" className="text-xs px-3 h-9">
+            <ToggleGroupItem value="30d" aria-label="30 Days" className="text-xs px-3 h-9">
               30d
             </ToggleGroupItem>
-            <ToggleGroupItem value="all" aria-label="Tümü" className="text-xs px-3 h-9">
+            <ToggleGroupItem value="all" aria-label="All" className="text-xs px-3 h-9">
               All
             </ToggleGroupItem>
           </ToggleGroup>

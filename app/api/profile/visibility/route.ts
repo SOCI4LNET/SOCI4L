@@ -10,21 +10,21 @@ export async function POST(request: NextRequest) {
 
     if (!address || !isValidAddress(address)) {
       return NextResponse.json(
-        { error: 'Geçersiz cüzdan adresi' },
+        { error: 'Invalid wallet address' },
         { status: 400 }
       )
     }
 
     if (!visibility || !['PUBLIC', 'PRIVATE'].includes(visibility)) {
       return NextResponse.json(
-        { error: 'Geçersiz visibility değeri. PUBLIC veya PRIVATE olmalı.' },
+        { error: 'Invalid visibility value. Must be PUBLIC or PRIVATE.' },
         { status: 400 }
       )
     }
 
     if (!signature) {
       return NextResponse.json(
-        { error: 'İmza gereklidir' },
+        { error: 'Signature is required' },
         { status: 400 }
       )
     }
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     if (!nonce) {
       return NextResponse.json(
-        { error: 'Nonce bulunamadı. Lütfen önce /api/auth/nonce endpoint\'ini çağırın.' },
+        { error: 'Nonce not found. Please call /api/auth/nonce endpoint first.' },
         { status: 400 }
       )
     }
@@ -61,14 +61,14 @@ export async function POST(request: NextRequest) {
 
       if (!isValid) {
         return NextResponse.json(
-          { error: 'Geçersiz imza' },
+          { error: 'Invalid signature' },
           { status: 400 }
         )
       }
     } catch (error) {
       console.error('Signature verification error:', error)
       return NextResponse.json(
-        { error: 'İmza doğrulanamadı' },
+        { error: 'Signature verification failed' },
         { status: 400 }
       )
     }
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
 
     if (!profile) {
       return NextResponse.json(
-        { error: 'Profil bulunamadı' },
+        { error: 'Profile not found' },
         { status: 404 }
       )
     }
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
     const isClaimed = profile.status === 'CLAIMED' || profile.ownerAddress || profile.owner
     if (!isClaimed) {
       return NextResponse.json(
-        { error: 'Profil henüz talep edilmemiş' },
+        { error: 'Profile not claimed yet' },
         { status: 400 }
       )
     }
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
     const ownerAddress = (profile.ownerAddress || profile.owner)?.toLowerCase()
     if (ownerAddress !== normalizedSigner) {
       return NextResponse.json(
-        { error: 'Bu profili güncelleme yetkiniz yok' },
+        { error: 'You do not have permission to update this profile' },
         { status: 403 }
       )
     }
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error updating visibility:', error)
     return NextResponse.json(
-      { error: 'Visibility güncellenirken bir hata oluştu' },
+      { error: 'An error occurred while updating visibility' },
       { status: 500 }
     )
   }

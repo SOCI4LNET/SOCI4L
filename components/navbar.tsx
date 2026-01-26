@@ -27,7 +27,7 @@ export function Navbar() {
                 </Button>
               </Link>
               <Button variant="ghost" size="sm" onClick={() => disconnect()}>
-                Bağlantıyı Kes
+                Disconnect
               </Button>
             </>
           )}

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Loader2, Copy } from "lucide-react"
 import { toast } from "sonner"
 import { PageShell } from "@/components/app-shell/page-shell"
@@ -38,14 +39,20 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
   const { signMessageAsync } = useSignMessage()
   const [savingSlug, setSavingSlug] = useState(false)
   const [slug, setSlug] = useState<string>(profile.slug || '')
+  const [savingVisibility, setSavingVisibility] = useState(false)
+  const [visibility, setVisibility] = useState<'PUBLIC' | 'PRIVATE'>(
+    (profile.visibility === 'PRIVATE' ? 'PRIVATE' : 'PUBLIC')
+  )
 
   // Update form state when profile prop changes (e.g., after save/reload)
   useEffect(() => {
     if (profile) {
       const newSlug = profile.slug || ''
       if (slug !== newSlug) setSlug(newSlug)
+      const newVisibility = profile.visibility === 'PRIVATE' ? 'PRIVATE' : 'PUBLIC'
+      if (visibility !== newVisibility) setVisibility(newVisibility)
     }
-  }, [profile?.id, profile?.slug])
+  }, [profile?.id, profile?.slug, profile?.visibility])
 
   const normalizedAddress = targetAddress.toLowerCase()
   const shortAddress = formatAddress(normalizedAddress, 4)
@@ -79,7 +86,7 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
       // Step 1: Get nonce
       const nonceResponse = await fetch('/api/auth/nonce')
       if (!nonceResponse.ok) {
-        throw new Error('Nonce alınamadı')
+        throw new Error('Failed to get nonce')
       }
       const { nonce } = await nonceResponse.json()
 
@@ -103,7 +110,7 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
       const result = await updateResponse.json()
 
       if (!updateResponse.ok) {
-        throw new Error(result.error || 'Slug güncellenemedi')
+        throw new Error(result.error || 'Failed to update slug')
       }
 
       // Success - reload data
@@ -114,6 +121,49 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
       toast.error(error.message || 'Failed to update custom URL')
     } finally {
       setSavingSlug(false)
+    }
+  }
+
+  const handleSaveVisibility = async () => {
+    setSavingVisibility(true)
+    try {
+      // Step 1: Get nonce
+      const nonceResponse = await fetch('/api/auth/nonce')
+      if (!nonceResponse.ok) {
+        throw new Error('Failed to get nonce')
+      }
+      const { nonce } = await nonceResponse.json()
+
+      // Step 2: Sign message
+      const message = `Update visibility for ${targetAddress} to ${visibility}. Nonce: ${nonce}`
+      const signature = await signMessageAsync({ message })
+
+      // Step 3: Update visibility
+      const visibilityResponse = await fetch('/api/profile/visibility', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          address: targetAddress,
+          visibility,
+          signature,
+        }),
+      })
+
+      if (!visibilityResponse.ok) {
+        const errorData = await visibilityResponse.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(errorData.error || 'Failed to save visibility')
+      }
+
+      // Success - reload data
+      await onUpdate()
+      toast.success('Visibility updated')
+    } catch (error: any) {
+      console.error('Error updating visibility:', error)
+      toast.error(error.message || 'Failed to update visibility')
+    } finally {
+      setSavingVisibility(false)
     }
   }
 
@@ -256,9 +306,54 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
             <p className="text-xs text-muted-foreground">
               Your public link: <span className="font-mono">/p/{slug || "your-slug"}</span>
             </p>
-            <p className="text-xs text-muted-foreground mt-2">
-              Public profile content (name, bio, links, visibility) is managed in the Builder.
-            </p>
+          </CardContent>
+        </Card>
+
+        {/* Visibility Section */}
+        <Card className="bg-card border border-border/60 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-base">Visibility</CardTitle>
+            <CardDescription>
+              Control who can view your profile
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <RadioGroup 
+              value={visibility} 
+              onValueChange={(value) => {
+                setVisibility(value as 'PUBLIC' | 'PRIVATE')
+              }}
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="PUBLIC" id="public" />
+                <Label htmlFor="public" className="cursor-pointer text-sm">
+                  Public - Anyone can view your profile
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="PRIVATE" id="private" />
+                <Label htmlFor="private" className="cursor-pointer text-sm">
+                  Private - Only you can view full details
+                </Label>
+              </div>
+            </RadioGroup>
+            <div className="flex justify-end pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSaveVisibility}
+                disabled={savingVisibility || visibility === (profile.visibility === 'PRIVATE' ? 'PRIVATE' : 'PUBLIC')}
+              >
+                {savingVisibility ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Update"
+                )}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>

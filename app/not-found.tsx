@@ -8,14 +8,14 @@ export default function NotFound() {
       <Card>
         <CardHeader>
           <CardTitle className="text-4xl">404</CardTitle>
-          <CardDescription>Sayfa bulunamadı</CardDescription>
+          <CardDescription>Page not found</CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground mb-4">
-            Aradığınız sayfa mevcut değil veya taşınmış olabilir.
+            The page you are looking for does not exist or may have been moved.
           </p>
           <Link href="/">
-            <Button size="sm" variant="outline">Ana Sayfaya Dön</Button>
+            <Button size="sm" variant="outline">Back to Home</Button>
           </Link>
         </CardContent>
       </Card>

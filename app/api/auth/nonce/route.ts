@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error generating nonce:', error)
     return NextResponse.json(
-      { error: 'Nonce oluşturulurken bir hata oluştu' },
+      { error: 'An error occurred while generating nonce' },
       { status: 500 }
     )
   }

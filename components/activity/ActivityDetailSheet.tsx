@@ -31,9 +31,9 @@ export function ActivityDetailSheet({ transaction, open, onOpenChange, address }
   const handleCopy = async (text: string, label: string) => {
     try {
       await navigator.clipboard.writeText(text)
-      toast.success(`${label} kopyalandı`)
+      toast.success(`${label} copied`)
     } catch {
-      toast.error('Kopyalama başarısız')
+      toast.error('Copy failed')
     }
   }
 
@@ -48,9 +48,9 @@ export function ActivityDetailSheet({ transaction, open, onOpenChange, address }
   }
 
   const getStatusLabel = () => {
-    if (transaction.status === 'success') return 'Başarılı'
-    else if (transaction.status === 'failed') return 'Başarısız'
-    else return 'Beklemede'
+    if (transaction.status === 'success') return 'Success'
+    else if (transaction.status === 'failed') return 'Failed'
+    else return 'Pending'
   }
 
   const isOutgoing = transaction.direction === 'outgoing'
@@ -64,7 +64,7 @@ export function ActivityDetailSheet({ transaction, open, onOpenChange, address }
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>İşlem Detayları</SheetTitle>
+          <SheetTitle>Transaction Details</SheetTitle>
           <SheetDescription>
             {formatDistanceToNow(new Date(transaction.timestamp * 1000), { addSuffix: true })}
           </SheetDescription>
@@ -113,20 +113,20 @@ export function ActivityDetailSheet({ transaction, open, onOpenChange, address }
                     {transaction.hash}
                   </p>
                 </TooltipTrigger>
-                <TooltipContent>Tıklayarak kopyala</TooltipContent>
+                <TooltipContent>Click to copy</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
 
           {/* Block Number */}
           <div className="space-y-2">
-            <span className="text-sm text-muted-foreground">Blok Numarası</span>
+            <span className="text-sm text-muted-foreground">Block Number</span>
             <p className="text-sm font-medium">{transaction.blockNumber.toLocaleString()}</p>
           </div>
 
           {/* Timestamp */}
           <div className="space-y-2">
-            <span className="text-sm text-muted-foreground">Zaman</span>
+            <span className="text-sm text-muted-foreground">Time</span>
             <p className="text-sm font-medium">
               {new Date(transaction.timestamp * 1000).toLocaleString('tr-TR', {
                 year: 'numeric',
@@ -145,37 +145,37 @@ export function ActivityDetailSheet({ transaction, open, onOpenChange, address }
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               {directionIcon}
-              <span className="text-sm text-muted-foreground">Yön</span>
+              <span className="text-sm text-muted-foreground">Direction</span>
             </div>
             <p className="text-sm font-medium">
-              {isOutgoing ? 'Giden' : 'Gelen'}
+              {isOutgoing ? 'Outgoing' : 'Incoming'}
             </p>
           </div>
 
           {/* From */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Gönderen</span>
+              <span className="text-sm text-muted-foreground">From</span>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      onClick={() => handleCopy(transaction.from, 'Adres')}
-                      aria-label="Gönderen adresi kopyala"
+                      onClick={() => handleCopy(transaction.from, 'Address')}
+                      aria-label="Copy sender address"
                     >
                       <Copy className="h-3.5 w-3.5" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Kopyala</TooltipContent>
+                  <TooltipContent>Copy</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </div>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <p className="text-sm font-mono break-all cursor-pointer" onClick={() => handleCopy(transaction.from, 'Adres')}>
+                  <p className="text-sm font-mono break-all cursor-pointer" onClick={() => handleCopy(transaction.from, 'Address')}>
                     {formatAddress(transaction.from, 8)}
                   </p>
                 </TooltipTrigger>
@@ -189,27 +189,27 @@ export function ActivityDetailSheet({ transaction, open, onOpenChange, address }
           {/* To */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Alıcı</span>
+              <span className="text-sm text-muted-foreground">To</span>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      onClick={() => handleCopy(transaction.to, 'Adres')}
-                      aria-label="Alıcı adresi kopyala"
+                      onClick={() => handleCopy(transaction.to, 'Address')}
+                      aria-label="Copy recipient address"
                     >
                       <Copy className="h-3.5 w-3.5" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Kopyala</TooltipContent>
+                  <TooltipContent>Copy</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </div>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <p className="text-sm font-mono break-all cursor-pointer" onClick={() => handleCopy(transaction.to, 'Adres')}>
+                  <p className="text-sm font-mono break-all cursor-pointer" onClick={() => handleCopy(transaction.to, 'Address')}>
                     {formatAddress(transaction.to, 8)}
                   </p>
                 </TooltipTrigger>
@@ -225,28 +225,28 @@ export function ActivityDetailSheet({ transaction, open, onOpenChange, address }
           {/* Native Value */}
           {parseFloat(transaction.nativeValueAvax) > 0 && (
             <div className="space-y-2">
-              <span className="text-sm text-muted-foreground">AVAX Değeri</span>
+              <span className="text-sm text-muted-foreground">AVAX Value</span>
               <p className="text-sm font-medium">{parseFloat(transaction.nativeValueAvax).toFixed(6)} AVAX</p>
             </div>
           )}
 
           {/* Fee */}
           <div className="space-y-2">
-            <span className="text-sm text-muted-foreground">İşlem Ücreti</span>
+            <span className="text-sm text-muted-foreground">Transaction Fee</span>
             <p className="text-sm font-medium">{parseFloat(transaction.feeAvax).toFixed(6)} AVAX</p>
           </div>
 
           {/* Gas Info */}
           {transaction.gasUsed && (
             <div className="space-y-2">
-              <span className="text-sm text-muted-foreground">Kullanılan Gas</span>
+              <span className="text-sm text-muted-foreground">Gas Used</span>
               <p className="text-sm font-medium">{parseInt(transaction.gasUsed).toLocaleString()}</p>
             </div>
           )}
 
           {transaction.gasPrice && (
             <div className="space-y-2">
-              <span className="text-sm text-muted-foreground">Gas Fiyatı</span>
+              <span className="text-sm text-muted-foreground">Gas Price</span>
               <p className="text-sm font-medium">{parseFloat(transaction.gasPrice).toFixed(9)} AVAX</p>
             </div>
           )}
@@ -254,7 +254,7 @@ export function ActivityDetailSheet({ transaction, open, onOpenChange, address }
           {/* Method */}
           {transaction.method && (
             <div className="space-y-2">
-              <span className="text-sm text-muted-foreground">Metod</span>
+              <span className="text-sm text-muted-foreground">Method</span>
               <p className="text-sm font-medium font-mono">{transaction.method}</p>
             </div>
           )}
@@ -264,7 +264,7 @@ export function ActivityDetailSheet({ transaction, open, onOpenChange, address }
             <>
               <Separator />
               <div className="space-y-3">
-                <span className="text-sm font-medium">Token Transferleri</span>
+                <span className="text-sm font-medium">Token Transfers</span>
                 {transaction.tokenTransfers.map((transfer, idx) => (
                   <div key={idx} className="p-3 border rounded-md space-y-2">
                     <div className="flex items-center justify-between">
@@ -275,20 +275,20 @@ export function ActivityDetailSheet({ transaction, open, onOpenChange, address }
                       <p className="text-sm font-medium">{parseFloat(transfer.amount).toFixed(6)}</p>
                     </div>
                     <div className="space-y-1">
-                      <span className="text-xs text-muted-foreground">Kontrat</span>
+                      <span className="text-xs text-muted-foreground">Contract</span>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <p 
                               className="text-xs font-mono truncate cursor-pointer" 
-                              onClick={() => handleCopy(transfer.contract, 'Kontrat adresi')}
+                              onClick={() => handleCopy(transfer.contract, 'Contract address')}
                             >
                               {formatAddress(transfer.contract, 6)}
                             </p>
                           </TooltipTrigger>
                           <TooltipContent>
                             <p className="font-mono text-xs">{transfer.contract}</p>
-                            <p className="text-xs mt-1">Tıklayarak kopyala</p>
+                            <p className="text-xs mt-1">Click to copy</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -315,7 +315,7 @@ export function ActivityDetailSheet({ transaction, open, onOpenChange, address }
                 rel="noopener noreferrer"
               >
                 <ExternalLink className="mr-2 h-4 w-4" />
-                Explorer'da Aç
+                Open in Explorer
               </a>
             </Button>
           </div>

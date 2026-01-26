@@ -12,7 +12,7 @@ export async function GET(
 
     if (!address || !isValidAddress(address)) {
       return NextResponse.json(
-        { error: 'Geçersiz adres' },
+        { error: 'Invalid address' },
         { status: 400 }
       )
     }
@@ -22,7 +22,7 @@ export async function GET(
 
     if (!sessionAddress) {
       return NextResponse.json(
-        { error: 'Oturum bulunamadı. Lütfen giriş yapın.' },
+        { error: 'Session not found. Please log in.' },
         { status: 401 }
       )
     }
@@ -45,7 +45,7 @@ export async function GET(
   } catch (error) {
     console.error('Error checking follow status:', error)
     return NextResponse.json(
-      { error: 'Durum kontrol edilirken bir hata oluştu' },
+      { error: 'An error occurred while checking status' },
       { status: 500 }
     )
   }

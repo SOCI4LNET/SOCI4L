@@ -12,7 +12,7 @@ export async function POST(
 
     if (!address || !isValidAddress(address)) {
       return NextResponse.json(
-        { error: 'Geçersiz adres' },
+        { error: 'Invalid address' },
         { status: 400 }
       )
     }
@@ -22,7 +22,7 @@ export async function POST(
 
     if (!sessionAddress) {
       return NextResponse.json(
-        { error: 'Oturum bulunamadı. Lütfen giriş yapın.' },
+        { error: 'Session not found. Please log in.' },
         { status: 401 }
       )
     }
@@ -66,7 +66,7 @@ export async function POST(
   } catch (error) {
     console.error('Error creating follow:', error)
     return NextResponse.json(
-      { error: 'Takip oluşturulurken bir hata oluştu' },
+      { error: 'An error occurred while creating follow' },
       { status: 500 }
     )
   }
@@ -81,7 +81,7 @@ export async function DELETE(
 
     if (!address || !isValidAddress(address)) {
       return NextResponse.json(
-        { error: 'Geçersiz adres' },
+        { error: 'Invalid address' },
         { status: 400 }
       )
     }
@@ -91,7 +91,7 @@ export async function DELETE(
 
     if (!sessionAddress) {
       return NextResponse.json(
-        { error: 'Oturum bulunamadı. Lütfen giriş yapın.' },
+        { error: 'Session not found. Please log in.' },
         { status: 401 }
       )
     }
@@ -120,7 +120,7 @@ export async function DELETE(
   } catch (error) {
     console.error('Error deleting follow:', error)
     return NextResponse.json(
-      { error: 'Takip silinirken bir hata oluştu' },
+      { error: 'An error occurred while deleting follow' },
       { status: 500 }
     )
   }

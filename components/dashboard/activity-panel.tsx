@@ -28,14 +28,14 @@ interface ActivityResponse {
 }
 
 function formatLastUpdated(secondsAgo: number): string {
-  if (secondsAgo < 10) return 'Az önce güncellendi'
-  if (secondsAgo < 60) return `${Math.floor(secondsAgo)}s önce güncellendi`
+  if (secondsAgo < 10) return 'Just updated'
+  if (secondsAgo < 60) return `Updated ${Math.floor(secondsAgo)}s ago`
   const minutes = Math.floor(secondsAgo / 60)
-  if (minutes < 60) return `${minutes}dk önce güncellendi`
+  if (minutes < 60) return `Updated ${minutes}m ago`
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}sa önce güncellendi`
+  if (hours < 24) return `Updated ${hours}h ago`
   const days = Math.floor(hours / 24)
-  return `${days}gün önce güncellendi`
+  return `Updated ${days}d ago`
 }
 
 export function ActivityPanel({ walletData: legacyWalletData, address: propAddress }: ActivityPanelProps) {
@@ -171,7 +171,7 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
 
   const lastUpdatedText = lastUpdatedAt 
     ? formatLastUpdated(Math.floor((currentTime - lastUpdatedAt) / 1000))
-    : 'Henüz güncellenmedi'
+    : 'Not updated yet'
 
   if (!mounted) {
     return (
@@ -192,7 +192,7 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
             <CardContent className="p-6">
               <Alert>
                 <AlertDescription>
-                  Cüzdan adresi bulunamadı. Lütfen bir cüzdan bağlayın veya bir adres girin.
+                  Wallet address not found. Please connect a wallet or enter an address.
                 </AlertDescription>
               </Alert>
             </CardContent>
@@ -289,9 +289,9 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
           <div className="border rounded-lg bg-card p-6">
             <Alert variant="destructive">
               <AlertDescription>
-                <p className="font-semibold mb-1">İşlemler yüklenirken hata oluştu</p>
+                <p className="font-semibold mb-1">Error occurred while loading transactions</p>
                 <p className="text-sm mb-3">
-                  {error instanceof Error ? error.message : 'Bilinmeyen bir hata oluştu'}
+                  {error instanceof Error ? error.message : 'An unknown error occurred'}
                 </p>
                 <Button
                   variant="outline"
@@ -299,7 +299,7 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
                   onClick={() => handleRefresh()}
                 >
                   <RefreshCw className="mr-2 h-3.5 w-3.5" />
-                  Tekrar Dene
+                  Try Again
                 </Button>
               </AlertDescription>
             </Alert>
@@ -325,10 +325,10 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
                   onClick={() => setPage(p => Math.max(0, p - 1))}
                   disabled={page === 0 || isLoading}
                 >
-                  Önceki
+                  Previous
                 </Button>
                 <span className="text-xs text-muted-foreground">
-                  Sayfa {page + 1}
+                  Page {page + 1}
                 </span>
                 <Button
                   variant="outline"
@@ -336,7 +336,7 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
                   onClick={() => setPage(p => p + 1)}
                   disabled={!activityData.hasMore || isLoading}
                 >
-                  Sonraki
+                  Next
                 </Button>
               </div>
             </div>

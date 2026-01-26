@@ -119,9 +119,9 @@ export function SocialPanel({ address }: SocialPanelProps) {
     const url = getShareUrl()
     try {
       await navigator.clipboard.writeText(url)
-      toast.success('Profil linki kopyalandı')
+      toast.success('Profile link copied')
     } catch {
-      toast.error('Kopyalama başarısız')
+      toast.error('Copy failed')
     }
   }
 
@@ -201,7 +201,7 @@ export function SocialPanel({ address }: SocialPanelProps) {
         }
       } catch (error) {
         console.error('Error fetching follows:', error)
-        toast.error('Takip listesi alınırken bir hata oluştu')
+        toast.error('An error occurred while fetching follow list')
       } finally {
         setLoading(false)
       }

@@ -20,14 +20,14 @@ export default function HomePage() {
 
   const openDashboard = () => {
     if (!isConnected || !connectedAddress) {
-      toast.error('Lütfen önce cüzdanınızı bağlayın')
+      toast.error('Please connect your wallet first')
       return
     }
     const dashboardHref = getConnectedDashboardHref(connectedAddress)
     if (dashboardHref) {
       router.push(dashboardHref)
     } else {
-      toast.error('Geçersiz cüzdan adresi')
+      toast.error('Invalid wallet address')
     }
   }
 

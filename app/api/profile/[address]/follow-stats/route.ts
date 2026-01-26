@@ -13,7 +13,7 @@ export async function GET(
 
     if (!address || !isValidAddress(address)) {
       return NextResponse.json(
-        { error: 'Geçersiz adres' },
+        { error: 'Invalid address' },
         { status: 400 }
       )
     }
@@ -43,7 +43,7 @@ export async function GET(
   } catch (error) {
     console.error('[Follow Stats API] Error:', error)
     return NextResponse.json(
-      { error: 'İstatistikler alınırken bir hata oluştu' },
+      { error: 'An error occurred while fetching statistics' },
       { status: 500 }
     )
   }

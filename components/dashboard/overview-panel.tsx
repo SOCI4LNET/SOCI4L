@@ -29,6 +29,7 @@ import { formatAddress } from "@/lib/utils"
 import Link from "next/link"
 import { PageShell } from "@/components/app-shell/page-shell"
 import { toast } from "sonner"
+import { getCachedLogo, setCachedLogo, setCachedLogos, getCacheKey } from "@/lib/logo-cache"
 import { formatDistanceToNow } from "date-fns"
 import type { ActivityTransaction } from "@/lib/activity/fetchActivity"
 import { getPublicProfileHref } from "@/lib/routing"
@@ -146,7 +147,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
               following: followStats.followingCount ?? 0,
             }))
           } else {
-            // API isteği başarısız oldu, 0 olarak set et
+            // API request failed, set to 0
             setQuickStats((prev) => ({
               ...prev,
               followers: 0,
@@ -154,7 +155,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
             }))
           }
         } catch (followError) {
-          // Network hatası veya parse hatası, 0 olarak set et
+          // Network error or parse error, set to 0
           console.error('[Overview] Error fetching follow stats:', followError)
           setQuickStats((prev) => ({
             ...prev,
@@ -181,14 +182,14 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
               totalLinks: enabledLinks.length,
             }))
           } else {
-            // API isteği başarısız oldu, 0 olarak set et
+            // API request failed, set to 0
             setQuickStats((prev) => ({
               ...prev,
               totalLinks: 0,
             }))
           }
         } catch (linksError) {
-          // Network hatası veya parse hatası, 0 olarak set et
+          // Network error or parse error, set to 0
           console.error('[Overview] Error fetching links:', linksError)
           setQuickStats((prev) => ({
             ...prev,
@@ -295,12 +296,31 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
     retryDelay: 1000,
   })
 
+  // Cache logos when assets data is loaded
+  useEffect(() => {
+    if (!assetsData?.tokens || !mounted) return
+
+    // Cache all logo URLs from API response
+    const logosToCache: Record<string, string | null> = {}
+    
+    for (const token of assetsData.tokens) {
+      const cacheKey = getCacheKey(token.address, token.symbol)
+      if (token.logoUrl) {
+        logosToCache[cacheKey] = token.logoUrl
+      }
+    }
+
+    if (Object.keys(logosToCache).length > 0) {
+      setCachedLogos(logosToCache)
+    }
+  }, [assetsData, mounted])
+
   const handleCopyHash = async (hash: string) => {
     try {
       await navigator.clipboard.writeText(hash)
-      toast.success('Hash kopyalandı')
+      toast.success('Hash copied')
     } catch {
-      toast.error('Kopyalama başarısız')
+      toast.error('Copy failed')
     }
   }
 
@@ -598,7 +618,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
               <div>
                 <CardTitle className="text-base font-semibold">Recent Activity</CardTitle>
-                <CardDescription className="text-xs">Son {ACTIVITY_LIMIT} işlem</CardDescription>
+                <CardDescription className="text-xs">Last {ACTIVITY_LIMIT} transactions</CardDescription>
               </div>
               <TooltipProvider>
                 <Tooltip>
@@ -632,7 +652,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
                 </div>
               ) : activityError ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <p className="text-sm font-medium mb-1">Aktivite yüklenemedi</p>
+                  <p className="text-sm font-medium mb-1">Failed to load activity</p>
                   <Button
                     variant="outline"
                     size="sm"
@@ -669,7 +689,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
                                 </TooltipTrigger>
                                 <TooltipContent>
                                   <p className="font-mono text-xs">{tx.hash}</p>
-                                  <p className="text-xs mt-1">Kopyalamak için tıkla</p>
+                                  <p className="text-xs mt-1">Click to copy</p>
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
@@ -696,7 +716,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
                                 size="icon"
                                 className="h-8 w-8 flex-shrink-0"
                                 asChild
-                                aria-label="Explorer'da görüntüle"
+                                aria-label="View on Explorer"
                               >
                                 <a
                                   href={getExplorerLink(tx.hash)}
@@ -707,7 +727,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
                                 </a>
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent>Explorer'da görüntüle</TooltipContent>
+                            <TooltipContent>View on Explorer</TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
                       </div>
@@ -785,7 +805,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
                 </div>
               ) : assetsError ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <p className="text-sm font-medium mb-1">Varlıklar yüklenemedi</p>
+                  <p className="text-sm font-medium mb-1">Failed to load assets</p>
                   <Button
                     variant="outline"
                     size="sm"
@@ -799,11 +819,42 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
               ) : assetsData && ((assetsData.tokens && assetsData.tokens.length > 0) || (assetsData.nfts && assetsData.nfts.length > 0)) ? (
                 <div className="space-y-3 relative">
                   {assetsData.tokens?.slice(0, ASSETS_LIMIT).map((token, idx) => {
+                    // Get logo URL with cache fallback
+                    const getLogoUrl = (): string | null => {
+                      // First check API response
+                      if (token.logoUrl) {
+                        return token.logoUrl
+                      }
+                      // If no logo in API response, check cache
+                      const cacheKey = getCacheKey(token.address, token.symbol)
+                      const cachedLogo = getCachedLogo(cacheKey)
+                      if (cachedLogo) {
+                        return cachedLogo
+                      }
+                      return null
+                    }
+
+                    const logoUrl = getLogoUrl()
+                    
                     return (
                       <div key={token.address || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
                         <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
-                          {token.logoUrl ? (
-                            <img src={token.logoUrl} alt={token.symbol} className="h-10 w-10 rounded-full object-cover" />
+                          {logoUrl ? (
+                            <img 
+                              src={logoUrl} 
+                              alt={token.symbol} 
+                              className="h-10 w-10 rounded-full object-cover"
+                              onLoad={() => {
+                                // Cache logo URL when successfully loaded
+                                const cacheKey = getCacheKey(token.address, token.symbol)
+                                setCachedLogo(cacheKey, logoUrl)
+                              }}
+                              onError={() => {
+                                // Mark as "no logo found" in cache to avoid retrying
+                                const cacheKey = getCacheKey(token.address, token.symbol)
+                                setCachedLogo(cacheKey, null)
+                              }}
+                            />
                           ) : (
                             <Coins className="h-5 w-5 text-muted-foreground" />
                           )}

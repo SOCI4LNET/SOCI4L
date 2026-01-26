@@ -31,7 +31,6 @@ import { GripVertical, Sparkles, MoreVertical, Info, ChevronDown, ChevronUp, X, 
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   Dialog,
@@ -560,10 +559,8 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
   const [activeId, setActiveId] = useState<string | null>(null)
   
   // Profile Info state
-  const [profileInfoOpen, setProfileInfoOpen] = useState(true)
   const [displayName, setDisplayName] = useState<string>('')
   const [bio, setBio] = useState<string>('')
-  const [visibility, setVisibility] = useState<'PUBLIC' | 'PRIVATE'>('PUBLIC')
 
   // Load layout from API on mount
   useEffect(() => {
@@ -580,8 +577,8 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
         const profileResponse = await fetch(`/api/wallet?address=${encodeURIComponent(address)}`)
         
         if (!layoutResponse.ok) {
-          const errorData = await layoutResponse.json().catch(() => ({ error: 'Bilinmeyen hata' }))
-          throw new Error(errorData.error || `HTTP ${layoutResponse.status}: Layout yüklenemedi`)
+          const errorData = await layoutResponse.json().catch(() => ({ error: 'Unknown error' }))
+          throw new Error(errorData.error || `HTTP ${layoutResponse.status}: Failed to load layout`)
         }
         
         const layoutData = await layoutResponse.json()
@@ -608,7 +605,6 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
           if (profileData.profile) {
             setDisplayName(profileData.profile.displayName || '')
             setBio(profileData.profile.bio || '')
-            setVisibility(profileData.profile.visibility === 'PRIVATE' ? 'PRIVATE' : 'PUBLIC')
           }
         }
 
@@ -680,7 +676,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
         setHasUnsavedChanges(false)
       } catch (error) {
         console.error('[BuilderPanel] Failed to load layout config', error)
-        const errorMessage = error instanceof Error ? error.message : 'Layout yüklenirken bir hata oluştu'
+        const errorMessage = error instanceof Error ? error.message : 'An error occurred while loading layout'
         toast.error(errorMessage)
         // Set default configs on error to prevent UI blocking
         setLayoutConfig(getDefaultProfileLayout())
@@ -814,7 +810,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
         // Step 1: Get nonce
         const nonceResponse = await fetch('/api/auth/nonce')
         if (!nonceResponse.ok) {
-          throw new Error('Nonce alınamadı')
+          throw new Error('Failed to get nonce')
         }
         const { nonce } = await nonceResponse.json()
 
@@ -841,35 +837,17 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
           throw new Error(errorData.error || 'Failed to save profile info')
         }
 
-        // Update visibility
-        const visibilityResponse = await fetch('/api/profile/visibility', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            address,
-            visibility,
-            signature,
-          }),
-        })
-
-        if (!visibilityResponse.ok) {
-          const errorData = await visibilityResponse.json().catch(() => ({ error: 'Unknown error' }))
-          throw new Error(errorData.error || 'Failed to save visibility')
-        }
-
         console.log('[BuilderPanel] Profile info saved successfully')
       } catch (error) {
         console.error('[BuilderPanel] Failed to save profile info:', error)
-        toast.error(error instanceof Error ? error.message : 'Profile info kaydedilemedi')
+        toast.error(error instanceof Error ? error.message : 'Failed to save profile info')
       }
 
-      toast.success('Layout, görünüm ve profil bilgileri kaydedildi. Public profile sayfasını yenileyin.')
+      toast.success('Layout, appearance and profile information saved. Please refresh the public profile page.')
       setHasUnsavedChanges(false)
     } catch (error) {
       console.error('[BuilderPanel] Failed to save layout', error)
-      toast.error(error instanceof Error ? error.message : 'Layout kaydedilemedi')
+      toast.error(error instanceof Error ? error.message : 'Failed to save layout')
     } finally {
       setSaving(false)
     }
@@ -1346,12 +1324,12 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
 
       setSections(nextSections)
       setHasUnsavedChanges(false)
-      toast.success(`Preset uygulandı: ${preset.name}. Public profile sayfasını yenileyin.`, {
+      toast.success(`Preset applied: ${preset.name}. Please refresh the public profile page.`, {
         duration: 4000,
       })
     } catch (error) {
       console.error('[BuilderPanel] Failed to apply preset', error)
-      toast.error(error instanceof Error ? error.message : 'Preset uygulanamadı')
+      toast.error(error instanceof Error ? error.message : 'Failed to apply preset')
     } finally {
       setSaving(false)
     }
@@ -1362,112 +1340,61 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
       title="Profile Builder"
       subtitle="Control which sections appear on your public profile and how they are composed."
     >
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs text-muted-foreground">
-            Adjust which sections are visible and how they are ordered on your public profile.
-          </p>
-          <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-1"
-                  disabled={saving || loading}
-                >
-                  <Sparkles className="h-3.5 w-3.5" />
-                  <span>
-                    {(() => {
-                      const currentPreset = detectPreset(layoutConfig)
-                      if (currentPreset === 'custom') return 'Presets'
-                      const preset = PRESETS.find((p) => p.id === currentPreset)
-                      return preset ? preset.name : 'Presets'
-                    })()}
-                  </span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64">
-                <DropdownMenuLabel className="text-xs">Profile presets</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {PRESETS.map((preset) => {
-                  const currentPreset = detectPreset(layoutConfig)
-                  const isActive = currentPreset === preset.id
-                  return (
-                    <DropdownMenuItem
-                      key={preset.id}
-                      className={`flex flex-col items-start space-y-0.5 py-2 text-xs ${
-                        isActive ? 'bg-accent' : ''
-                      }`}
-                      onClick={() => handleApplyPreset(preset)}
-                      disabled={saving || loading}
-                    >
-                      <span className="font-medium flex items-center gap-2">
-                        {preset.name}
-                        {isActive && <span className="text-[10px] text-muted-foreground">(Active)</span>}
-                      </span>
-                      <span className="text-[11px] text-muted-foreground">
-                        {preset.description}
-                      </span>
-                    </DropdownMenuItem>
-                  )
-                })}
-                {detectPreset(layoutConfig) === 'custom' && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem disabled className="text-xs text-muted-foreground">
-                      Custom (manual changes detected)
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleApplyRecommendedLayout}
-              disabled={saving || loading}
-            >
-              Apply recommended layout
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleResetLayout}
-            >
-              Reset
-            </Button>
-            <Button
-              type="button"
-              variant="default"
-              size="sm"
-              onClick={handleSaveLayout}
-              disabled={saving || loading}
-            >
-              Save layout
-            </Button>
-          </div>
-        </div>
+      <div className="flex flex-col gap-6">
+        {/* Profile Info - Horizontal Layout at Top */}
+        <Card className="bg-card border border-border/60 shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base">Profile Info</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Display Name</Label>
+                <Input
+                  value={displayName}
+                  onChange={(e) => {
+                    setDisplayName(e.target.value)
+                    setHasUnsavedChanges(true)
+                  }}
+                  placeholder="Display name (max 32 characters)"
+                  maxLength={32}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {displayName.length}/32 characters
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label>Bio</Label>
+                <Textarea
+                  value={bio}
+                  onChange={(e) => {
+                    setBio(e.target.value)
+                    setHasUnsavedChanges(true)
+                  }}
+                  placeholder="Bio (max 160 characters)"
+                  maxLength={160}
+                  rows={4}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {bio.length}/160 characters
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-8 items-start">
           {/* Left: Sections control */}
           <div ref={linksSectionRef}>
-          <Card className="bg-card border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-base">Profile Sections</CardTitle>
-              <CardDescription>
-                Compose your profile layout using rows. Each row can be full-width (single) or two columns (double).
-                Drag sections to add them to rows, or drag rows to reorder them.
-                <span className="block mt-1 text-xs text-muted-foreground">
-                  Tip: Full-width rows are great for heavy sections like Assets. Two-column rows work well for Links and Activity.
-                </span>
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <DndContext
+            <Card className="bg-card border border-border/60 shadow-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-base">Profile Sections</CardTitle>
+                <CardDescription>
+                  Drag sections to arrange your public profile layout.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
                 onDragStart={handleDragStart}
@@ -1601,20 +1528,20 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
                     )
                   })() : null}
                 </DragOverlay>
-              </DndContext>
-            </CardContent>
-          </Card>
+                </DndContext>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Right Column: Appearance + Profile Info */}
-          <div className="space-y-6">
-            {/* Appearance Section */}
-            <Card className="bg-card border border-border/60 shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Appearance</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
+          {/* Right Column: Appearance */}
+          <div className="flex flex-col">
+            {/* Appearance Section - Visually de-emphasized */}
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <h3 className="text-sm font-medium text-muted-foreground">Appearance</h3>
+                <p className="text-xs text-muted-foreground">Choose a visual style for your profile</p>
+              </div>
+              <div className="space-y-2">
                   {(['default', 'minimal', 'dense', 'spotlight'] as ProfileTheme[]).map((theme) => {
                     const isSelected = appearanceConfig.theme === theme
                     const themeDescriptions: Record<ProfileTheme, { short: string; long: string }> = {
@@ -1674,99 +1601,83 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
                     )
                   })}
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Profile Info Section */}
-            <Card className="bg-card border border-border/60 shadow-sm">
-              <CardHeader 
-                className="pb-3 cursor-pointer hover:bg-accent/50 transition-colors"
-                onClick={() => setProfileInfoOpen(!profileInfoOpen)}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-base">Profile Info</CardTitle>
-                    <CardDescription>
-                      Display name, bio, and visibility
-                    </CardDescription>
-                  </div>
-                  {profileInfoOpen ? (
-                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                  )}
-                </div>
-              </CardHeader>
-              {profileInfoOpen && (
-                <CardContent className="space-y-4">
-                    {/* Display Name */}
-                    <div className="space-y-2">
-                      <Label>Display Name</Label>
-                      <Input
-                        value={displayName}
-                        onChange={(e) => {
-                          setDisplayName(e.target.value)
-                          setHasUnsavedChanges(true)
-                        }}
-                        placeholder="Display name (max 32 characters)"
-                        maxLength={32}
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        {displayName.length}/32 characters
-                      </p>
-                    </div>
-
-                    {/* Bio */}
-                    <div className="space-y-2">
-                      <Label>Bio</Label>
-                      <Textarea
-                        value={bio}
-                        onChange={(e) => {
-                          setBio(e.target.value)
-                          setHasUnsavedChanges(true)
-                        }}
-                        placeholder="Bio (max 160 characters)"
-                        maxLength={160}
-                        rows={3}
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        {bio.length}/160 characters
-                      </p>
-                    </div>
-
-                    {/* Visibility */}
-                    <div className="space-y-2">
-                      <Label>Visibility</Label>
-                      <RadioGroup 
-                        value={visibility} 
-                        onValueChange={(value) => {
-                          setVisibility(value as 'PUBLIC' | 'PRIVATE')
-                          setHasUnsavedChanges(true)
-                        }}
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="PUBLIC" id="public" />
-                          <Label htmlFor="public" className="cursor-pointer text-sm">
-                            Public - Anyone can view your profile
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="PRIVATE" id="private" />
-                          <Label htmlFor="private" className="cursor-pointer text-sm">
-                            Private - Only you can view full details
-                          </Label>
-                        </div>
-                      </RadioGroup>
-                    </div>
-                    
-                    <div className="pt-2 border-t">
-                      <p className="text-xs text-muted-foreground">
-                        Sosyal linkleri yönetmek için <span className="font-medium">Builder → Links</span> sayfasına gidin.
-                      </p>
-                    </div>
-                </CardContent>
-              )}
-            </Card>
+              </div>
+            
+            {/* Layout Actions - Moved from header */}
+            <div className="mt-8 pt-6 border-t border-border/30 space-y-3 lg:sticky lg:bottom-6">
+              <div className="flex items-center justify-between gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs text-muted-foreground"
+                      disabled={saving || loading}
+                    >
+                      Layout options
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-64">
+                    <DropdownMenuLabel className="text-xs">Layout presets</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {PRESETS.map((preset) => {
+                      const currentPreset = detectPreset(layoutConfig)
+                      const isActive = currentPreset === preset.id
+                      return (
+                        <DropdownMenuItem
+                          key={preset.id}
+                          className={`flex flex-col items-start space-y-0.5 py-2 text-xs ${
+                            isActive ? 'bg-accent' : ''
+                          }`}
+                          onClick={() => handleApplyPreset(preset)}
+                          disabled={saving || loading}
+                        >
+                          <span className="font-medium flex items-center gap-2">
+                            {preset.name}
+                            {isActive && <span className="text-[10px] text-muted-foreground">(Active)</span>}
+                          </span>
+                          <span className="text-[11px] text-muted-foreground">
+                            {preset.description}
+                          </span>
+                        </DropdownMenuItem>
+                      )
+                    })}
+                    {detectPreset(layoutConfig) === 'custom' && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem disabled className="text-xs text-muted-foreground">
+                          Custom (manual changes detected)
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleApplyRecommendedLayout}
+                      disabled={saving || loading}
+                      className="text-xs"
+                    >
+                      Apply recommended layout
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={handleResetLayout}
+                      className="text-xs"
+                    >
+                      Reset layout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  onClick={handleSaveLayout}
+                  disabled={saving || loading}
+                >
+                  Save layout
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

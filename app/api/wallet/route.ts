@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     resolvedAddress = profile.address
   } else if (address) {
     if (!isValidAddress(address)) {
-      return NextResponse.json({ error: 'Geçersiz cüzdan adresi' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid wallet address' }, { status: 400 })
     }
     // Normalize address to lowercase for consistent DB lookups
     const normalizedAddress = address.toLowerCase()
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
         : 'Failed to fetch wallet data from blockchain'
       return NextResponse.json(
         { 
-          error: 'Cüzdan verileri alınırken bir hata oluştu', 
+          error: 'An error occurred while fetching wallet data', 
           details: walletErrorMessage,
           type: 'WALLET_FETCH_ERROR'
         },
@@ -245,7 +245,7 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching wallet data:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: 'Cüzdan verileri alınırken bir hata oluştu', details: errorMessage },
+      { error: 'An error occurred while fetching wallet data', details: errorMessage },
       { status: 500 }
     )
   }

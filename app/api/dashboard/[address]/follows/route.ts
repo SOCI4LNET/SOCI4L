@@ -18,14 +18,14 @@ export async function GET(
 
     if (!address || !isValidAddress(address)) {
       return NextResponse.json(
-        { error: 'Geçersiz adres' },
+        { error: 'Invalid address' },
         { status: 400 }
       )
     }
 
     if (type !== 'followers' && type !== 'following') {
       return NextResponse.json(
-        { error: 'Geçersiz tip. "followers" veya "following" olmalı.' },
+        { error: 'Invalid type. Must be "followers" or "following".' },
         { status: 400 }
       )
     }
@@ -37,14 +37,14 @@ export async function GET(
     } catch (error) {
       console.error('Error getting session address:', error)
       return NextResponse.json(
-        { error: 'Oturum kontrolü sırasında bir hata oluştu', details: error instanceof Error ? error.message : 'Unknown error' },
+        { error: 'An error occurred during session check', details: error instanceof Error ? error.message : 'Unknown error' },
         { status: 500 }
       )
     }
 
     if (!sessionAddress) {
       return NextResponse.json(
-        { error: 'Oturum bulunamadı. Lütfen giriş yapın.' },
+        { error: 'Session not found. Please log in.' },
         { status: 401 }
       )
     }
@@ -54,7 +54,7 @@ export async function GET(
     // Verify ownership: session address must equal [address] (case-insensitive)
     if (sessionAddress !== normalizedAddress) {
       return NextResponse.json(
-        { error: 'Bu sayfaya erişim yetkiniz yok' },
+        { error: 'You do not have permission to access this page' },
         { status: 403 }
       )
     }
@@ -148,7 +148,7 @@ export async function GET(
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     console.error('Error details:', errorMessage)
     return NextResponse.json(
-      { error: 'Takip listesi alınırken bir hata oluştu', details: errorMessage },
+      { error: 'An error occurred while fetching follow list', details: errorMessage },
       { status: 500 }
     )
   }

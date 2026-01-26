@@ -8,11 +8,11 @@ export async function POST(request: NextRequest) {
     const { address, nonce, signature } = await request.json()
 
     if (!address || !isValidAddress(address)) {
-      return NextResponse.json({ error: 'Geçersiz cüzdan adresi' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid wallet address' }, { status: 400 })
     }
 
     if (!nonce || !signature) {
-      return NextResponse.json({ error: 'Nonce ve imza gereklidir' }, { status: 400 })
+      return NextResponse.json({ error: 'Nonce and signature are required' }, { status: 400 })
     }
 
     const normalizedAddress = address.toLowerCase()
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     if (existing && existing.owner) {
       return NextResponse.json(
-        { error: 'Bu profil zaten talep edilmiş' },
+        { error: 'This profile has already been claimed' },
         { status: 400 }
       )
     }
@@ -40,14 +40,14 @@ export async function POST(request: NextRequest) {
 
       if (!isValid) {
         return NextResponse.json(
-          { error: 'Geçersiz imza' },
+          { error: 'Invalid signature' },
           { status: 400 }
         )
       }
     } catch (error) {
       console.error('Signature verification error:', error)
       return NextResponse.json(
-        { error: 'İmza doğrulanamadı' },
+        { error: 'Signature verification failed' },
         { status: 400 }
       )
     }
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error claiming profile:', error)
     return NextResponse.json(
-      { error: 'Profil talep edilirken bir hata oluştu' },
+      { error: 'An error occurred while claiming profile' },
       { status: 500 }
     )
   }

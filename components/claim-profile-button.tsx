@@ -50,7 +50,7 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
       // Step 1: Get nonce
       const nonceResponse = await fetch('/api/auth/nonce')
       if (!nonceResponse.ok) {
-        throw new Error('Nonce alınamadı')
+        throw new Error('Failed to get nonce')
       }
       const { nonce } = await nonceResponse.json()
 
@@ -75,7 +75,7 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
       const result = await claimResponse.json()
 
       if (!claimResponse.ok) {
-        throw new Error(result.error || 'Profil talep edilemedi')
+        throw new Error(result.error || 'Failed to claim profile')
       }
 
       // Success - mark as claimed (whether it was already claimed or newly claimed)
@@ -105,7 +105,7 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
       }
     } catch (error: any) {
       console.error('Error claiming profile:', error)
-      toast.error(error.message || 'Profil talep edilirken bir hata oluştu')
+      toast.error(error.message || 'An error occurred while claiming profile')
     } finally {
       setIsSubmitting(false)
     }

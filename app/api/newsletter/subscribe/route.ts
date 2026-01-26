@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
     if (!email || typeof email !== 'string') {
       return NextResponse.json(
-        { error: 'Email adresi gereklidir' },
+        { error: 'Email address is required' },
         { status: 400 }
       )
     }
@@ -21,14 +21,14 @@ export async function POST(request: NextRequest) {
 
     if (!trimmedEmail) {
       return NextResponse.json(
-        { error: 'Email adresi gereklidir' },
+        { error: 'Email address is required' },
         { status: 400 }
       )
     }
 
     if (!validateEmail(trimmedEmail)) {
       return NextResponse.json(
-        { error: 'Geçerli bir email adresi giriniz' },
+        { error: 'Please enter a valid email address' },
         { status: 400 }
       )
     }
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     if (existing) {
       return NextResponse.json(
-        { success: true, message: 'Bu email adresi zaten kayıtlı' },
+        { success: true, message: 'This email address is already registered' },
         { status: 200 }
       )
     }
@@ -54,13 +54,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Email başarıyla kaydedildi',
+      message: 'Email successfully saved',
       subscription,
     })
   } catch (error) {
     console.error('Error subscribing email:', error)
     return NextResponse.json(
-      { error: 'Email kaydı sırasında bir hata oluştu' },
+      { error: 'An error occurred while saving email' },
       { status: 500 }
     )
   }

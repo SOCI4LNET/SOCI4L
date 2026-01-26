@@ -9,14 +9,14 @@ export async function POST(request: NextRequest) {
 
     if (!address || !isValidAddress(address)) {
       return NextResponse.json(
-        { error: 'Geçersiz cüzdan adresi' },
+        { error: 'Invalid wallet address' },
         { status: 400 }
       )
     }
 
     if (!signature) {
       return NextResponse.json(
-        { error: 'İmza gereklidir' },
+        { error: 'Signature is required' },
         { status: 400 }
       )
     }
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
     if (!nonce) {
       return NextResponse.json(
-        { error: 'Nonce bulunamadı. Lütfen önce /api/auth/nonce endpoint\'ini çağırın.' },
+        { error: 'Nonce not found. Please call /api/auth/nonce endpoint first.' },
         { status: 400 }
       )
     }
@@ -45,14 +45,14 @@ export async function POST(request: NextRequest) {
 
       if (!isValid) {
         return NextResponse.json(
-          { error: 'Geçersiz imza' },
+          { error: 'Invalid signature' },
           { status: 400 }
         )
       }
     } catch (error) {
       console.error('Signature verification error:', error)
       return NextResponse.json(
-        { error: 'İmza doğrulanamadı' },
+        { error: 'Signature verification failed' },
         { status: 400 }
       )
     }
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error verifying auth:', error)
     return NextResponse.json(
-      { error: 'Doğrulama sırasında bir hata oluştu' },
+      { error: 'An error occurred during verification' },
       { status: 500 }
     )
   }

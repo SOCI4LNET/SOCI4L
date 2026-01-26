@@ -47,6 +47,7 @@ import { AssetsControlsBar } from '@/components/assets/AssetsControlsBar'
 import { Separator } from '@/components/ui/separator'
 import { PageContent } from '@/components/app-shell/page-content'
 import Link from 'next/link'
+import { getCachedLogo, setCachedLogo, setCachedLogos, getCacheKey } from '@/lib/logo-cache'
 
 interface AssetsPanelProps {
   walletData: any // Legacy prop, will be replaced with address-based fetching
@@ -351,6 +352,32 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
       setTokensLastUpdatedAt(Date.now())
     }
   }, [tokensData, tokensLoading, tokensError])
+
+  // Cache logos when tokens data is loaded
+  useEffect(() => {
+    if (!tokensData?.tokens || !mounted) return
+
+    // Cache all logo URLs from API response
+    const logosToCache: Record<string, string | null> = {}
+    
+    for (const token of tokensData.tokens) {
+      const cacheKey = getCacheKey(token.address, token.symbol)
+      if (token.logoUrl) {
+        logosToCache[cacheKey] = token.logoUrl
+      }
+    }
+
+    // Also cache native token logo if available
+    if (tokensData.native?.logoUrl) {
+      const nativeCacheKey = getCacheKey(null, tokensData.native.symbol)
+      logosToCache[nativeCacheKey] = tokensData.native.logoUrl
+    }
+
+    if (Object.keys(logosToCache).length > 0) {
+      // Use setCachedLogos for batch update
+      setCachedLogos(logosToCache)
+    }
+  }, [tokensData, mounted])
 
   useEffect(() => {
     if (nftsData && !nftsLoading && !nftsError) {
@@ -679,8 +706,9 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
                         }).format(value)
                       }
 
-                      // Get logo URL with fallback
+                      // Get logo URL with cache fallback
                       const getLogoUrl = (): string | null => {
+                        // First check API response
                         if (token.logoUrl) {
                           // If it's a relative path (starts with /), use as is
                           if (token.logoUrl.startsWith('/')) {
@@ -689,6 +717,14 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
                           // If it's an external URL, use it
                           return token.logoUrl
                         }
+                        
+                        // If no logo in API response, check cache
+                        const cacheKey = getCacheKey(token.address, token.symbol)
+                        const cachedLogo = getCachedLogo(cacheKey)
+                        if (cachedLogo) {
+                          return cachedLogo
+                        }
+                        
                         return null
                       }
 
@@ -705,7 +741,16 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
                                     src={logoUrl}
                                     alt={token.symbol}
                                     className="h-10 w-10 rounded-full object-cover"
+                                    onLoad={() => {
+                                      // Cache logo URL when successfully loaded
+                                      const cacheKey = getCacheKey(token.address, token.symbol)
+                                      setCachedLogo(cacheKey, logoUrl)
+                                    }}
                                     onError={(e) => {
+                                      // Mark as "no logo found" in cache to avoid retrying
+                                      const cacheKey = getCacheKey(token.address, token.symbol)
+                                      setCachedLogo(cacheKey, null)
+                                      
                                       // Fallback to first letter if image fails to load
                                       const target = e.target as HTMLImageElement
                                       target.style.display = 'none'

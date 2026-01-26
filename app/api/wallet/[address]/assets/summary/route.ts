@@ -20,7 +20,7 @@ export async function GET(
     if (!address || !isValidAddress(address)) {
       console.error('[Assets Summary API] Invalid address:', address)
       return NextResponse.json(
-        { error: 'Geçersiz cüzdan adresi' },
+        { error: 'Invalid wallet address' },
         { status: 400 }
       )
     }
@@ -94,7 +94,7 @@ export async function GET(
     })
     return NextResponse.json(
       {
-        error: 'Özet verileri alınırken bir hata oluştu',
+        error: 'An error occurred while fetching summary data',
         details: process.env.NODE_ENV === 'development' ? error.message : undefined,
       },
       { status: 500 }
