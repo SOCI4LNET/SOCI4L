@@ -154,21 +154,41 @@ async function getUserData(rawAddress: string) {
       `${appUrl}/api/wallet/${normalizedAddress}/summary`,
       {
         cache: 'no-store',
+        // Add timeout to prevent hanging
+        signal: AbortSignal.timeout(10000), // 10 second timeout
       },
     )
+    
     if (summaryRes.ok) {
-      const json = await summaryRes.json()
-      walletSummary = {
-        balance: json.balance,
-        transactionCount: json.transactionCount,
-        tokenCount: json.tokenCount,
-        nftCount: json.nftCount,
-        claimed: json.claimed,
-        visibility: json.visibility,
-        networkOk: json.networkOk,
+      const contentType = summaryRes.headers.get('content-type')
+      if (contentType && contentType.includes('application/json')) {
+        const text = await summaryRes.text()
+        if (text.trim()) {
+          try {
+            const json = JSON.parse(text)
+            walletSummary = {
+              balance: json.balance || '0',
+              transactionCount: json.transactionCount || 0,
+              tokenCount: json.tokenCount || 0,
+              nftCount: json.nftCount || 0,
+              claimed: json.claimed || false,
+              visibility: json.visibility || 'PUBLIC',
+              networkOk: json.networkOk !== undefined ? json.networkOk : true,
+            }
+          } catch (parseError) {
+            console.error('[Admin User Detail] Failed to parse wallet summary JSON:', parseError)
+            // Continue with null walletSummary
+          }
+        }
       }
+    } else {
+      console.error(`[Admin User Detail] Wallet summary API returned ${summaryRes.status}`)
     }
-  } catch {
+  } catch (error: any) {
+    // Silently handle errors - wallet summary is optional for admin view
+    if (error.name !== 'AbortError') {
+      console.error('[Admin User Detail] Error fetching wallet summary:', error)
+    }
     walletSummary = null
   }
 
