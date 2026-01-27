@@ -147,7 +147,7 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
     // Check if theme or data changed - if so, force recreation
     const themeChanged = lastThemeRef.current !== theme
     const dataChanged = lastDataRef.current !== profileUrl
-    
+
     // If theme or data changed, reset append state
     if (themeChanged || dataChanged) {
       didAppendRef.current = false
@@ -224,7 +224,7 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
         } else {
           qrContainerRef.current.innerHTML = ''
         }
-        
+
         // Append QR
         qrInstanceRef.current.append(qrContainerRef.current)
         didAppendRef.current = true
@@ -264,7 +264,7 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
       setExportAvailable(false)
       throw new Error('QR code container not found')
     }
-    
+
     // Get the actual QR SVG element inside the container
     const qrSvg = qrContainerRef.current.querySelector('svg')
     const exportTarget = qrSvg || qrContainerRef.current
@@ -286,7 +286,7 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
         toast.error(`Export failed: ${importError?.message || 'html-to-image not available. Run: pnpm install'}`)
         return
       }
-      
+
       // Wait for card to be fully rendered (double RAF for safety)
       await new Promise(resolve => {
         requestAnimationFrame(() => {
@@ -389,7 +389,7 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
             }
             resolve()
           }, 2000) // 2 second timeout
-          
+
           img.onload = () => {
             clearTimeout(timeout)
             try {
@@ -407,7 +407,7 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
             }
             resolve()
           }
-          
+
           img.onerror = () => {
             clearTimeout(timeout)
             console.warn('Image load error, using placeholder:', img.src)
@@ -461,14 +461,14 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-      
+
       toast.success(`PNG (${pixelRatio}x) downloaded`)
     } catch (error: any) {
       console.error('PNG export failed - full error:', error)
       console.error('Error stack:', error?.stack)
       console.error('Error name:', error?.name)
       console.error('Error message:', error?.message)
-      
+
       // Handle Event objects (image load errors)
       let errorMessage = 'Unknown error'
       if (error instanceof Event) {
@@ -480,7 +480,7 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
       } else if (typeof error === 'string') {
         errorMessage = error
       }
-      
+
       toast.error('Failed to export PNG')
     }
   }
@@ -492,7 +492,7 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
       setExportAvailable(false)
       throw new Error('QR code container not found')
     }
-    
+
     // Get the actual QR SVG element inside the container
     const qrSvg = qrContainerRef.current.querySelector('svg')
     const exportTarget = qrSvg || qrContainerRef.current
@@ -511,7 +511,7 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
         toast.error(`Export failed: ${importError?.message || 'html-to-image not available. Run: pnpm install'}`)
         return
       }
-      
+
       // Wait for card to be fully rendered (double RAF for safety)
       await new Promise(resolve => {
         requestAnimationFrame(() => {
@@ -601,7 +601,7 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
             }
             resolve()
           }, 2000) // 2 second timeout
-          
+
           img.onload = () => {
             clearTimeout(timeout)
             try {
@@ -619,7 +619,7 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
             }
             resolve()
           }
-          
+
           img.onerror = () => {
             clearTimeout(timeout)
             console.warn('Image load error for SVG, using placeholder:', img.src)
@@ -665,7 +665,7 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-      
+
       toast.success('SVG downloaded')
     } catch (error: any) {
       console.error('SVG export failed:', error)
@@ -685,7 +685,7 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
       setExportAvailable(false)
     }
   }
-  
+
   const handleDownloadPNG4x = async () => {
     if (!qrReady || !exportAvailable) {
       toast.error('Export unavailable')
@@ -697,7 +697,7 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
       setExportAvailable(false)
     }
   }
-  
+
   const handleDownloadSVG = async () => {
     if (!qrReady || !exportAvailable) {
       toast.error('Export unavailable')
@@ -752,25 +752,14 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md bg-card border shadow-lg p-0 overflow-hidden [&>button]:hidden">
-        {/* Close button - top right */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute top-4 right-4 z-10 h-8 w-8"
-          onClick={() => handleOpenChange(false)}
-          aria-label="Close"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-        
+      <DialogContent className="max-w-md bg-card border shadow-lg p-0 overflow-hidden">
         <DialogTitle className="sr-only">QR Code for {displayName}</DialogTitle>
         <DialogDescription className="sr-only">
           Scan this QR code to open the profile for {displayName} ({formatAddress(profile.address, 4)})
         </DialogDescription>
-        
+
         {/* Card Container - This is what we export */}
-        <div 
+        <div
           ref={cardContainerRef}
           className="flex flex-col items-center space-y-6 p-6 rounded-lg border border-border bg-background shadow-md"
         >
@@ -791,7 +780,7 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
           </div>
 
           {/* QR Code Container */}
-          <div 
+          <div
             ref={qrCodeWrapperRef}
             className="mx-auto flex items-center justify-center rounded-lg border border-border bg-background p-4"
           >
@@ -800,11 +789,11 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
               <Skeleton className="h-[240px] w-[240px] rounded-lg" />
             )}
             {/* QR container - React doesn't manage its children */}
-            <div 
+            <div
               ref={qrContainerRef}
               className="h-[240px] w-[240px] flex items-center justify-center rounded-lg"
               suppressHydrationWarning
-              style={{ 
+              style={{
                 display: qrReady ? 'flex' : 'none',
                 backgroundColor: currentTheme.qrBg,
               }}
@@ -840,9 +829,9 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
                 <TooltipTrigger asChild>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="default" 
-                        size="sm" 
+                      <Button
+                        variant="default"
+                        size="sm"
                         className="gap-2"
                         disabled={!exportAvailable || !qrReady}
                       >
@@ -852,14 +841,14 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="center">
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={handleDownloadPNG2x}
                         disabled={!exportAvailable || !qrReady}
                       >
                         <Download className="mr-2 h-4 w-4" />
                         <span>Download PNG</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={handleDownloadSVG}
                         disabled={!exportAvailable || !qrReady}
                       >
@@ -876,10 +865,10 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
                 )}
               </Tooltip>
             </TooltipProvider>
-            
-            <Button 
-              variant="outline" 
-              size="sm" 
+
+            <Button
+              variant="outline"
+              size="sm"
               onClick={handleShare}
               className="gap-2"
             >
