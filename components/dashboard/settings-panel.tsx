@@ -303,19 +303,32 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
               <Input
                 value={slug}
                 onChange={(e) => {
-                  // Strict validation: alphanumeric and hyphens only, lowercase
+                  // Allow typing hyphens for intermediate steps, but validate on save/render
+                  // Still enforce basic char set (lowercase alphanumeric + hyphen)
                   const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '')
                   setSlug(val)
                 }}
                 placeholder="your-slug"
-                className={`font-mono ${(slug.length > 0 && slug.length < 3) ? 'border-destructive focus-visible:ring-destructive' : ''
+                className={`font-mono ${(slug.length > 0 && (
+                    slug.length < 3 ||
+                    slug.startsWith('-') ||
+                    slug.endsWith('-') ||
+                    slug.includes('--')
+                  )) ? 'border-destructive focus-visible:ring-destructive' : ''
                   }`}
               />
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleSaveSlug}
-                disabled={savingSlug || slug === (profile.slug || "") || (slug.length > 0 && slug.length < 3)}
+                disabled={
+                  savingSlug ||
+                  slug === (profile.slug || "") ||
+                  slug.length < 3 ||
+                  slug.startsWith('-') ||
+                  slug.endsWith('-') ||
+                  slug.includes('--')
+                }
               >
                 {savingSlug ? (
                   <>
@@ -327,10 +340,24 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
                 )}
               </Button>
             </div>
-            {slug.length > 0 && slug.length < 3 && (
-              <p className="text-xs text-destructive font-medium">
-                Slug must be at least 3 characters long
-              </p>
+            {slug.length > 0 && (
+              <div className="space-y-1">
+                {slug.length < 3 && (
+                  <p className="text-xs text-destructive font-medium">
+                    Slug must be at least 3 characters long
+                  </p>
+                )}
+                {(slug.startsWith('-') || slug.endsWith('-')) && (
+                  <p className="text-xs text-destructive font-medium">
+                    Slug cannot start or end with a hyphen
+                  </p>
+                )}
+                {slug.includes('--') && (
+                  <p className="text-xs text-destructive font-medium">
+                    Slug cannot contain consecutive hyphens
+                  </p>
+                )}
+              </div>
             )}
             <p className="text-xs text-muted-foreground">
               Your public link: <span className="font-mono">/p/{slug || "your-slug"}</span>
