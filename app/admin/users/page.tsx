@@ -155,16 +155,29 @@ export default async function AdminUsersPage({
 }: {
   searchParams: SearchParams
 }) {
-  const {
-    profiles,
-    totalCount,
-    page,
-    totalPages,
-    search,
-    status,
-    visibility,
-    followerCountMap,
-  } = await getUsers(searchParams)
+  let profiles: any[] = []
+  let totalCount = 0
+  let page = 1
+  let totalPages = 1
+  let search = ''
+  let status = ''
+  let visibility = ''
+  let followerCountMap = new Map<string, number>()
+
+  try {
+    const result = await getUsers(searchParams)
+    profiles = result.profiles
+    totalCount = result.totalCount
+    page = result.page
+    totalPages = result.totalPages
+    search = result.search
+    status = result.status
+    visibility = result.visibility
+    followerCountMap = result.followerCountMap
+  } catch (error: any) {
+    console.error('[Admin Users] Failed to load users:', error)
+    // Return empty state - UI will show empty table
+  }
 
   return (
     <PageShell
