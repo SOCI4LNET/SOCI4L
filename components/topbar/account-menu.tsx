@@ -25,6 +25,7 @@ export function AccountMenu() {
   const [mounted, setMounted] = useState(false)
   const [profile, setProfile] = useState<{ slug?: string | null; displayName?: string | null } | null>(null)
   const [qrModalOpen, setQrModalOpen] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
   const { address: connectedAddress, isConnected } = useAccount()
   const { disconnect } = useDisconnect()
   const router = useRouter()
@@ -133,6 +134,7 @@ export function AccountMenu() {
   }
 
   const handleDisconnect = () => {
+    setDropdownOpen(false) // Dropdown'ı hemen kapat
     disconnect()
     toast.success('Wallet disconnected')
   }
@@ -174,7 +176,7 @@ export function AccountMenu() {
         </TooltipProvider>
 
         {/* Avatar dropdown */}
-        <DropdownMenu>
+        <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon-sm" className="h-8 w-8 rounded-full">
               <Avatar className="h-8 w-8">
