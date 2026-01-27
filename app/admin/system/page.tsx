@@ -1,7 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { PageShell } from '@/components/app-shell/page-shell'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { AdminActivityLogger } from '@/components/admin/admin-activity-logger'
 import {
   Table,
   TableBody,
@@ -101,7 +100,6 @@ export default async function AdminSystemPage() {
       subtitle="High-level system health for SOCI4L."
       mode="constrained"
     >
-      <AdminActivityLogger action="view_system" targetType="system" />
       <div className="space-y-6">
         <div>
           <h2 className="text-sm font-medium mb-4">Database Tables</h2>

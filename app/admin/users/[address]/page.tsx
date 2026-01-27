@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { calculateScore, getScoreTier } from '@/lib/score'
 import { UserAnalyticsCharts } from '@/components/admin/user-analytics-charts'
 import { getScoreHistory } from '@/lib/score-snapshot'
-import { AdminActivityLogger } from '@/components/admin/admin-activity-logger'
 
 interface AdminUserPageProps {
   params: {
@@ -211,11 +210,6 @@ export default async function AdminUserDetailPage({ params }: AdminUserPageProps
       subtitle="Admin view of a single SOCI4L profile."
       mode="constrained"
     >
-      <AdminActivityLogger
-        action="view_user"
-        targetType="profile"
-        targetId={data.address}
-      />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
         <Card>
           <CardHeader>

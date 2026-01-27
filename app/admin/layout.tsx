@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { toast } from 'sonner'
 import { AdminShell } from '@/components/admin/admin-shell'
 
@@ -18,7 +18,9 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const { address, isConnected } = useAccount()
   const router = useRouter()
+  const pathname = usePathname()
   const [mounted, setMounted] = useState(false)
+  const [lastPathname, setLastPathname] = useState<string | null>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -40,19 +42,67 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       return
     }
 
-    // Log admin login
-    fetch('/api/admin/log-action', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'login',
-        targetType: 'system',
-        metadata: { adminAddress: normalized },
-      }),
-    }).catch(() => {
-      // Silently fail
-    })
-  }, [mounted, isConnected, address, router])
+    // Log admin login (only once)
+    if (!lastPathname) {
+      fetch('/api/admin/log-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'login',
+          targetType: 'system',
+          metadata: { adminAddress: normalized },
+        }),
+      }).catch(() => {
+        // Silently fail
+      })
+    }
+
+    // Log page views when pathname changes
+    if (lastPathname && lastPathname !== pathname) {
+      let action = 'view_system'
+      let targetType: string | undefined = 'system'
+      let targetId: string | undefined = undefined
+
+      if (pathname === '/admin') {
+        action = 'view_overview'
+        targetType = 'analytics'
+      } else if (pathname === '/admin/users') {
+        action = 'view_users'
+        targetType = 'system'
+      } else if (pathname.startsWith('/admin/users/')) {
+        action = 'view_user'
+        targetType = 'profile'
+        const match = pathname.match(/\/admin\/users\/(.+)$/)
+        if (match) {
+          targetId = decodeURIComponent(match[1]).toLowerCase()
+        }
+      } else if (pathname === '/admin/analytics') {
+        action = 'view_analytics'
+        targetType = 'analytics'
+      } else if (pathname === '/admin/system') {
+        action = 'view_system'
+        targetType = 'system'
+      }
+
+      fetch('/api/admin/log-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action,
+          targetType,
+          targetId,
+          metadata: {
+            adminAddress: normalized,
+            pathname,
+          },
+        }),
+      }).catch(() => {
+        // Silently fail
+      })
+    }
+
+    setLastPathname(pathname)
+  }, [mounted, isConnected, address, router, pathname, lastPathname])
 
   if (!mounted) {
     return (

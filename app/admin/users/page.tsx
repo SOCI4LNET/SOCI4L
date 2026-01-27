@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { PageShell } from '@/components/app-shell/page-shell'
-import { AdminActivityLogger } from '@/components/admin/admin-activity-logger'
 import {
   Table,
   TableBody,
@@ -151,7 +150,6 @@ export default async function AdminUsersPage({
       subtitle="Browse and inspect SOCI4L profiles across the platform."
       mode="constrained"
     >
-      <AdminActivityLogger action="view_users" targetType="system" />
       <div className="flex items-center justify-between mb-4">
         <form className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 flex-1">
         <div className="flex-1 flex flex-col gap-1 sm:max-w-sm">

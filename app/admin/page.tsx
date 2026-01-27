@@ -2,7 +2,6 @@ import { prisma } from '@/lib/prisma'
 import { PageShell } from '@/components/app-shell/page-shell'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { OverviewTrends } from '@/components/admin/overview-trends'
-import { AdminActivityLogger } from '@/components/admin/admin-activity-logger'
 
 async function getOverviewStats() {
   const now = new Date()
@@ -160,7 +159,6 @@ export default async function AdminOverviewPage() {
       subtitle="Platform-wide metrics for SOCI4L."
       mode="constrained"
     >
-      <AdminActivityLogger action="view_overview" targetType="analytics" />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader>
