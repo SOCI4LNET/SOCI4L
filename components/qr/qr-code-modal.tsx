@@ -117,8 +117,8 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
 
     // Load QR library once
     if (!qrLibraryRef.current) {
-      import('qr-code-styling').then((QRCodeStyling) => {
-        const QRCodeStylingClass = QRCodeStyling.default || QRCodeStyling.QRCodeStyling
+      import('qr-code-styling').then((mod) => {
+        const QRCodeStylingClass = (mod as any).default || (mod as any).QRCodeStyling
         qrLibraryRef.current = QRCodeStylingClass
         console.log('QR library loaded')
       }).catch((error) => {
