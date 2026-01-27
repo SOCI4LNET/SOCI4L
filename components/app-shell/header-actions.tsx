@@ -28,6 +28,9 @@ export function HeaderActions() {
   const [imageError, setImageError] = useState(false)
   const [profile, setProfile] = useState<{ slug?: string | null; displayName?: string | null } | null>(null)
   const [qrModalOpen, setQrModalOpen] = useState(false)
+  
+  // Wagmi hooks - will be safe once component mounts (client-side only)
+  // These hooks internally check for browser APIs, but we guard usage with mounted state
   const { address: connectedAddress, isConnected } = useAccount()
   const { disconnect } = useDisconnect()
   const router = useRouter()

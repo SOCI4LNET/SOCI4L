@@ -16,12 +16,14 @@ interface AdminLayoutProps {
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
-  const { address, isConnected } = useAccount()
   const router = useRouter()
   const pathname = usePathname()
   const [mounted, setMounted] = useState(false)
   const loggedLoginRef = useRef(false)
   const lastPathnameRef = useRef<string | null>(null)
+  
+  // Wagmi hooks - safe to call, but only use values after mount
+  const { address, isConnected } = useAccount()
 
   useEffect(() => {
     setMounted(true)
