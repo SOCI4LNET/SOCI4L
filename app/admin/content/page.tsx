@@ -68,7 +68,7 @@ export default async function AdminContentPage() {
               <TableRow>
                 <TableCell colSpan={6} className="py-12">
                   <EmptyState
-                    icon={Link2}
+                    icon={<Link2 className="h-6 w-6" />}
                     title="No links yet"
                     description="Links will appear here once users add them to their profiles"
                     variant="empty"

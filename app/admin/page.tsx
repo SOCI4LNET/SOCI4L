@@ -234,7 +234,7 @@ export default async function AdminOverviewPage() {
             <CardContent className="space-y-2">
               {stats.totalProfileViews === 0 ? (
                 <EmptyState
-                  icon={Eye}
+                  icon={<Eye className="h-6 w-6" />}
                   title="0"
                   description="Tracking active"
                   hint="Views will appear here as profiles are visited"
@@ -282,7 +282,7 @@ export default async function AdminOverviewPage() {
             <CardContent className="space-y-2">
               {stats.totalLinkClicks === 0 ? (
                 <EmptyState
-                  icon={MousePointerClick}
+                  icon={<MousePointerClick className="h-6 w-6" />}
                   title="0"
                   description="Tracking active"
                   hint="Clicks will appear here as links are clicked"
@@ -329,7 +329,7 @@ export default async function AdminOverviewPage() {
             <CardContent className="space-y-1.5">
               {stats.totalProfiles === 0 ? (
                 <EmptyState
-                  icon={Users}
+                  icon={<Users className="h-6 w-6" />}
                   title="0"
                   description="No profiles yet"
                   variant="empty"
@@ -355,7 +355,7 @@ export default async function AdminOverviewPage() {
             <CardContent className="space-y-1.5">
               {stats.publicProfiles === 0 ? (
                 <EmptyState
-                  icon={Users}
+                  icon={<Users className="h-6 w-6" />}
                   title="0"
                   description="No public profiles"
                   variant="empty"
@@ -381,7 +381,7 @@ export default async function AdminOverviewPage() {
             <CardContent className="space-y-1.5">
               {stats.newClaims24h === 0 ? (
                 <EmptyState
-                  icon={UserPlus}
+                  icon={<UserPlus className="h-6 w-6" />}
                   title="0"
                   description="No new claims"
                   hint="Last 24 hours"
@@ -408,7 +408,7 @@ export default async function AdminOverviewPage() {
             <CardContent className="space-y-1.5">
               {stats.totalFollows === 0 ? (
                 <EmptyState
-                  icon={Users}
+                  icon={<Users className="h-6 w-6" />}
                   title="0"
                   description="No follows yet"
                   variant="empty"
@@ -436,7 +436,7 @@ export default async function AdminOverviewPage() {
             <CardContent className="space-y-1.5">
               {stats.totalLinks === 0 ? (
                 <EmptyState
-                  icon={Link2}
+                  icon={<Link2 className="h-6 w-6" />}
                   title="0"
                   description="No links added"
                   variant="empty"
@@ -464,7 +464,7 @@ export default async function AdminOverviewPage() {
             <CardContent className="space-y-1.5">
               {stats.totalEmailSubscribers === 0 ? (
                 <EmptyState
-                  icon={Mail}
+                  icon={<Mail className="h-6 w-6" />}
                   title="0"
                   description="No subscribers yet"
                   variant="empty"

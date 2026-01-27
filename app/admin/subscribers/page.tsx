@@ -68,7 +68,7 @@ export default async function AdminSubscribersPage() {
               <TableRow>
                 <TableCell colSpan={3} className="py-12">
                   <EmptyState
-                    icon={Mail}
+                    icon={<Mail className="h-6 w-6" />}
                     title="No subscribers yet"
                     description="Email addresses will appear here once users subscribe"
                     variant="empty"

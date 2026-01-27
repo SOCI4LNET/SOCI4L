@@ -358,7 +358,7 @@ export default async function AdminAnalyticsPage() {
           <CardContent>
             {analytics.topViewed.length === 0 ? (
               <EmptyState
-                icon={Eye}
+                icon={<Eye className="h-6 w-6" />}
                 title="No views yet"
                 description="Tracking active"
                 hint="Top viewed profiles will appear here"
@@ -418,7 +418,7 @@ export default async function AdminAnalyticsPage() {
           <CardContent>
             {analytics.topClicked.length === 0 ? (
               <EmptyState
-                icon={MousePointerClick}
+                icon={<MousePointerClick className="h-6 w-6" />}
                 title="No clicks yet"
                 description="Tracking active"
                 hint="Top clicked links will appear here"
