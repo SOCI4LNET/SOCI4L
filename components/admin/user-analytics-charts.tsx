@@ -62,6 +62,14 @@ export function UserAnalyticsCharts({
   topClickedLinks,
   scoreHistory = [],
 }: UserAnalyticsChartsProps) {
+  // Format Y-axis ticks (defined in client component to avoid serialization issues)
+  const formatYAxisTick = (value: number) => {
+    if (value >= 1000) return `${(value / 1000).toFixed(1)}k`
+    return value.toString()
+  }
+
+  const formatScoreTick = (value: number) => value.toFixed(1)
+
   return (
     <div className="grid gap-6 mb-6">
       <Card>
@@ -102,10 +110,7 @@ export function UserAnalyticsCharts({
                 />
                 <YAxis
                   {...chartAxisProps}
-                  tickFormatter={(value) => {
-                    if (value >= 1000) return `${(value / 1000).toFixed(1)}k`
-                    return value.toString()
-                  }}
+                  tickFormatter={formatYAxisTick}
                   width={50}
                 />
                 <Tooltip content={<CustomTooltip />} />
@@ -159,7 +164,7 @@ export function UserAnalyticsCharts({
                   />
                   <YAxis
                     {...chartAxisProps}
-                    tickFormatter={(value) => value.toFixed(1)}
+                    tickFormatter={formatScoreTick}
                     width={50}
                   />
                   <Tooltip content={<CustomTooltip />} />

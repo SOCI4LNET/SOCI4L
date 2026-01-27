@@ -23,6 +23,12 @@ interface AnalyticsTrendsProps {
 }
 
 export function AnalyticsTrends({ trends }: AnalyticsTrendsProps) {
+  // Format Y-axis ticks (defined in client component to avoid serialization issues)
+  const formatYAxisTick = (value: number) => {
+    if (value >= 1000) return `${(value / 1000).toFixed(1)}k`
+    return value.toString()
+  }
+
   if (trends.length === 0) {
     return (
       <Card>
@@ -93,10 +99,6 @@ export function AnalyticsTrends({ trends }: AnalyticsTrendsProps) {
               <YAxis
                 {...chartAxisProps}
                 domain={yAxisDomain}
-                tickFormatter={(value) => {
-                  if (value >= 1000) return `${(value / 1000).toFixed(1)}k`
-                  return value.toString()
-                }}
                 width={50}
               />
               <Tooltip content={<CustomTooltip />} />
