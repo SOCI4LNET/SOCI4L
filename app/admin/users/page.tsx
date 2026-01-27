@@ -2,10 +2,17 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import dynamic from 'next/dynamic'
 
-// Dynamic import to prevent server-side rendering issues with client components
+// Dynamic import to prevent server-side rendering issues with client components that use browser APIs
 const PageShell = dynamic(
   () => import('@/components/app-shell/page-shell').then((mod) => ({ default: mod.PageShell })),
-  { ssr: true }
+  { 
+    ssr: false, // Disable SSR to prevent indexedDB errors from client components
+    loading: () => (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-sm text-muted-foreground">Loading...</div>
+      </div>
+    )
+  }
 )
 import {
   Table,
