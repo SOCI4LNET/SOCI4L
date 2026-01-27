@@ -85,12 +85,29 @@ export function UserAnalyticsCharts({
               <p className="text-xs text-muted-foreground mt-1">Last 30 days</p>
             </div>
           </div>
-          <div className="h-64 min-h-[200px]">
+          <div className="h-80 min-h-[320px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={timeSeriesData}>
+              <LineChart
+                data={timeSeriesData}
+                margin={{ top: 8, right: 12, bottom: 8, left: 8 }}
+              >
                 <CartesianGrid {...chartGridProps} />
-                <XAxis dataKey="date" {...chartAxisProps} />
-                <YAxis {...chartAxisProps} />
+                <XAxis
+                  dataKey="date"
+                  {...chartAxisProps}
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
+                  interval="preserveStartEnd"
+                />
+                <YAxis
+                  {...chartAxisProps}
+                  tickFormatter={(value) => {
+                    if (value >= 1000) return `${(value / 1000).toFixed(1)}k`
+                    return value.toString()
+                  }}
+                  width={50}
+                />
                 <Tooltip content={<CustomTooltip />} />
                 <Line
                   type="monotone"
@@ -119,7 +136,7 @@ export function UserAnalyticsCharts({
             <CardTitle>Score History</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-64 min-h-[200px]">
+            <div className="h-80 min-h-[320px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={scoreHistory.map((point) => ({
@@ -129,10 +146,22 @@ export function UserAnalyticsCharts({
                     }),
                     score: point.score,
                   }))}
+                  margin={{ top: 8, right: 12, bottom: 8, left: 8 }}
                 >
                   <CartesianGrid {...chartGridProps} />
-                  <XAxis dataKey="date" {...chartAxisProps} />
-                  <YAxis {...chartAxisProps} />
+                  <XAxis
+                    dataKey="date"
+                    {...chartAxisProps}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                    interval="preserveStartEnd"
+                  />
+                  <YAxis
+                    {...chartAxisProps}
+                    tickFormatter={(value) => value.toFixed(1)}
+                    width={50}
+                  />
                   <Tooltip content={<CustomTooltip />} />
                   <Line
                     type="monotone"

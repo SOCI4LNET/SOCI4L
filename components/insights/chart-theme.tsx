@@ -2,26 +2,30 @@
 
 import { TooltipProps } from 'recharts'
 
-// Custom tooltip for dark theme compatibility
+// Custom tooltip for dark theme compatibility - Enhanced clarity
 export function CustomTooltip({ active, payload, label }: TooltipProps<number, string>) {
   if (!active || !payload || payload.length === 0) {
     return null
   }
 
   return (
-    <div className="rounded-lg border border-border/60 bg-background/95 px-3 py-2 text-sm text-foreground shadow-md backdrop-blur-sm">
+    <div className="rounded-lg border border-border/80 bg-background/98 px-4 py-2.5 text-sm text-foreground shadow-lg backdrop-blur-sm">
       {label && (
-        <p className="mb-1 font-medium text-xs text-muted-foreground">{label}</p>
+        <p className="mb-2 font-semibold text-xs uppercase tracking-wider text-muted-foreground border-b border-border/60 pb-1.5">
+          {label}
+        </p>
       )}
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         {payload.map((entry, index) => (
-          <div key={index} className="flex items-center gap-2">
+          <div key={index} className="flex items-center gap-2.5">
             <div
-              className="h-2 w-2 rounded-full"
+              className="h-2.5 w-2.5 rounded-full border border-background/50"
               style={{ backgroundColor: entry.color }}
             />
-            <span className="text-xs font-medium">{entry.name || entry.dataKey}:</span>
-            <span className="text-xs font-semibold">
+            <span className="text-xs font-medium text-muted-foreground min-w-[100px]">
+              {entry.name || entry.dataKey}:
+            </span>
+            <span className="text-xs font-bold text-foreground">
               {typeof entry.value === 'number' ? entry.value.toLocaleString('en-US') : entry.value}
             </span>
           </div>
@@ -31,21 +35,34 @@ export function CustomTooltip({ active, payload, label }: TooltipProps<number, s
   )
 }
 
-// Shared axis props for dark theme
+// Shared axis props for dark theme - Enhanced readability
 export const chartAxisProps = {
   tick: {
     fill: 'hsl(var(--muted-foreground))',
-    fontSize: 12,
+    fontSize: 11,
+    fontWeight: 500,
   },
-  axisLine: false,
-  tickLine: false,
+  axisLine: {
+    stroke: 'hsl(var(--border))',
+    strokeOpacity: 0.3,
+    strokeWidth: 1,
+  },
+  tickLine: {
+    stroke: 'hsl(var(--border))',
+    strokeOpacity: 0.2,
+    strokeWidth: 1,
+  },
+  tickMargin: 8,
+  interval: 'preserveStartEnd' as const,
 }
 
-// Shared grid props
+// Shared grid props - Refined baseline and grid
 export const chartGridProps = {
   stroke: 'hsl(var(--border))',
-  strokeOpacity: 0.25,
-  strokeDasharray: '3 3',
+  strokeOpacity: 0.2,
+  strokeDasharray: '2 4',
+  vertical: false, // Only horizontal grid lines for cleaner look
+  horizontal: true,
 }
 
 // Shared bar props - thinner bars for cleaner look
@@ -54,9 +71,15 @@ export const chartBarProps = {
   radius: [4, 4, 0, 0] as [number, number, number, number],
 }
 
-// Shared line props
+// Shared line props - Enhanced visibility
 export const chartLineProps = {
-  strokeWidth: 1.5,
+  strokeWidth: 2,
   dot: false,
-  activeDot: { r: 4, fill: 'hsl(var(--primary))' },
+  activeDot: {
+    r: 5,
+    fill: 'hsl(var(--primary))',
+    stroke: 'hsl(var(--background))',
+    strokeWidth: 2,
+  },
+  animationDuration: 300,
 }
