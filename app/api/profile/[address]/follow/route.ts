@@ -105,12 +105,13 @@ export async function POST(
 
     // Verify that session address matches connected wallet address
     // This prevents using wrong session when user switches wallets
+    // If mismatch, return 401 to allow frontend to create new session
     if (connectedWalletAddress && isValidAddress(connectedWalletAddress)) {
       const normalizedConnected = connectedWalletAddress.toLowerCase()
       if (normalizedFollower !== normalizedConnected) {
         return NextResponse.json(
           { error: 'Session address does not match connected wallet. Please reconnect.' },
-          { status: 403 }
+          { status: 401 } // 401 instead of 403 to allow session recreation
         )
       }
     }
@@ -232,12 +233,13 @@ export async function DELETE(
     const normalizedFollower = followerAddress.toLowerCase()
 
     // Verify that session address matches connected wallet address
+    // If mismatch, return 401 to allow frontend to create new session
     if (connectedWalletAddress && isValidAddress(connectedWalletAddress)) {
       const normalizedConnected = connectedWalletAddress.toLowerCase()
       if (normalizedFollower !== normalizedConnected) {
         return NextResponse.json(
           { error: 'Session address does not match connected wallet. Please reconnect.' },
-          { status: 403 }
+          { status: 401 } // 401 instead of 403 to allow session recreation
         )
       }
     }
