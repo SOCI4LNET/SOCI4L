@@ -121,13 +121,31 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Delete all existing links for this profile
-    await prisma.profileLink.deleteMany({
+    // Get existing link IDs to track which ones to delete
+    const existingLinks = await prisma.profileLink.findMany({
       where: { profileId: profile.id },
+      select: { id: true },
     })
+    const existingLinkIds = new Set(existingLinks.map(l => l.id))
 
-    // Create new links with order and category
-    const createdLinks = await Promise.all(
+    // Track which IDs are in the new links array (to determine deletions)
+    const incomingLinkIds = new Set(
+      links.filter((l: any) => l.id).map((l: any) => l.id)
+    )
+
+    // Delete links that are no longer in the incoming array
+    const linksToDelete = [...existingLinkIds].filter(id => !incomingLinkIds.has(id))
+    if (linksToDelete.length > 0) {
+      await prisma.profileLink.deleteMany({
+        where: {
+          profileId: profile.id,
+          id: { in: linksToDelete },
+        },
+      })
+    }
+
+    // Upsert links - update existing (preserve ID) or create new
+    const savedLinks = await Promise.all(
       links.map(async (link: any, index: number) => {
         // If categoryId is provided, verify it exists and belongs to this profile
         let categoryId = link.categoryId || null
@@ -147,18 +165,38 @@ export async function POST(request: NextRequest) {
           categoryId = defaultCategory.id
         }
 
-        return prisma.profileLink.create({
-          data: {
-            profileId: profile.id,
-            categoryId,
-            title: link.title || '',
-            url: link.url,
-            enabled: link.enabled !== undefined ? link.enabled : true,
-            order: link.order !== undefined ? link.order : index,
-          },
-        })
+        // If link has an existing ID that belongs to this profile, update it
+        // Otherwise, create a new one
+        if (link.id && existingLinkIds.has(link.id)) {
+          // Update existing link (preserves ID and analytics)
+          return prisma.profileLink.update({
+            where: { id: link.id },
+            data: {
+              categoryId,
+              title: link.title || '',
+              url: link.url,
+              enabled: link.enabled !== undefined ? link.enabled : true,
+              order: link.order !== undefined ? link.order : index,
+            },
+          })
+        } else {
+          // Create new link
+          return prisma.profileLink.create({
+            data: {
+              profileId: profile.id,
+              categoryId,
+              title: link.title || '',
+              url: link.url,
+              enabled: link.enabled !== undefined ? link.enabled : true,
+              order: link.order !== undefined ? link.order : index,
+            },
+          })
+        }
       })
     )
+
+    // Replace createdLinks reference for response
+    const createdLinks = savedLinks
 
     return NextResponse.json({
       success: true,
