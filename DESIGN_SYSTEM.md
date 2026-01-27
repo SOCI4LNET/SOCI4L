@@ -1,7 +1,7 @@
-# Soci4l — Design System
+# SOCI4L — Design System
 
 This document defines the **UI/UX rules, component standards, and visual language**
-for Soci4l.  
+for SOCI4L.  
 All UI work **must follow this document** to keep the product consistent, dense, and premium.
 
 ---

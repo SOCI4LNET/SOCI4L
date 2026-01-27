@@ -105,7 +105,7 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
 
         // Step 2: Sign message (use lowercase address to match backend verification)
         const normalizedConnectedAddress = connectedAddress.toLowerCase()
-        const message = `Follow auth for Soci4l. Address: ${normalizedConnectedAddress}. Nonce: ${nonce}`
+        const message = `Follow auth for SOCI4L. Address: ${normalizedConnectedAddress}. Nonce: ${nonce}`
         let signature: string
         try {
           signature = await signMessageAsync({ message })

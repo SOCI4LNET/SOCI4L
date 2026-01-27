@@ -45,7 +45,7 @@ export default function HomePage() {
           <div className="space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/20 px-3 py-1 text-xs text-muted-foreground">
               <Badge variant="outline" className="h-5 px-2 text-[11px]">
-                Soci4l
+                SOCI4L
               </Badge>
               <span>SOCI4L · Wallet-first profiles & link intelligence</span>
             </div>

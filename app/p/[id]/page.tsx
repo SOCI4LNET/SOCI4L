@@ -699,7 +699,7 @@ export default function ProfilePage({ params }: PageProps) {
                               </TooltipTrigger>
                               <TooltipContent className="text-center">
                                 <p className="font-semibold">{score.tierLabel}</p>
-                                <p className="text-xs text-muted-foreground">Soci4l Score</p>
+                                <p className="text-xs text-muted-foreground">SOCI4L Score</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>

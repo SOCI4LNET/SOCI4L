@@ -1,10 +1,10 @@
-# Soci4l Score System
+# SOCI4L Score System
 
-A reputation and activity scoring system for Soci4l profiles. Scores are designed to be valuable - even 10 points matters.
+A reputation and activity scoring system for SOCI4L profiles. Scores are designed to be valuable - even 10 points matters.
 
 ## Overview
 
-The Soci4l Score measures profile completeness and social engagement. It uses a tiered system where early actions are worth more than later ones, keeping scores meaningful and not inflated.
+The SOCI4L Score measures profile completeness and social engagement. It uses a tiered system where early actions are worth more than later ones, keeping scores meaningful and not inflated.
 
 ## Score Categories
 

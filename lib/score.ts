@@ -1,5 +1,5 @@
 /**
- * Soci4l Score System
+ * SOCI4L Score System
  * 
  * A reputation/activity score for profiles.
  * Scores are designed to be valuable - even 10 points matters.

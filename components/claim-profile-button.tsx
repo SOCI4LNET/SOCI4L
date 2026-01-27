@@ -52,7 +52,7 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
       const { nonce } = await nonceResponse.json()
 
       // Step 2: Sign message
-      const message = `Claim Soci4l profile for ${address}. Nonce: ${nonce}`
+      const message = `Claim SOCI4L profile for ${address}. Nonce: ${nonce}`
       const signature = await signMessageAsync({ message })
 
       // Step 3: Claim profile
