@@ -192,12 +192,16 @@ export function SocialPanel({ address }: SocialPanelProps) {
 
         if (followersRes.ok) {
           const data = await followersRes.json()
-          setFollowers(data || [])
+          setFollowers(Array.isArray(data) ? data : [])
+        } else {
+          console.error('Failed to fetch followers:', followersRes.status, await followersRes.text())
         }
 
         if (followingRes.ok) {
           const data = await followingRes.json()
-          setFollowing(data || [])
+          setFollowing(Array.isArray(data) ? data : [])
+        } else {
+          console.error('Failed to fetch following:', followingRes.status, await followingRes.text())
         }
       } catch (error) {
         console.error('Error fetching follows:', error)

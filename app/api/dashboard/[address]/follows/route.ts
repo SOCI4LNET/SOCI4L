@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getSessionAddress } from '@/lib/auth'
 import { isValidAddress } from '@/lib/utils'
 
 export async function GET(
@@ -30,34 +29,10 @@ export async function GET(
       )
     }
 
-    // Get session address
-    let sessionAddress: string | null = null
-    try {
-      sessionAddress = await getSessionAddress()
-    } catch (error) {
-      console.error('Error getting session address:', error)
-      return NextResponse.json(
-        { error: 'An error occurred during session check', details: error instanceof Error ? error.message : 'Unknown error' },
-        { status: 500 }
-      )
-    }
-
-    if (!sessionAddress) {
-      return NextResponse.json(
-        { error: 'Session not found. Please log in.' },
-        { status: 401 }
-      )
-    }
-
     const normalizedAddress = address.toLowerCase()
 
-    // Verify ownership: session address must equal [address] (case-insensitive)
-    if (sessionAddress !== normalizedAddress) {
-      return NextResponse.json(
-        { error: 'You do not have permission to access this page' },
-        { status: 403 }
-      )
-    }
+    // Note: Follower/following lists are public information
+    // No authentication required
 
     let follows: Array<{ address: string; createdAt: Date; displayName?: string | null }> = []
 
