@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { PageShell } from '@/components/app-shell/page-shell'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { calculateScore, getScoreTier } from '@/lib/score'
+import { UserAnalyticsCharts } from '@/components/admin/user-analytics-charts'
 
 interface AdminUserPageProps {
   params: {
@@ -63,6 +64,75 @@ async function getUserData(rawAddress: string) {
   const breakdown = calculateScore(scoreInput)
   const tier = getScoreTier(breakdown.total)
 
+  // Fetch analytics data
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+  const [profileViews, linkClicks, topClickedLinks] = await Promise.all([
+    prisma.analyticsEvent.findMany({
+      where: {
+        type: 'profile_view',
+        profileId: normalizedAddress,
+        createdAt: { gte: thirtyDaysAgo },
+      },
+      orderBy: { createdAt: 'asc' },
+    }),
+    prisma.analyticsEvent.findMany({
+      where: {
+        type: 'link_click',
+        profileId: normalizedAddress,
+        createdAt: { gte: thirtyDaysAgo },
+      },
+      orderBy: { createdAt: 'asc' },
+    }),
+    prisma.analyticsEvent.groupBy({
+      by: ['linkId', 'linkTitle', 'linkUrl'],
+      where: {
+        type: 'link_click',
+        profileId: normalizedAddress,
+        linkId: { not: null },
+      },
+      _count: { linkId: true },
+      orderBy: { _count: { linkId: 'desc' } },
+      take: 10,
+    }),
+  ])
+
+  // Prepare time series data (daily buckets for last 30 days)
+  const dailyBuckets: Map<string, { date: string; views: number; clicks: number }> = new Map()
+  const today = new Date()
+  for (let i = 29; i >= 0; i--) {
+    const date = new Date(today)
+    date.setDate(date.getDate() - i)
+    const dateKey = date.toISOString().split('T')[0]
+    dailyBuckets.set(dateKey, { date: dateKey, views: 0, clicks: 0 })
+  }
+
+  profileViews.forEach((event) => {
+    const dateKey = event.createdAt.toISOString().split('T')[0]
+    const bucket = dailyBuckets.get(dateKey)
+    if (bucket) {
+      bucket.views++
+    }
+  })
+
+  linkClicks.forEach((event) => {
+    const dateKey = event.createdAt.toISOString().split('T')[0]
+    const bucket = dailyBuckets.get(dateKey)
+    if (bucket) {
+      bucket.clicks++
+    }
+  })
+
+  const timeSeriesData = Array.from(dailyBuckets.values()).map((bucket) => ({
+    date: new Date(bucket.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    views: bucket.views,
+    clicks: bucket.clicks,
+  }))
+
+  const totalProfileViews = profileViews.length
+  const totalLinkClicks = linkClicks.length
+
   // Fetch wallet summary via existing API (wallet summary endpoint)
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://soci4l.net'
   let walletSummary: {
@@ -107,6 +177,17 @@ async function getUserData(rawAddress: string) {
     scoreTier: tier,
     breakdown,
     walletSummary,
+    analytics: {
+      timeSeriesData,
+      totalProfileViews,
+      totalLinkClicks,
+      topClickedLinks: topClickedLinks.map((row) => ({
+        linkId: row.linkId || null,
+        linkTitle: row.linkTitle || 'Untitled Link',
+        linkUrl: row.linkUrl || null,
+        clicks: row._count.linkId,
+      })),
+    },
   }
 }
 
@@ -196,7 +277,7 @@ export default async function AdminUserDetailPage({ params }: AdminUserPageProps
       </div>
 
       {data.walletSummary && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
           <Card>
             <CardHeader>
               <CardTitle>AVAX Balance</CardTitle>
@@ -230,6 +311,13 @@ export default async function AdminUserDetailPage({ params }: AdminUserPageProps
           </Card>
         </div>
       )}
+
+      <UserAnalyticsCharts
+        timeSeriesData={data.analytics.timeSeriesData}
+        totalProfileViews={data.analytics.totalProfileViews}
+        totalLinkClicks={data.analytics.totalLinkClicks}
+        topClickedLinks={data.analytics.topClickedLinks}
+      />
     </PageShell>
   )
 }

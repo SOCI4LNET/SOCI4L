@@ -17,8 +17,10 @@ async function getAnalytics() {
     claimedProfiles,
     totalFollows,
     totalLinks,
-    topFollowedRaw,
-    topLinkOwnersRaw,
+    totalProfileViews,
+    totalLinkClicks,
+    topViewedRaw,
+    topClickedRaw,
   ] = await Promise.all([
     prisma.profile.count(),
     prisma.profile.count({
@@ -33,53 +35,72 @@ async function getAnalytics() {
     }),
     prisma.follow.count(),
     prisma.profileLink.count(),
-    prisma.follow.groupBy({
-      by: ['followingAddress'],
-      _count: { followingAddress: true },
-      orderBy: { _count: { followingAddress: 'desc' } },
-      take: 10,
+    prisma.analyticsEvent.count({
+      where: { type: 'profile_view' },
     }),
-    prisma.profileLink.groupBy({
+    prisma.analyticsEvent.count({
+      where: { type: 'link_click' },
+    }),
+    prisma.analyticsEvent.groupBy({
       by: ['profileId'],
+      where: { type: 'profile_view' },
       _count: { profileId: true },
       orderBy: { _count: { profileId: 'desc' } },
       take: 10,
     }),
+    prisma.analyticsEvent.groupBy({
+      by: ['linkId', 'linkTitle', 'linkUrl', 'profileId'],
+      where: { type: 'link_click', linkId: { not: null } },
+      _count: { linkId: true },
+      orderBy: { _count: { linkId: 'desc' } },
+      take: 10,
+    }),
   ])
 
-  const topFollowAddresses = topFollowedRaw.map((row) => row.followingAddress.toLowerCase())
-  const topLinkProfileIds = topLinkOwnersRaw.map((row) => row.profileId)
+  const topViewedAddresses = topViewedRaw.map((row) => row.profileId.toLowerCase())
+  const topClickedProfileIds = topClickedRaw
+    .map((row) => row.profileId)
+    .filter((id): id is string => Boolean(id))
+    .map((id) => id.toLowerCase())
 
-  const [topFollowProfiles, topLinkProfiles] = await Promise.all([
+  const [topViewedProfiles, topClickedProfiles] = await Promise.all([
     prisma.profile.findMany({
-      where: { address: { in: topFollowAddresses } },
+      where: { address: { in: topViewedAddresses } },
     }),
-    prisma.profile.findMany({
-      where: { id: { in: topLinkProfileIds } },
-    }),
+    topClickedProfileIds.length > 0
+      ? prisma.profile.findMany({
+          where: { address: { in: topClickedProfileIds } },
+        })
+      : Promise.resolve([]),
   ])
 
   const profileByAddress = new Map(
-    topFollowProfiles.map((p) => [p.address.toLowerCase(), p]),
+    topViewedProfiles.map((p) => [p.address.toLowerCase(), p]),
   )
-  const profileById = new Map(topLinkProfiles.map((p) => [p.id, p]))
+  const profileByAddressForLinks = new Map(
+    topClickedProfiles.map((p) => [p.address.toLowerCase(), p]),
+  )
 
-  const topFollowed = topFollowedRaw.map((row) => {
-    const profile = profileByAddress.get(row.followingAddress.toLowerCase())
+  const topViewed = topViewedRaw.map((row) => {
+    const profile = profileByAddress.get(row.profileId.toLowerCase())
     return {
-      address: row.followingAddress,
-      followers: row._count.followingAddress,
+      address: row.profileId,
+      views: row._count.profileId,
       displayName: profile?.displayName || null,
       slug: profile?.slug || null,
     }
   })
 
-  const topLinkOwners = topLinkOwnersRaw.map((row) => {
-    const profile = profileById.get(row.profileId)
+  const topClicked = topClickedRaw.map((row) => {
+    const profile = row.profileId
+      ? profileByAddressForLinks.get(row.profileId.toLowerCase())
+      : null
     return {
-      profileId: row.profileId,
-      links: row._count.profileId,
-      address: profile?.address || null,
+      linkId: row.linkId || null,
+      linkTitle: row.linkTitle || 'Untitled Link',
+      linkUrl: row.linkUrl || null,
+      clicks: row._count.linkId,
+      profileAddress: row.profileId || null,
       displayName: profile?.displayName || null,
       slug: profile?.slug || null,
     }
@@ -90,8 +111,10 @@ async function getAnalytics() {
     claimedProfiles,
     totalFollows,
     totalLinks,
-    topFollowed,
-    topLinkOwners,
+    totalProfileViews,
+    totalLinkClicks,
+    topViewed,
+    topClicked,
   }
 }
 
@@ -141,14 +164,28 @@ export default async function AdminAnalyticsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Profile Links</CardTitle>
+            <CardTitle>Profile Views</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-semibold">
-              {analytics.totalLinks.toLocaleString('en-US')}
+              {analytics.totalProfileViews.toLocaleString('en-US')}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              Links added across all SOCI4L profiles
+              Total profile views tracked
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Link Clicks</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-semibold">
+              {analytics.totalLinkClicks.toLocaleString('en-US')}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Total link clicks tracked
             </p>
           </CardContent>
         </Card>
@@ -157,21 +194,21 @@ export default async function AdminAnalyticsPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Top Followed Profiles</CardTitle>
+            <CardTitle>Top Viewed Profiles</CardTitle>
           </CardHeader>
           <CardContent>
-            {analytics.topFollowed.length === 0 ? (
-              <p className="text-xs text-muted-foreground">No follow data yet.</p>
+            {analytics.topViewed.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No profile view data yet.</p>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Profile</TableHead>
-                    <TableHead>Followers</TableHead>
+                    <TableHead>Views</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {analytics.topFollowed.map((row) => (
+                  {analytics.topViewed.map((row) => (
                     <TableRow key={row.address}>
                       <TableCell>
                         <div className="flex flex-col">
@@ -188,7 +225,7 @@ export default async function AdminAnalyticsPage() {
                       </TableCell>
                       <TableCell>
                         <span className="text-sm font-semibold">
-                          {row.followers.toLocaleString('en-US')}
+                          {row.views.toLocaleString('en-US')}
                         </span>
                       </TableCell>
                     </TableRow>
@@ -201,46 +238,57 @@ export default async function AdminAnalyticsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Top Link Owners</CardTitle>
+            <CardTitle>Top Clicked Links</CardTitle>
           </CardHeader>
           <CardContent>
-            {analytics.topLinkOwners.length === 0 ? (
-              <p className="text-xs text-muted-foreground">No link data yet.</p>
+            {analytics.topClicked.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No link click data yet.</p>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Profile</TableHead>
-                    <TableHead>Links</TableHead>
+                    <TableHead>Link</TableHead>
+                    <TableHead>Clicks</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {analytics.topLinkOwners.map((row) => (
-                    <TableRow key={row.profileId}>
+                  {analytics.topClicked.map((row, idx) => (
+                    <TableRow key={row.linkId || `link-${idx}`}>
                       <TableCell>
                         <div className="flex flex-col">
-                          {row.address ? (
-                            <Link
-                              href={`/p/${row.slug || row.address}`}
-                              className="text-sm font-medium hover:underline"
+                          <div className="text-sm font-medium">
+                            {row.linkTitle}
+                          </div>
+                          {row.linkUrl && (
+                            <a
+                              href={row.linkUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-muted-foreground hover:underline truncate max-w-xs"
                             >
-                              {row.displayName || row.address}
-                            </Link>
-                          ) : (
-                            <span className="text-sm font-medium text-muted-foreground">
-                              Unknown profile
-                            </span>
+                              {row.linkUrl}
+                            </a>
                           )}
-                          {row.address && (
-                            <span className="text-xs text-muted-foreground font-mono">
-                              {row.address}
-                            </span>
+                          {row.profileAddress && (
+                            <div className="text-xs text-muted-foreground mt-1">
+                              by{' '}
+                              {row.displayName || row.slug ? (
+                                <Link
+                                  href={`/p/${row.slug || row.profileAddress}`}
+                                  className="hover:underline"
+                                >
+                                  {row.displayName || row.slug || row.profileAddress}
+                                </Link>
+                              ) : (
+                                <span className="font-mono">{row.profileAddress}</span>
+                              )}
+                            </div>
                           )}
                         </div>
                       </TableCell>
                       <TableCell>
                         <span className="text-sm font-semibold">
-                          {row.links.toLocaleString('en-US')}
+                          {row.clicks.toLocaleString('en-US')}
                         </span>
                       </TableCell>
                     </TableRow>
