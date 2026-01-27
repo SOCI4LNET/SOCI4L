@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import { getPublicProfileHref } from '@/lib/routing'
 import Link from 'next/link'
-import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Eye, Share2 } from 'lucide-react'
+import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Eye, Share2, Instagram, Youtube } from 'lucide-react'
 import { XIcon } from '@/components/icons/x-icon'
 import { ClaimProfileButton } from '@/components/claim-profile-button'
 import { FollowToggle, FollowStats } from '@/components/follow-toggle'
@@ -430,9 +430,9 @@ export default function ProfilePage({ params }: PageProps) {
       case 'x':
         return <XIcon className="h-3.5 w-3.5" />
       case 'instagram':
-        return <Globe className="h-3.5 w-3.5" />
+        return <Instagram className="h-3.5 w-3.5" />
       case 'youtube':
-        return <Globe className="h-3.5 w-3.5" />
+        return <Youtube className="h-3.5 w-3.5" />
       case 'linkedin':
         return <Linkedin className="h-3.5 w-3.5" />
       case 'github':
@@ -750,6 +750,33 @@ export default function ProfilePage({ params }: PageProps) {
                 {profile?.bio && (
                   <div>
                     <p className="text-sm text-muted-foreground">{profile.bio}</p>
+                  </div>
+                )}
+                {/* Social Links Icons */}
+                {profile?.socialLinks && profile.socialLinks.length > 0 && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {profile.socialLinks.map((link) => {
+                      const platform = link.platform || link.type || 'website'
+                      return (
+                        <TooltipProvider key={link.id || link.url}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <a
+                                href={link.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center justify-center h-9 w-9 rounded-full bg-muted/50 hover:bg-muted transition-colors"
+                              >
+                                {getSocialIcon(platform)}
+                              </a>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{getSocialLabel(link)}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )
+                    })}
                   </div>
                 )}
               </CardContent>
