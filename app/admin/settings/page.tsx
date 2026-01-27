@@ -1,5 +1,8 @@
 import { PageShell } from '@/components/app-shell/page-shell'
 
+// Force dynamic rendering since this page reads environment variables
+export const dynamic = 'force-dynamic'
+
 const adminAddresses = (process.env.NEXT_PUBLIC_ADMIN_ADDRESSES || '')
   .split(',')
   .map((a) => a.trim())

@@ -6,6 +6,9 @@ import { UserAnalyticsCharts } from '@/components/admin/user-analytics-charts'
 import { getScoreHistory } from '@/lib/score-snapshot'
 import { getWalletData } from '@/lib/avalanche'
 
+// Force dynamic rendering since this page uses Prisma queries and dynamic params
+export const dynamic = 'force-dynamic'
+
 interface AdminUserPageProps {
   params: {
     address: string

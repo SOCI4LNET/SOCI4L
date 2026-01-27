@@ -13,6 +13,9 @@ import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/admin/empty-state'
 import { Download, Mail } from 'lucide-react'
 
+// Force dynamic rendering since this page uses Prisma queries
+export const dynamic = 'force-dynamic'
+
 async function getSubscribers() {
   const subscribers = await prisma.emailSubscription.findMany({
     orderBy: { createdAt: 'desc' },

@@ -5,6 +5,9 @@ import { OverviewTrends } from '@/components/admin/overview-trends'
 import { EmptyState } from '@/components/admin/empty-state'
 import { TrendingUp, TrendingDown, Minus, Eye, MousePointerClick, Users, UserPlus, Link2, Mail } from 'lucide-react'
 
+// Force dynamic rendering since this page uses Prisma queries
+export const dynamic = 'force-dynamic'
+
 async function getOverviewStats() {
   const now = new Date()
   const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000)

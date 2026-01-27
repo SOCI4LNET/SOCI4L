@@ -14,6 +14,9 @@ import { EmptyState } from '@/components/admin/empty-state'
 import Link from 'next/link'
 import { ExternalLink, Link2 } from 'lucide-react'
 
+// Force dynamic rendering since this page uses Prisma queries
+export const dynamic = 'force-dynamic'
+
 async function getRecentLinks() {
   const links = await prisma.profileLink.findMany({
     orderBy: { createdAt: 'desc' },

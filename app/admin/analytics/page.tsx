@@ -15,6 +15,9 @@ import Link from 'next/link'
 import { AnalyticsTrends } from '@/components/admin/analytics-trends'
 import { TrendingUp, TrendingDown, Minus, ExternalLink, Eye, MousePointerClick } from 'lucide-react'
 
+// Force dynamic rendering since this page uses Prisma queries
+export const dynamic = 'force-dynamic'
+
 async function getAnalytics() {
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)

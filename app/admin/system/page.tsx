@@ -10,6 +10,9 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
+// Force dynamic rendering since this page uses Prisma queries
+export const dynamic = 'force-dynamic'
+
 async function getSystemStats() {
   const [
     profileCount,
