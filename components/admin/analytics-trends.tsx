@@ -99,6 +99,7 @@ export function AnalyticsTrends({ trends }: AnalyticsTrendsProps) {
               <YAxis
                 {...chartAxisProps}
                 domain={yAxisDomain}
+                tickFormatter={formatYAxisTick}
                 width={50}
               />
               <Tooltip content={<CustomTooltip />} />
