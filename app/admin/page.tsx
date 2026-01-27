@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { PageShell } from '@/components/app-shell/page-shell'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { OverviewTrends } from '@/components/admin/overview-trends'
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 
 async function getOverviewStats() {
   const now = new Date()
@@ -133,6 +134,49 @@ async function getOverviewStats() {
     ...data,
   }))
 
+  // Calculate trends for primary metrics (comparing last 7 days vs previous 7 days)
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
+
+  const [recentProfileViews, previousProfileViews] = await Promise.all([
+    prisma.analyticsEvent.count({
+      where: {
+        type: 'profile_view',
+        createdAt: { gte: sevenDaysAgo },
+      },
+    }),
+    prisma.analyticsEvent.count({
+      where: {
+        type: 'profile_view',
+        createdAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo },
+      },
+    }),
+  ])
+
+  const [recentLinkClicks, previousLinkClicks] = await Promise.all([
+    prisma.analyticsEvent.count({
+      where: {
+        type: 'link_click',
+        createdAt: { gte: sevenDaysAgo },
+      },
+    }),
+    prisma.analyticsEvent.count({
+      where: {
+        type: 'link_click',
+        createdAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo },
+      },
+    }),
+  ])
+
+  const profileViewsTrend =
+    previousProfileViews > 0
+      ? ((recentProfileViews - previousProfileViews) / previousProfileViews) * 100
+      : 0
+  const linkClicksTrend =
+    previousLinkClicks > 0
+      ? ((recentLinkClicks - previousLinkClicks) / previousLinkClicks) * 100
+      : 0
+
   return {
     totalProfiles,
     claimedProfiles,
@@ -144,6 +188,8 @@ async function getOverviewStats() {
     totalProfileViews,
     totalLinkClicks,
     trends,
+    profileViewsTrend,
+    linkClicksTrend,
   }
 }
 
@@ -159,113 +205,188 @@ export default async function AdminOverviewPage() {
       subtitle="Platform-wide metrics for SOCI4L."
       mode="constrained"
     >
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Profiles</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            <p className="text-3xl font-semibold tracking-tight">{stats.totalProfiles.toLocaleString('en-US')}</p>
-            <p className="text-xs text-muted-foreground">
-              {stats.claimedProfiles.toLocaleString('en-US')} claimed (
-              {profileClaimRate.toFixed(1)}%)
-            </p>
-          </CardContent>
-        </Card>
+      {/* Primary KPIs - Engagement Metrics */}
+      <div className="mb-6">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
+          Engagement Metrics
+        </h2>
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* Profile Views - Primary */}
+          <Card className="border-2 border-primary/20 bg-card shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary/30 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Profile Views
+                </CardTitle>
+                {stats.profileViewsTrend > 0 ? (
+                  <TrendingUp className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                ) : stats.profileViewsTrend < 0 ? (
+                  <TrendingDown className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
+                ) : (
+                  <Minus className="h-3.5 w-3.5 text-muted-foreground" />
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <p className="text-4xl font-bold tracking-tight">{stats.totalProfileViews.toLocaleString('en-US')}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-xs text-muted-foreground">Total tracked</p>
+                {Math.abs(stats.profileViewsTrend) > 0.1 && (
+                  <span
+                    className={`text-xs font-medium ${
+                      stats.profileViewsTrend > 0
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-red-600 dark:text-red-400'
+                    }`}
+                  >
+                    {stats.profileViewsTrend > 0 ? '+' : ''}
+                    {stats.profileViewsTrend.toFixed(1)}% vs last week
+                  </span>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Public Profiles</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            <p className="text-3xl font-semibold tracking-tight">
-              {stats.publicProfiles.toLocaleString('en-US')}
-            </p>
-            <p className="text-xs text-muted-foreground">Visible on public directory</p>
-          </CardContent>
-        </Card>
+          {/* Link Clicks - Primary */}
+          <Card className="border-2 border-primary/20 bg-card shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary/30 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Link Clicks
+                </CardTitle>
+                {stats.linkClicksTrend > 0 ? (
+                  <TrendingUp className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                ) : stats.linkClicksTrend < 0 ? (
+                  <TrendingDown className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
+                ) : (
+                  <Minus className="h-3.5 w-3.5 text-muted-foreground" />
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <p className="text-4xl font-bold tracking-tight">{stats.totalLinkClicks.toLocaleString('en-US')}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-xs text-muted-foreground">Total tracked</p>
+                {Math.abs(stats.linkClicksTrend) > 0.1 && (
+                  <span
+                    className={`text-xs font-medium ${
+                      stats.linkClicksTrend > 0
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-red-600 dark:text-red-400'
+                    }`}
+                  >
+                    {stats.linkClicksTrend > 0 ? '+' : ''}
+                    {stats.linkClicksTrend.toFixed(1)}% vs last week
+                  </span>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
-        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">New Claims (24h)</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            <p className="text-3xl font-semibold tracking-tight">
-              {stats.newClaims24h.toLocaleString('en-US')}
-            </p>
-            <p className="text-xs text-muted-foreground">Profiles claimed in last 24 hours</p>
-          </CardContent>
-        </Card>
+      {/* Secondary KPIs - Platform Metrics */}
+      <div className="mb-6">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
+          Platform Metrics
+        </h2>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {/* Total Profiles - Secondary */}
+          <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Total Profiles
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1.5">
+              <p className="text-3xl font-semibold tracking-tight">{stats.totalProfiles.toLocaleString('en-US')}</p>
+              <p className="text-xs text-muted-foreground">
+                {stats.claimedProfiles.toLocaleString('en-US')} claimed ({profileClaimRate.toFixed(1)}%)
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Follows</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            <p className="text-3xl font-semibold tracking-tight">
-              {stats.totalFollows.toLocaleString('en-US')}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Total follow relationships between profiles
-            </p>
-          </CardContent>
-        </Card>
+          {/* Public Profiles - Secondary */}
+          <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Public Profiles
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1.5">
+              <p className="text-3xl font-semibold tracking-tight">
+                {stats.publicProfiles.toLocaleString('en-US')}
+              </p>
+              <p className="text-xs text-muted-foreground">Visible on public directory</p>
+            </CardContent>
+          </Card>
 
-        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Profile Links</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            <p className="text-3xl font-semibold tracking-tight">
-              {stats.totalLinks.toLocaleString('en-US')}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Links added across all SOCI4L profiles
-            </p>
-          </CardContent>
-        </Card>
+          {/* New Claims - Secondary */}
+          <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                New Claims (24h)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1.5">
+              <p className="text-3xl font-semibold tracking-tight">
+                {stats.newClaims24h.toLocaleString('en-US')}
+              </p>
+              <p className="text-xs text-muted-foreground">Profiles claimed in last 24 hours</p>
+            </CardContent>
+          </Card>
 
-        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Email Subscribers</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            <p className="text-3xl font-semibold tracking-tight">
-              {stats.totalEmailSubscribers.toLocaleString('en-US')}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Newsletter subscribers collected via SOCI4L
-            </p>
-          </CardContent>
-        </Card>
+          {/* Follows - Secondary */}
+          <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Follows
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1.5">
+              <p className="text-3xl font-semibold tracking-tight">
+                {stats.totalFollows.toLocaleString('en-US')}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Total follow relationships
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Profile Views</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            <p className="text-3xl font-semibold tracking-tight">
-              {stats.totalProfileViews.toLocaleString('en-US')}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Total profile views tracked
-            </p>
-          </CardContent>
-        </Card>
+          {/* Profile Links - Secondary */}
+          <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Profile Links
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1.5">
+              <p className="text-3xl font-semibold tracking-tight">
+                {stats.totalLinks.toLocaleString('en-US')}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Links across all profiles
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Link Clicks</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            <p className="text-3xl font-semibold tracking-tight">
-              {stats.totalLinkClicks.toLocaleString('en-US')}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Total link clicks tracked
-            </p>
-          </CardContent>
-        </Card>
+          {/* Email Subscribers - Secondary */}
+          <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Email Subscribers
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1.5">
+              <p className="text-3xl font-semibold tracking-tight">
+                {stats.totalEmailSubscribers.toLocaleString('en-US')}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Newsletter subscribers
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <div className="mt-8">

@@ -11,6 +11,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { AnalyticsTrends } from '@/components/admin/analytics-trends'
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 
 async function getAnalytics() {
   const thirtyDaysAgo = new Date()
@@ -145,6 +146,50 @@ async function getAnalytics() {
     ...data,
   }))
 
+  // Calculate trends for primary metrics (comparing last 7 days vs previous 7 days)
+  const now = new Date()
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
+
+  const [recentProfileViews, previousProfileViews] = await Promise.all([
+    prisma.analyticsEvent.count({
+      where: {
+        type: 'profile_view',
+        createdAt: { gte: sevenDaysAgo },
+      },
+    }),
+    prisma.analyticsEvent.count({
+      where: {
+        type: 'profile_view',
+        createdAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo },
+      },
+    }),
+  ])
+
+  const [recentLinkClicks, previousLinkClicks] = await Promise.all([
+    prisma.analyticsEvent.count({
+      where: {
+        type: 'link_click',
+        createdAt: { gte: sevenDaysAgo },
+      },
+    }),
+    prisma.analyticsEvent.count({
+      where: {
+        type: 'link_click',
+        createdAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo },
+      },
+    }),
+  ])
+
+  const profileViewsTrend =
+    previousProfileViews > 0
+      ? ((recentProfileViews - previousProfileViews) / previousProfileViews) * 100
+      : 0
+  const linkClicksTrend =
+    previousLinkClicks > 0
+      ? ((recentLinkClicks - previousLinkClicks) / previousLinkClicks) * 100
+      : 0
+
   return {
     totalProfiles,
     claimedProfiles,
@@ -155,6 +200,8 @@ async function getAnalytics() {
     topViewed,
     topClicked,
     trends,
+    profileViewsTrend,
+    linkClicksTrend,
   }
 }
 
@@ -172,63 +219,126 @@ export default async function AdminAnalyticsPage() {
       subtitle="High-level engagement metrics across SOCI4L."
       mode="constrained"
     >
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
-        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Profiles</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            <p className="text-2xl font-semibold tracking-tight">
-              {analytics.totalProfiles.toLocaleString('en-US')}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {analytics.claimedProfiles.toLocaleString('en-US')} claimed (
-              {claimRate.toFixed(1)}%)
-            </p>
-          </CardContent>
-        </Card>
+      {/* Primary KPIs - Engagement Metrics */}
+      <div className="mb-6">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
+          Engagement Metrics
+        </h2>
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* Profile Views - Primary */}
+          <Card className="border-2 border-primary/20 bg-card shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary/30 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Profile Views
+                </CardTitle>
+                {analytics.profileViewsTrend > 0 ? (
+                  <TrendingUp className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                ) : analytics.profileViewsTrend < 0 ? (
+                  <TrendingDown className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
+                ) : (
+                  <Minus className="h-3.5 w-3.5 text-muted-foreground" />
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <p className="text-4xl font-bold tracking-tight">{analytics.totalProfileViews.toLocaleString('en-US')}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-xs text-muted-foreground">Total tracked</p>
+                {Math.abs(analytics.profileViewsTrend) > 0.1 && (
+                  <span
+                    className={`text-xs font-medium ${
+                      analytics.profileViewsTrend > 0
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-red-600 dark:text-red-400'
+                    }`}
+                  >
+                    {analytics.profileViewsTrend > 0 ? '+' : ''}
+                    {analytics.profileViewsTrend.toFixed(1)}% vs last week
+                  </span>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Follows</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            <p className="text-2xl font-semibold tracking-tight">
-              {analytics.totalFollows.toLocaleString('en-US')}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Total follow relationships between profiles
-            </p>
-          </CardContent>
-        </Card>
+          {/* Link Clicks - Primary */}
+          <Card className="border-2 border-primary/20 bg-card shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary/30 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Link Clicks
+                </CardTitle>
+                {analytics.linkClicksTrend > 0 ? (
+                  <TrendingUp className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                ) : analytics.linkClicksTrend < 0 ? (
+                  <TrendingDown className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
+                ) : (
+                  <Minus className="h-3.5 w-3.5 text-muted-foreground" />
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <p className="text-4xl font-bold tracking-tight">{analytics.totalLinkClicks.toLocaleString('en-US')}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-xs text-muted-foreground">Total tracked</p>
+                {Math.abs(analytics.linkClicksTrend) > 0.1 && (
+                  <span
+                    className={`text-xs font-medium ${
+                      analytics.linkClicksTrend > 0
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-red-600 dark:text-red-400'
+                    }`}
+                  >
+                    {analytics.linkClicksTrend > 0 ? '+' : ''}
+                    {analytics.linkClicksTrend.toFixed(1)}% vs last week
+                  </span>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
-        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Profile Views</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            <p className="text-2xl font-semibold tracking-tight">
-              {analytics.totalProfileViews.toLocaleString('en-US')}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Total profile views tracked
-            </p>
-          </CardContent>
-        </Card>
+      {/* Secondary KPIs - Platform Metrics */}
+      <div className="mb-8">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">
+          Platform Metrics
+        </h2>
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* Profiles - Secondary */}
+          <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Profiles
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1.5">
+              <p className="text-3xl font-semibold tracking-tight">
+                {analytics.totalProfiles.toLocaleString('en-US')}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {analytics.claimedProfiles.toLocaleString('en-US')} claimed ({claimRate.toFixed(1)}%)
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Link Clicks</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1">
-            <p className="text-2xl font-semibold tracking-tight">
-              {analytics.totalLinkClicks.toLocaleString('en-US')}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Total link clicks tracked
-            </p>
-          </CardContent>
-        </Card>
+          {/* Follows - Secondary */}
+          <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Follows
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1.5">
+              <p className="text-3xl font-semibold tracking-tight">
+                {analytics.totalFollows.toLocaleString('en-US')}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Total follow relationships
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <div className="mb-8">
