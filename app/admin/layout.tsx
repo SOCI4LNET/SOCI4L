@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode, useEffect, useState, useRef } from 'react'
 import { useAccount } from 'wagmi'
 import { useRouter, usePathname } from 'next/navigation'
 import { toast } from 'sonner'
@@ -20,7 +20,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [mounted, setMounted] = useState(false)
-  const [lastPathname, setLastPathname] = useState<string | null>(null)
+  const loggedLoginRef = useRef(false)
+  const lastPathnameRef = useRef<string | null>(null)
 
   useEffect(() => {
     setMounted(true)
@@ -43,7 +44,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     }
 
     // Log admin login (only once)
-    if (!lastPathname) {
+    if (!loggedLoginRef.current) {
+      loggedLoginRef.current = true
       fetch('/api/admin/log-action', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -58,6 +60,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     }
 
     // Log page views when pathname changes
+    const lastPathname = lastPathnameRef.current
     if (lastPathname && lastPathname !== pathname) {
       let action = 'view_system'
       let targetType: string | undefined = 'system'
@@ -101,8 +104,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       })
     }
 
-    setLastPathname(pathname)
-  }, [mounted, isConnected, address, router, pathname, lastPathname])
+    lastPathnameRef.current = pathname
+  }, [mounted, isConnected, address, router, pathname])
 
   if (!mounted) {
     return (
