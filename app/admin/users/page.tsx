@@ -259,6 +259,12 @@ export default async function AdminUsersPage({
                       >
                         View dashboard
                       </Link>
+                      <Link
+                        href={`/admin/users/${encodeURIComponent(profile.address.toLowerCase())}`}
+                        className="text-xs text-muted-foreground hover:underline"
+                      >
+                        Admin view
+                      </Link>
                     </div>
                   </TableCell>
                 </TableRow>
