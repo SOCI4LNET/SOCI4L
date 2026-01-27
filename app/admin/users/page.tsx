@@ -12,6 +12,8 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Download } from 'lucide-react'
 
 interface SearchParams {
   search?: string
@@ -148,7 +150,8 @@ export default async function AdminUsersPage({
       subtitle="Browse and inspect SOCI4L profiles across the platform."
       mode="constrained"
     >
-      <form className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:gap-4">
+      <div className="flex items-center justify-between mb-4">
+        <form className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 flex-1">
         <div className="flex-1 flex flex-col gap-1 sm:max-w-sm">
           <Input
             name="search"
@@ -176,13 +179,20 @@ export default async function AdminUsersPage({
             <option value="private">Private</option>
           </select>
         </div>
-        <button
-          type="submit"
-          className="inline-flex items-center justify-center rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-        >
-          Apply
-        </button>
-      </form>
+          <button
+            type="submit"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            Apply
+          </button>
+        </form>
+        <form action="/api/admin/export/users" method="get">
+          <Button type="submit" variant="outline" size="sm" className="gap-2">
+            <Download className="h-3.5 w-3.5" />
+            Export CSV
+          </Button>
+        </form>
+      </div>
 
       <div className="rounded-md border bg-card">
         <Table>

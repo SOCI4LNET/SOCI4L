@@ -9,6 +9,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
+import { Download } from 'lucide-react'
 
 async function getSubscribers() {
   const subscribers = await prisma.emailSubscription.findMany({
@@ -16,11 +18,13 @@ async function getSubscribers() {
     take: 500,
   })
 
-  return subscribers
+  const totalCount = await prisma.emailSubscription.count()
+
+  return { subscribers, totalCount }
 }
 
 export default async function AdminSubscribersPage() {
-  const subscribers = await getSubscribers()
+  const { subscribers, totalCount } = await getSubscribers()
 
   return (
     <PageShell
@@ -28,6 +32,18 @@ export default async function AdminSubscribersPage() {
       subtitle="Email addresses collected through SOCI4L."
       mode="constrained"
     >
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-xs text-muted-foreground">
+          Showing {subscribers.length} of {totalCount.toLocaleString('en-US')} subscribers
+        </p>
+        <form action="/api/admin/export/subscribers" method="get">
+          <Button type="submit" variant="outline" size="sm" className="gap-2">
+            <Download className="h-3.5 w-3.5" />
+            Export CSV
+          </Button>
+        </form>
+      </div>
+
       <div className="rounded-md border bg-card">
         <Table>
           <TableHeader>
@@ -51,8 +67,7 @@ export default async function AdminSubscribersPage() {
             ))}
           </TableBody>
           <TableCaption>
-            Showing up to 500 most recent subscribers. Export and advanced filters will be added
-            later.
+            Showing up to 500 most recent subscribers. Use Export CSV to download all subscribers.
           </TableCaption>
         </Table>
       </div>

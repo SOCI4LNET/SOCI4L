@@ -10,8 +10,11 @@ import {
 } from '@/components/ui/table'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
+import { AnalyticsTrends } from '@/components/admin/analytics-trends'
 
 async function getAnalytics() {
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
   const [
     totalProfiles,
     claimedProfiles,
@@ -106,6 +109,42 @@ async function getAnalytics() {
     }
   })
 
+  // Calculate daily trends for analytics (last 30 days)
+  const dailyBuckets: Map<string, { views: number; clicks: number }> = new Map()
+  const today = new Date()
+  for (let i = 29; i >= 0; i--) {
+    const date = new Date(today)
+    date.setDate(date.getDate() - i)
+    date.setHours(0, 0, 0, 0)
+    const dateKey = date.toISOString().split('T')[0]
+    dailyBuckets.set(dateKey, { views: 0, clicks: 0 })
+  }
+
+  // Get analytics events per day
+  const analyticsEvents = await prisma.analyticsEvent.findMany({
+    where: {
+      createdAt: { gte: thirtyDaysAgo },
+    },
+    select: { type: true, createdAt: true },
+  })
+
+  analyticsEvents.forEach((event) => {
+    const dateKey = event.createdAt.toISOString().split('T')[0]
+    const bucket = dailyBuckets.get(dateKey)
+    if (bucket) {
+      if (event.type === 'profile_view') {
+        bucket.views++
+      } else if (event.type === 'link_click') {
+        bucket.clicks++
+      }
+    }
+  })
+
+  const trends = Array.from(dailyBuckets.entries()).map(([date, data]) => ({
+    date,
+    ...data,
+  }))
+
   return {
     totalProfiles,
     claimedProfiles,
@@ -115,6 +154,7 @@ async function getAnalytics() {
     totalLinkClicks,
     topViewed,
     topClicked,
+    trends,
   }
 }
 
@@ -189,6 +229,10 @@ export default async function AdminAnalyticsPage() {
             </p>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="mb-6">
+        <AnalyticsTrends trends={analytics.trends} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
