@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import { getPublicProfileHref } from '@/lib/routing'
 import Link from 'next/link'
-import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Eye, Share2, Instagram, Youtube } from 'lucide-react'
+import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Eye, Share2, Instagram, Youtube, Sparkles } from 'lucide-react'
 import { XIcon } from '@/components/icons/x-icon'
 import { ClaimProfileButton } from '@/components/claim-profile-button'
 import { FollowToggle, FollowStats } from '@/components/follow-toggle'
@@ -675,15 +675,31 @@ export default function ProfilePage({ params }: PageProps) {
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Badge 
-                                  variant="secondary" 
-                                  className="text-[11px] px-2 py-0 cursor-help"
+                                <div 
+                                  className={`
+                                    inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full cursor-help
+                                    text-xs font-semibold transition-all
+                                    ${score.tier === 'legendary' 
+                                      ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25' 
+                                      : score.tier === 'elite' 
+                                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md shadow-purple-500/20' 
+                                        : score.tier === 'established' 
+                                          ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md shadow-blue-500/20' 
+                                          : score.tier === 'rising' 
+                                            ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-sm' 
+                                            : score.tier === 'newcomer'
+                                              ? 'bg-gradient-to-r from-slate-500 to-zinc-500 text-white'
+                                              : 'bg-muted text-muted-foreground'
+                                    }
+                                  `}
                                 >
-                                  {score.total} pts
-                                </Badge>
+                                  <Sparkles className="h-3.5 w-3.5" />
+                                  <span>{score.total}</span>
+                                </div>
                               </TooltipTrigger>
-                              <TooltipContent>
-                                <p>{score.tierLabel} • Soci4l Score</p>
+                              <TooltipContent className="text-center">
+                                <p className="font-semibold">{score.tierLabel}</p>
+                                <p className="text-xs text-muted-foreground">Soci4l Score</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
