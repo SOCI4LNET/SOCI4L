@@ -103,8 +103,9 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
         }
         const { nonce } = await nonceResponse.json()
 
-        // Step 2: Sign message
-        const message = `Follow auth for Avalanche Profile Hub. Address: ${connectedAddress}. Nonce: ${nonce}`
+        // Step 2: Sign message (use lowercase address to match backend verification)
+        const normalizedConnectedAddress = connectedAddress.toLowerCase()
+        const message = `Follow auth for Avalanche Profile Hub. Address: ${normalizedConnectedAddress}. Nonce: ${nonce}`
         let signature: string
         try {
           signature = await signMessageAsync({ message })
