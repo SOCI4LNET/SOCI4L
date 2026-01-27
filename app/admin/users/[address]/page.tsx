@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { calculateScore, getScoreTier } from '@/lib/score'
 import { UserAnalyticsCharts } from '@/components/admin/user-analytics-charts'
 import { getScoreHistory } from '@/lib/score-snapshot'
+import { getWalletData } from '@/lib/avalanche'
 
 interface AdminUserPageProps {
   params: {
@@ -137,8 +138,7 @@ async function getUserData(rawAddress: string) {
   const totalProfileViews = profileViews.length
   const totalLinkClicks = linkClicks.length
 
-  // Fetch wallet summary via existing API (wallet summary endpoint)
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://soci4l.net'
+  // Fetch wallet summary directly (server-side, no HTTP fetch needed)
   let walletSummary: {
     balance: string
     transactionCount: number
@@ -150,46 +150,49 @@ async function getUserData(rawAddress: string) {
   } | null = null
 
   try {
-    const summaryRes = await fetch(
-      `${appUrl}/api/wallet/${normalizedAddress}/summary`,
-      {
-        cache: 'no-store',
-        // Add timeout to prevent hanging
-        signal: AbortSignal.timeout(10000), // 10 second timeout
-      },
+    // Add timeout to prevent hanging (8 seconds)
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Wallet data fetch timeout')), 8000)
     )
     
-    if (summaryRes.ok) {
-      const contentType = summaryRes.headers.get('content-type')
-      if (contentType && contentType.includes('application/json')) {
-        const text = await summaryRes.text()
-        if (text.trim()) {
-          try {
-            const json = JSON.parse(text)
-            walletSummary = {
-              balance: json.balance || '0',
-              transactionCount: json.transactionCount || 0,
-              tokenCount: json.tokenCount || 0,
-              nftCount: json.nftCount || 0,
-              claimed: json.claimed || false,
-              visibility: json.visibility || 'PUBLIC',
-              networkOk: json.networkOk !== undefined ? json.networkOk : true,
-            }
-          } catch (parseError) {
-            console.error('[Admin User Detail] Failed to parse wallet summary JSON:', parseError)
-            // Continue with null walletSummary
-          }
-        }
-      }
-    } else {
-      console.error(`[Admin User Detail] Wallet summary API returned ${summaryRes.status}`)
+    const walletData = await Promise.race([
+      getWalletData(normalizedAddress),
+      timeoutPromise,
+    ]) as any
+
+    const isClaimed = Boolean(
+      profile && 
+      (profile.claimedAt || profile.displayName || profile.slug || profile.status === 'CLAIMED')
+    )
+
+    walletSummary = {
+      balance: walletData?.nativeBalance || '0',
+      transactionCount: walletData?.txCount || 0,
+      tokenCount: walletData?.tokenBalances?.length || 0,
+      nftCount: walletData?.nfts?.length || 0,
+      claimed: isClaimed,
+      visibility: profile?.visibility || 'PUBLIC',
+      networkOk: true,
     }
   } catch (error: any) {
     // Silently handle errors - wallet summary is optional for admin view
-    if (error.name !== 'AbortError') {
-      console.error('[Admin User Detail] Error fetching wallet summary:', error)
+    if (error.message !== 'Wallet data fetch timeout') {
+      console.error('[Admin User Detail] Error fetching wallet data:', error)
     }
-    walletSummary = null
+    // Set default values on error
+    const isClaimed = Boolean(
+      profile && 
+      (profile.claimedAt || profile.displayName || profile.slug || profile.status === 'CLAIMED')
+    )
+    walletSummary = {
+      balance: '0',
+      transactionCount: 0,
+      tokenCount: 0,
+      nftCount: 0,
+      claimed: isClaimed,
+      visibility: profile?.visibility || 'PUBLIC',
+      networkOk: true,
+    }
   }
 
   return {
