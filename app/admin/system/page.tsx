@@ -104,7 +104,7 @@ export default async function AdminSystemPage() {
         <div>
           <h2 className="text-sm font-semibold mb-4 uppercase tracking-wide text-muted-foreground">Database Tables</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+            <Card className="transition-all duration-200 ease-out hover:shadow-md hover:border-border/80 hover:scale-[1.01]">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Profiles</CardTitle>
               </CardHeader>
@@ -118,7 +118,7 @@ export default async function AdminSystemPage() {
               </CardContent>
             </Card>
 
-            <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+            <Card className="transition-all duration-200 ease-out hover:shadow-md hover:border-border/80 hover:scale-[1.01]">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Follows</CardTitle>
               </CardHeader>
@@ -132,7 +132,7 @@ export default async function AdminSystemPage() {
               </CardContent>
             </Card>
 
-            <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+            <Card className="transition-all duration-200 ease-out hover:shadow-md hover:border-border/80 hover:scale-[1.01]">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Links</CardTitle>
               </CardHeader>
@@ -146,7 +146,7 @@ export default async function AdminSystemPage() {
               </CardContent>
             </Card>
 
-            <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+            <Card className="transition-all duration-200 ease-out hover:shadow-md hover:border-border/80 hover:scale-[1.01]">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Subscribers</CardTitle>
               </CardHeader>
@@ -158,7 +158,7 @@ export default async function AdminSystemPage() {
               </CardContent>
             </Card>
 
-            <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+            <Card className="transition-all duration-200 ease-out hover:shadow-md hover:border-border/80 hover:scale-[1.01]">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Analytics Events</CardTitle>
               </CardHeader>
@@ -172,7 +172,7 @@ export default async function AdminSystemPage() {
               </CardContent>
             </Card>
 
-            <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+            <Card className="transition-all duration-200 ease-out hover:shadow-md hover:border-border/80 hover:scale-[1.01]">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Score Snapshots</CardTitle>
               </CardHeader>
@@ -186,7 +186,7 @@ export default async function AdminSystemPage() {
               </CardContent>
             </Card>
 
-            <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+            <Card className="transition-all duration-200 ease-out hover:shadow-md hover:border-border/80 hover:scale-[1.01]">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Categories</CardTitle>
               </CardHeader>
@@ -198,7 +198,7 @@ export default async function AdminSystemPage() {
               </CardContent>
             </Card>
 
-            <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+            <Card className="transition-all duration-200 ease-out hover:shadow-md hover:border-border/80 hover:scale-[1.01]">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Showcase Items</CardTitle>
               </CardHeader>
@@ -210,7 +210,7 @@ export default async function AdminSystemPage() {
               </CardContent>
             </Card>
 
-            <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+            <Card className="transition-all duration-200 ease-out hover:shadow-md hover:border-border/80 hover:scale-[1.01]">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Admin Audit Logs</CardTitle>
               </CardHeader>

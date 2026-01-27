@@ -308,7 +308,7 @@ export default async function AdminAnalyticsPage() {
         </h2>
         <div className="grid gap-4 md:grid-cols-2">
           {/* Profiles - Secondary */}
-          <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+          <Card className="transition-all duration-200 ease-out hover:shadow-md hover:border-border/80 hover:scale-[1.01] focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Profiles
@@ -325,7 +325,7 @@ export default async function AdminAnalyticsPage() {
           </Card>
 
           {/* Follows - Secondary */}
-          <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+          <Card className="transition-all duration-200 ease-out hover:shadow-md hover:border-border/80 hover:scale-[1.01] focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Follows

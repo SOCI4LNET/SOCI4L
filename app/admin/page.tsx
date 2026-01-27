@@ -317,7 +317,7 @@ export default async function AdminOverviewPage() {
         </h2>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {/* Total Profiles - Secondary */}
-          <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+          <Card className="transition-all duration-200 ease-out hover:shadow-md hover:border-border/80 hover:scale-[1.01] focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Total Profiles
@@ -343,7 +343,7 @@ export default async function AdminOverviewPage() {
           </Card>
 
           {/* Public Profiles - Secondary */}
-          <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+          <Card className="transition-all duration-200 ease-out hover:shadow-md hover:border-border/80 hover:scale-[1.01] focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Public Profiles
@@ -369,7 +369,7 @@ export default async function AdminOverviewPage() {
           </Card>
 
           {/* New Claims - Secondary */}
-          <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+          <Card className="transition-all duration-200 ease-out hover:shadow-md hover:border-border/80 hover:scale-[1.01] focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 New Claims (24h)
@@ -396,7 +396,7 @@ export default async function AdminOverviewPage() {
           </Card>
 
           {/* Follows - Secondary */}
-          <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+          <Card className="transition-all duration-200 ease-out hover:shadow-md hover:border-border/80 hover:scale-[1.01] focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Follows
@@ -424,7 +424,7 @@ export default async function AdminOverviewPage() {
           </Card>
 
           {/* Profile Links - Secondary */}
-          <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+          <Card className="transition-all duration-200 ease-out hover:shadow-md hover:border-border/80 hover:scale-[1.01] focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Profile Links
@@ -452,7 +452,7 @@ export default async function AdminOverviewPage() {
           </Card>
 
           {/* Email Subscribers - Secondary */}
-          <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+          <Card className="transition-all duration-200 ease-out hover:shadow-md hover:border-border/80 hover:scale-[1.01] focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Email Subscribers
