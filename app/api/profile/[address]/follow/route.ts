@@ -22,6 +22,10 @@ export async function POST(
 
     const normalizedAddress = address.toLowerCase()
 
+    // Get connected wallet address from query param (sent by frontend)
+    const searchParams = request.nextUrl.searchParams
+    const connectedWalletAddress = searchParams.get('connectedAddress')
+
     // Get follower address: from body (test mode) or session (production)
     let followerAddress: string | null = null
 
@@ -98,6 +102,18 @@ export async function POST(
     }
 
     const normalizedFollower = followerAddress.toLowerCase()
+
+    // Verify that session address matches connected wallet address
+    // This prevents using wrong session when user switches wallets
+    if (connectedWalletAddress && isValidAddress(connectedWalletAddress)) {
+      const normalizedConnected = connectedWalletAddress.toLowerCase()
+      if (normalizedFollower !== normalizedConnected) {
+        return NextResponse.json(
+          { error: 'Session address does not match connected wallet. Please reconnect.' },
+          { status: 403 }
+        )
+      }
+    }
 
     // Prevent self-follow
     if (normalizedFollower === normalizedAddress) {
@@ -184,6 +200,10 @@ export async function DELETE(
 
     const normalizedAddress = address.toLowerCase()
 
+    // Get connected wallet address from query param (sent by frontend)
+    const searchParams = request.nextUrl.searchParams
+    const connectedWalletAddress = searchParams.get('connectedAddress')
+
     // Get follower address: from body (test mode) or session (production)
     let followerAddress: string | null = null
 
@@ -210,6 +230,17 @@ export async function DELETE(
     }
 
     const normalizedFollower = followerAddress.toLowerCase()
+
+    // Verify that session address matches connected wallet address
+    if (connectedWalletAddress && isValidAddress(connectedWalletAddress)) {
+      const normalizedConnected = connectedWalletAddress.toLowerCase()
+      if (normalizedFollower !== normalizedConnected) {
+        return NextResponse.json(
+          { error: 'Session address does not match connected wallet. Please reconnect.' },
+          { status: 403 }
+        )
+      }
+    }
 
     // Delete follow relationship
     await prisma.follow.deleteMany({

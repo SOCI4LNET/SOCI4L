@@ -167,12 +167,6 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
       return
     }
 
-    // Ensure session exists
-    const hasSession = await ensureSession()
-    if (!hasSession) {
-      return
-    }
-
     if (isPending) return
 
     const normalizedAddress = address.toLowerCase()
@@ -188,6 +182,14 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
     const previousState = isFollowing
     const previousFollowersCount = followersCount
 
+    // Ensure session exists (before optimistic update)
+    const hasSession = await ensureSession()
+    if (!hasSession) {
+      // Session creation failed - ensureSession already shows error toast
+      setIsPending(false)
+      return
+    }
+
     // Optimistic update (for UI responsiveness)
     setIsFollowing(pressed)
     if (pressed) {
@@ -198,14 +200,22 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
 
     try {
       if (pressed) {
-        // Follow
-        const response = await fetch(`/api/profile/${normalizedAddress}/follow`, {
+        // Follow - include connected address to verify session matches
+        const response = await fetch(`/api/profile/${normalizedAddress}/follow?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
           method: 'POST',
           credentials: 'include',
         })
 
         if (!response.ok) {
           const error = await response.json()
+          // Handle session mismatch error
+          if (response.status === 403) {
+            toast.error('Session expired. Please reconnect your wallet.')
+            // Reset follow status to false
+            setIsFollowing(false)
+            setFollowersCount(previousFollowersCount)
+            return
+          }
           throw new Error(error.error || 'Follow failed')
         }
 
@@ -216,14 +226,22 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
         setIsFollowing(data.isFollowing ?? true)
         onFollowChange?.(data.isFollowing ?? true)
       } else {
-        // Unfollow
-        const response = await fetch(`/api/profile/${normalizedAddress}/follow`, {
+        // Unfollow - include connected address to verify session matches
+        const response = await fetch(`/api/profile/${normalizedAddress}/follow?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
           method: 'DELETE',
           credentials: 'include',
         })
 
         if (!response.ok) {
           const error = await response.json()
+          // Handle session mismatch error
+          if (response.status === 403) {
+            toast.error('Session expired. Please reconnect your wallet.')
+            // Reset follow status to previous state
+            setIsFollowing(previousState)
+            setFollowersCount(previousFollowersCount)
+            return
+          }
           throw new Error(error.error || 'Unfollow failed')
         }
 
