@@ -150,17 +150,28 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
         }
 
         // Wait for cookie to be written (serverless-friendly)
-        await new Promise(resolve => setTimeout(resolve, 200))
+        // Retry verification up to 3 times with increasing delays
+        let sessionVerified = false
+        for (let attempt = 0; attempt < 3; attempt++) {
+          await new Promise(resolve => setTimeout(resolve, 200 + (attempt * 100)))
+          
+          // Verify session was created by checking follow status
+          const verifyStatusResponse = await fetch(`/api/profile/${normalizedAddress}/follow-status?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
+            cache: 'no-store',
+            credentials: 'include',
+          })
 
-        // Verify session was created by checking follow status again
-        const verifyStatusResponse = await fetch(`/api/profile/${normalizedAddress}/follow-status?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
-          cache: 'no-store',
-          credentials: 'include',
-        })
+          // If not 401, session exists
+          if (verifyStatusResponse.status !== 401) {
+            sessionVerified = true
+            break
+          }
+        }
 
-        // If still 401, session creation failed
-        if (verifyStatusResponse.status === 401) {
-          console.error('Session creation verification failed')
+        // If still 401 after retries, session creation failed
+        if (!sessionVerified) {
+          console.error('Session creation verification failed after retries')
+          toast.error('Session created but verification failed. Please try again.')
           return false
         }
       }
@@ -205,9 +216,9 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
       return
     }
 
-    // Small delay to ensure cookie is written (serverless-friendly)
+    // Additional delay to ensure cookie is written (serverless-friendly)
     // This helps with race conditions where session is created but cookie not yet available
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await new Promise(resolve => setTimeout(resolve, 300))
 
     // Optimistic update (for UI responsiveness)
     setIsFollowing(pressed)
@@ -232,17 +243,26 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
             // Try to recreate session and retry once
             const retrySession = await ensureSession()
             if (retrySession) {
-              // Wait for cookie to be written (serverless-friendly)
-              await new Promise(resolve => setTimeout(resolve, 200))
+              // Wait for cookie to be written and verify session with retries
+              let sessionReady = false
+              for (let attempt = 0; attempt < 3; attempt++) {
+                await new Promise(resolve => setTimeout(resolve, 300 + (attempt * 100)))
+                
+                // Verify session was created by checking follow status
+                const verifyResponse = await fetch(`/api/profile/${normalizedAddress}/follow-status?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
+                  cache: 'no-store',
+                  credentials: 'include',
+                })
+                
+                // If verifyResponse is ok, session exists and we can retry
+                if (verifyResponse.ok) {
+                  sessionReady = true
+                  break
+                }
+              }
               
-              // Verify session was created by checking follow status
-              const verifyResponse = await fetch(`/api/profile/${normalizedAddress}/follow-status?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
-                cache: 'no-store',
-                credentials: 'include',
-              })
-              
-              if (verifyResponse.ok || verifyResponse.status === 401) {
-                // Session exists or will be created, retry the follow request
+              if (sessionReady) {
+                // Session exists, retry the follow request
                 const retryResponse = await fetch(`/api/profile/${normalizedAddress}/follow?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
                   method: 'POST',
                   credentials: 'include',
@@ -261,6 +281,12 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
                   setFollowersCount(previousFollowersCount)
                   return
                 }
+              } else {
+                // Session verification failed after retries
+                toast.error('Session created but not ready. Please try again.')
+                setIsFollowing(false)
+                setFollowersCount(previousFollowersCount)
+                return
               }
             }
             toast.error('Session expired. Please reconnect your wallet.')
@@ -292,17 +318,26 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
             // Try to recreate session and retry once
             const retrySession = await ensureSession()
             if (retrySession) {
-              // Wait for cookie to be written (serverless-friendly)
-              await new Promise(resolve => setTimeout(resolve, 200))
+              // Wait for cookie to be written and verify session with retries
+              let sessionReady = false
+              for (let attempt = 0; attempt < 3; attempt++) {
+                await new Promise(resolve => setTimeout(resolve, 300 + (attempt * 100)))
+                
+                // Verify session was created by checking follow status
+                const verifyResponse = await fetch(`/api/profile/${normalizedAddress}/follow-status?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
+                  cache: 'no-store',
+                  credentials: 'include',
+                })
+                
+                // If verifyResponse is ok, session exists and we can retry
+                if (verifyResponse.ok) {
+                  sessionReady = true
+                  break
+                }
+              }
               
-              // Verify session was created by checking follow status
-              const verifyResponse = await fetch(`/api/profile/${normalizedAddress}/follow-status?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
-                cache: 'no-store',
-                credentials: 'include',
-              })
-              
-              if (verifyResponse.ok || verifyResponse.status === 401) {
-                // Session exists or will be created, retry the unfollow request
+              if (sessionReady) {
+                // Session exists, retry the unfollow request
                 const retryResponse = await fetch(`/api/profile/${normalizedAddress}/follow?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
                   method: 'DELETE',
                   credentials: 'include',
@@ -321,6 +356,12 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
                   setFollowersCount(previousFollowersCount)
                   return
                 }
+              } else {
+                // Session verification failed after retries
+                toast.error('Session created but not ready. Please try again.')
+                setIsFollowing(previousState)
+                setFollowersCount(previousFollowersCount)
+                return
               }
             }
             toast.error('Session expired. Please reconnect your wallet.')
