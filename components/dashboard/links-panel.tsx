@@ -27,7 +27,7 @@ import {
 } from '@dnd-kit/sortable'
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Link2, Plus, Pencil, Trash2, ExternalLink, BarChart2, Github, Linkedin, Globe, Youtube, Eye, EyeOff, ArrowUp, ArrowDown, Folder, ChevronDown, ChevronRight, MoreVertical } from 'lucide-react'
+import { GripVertical, Link2, Plus, Pencil, Trash2, ExternalLink, BarChart2, Github, Linkedin, Globe, Youtube, Eye, EyeOff, ArrowUp, ArrowDown, Folder, ChevronDown, ChevronRight, MoreVertical, Loader2, Instagram } from 'lucide-react'
 import { XIcon } from '@/components/icons/x-icon'
 import { useRouter } from 'next/navigation'
 import { useSignMessage } from 'wagmi'
@@ -546,7 +546,7 @@ export function LinksPanel() {
       case 'linkedin':
         return <Linkedin className="h-4 w-4" />
       case 'instagram':
-        return <Globe className="h-4 w-4" />
+        return <Instagram className="h-4 w-4" />
       case 'website':
       default:
         return <Globe className="h-4 w-4" />
@@ -1839,6 +1839,177 @@ export function LinksPanel() {
             )}
           </CardContent>
         </Card>
+
+        {/* Social Links Card */}
+        <Card className="bg-card border border-border/60 shadow-sm">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base">Social Links</CardTitle>
+                <CardDescription className="text-xs text-muted-foreground mt-1">
+                  Add your social media profiles with icons
+                </CardDescription>
+              </div>
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm" 
+                className="h-8 gap-1"
+                onClick={openAddSocialDialog}
+                disabled={socialLinks.length >= 6}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Add
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {socialLinksLoading ? (
+              <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-6 text-center text-xs text-muted-foreground">
+                Loading social links...
+              </div>
+            ) : socialLinks.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
+                <Globe className="h-8 w-8 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium mb-1">No social links yet</p>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Add your X, GitHub, LinkedIn and other social profiles
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="default"
+                  onClick={openAddSocialDialog}
+                >
+                  <Plus className="mr-2 h-3.5 w-3.5" />
+                  Add social link
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {sortSocialLinks(socialLinks).map((link) => (
+                  <div 
+                    key={link.id} 
+                    className="flex items-center gap-3 p-3 rounded-md border border-border/60 bg-muted/5 hover:bg-muted/20 transition-colors"
+                  >
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted/50">
+                      {getSocialIcon(link.platform)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium">{getSocialLabel(link.platform)}</div>
+                      <a 
+                        href={link.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-xs text-muted-foreground hover:text-primary truncate block"
+                      >
+                        {link.url}
+                      </a>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => openEditSocialDialog(link)}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                        onClick={() => handleDeleteSocialLink(link.id)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Social Link Dialog */}
+        <Dialog open={socialDialogOpen} onOpenChange={setSocialDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{editingSocialLink ? 'Edit social link' : 'Add social link'}</DialogTitle>
+              <DialogDescription>
+                Add a link to your social media profile
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="social-platform">Platform</Label>
+                <Select 
+                  value={newSocialPlatform} 
+                  onValueChange={(value) => setNewSocialPlatform(value as SocialLinkPlatform)}
+                  disabled={!!editingSocialLink}
+                >
+                  <SelectTrigger id="social-platform">
+                    <SelectValue placeholder="Select platform" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SOCIAL_LINK_ORDER.map((platform) => {
+                      const isAdded = !editingSocialLink && socialLinks.some(l => l.platform === platform)
+                      return (
+                        <SelectItem 
+                          key={platform} 
+                          value={platform}
+                          disabled={isAdded}
+                        >
+                          <div className="flex items-center gap-2">
+                            {getSocialIcon(platform)}
+                            <span>{getSocialLabel(platform)}</span>
+                            {isAdded && <span className="text-xs text-muted-foreground">(added)</span>}
+                          </div>
+                        </SelectItem>
+                      )
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="social-url">URL</Label>
+                <Input
+                  id="social-url"
+                  value={newSocialUrl}
+                  onChange={(e) => setNewSocialUrl(e.target.value)}
+                  placeholder="https://twitter.com/username"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Full URL to your profile
+                </p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" size="sm" onClick={() => setSocialDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                type="button" 
+                size="sm" 
+                onClick={handleSaveSocialLink}
+                disabled={socialLinksSaving}
+              >
+                {socialLinksSaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  editingSocialLink ? 'Save changes' : 'Add link'
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
       </div>
     </PageShell>
