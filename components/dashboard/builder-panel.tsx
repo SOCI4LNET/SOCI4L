@@ -883,11 +883,11 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
     setHasUnsavedChanges(true)
   }
 
-  const [activeDrag, setActiveDrag] = useState<{
-    type: 'row' | 'card'
-    id: string
-    data?: any
-  } | null>(null)
+  const [activeDrag, setActiveDrag] = useState<
+    | { type: 'row'; id: string; data?: any }
+    | { type: 'card'; id: string; data?: any }
+    | null
+  >(null)
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event
@@ -944,7 +944,9 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
     }
 
     // Handle card/section drag
-    handleCardDragEnd(event, activeDrag)
+    if (activeDrag.type === 'card') {
+      handleCardDragEnd(event, activeDrag)
+    }
   }
 
   const handleCardDragEnd = (event: DragEndEvent, activeDrag: { type: 'card'; id: string; data?: any }) => {

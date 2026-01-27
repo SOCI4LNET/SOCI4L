@@ -27,19 +27,34 @@ export function TransactionModal({
     return (
         <Dialog open={open} onOpenChange={() => { }}>
             <DialogContent
-                className={cn("sm:max-w-[425px] flex flex-col items-center justify-center p-10 gap-6", className)}
+                hideClose
+                className={cn(
+                    "sm:max-w-[400px] flex flex-col items-center justify-center p-12 gap-8 border-border/40 bg-background/95 backdrop-blur-xl shadow-2xl",
+                    className
+                )}
                 onInteractOutside={(e) => e.preventDefault()}
                 onEscapeKeyDown={(e) => e.preventDefault()}
             >
-                <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-accent-primary/10">
-                    <Loader2 className="h-10 w-10 animate-spin text-accent-primary" />
+                {/* Premium Pulsing Loader */}
+                <div className="relative flex items-center justify-center group">
+                    <div className="absolute inset-0 animate-ping rounded-full bg-accent-primary/20 opacity-75" />
+                    <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-accent-primary/10 border border-accent-primary/30 shadow-[0_0_20px_rgba(var(--accent-primary),0.2)]">
+                        <Loader2 className="h-10 w-10 animate-spin text-accent-primary" />
+                    </div>
                 </div>
 
-                <div className="text-center space-y-2">
-                    <DialogTitle className="text-xl font-bold">{title}</DialogTitle>
-                    <DialogDescription className="text-center text-muted-foreground">
+                <div className="text-center space-y-3">
+                    <DialogTitle className="text-2xl font-bold tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
+                        {title}
+                    </DialogTitle>
+                    <DialogDescription className="text-center text-muted-foreground/80 font-medium leading-relaxed">
                         {description}
                     </DialogDescription>
+                </div>
+
+                {/* Subtle Progress Hint */}
+                <div className="w-full h-1 bg-muted rounded-full overflow-hidden opacity-50">
+                    <div className="h-full bg-accent-primary animate-[shimmer_2s_infinite_linear] bg-[length:200%_100%] bg-gradient-to-r from-transparent via-accent-primary/50 to-transparent" />
                 </div>
             </DialogContent>
         </Dialog>
