@@ -35,14 +35,14 @@ async function getAnalytics() {
     prisma.profileLink.count(),
     prisma.follow.groupBy({
       by: ['followingAddress'],
-      _count: { _all: true },
-      orderBy: { _count: { _all: 'desc' } },
+      _count: { followingAddress: true },
+      orderBy: { _count: { followingAddress: 'desc' } },
       take: 10,
     }),
     prisma.profileLink.groupBy({
       by: ['profileId'],
-      _count: { _all: true },
-      orderBy: { _count: { _all: 'desc' } },
+      _count: { profileId: true },
+      orderBy: { _count: { profileId: 'desc' } },
       take: 10,
     }),
   ])
@@ -68,7 +68,7 @@ async function getAnalytics() {
     const profile = profileByAddress.get(row.followingAddress.toLowerCase())
     return {
       address: row.followingAddress,
-      followers: row._count._all,
+      followers: row._count.followingAddress,
       displayName: profile?.displayName || null,
       slug: profile?.slug || null,
     }
@@ -78,7 +78,7 @@ async function getAnalytics() {
     const profile = profileById.get(row.profileId)
     return {
       profileId: row.profileId,
-      links: row._count._all,
+      links: row._count.profileId,
       address: profile?.address || null,
       displayName: profile?.displayName || null,
       slug: profile?.slug || null,

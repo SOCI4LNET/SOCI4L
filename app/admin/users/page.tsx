@@ -89,7 +89,7 @@ async function getUsers(searchParams: SearchParams) {
     // Follower counts per profile (simple but fine for small pages)
     prisma.follow.groupBy({
       by: ['followingAddress'],
-      _count: { _all: true },
+      _count: { followingAddress: true },
       where: {
         followingAddress: {
           in: (
@@ -107,7 +107,10 @@ async function getUsers(searchParams: SearchParams) {
 
   const followerCountMap = new Map<string, number>()
   for (const row of followerCounts) {
-    followerCountMap.set(row.followingAddress.toLowerCase(), row._count._all)
+    followerCountMap.set(
+      row.followingAddress.toLowerCase(),
+      row._count.followingAddress,
+    )
   }
 
   return {
