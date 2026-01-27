@@ -185,20 +185,21 @@ export default async function AdminUsersPage({
       subtitle="Browse and inspect SOCI4L profiles across the platform."
       mode="constrained"
     >
-      <div className="flex flex-col gap-4 mb-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
         <form className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 flex-1">
           <div className="flex-1 flex flex-col gap-1 sm:max-w-sm">
             <Input
               name="search"
               defaultValue={search}
               placeholder="Search by address, slug, or display name…"
+              className="transition-all duration-200 focus:ring-2 focus:ring-ring focus:ring-offset-0"
             />
           </div>
-          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+          <div className="flex flex-wrap gap-2">
             <select
               name="status"
               defaultValue={status || ''}
-              className="h-8 rounded border bg-background px-2 text-xs"
+              className="h-9 rounded-md border border-input bg-background px-3 text-xs transition-colors hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0"
             >
               <option value="">All statuses</option>
               <option value="claimed">Claimed</option>
@@ -207,7 +208,7 @@ export default async function AdminUsersPage({
             <select
               name="visibility"
               defaultValue={visibility || ''}
-              className="h-8 rounded border bg-background px-2 text-xs"
+              className="h-9 rounded-md border border-input bg-background px-3 text-xs transition-colors hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0"
             >
               <option value="">All visibilities</option>
               <option value="public">Public</option>
@@ -216,20 +217,20 @@ export default async function AdminUsersPage({
           </div>
           <button
             type="submit"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors whitespace-nowrap"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-all duration-200 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0"
           >
             Apply
           </button>
         </form>
         <form action="/api/admin/export/users" method="get" className="w-full sm:w-auto">
-          <Button type="submit" variant="outline" size="sm" className="gap-2 w-full sm:w-auto">
+          <Button type="submit" variant="outline" size="sm" className="gap-2 w-full sm:w-auto transition-all duration-200 hover:bg-accent hover:text-accent-foreground">
             <Download className="h-3.5 w-3.5" />
             Export CSV
           </Button>
         </form>
       </div>
 
-      <div className="rounded-md border bg-card overflow-x-auto">
+      <div className="rounded-lg border border-border/60 bg-card shadow-sm overflow-hidden overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -254,11 +255,11 @@ export default async function AdminUsersPage({
                 profile.visibility === 'PUBLIC' || profile.isPublic === true
 
               return (
-                <TableRow key={profile.id}>
-                  <TableCell className="font-mono text-xs">
+                <TableRow key={profile.id} className="transition-colors duration-150 hover:bg-muted/50">
+                  <TableCell className="font-mono text-xs py-3">
                     <Link
                       href={`/p/${profile.slug || profile.address}`}
-                      className="hover:underline break-all"
+                      className="hover:underline break-all transition-colors duration-150 hover:text-primary"
                     >
                       {profile.address.slice(0, 10)}...
                     </Link>
@@ -276,13 +277,13 @@ export default async function AdminUsersPage({
                   <TableCell className="max-w-[140px] truncate hidden md:table-cell">
                     {profile.slug || <span className="text-muted-foreground">—</span>}
                   </TableCell>
-                  <TableCell>
-                    <Badge variant={isClaimed ? 'default' : 'outline'} className="text-xs">
+                  <TableCell className="py-3">
+                    <Badge variant={isClaimed ? 'default' : 'outline'} className="text-xs font-medium">
                       {isClaimed ? 'Claimed' : 'Unclaimed'}
                     </Badge>
                   </TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    <Badge variant={isPublic ? 'default' : 'outline'} className="text-xs">
+                  <TableCell className="hidden sm:table-cell py-3">
+                    <Badge variant={isPublic ? 'default' : 'outline'} className="text-xs font-medium">
                       {isPublic ? 'Public' : 'Private'}
                     </Badge>
                   </TableCell>
@@ -300,17 +301,17 @@ export default async function AdminUsersPage({
                       <span className="text-muted-foreground text-xs">—</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex flex-col sm:flex-row justify-end gap-1 sm:gap-2">
+                  <TableCell className="text-right py-3">
+                    <div className="flex flex-col sm:flex-row justify-end gap-1.5 sm:gap-2">
                       <Link
                         href={`/p/${profile.slug || profile.address}`}
-                        className="text-xs text-primary hover:underline whitespace-nowrap"
+                        className="text-xs text-primary hover:underline whitespace-nowrap transition-colors duration-150 hover:text-primary/80"
                       >
                         View profile
                       </Link>
                       <Link
                         href={`/admin/users/${encodeURIComponent(profile.address.toLowerCase())}`}
-                        className="text-xs text-muted-foreground hover:underline whitespace-nowrap"
+                        className="text-xs text-muted-foreground hover:text-foreground hover:underline whitespace-nowrap transition-colors duration-150"
                       >
                         Admin view
                       </Link>
@@ -320,16 +321,16 @@ export default async function AdminUsersPage({
               )
             })}
           </TableBody>
-          <TableCaption className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-4">
-            <span className="text-xs">
+          <TableCaption className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-4 pb-4 border-t border-border/60 mt-4">
+            <span className="text-xs text-muted-foreground">
               Showing page {page} of {totalPages} • {totalCount.toLocaleString('en-US')} profiles
             </span>
             {totalPages > 1 && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 {page > 1 && (
                   <Link
                     href={`/admin/users?search=${encodeURIComponent(search)}&page=${page - 1}`}
-                    className="text-xs text-primary hover:underline whitespace-nowrap"
+                    className="text-xs text-primary hover:underline whitespace-nowrap transition-colors duration-150 hover:text-primary/80"
                   >
                     Previous
                   </Link>
@@ -337,7 +338,7 @@ export default async function AdminUsersPage({
                 {page < totalPages && (
                   <Link
                     href={`/admin/users?search=${encodeURIComponent(search)}&page=${page + 1}`}
-                    className="text-xs text-primary hover:underline whitespace-nowrap"
+                    className="text-xs text-primary hover:underline whitespace-nowrap transition-colors duration-150 hover:text-primary/80"
                   >
                     Next
                   </Link>

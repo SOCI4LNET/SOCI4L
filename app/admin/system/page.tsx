@@ -100,125 +100,125 @@ export default async function AdminSystemPage() {
       subtitle="High-level system health for SOCI4L."
       mode="constrained"
     >
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div>
-          <h2 className="text-sm font-medium mb-4">Database Tables</h2>
+          <h2 className="text-sm font-semibold mb-4 uppercase tracking-wide text-muted-foreground">Database Tables</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Profiles</CardTitle>
+            <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Profiles</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-semibold">
+              <CardContent className="space-y-1">
+                <p className="text-2xl font-semibold tracking-tight">
                   {stats.profileCount.toLocaleString('en-US')}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-muted-foreground">
                   {stats.recentProfiles > 0 && `+${stats.recentProfiles} in 24h`}
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Follows</CardTitle>
+            <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Follows</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-semibold">
+              <CardContent className="space-y-1">
+                <p className="text-2xl font-semibold tracking-tight">
                   {stats.followCount.toLocaleString('en-US')}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-muted-foreground">
                   {stats.recentFollows > 0 && `+${stats.recentFollows} in 24h`}
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Links</CardTitle>
+            <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Links</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-semibold">
+              <CardContent className="space-y-1">
+                <p className="text-2xl font-semibold tracking-tight">
                   {stats.linkCount.toLocaleString('en-US')}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-muted-foreground">
                   {stats.recentLinks > 0 && `+${stats.recentLinks} in 24h`}
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Subscribers</CardTitle>
+            <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Subscribers</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-semibold">
+              <CardContent className="space-y-1">
+                <p className="text-2xl font-semibold tracking-tight">
                   {stats.subscriberCount.toLocaleString('en-US')}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">Rows in EmailSubscription table</p>
+                <p className="text-xs text-muted-foreground">Rows in EmailSubscription table</p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Analytics Events</CardTitle>
+            <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Analytics Events</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-semibold">
+              <CardContent className="space-y-1">
+                <p className="text-2xl font-semibold tracking-tight">
                   {stats.analyticsEventCount.toLocaleString('en-US')}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-muted-foreground">
                   {stats.recentAnalyticsEvents > 0 && `+${stats.recentAnalyticsEvents} in 24h`}
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Score Snapshots</CardTitle>
+            <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Score Snapshots</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-semibold">
+              <CardContent className="space-y-1">
+                <p className="text-2xl font-semibold tracking-tight">
                   {stats.scoreSnapshotCount.toLocaleString('en-US')}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-muted-foreground">
                   {stats.recentScoreSnapshots > 0 && `+${stats.recentScoreSnapshots} in 24h`}
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Categories</CardTitle>
+            <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Categories</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-semibold">
+              <CardContent className="space-y-1">
+                <p className="text-2xl font-semibold tracking-tight">
                   {stats.categoryCount.toLocaleString('en-US')}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">Link categories created</p>
+                <p className="text-xs text-muted-foreground">Link categories created</p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Showcase Items</CardTitle>
+            <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Showcase Items</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-semibold">
+              <CardContent className="space-y-1">
+                <p className="text-2xl font-semibold tracking-tight">
                   {stats.showcaseItemCount.toLocaleString('en-US')}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">NFT showcase items</p>
+                <p className="text-xs text-muted-foreground">NFT showcase items</p>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Admin Audit Logs</CardTitle>
+            <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Admin Audit Logs</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-semibold">
+              <CardContent className="space-y-1">
+                <p className="text-2xl font-semibold tracking-tight">
                   {stats.adminAuditLogCount.toLocaleString('en-US')}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-muted-foreground">
                   {stats.recentAdminAuditLogs > 0 && `+${stats.recentAdminAuditLogs} in 24h`}
                 </p>
               </CardContent>
@@ -227,11 +227,11 @@ export default async function AdminSystemPage() {
         </div>
 
         <div>
-          <h2 className="text-sm font-medium mb-4">Admin Activity / Audit Log</h2>
-          <div className="rounded-md border bg-card overflow-x-auto">
+          <h2 className="text-sm font-semibold mb-4 uppercase tracking-wide text-muted-foreground">Admin Activity / Audit Log</h2>
+          <div className="rounded-lg border border-border/60 bg-card shadow-sm overflow-hidden overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="border-border/60">
                   <TableHead className="min-w-[120px]">Time</TableHead>
                   <TableHead className="min-w-[100px] hidden sm:table-cell">Admin</TableHead>
                   <TableHead className="min-w-[100px]">Action</TableHead>
@@ -258,8 +258,8 @@ export default async function AdminSystemPage() {
                     }
 
                     return (
-                      <TableRow key={log.id}>
-                        <TableCell className="text-xs font-mono">
+                      <TableRow key={log.id} className="transition-colors duration-150 hover:bg-muted/50">
+                        <TableCell className="text-xs font-mono py-3">
                           {log.createdAt.toLocaleString('en-US', {
                             month: 'short',
                             day: 'numeric',
@@ -270,13 +270,13 @@ export default async function AdminSystemPage() {
                             {log.adminAddress.slice(0, 6)}...{log.adminAddress.slice(-4)}
                           </div>
                         </TableCell>
-                        <TableCell className="font-mono text-xs hidden sm:table-cell">
+                        <TableCell className="font-mono text-xs hidden sm:table-cell py-3">
                           {log.adminAddress.slice(0, 6)}...{log.adminAddress.slice(-4)}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="py-3">
                           <span className="text-xs font-medium">{log.action}</span>
                         </TableCell>
-                        <TableCell className="hidden md:table-cell">
+                        <TableCell className="hidden md:table-cell py-3">
                           {log.targetType && log.targetId ? (
                             <span className="text-xs text-muted-foreground">
                               {log.targetType}: {log.targetId.slice(0, 8)}...
@@ -287,9 +287,9 @@ export default async function AdminSystemPage() {
                             <span className="text-xs text-muted-foreground">—</span>
                           )}
                         </TableCell>
-                        <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground hidden lg:table-cell">
+                        <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground hidden lg:table-cell py-3">
                           {metadataObj.pathname ? (
-                            <span title={metadataObj.pathname}>{metadataObj.pathname}</span>
+                            <span title={metadataObj.pathname} className="hover:text-foreground transition-colors duration-150">{metadataObj.pathname}</span>
                           ) : (
                             <span>—</span>
                           )}

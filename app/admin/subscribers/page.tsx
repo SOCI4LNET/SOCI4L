@@ -32,22 +32,22 @@ export default async function AdminSubscribersPage() {
       subtitle="Email addresses collected through SOCI4L."
       mode="constrained"
     >
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <p className="text-xs text-muted-foreground">
           Showing {subscribers.length} of {totalCount.toLocaleString('en-US')} subscribers
         </p>
         <form action="/api/admin/export/subscribers" method="get" className="w-full sm:w-auto">
-          <Button type="submit" variant="outline" size="sm" className="gap-2 w-full sm:w-auto">
+          <Button type="submit" variant="outline" size="sm" className="gap-2 w-full sm:w-auto transition-all duration-200 hover:bg-accent hover:text-accent-foreground">
             <Download className="h-3.5 w-3.5" />
             Export CSV
           </Button>
         </form>
       </div>
 
-      <div className="rounded-md border bg-card overflow-x-auto">
+      <div className="rounded-lg border border-border/60 bg-card shadow-sm overflow-hidden overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="border-border/60">
               <TableHead className="min-w-[200px]">Email</TableHead>
               <TableHead className="min-w-[140px] hidden sm:table-cell">Subscribed At</TableHead>
               <TableHead className="min-w-[140px] hidden md:table-cell">Last Updated</TableHead>
@@ -55,23 +55,23 @@ export default async function AdminSubscribersPage() {
           </TableHeader>
           <TableBody>
             {subscribers.map((sub) => (
-              <TableRow key={sub.id}>
-                <TableCell className="font-mono text-xs break-all">
+              <TableRow key={sub.id} className="transition-colors duration-150 hover:bg-muted/50">
+                <TableCell className="font-mono text-xs break-all py-3">
                   {sub.email}
                   <div className="sm:hidden mt-1 text-muted-foreground">
                     {sub.createdAt.toISOString().slice(0, 10)}
                   </div>
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground hidden sm:table-cell">
+                <TableCell className="text-xs text-muted-foreground hidden sm:table-cell py-3">
                   {sub.createdAt.toISOString().slice(0, 10)}
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground hidden md:table-cell">
+                <TableCell className="text-xs text-muted-foreground hidden md:table-cell py-3">
                   {sub.updatedAt.toISOString().slice(0, 10)}
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
-          <TableCaption>
+          <TableCaption className="pt-4 pb-4 border-t border-border/60 mt-4">
             Showing up to 500 most recent subscribers. Use Export CSV to download all subscribers.
           </TableCaption>
         </Table>

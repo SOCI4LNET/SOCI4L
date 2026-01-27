@@ -26,19 +26,19 @@ interface PageShellProps {
 export function PageShell({ title, subtitle, children, mode = 'constrained' }: PageShellProps) {
   return (
     <PageContent mode={mode}>
-      <div className="space-y-6 min-h-0">
+      <div className="space-y-8 min-h-0">
         {/* Page Header */}
-        <div className="shrink-0 border-b border-border pb-4 mb-6">
-          <h1 className="text-lg font-semibold">{title}</h1>
+        <div className="shrink-0 space-y-1 pb-6 border-b border-border/60">
+          <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
           {subtitle && (
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground leading-relaxed">
               {subtitle}
             </p>
           )}
         </div>
 
         {/* Main Content */}
-        <div className="space-y-6 min-h-0">
+        <div className="space-y-8 min-h-0">
           {children}
         </div>
       </div>

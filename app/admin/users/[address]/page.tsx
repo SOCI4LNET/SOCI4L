@@ -233,70 +233,84 @@ export default async function AdminUserDetailPage({ params }: AdminUserPageProps
       subtitle="Admin view of a single SOCI4L profile."
       mode="constrained"
     >
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile</CardTitle>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
+        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">Profile</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-1 text-sm">
-            <div>
-              <span className="text-xs text-muted-foreground">Address</span>
-              <div className="font-mono text-xs break-all">{data.address}</div>
+          <CardContent className="space-y-3 text-sm">
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Address</span>
+              <div className="font-mono text-xs break-all text-foreground">{data.address}</div>
             </div>
-            <div>
-              <span className="text-xs text-muted-foreground">Display Name</span>
-              <div>{data.profile?.displayName || <span className="text-muted-foreground">—</span>}</div>
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Display Name</span>
+              <div className="text-foreground">{data.profile?.displayName || <span className="text-muted-foreground">—</span>}</div>
             </div>
-            <div>
-              <span className="text-xs text-muted-foreground">Slug</span>
-              <div>{data.profile?.slug || <span className="text-muted-foreground">—</span>}</div>
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Slug</span>
+              <div className="text-foreground">{data.profile?.slug || <span className="text-muted-foreground">—</span>}</div>
             </div>
-            <div className="flex flex-wrap gap-2 mt-2 text-xs">
-              <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5">
+            <div className="flex flex-wrap gap-2 pt-2 border-t border-border/60">
+              <span className="inline-flex items-center rounded-full bg-muted/80 px-2.5 py-1 text-xs font-medium">
                 {data.profile?.status === 'CLAIMED' || data.profile?.claimedAt ? 'Claimed' : 'Unclaimed'}
               </span>
-              <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5">
+              <span className="inline-flex items-center rounded-full bg-muted/80 px-2.5 py-1 text-xs font-medium">
                 {data.profile?.visibility === 'PRIVATE' ? 'Private' : 'Public'}
               </span>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Score</CardTitle>
+        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">Score</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-1 text-sm">
-            <div className="text-3xl font-semibold">
-              {data.score}
-              <span className="ml-1 text-base text-muted-foreground">pts</span>
+          <CardContent className="space-y-4 text-sm">
+            <div className="space-y-1">
+              <div className="text-3xl font-semibold tracking-tight">
+                {data.score}
+                <span className="ml-1.5 text-base text-muted-foreground font-normal">pts</span>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Tier: <span className="font-semibold text-foreground">{data.scoreTier.label}</span>
+              </div>
             </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              Tier: <span className="font-semibold">{data.scoreTier.label}</span>
-            </div>
-            <div className="mt-2 text-xs text-muted-foreground space-y-1">
-              <div>Followers: {data.breakdown.followers}</div>
-              <div>Profile Links: {data.breakdown.profileLinks}</div>
-              <div>Social Links: {data.breakdown.socialLinks}</div>
-              <div>Profile Completion: {data.breakdown.profileClaimed + data.breakdown.displayName + data.breakdown.bio}</div>
+            <div className="pt-3 border-t border-border/60 space-y-2 text-xs text-muted-foreground">
+              <div className="flex justify-between">
+                <span>Followers</span>
+                <span className="font-medium text-foreground">{data.breakdown.followers}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Profile Links</span>
+                <span className="font-medium text-foreground">{data.breakdown.profileLinks}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Social Links</span>
+                <span className="font-medium text-foreground">{data.breakdown.socialLinks}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Profile Completion</span>
+                <span className="font-medium text-foreground">{data.breakdown.profileClaimed + data.breakdown.displayName + data.breakdown.bio}</span>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Social</CardTitle>
+        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">Social</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <div>
-              <span className="text-xs text-muted-foreground">Followers</span>
-              <div className="text-lg font-semibold">
+          <CardContent className="space-y-4 text-sm">
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Followers</span>
+              <div className="text-2xl font-semibold tracking-tight">
                 {data.followersCount.toLocaleString('en-US')}
               </div>
             </div>
-            <div>
-              <span className="text-xs text-muted-foreground">Following</span>
-              <div className="text-lg font-semibold">
+            <div className="space-y-1 pt-3 border-t border-border/60">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Following</span>
+              <div className="text-2xl font-semibold tracking-tight">
                 {data.followingCount.toLocaleString('en-US')}
               </div>
             </div>
@@ -305,36 +319,50 @@ export default async function AdminUserDetailPage({ params }: AdminUserPageProps
       </div>
 
       {data.walletSummary && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>AVAX Balance</CardTitle>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
+          <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium">AVAX Balance</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold">
+            <CardContent className="space-y-1">
+              <div className="text-2xl font-semibold tracking-tight">
                 {parseFloat(data.walletSummary.balance || '0').toFixed(4)}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Native balance from wallet summary</p>
+              <p className="text-xs text-muted-foreground">Native balance from wallet summary</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Tokens & NFTs</CardTitle>
+          <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium">Tokens & NFTs</CardTitle>
             </CardHeader>
-            <CardContent className="text-sm space-y-1">
-              <div>Tokens: {data.walletSummary.tokenCount}</div>
-              <div>NFTs: {data.walletSummary.nftCount}</div>
+            <CardContent className="text-sm space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Tokens</span>
+                <span className="font-semibold">{data.walletSummary.tokenCount}</span>
+              </div>
+              <div className="flex justify-between items-center pt-2 border-t border-border/60">
+                <span className="text-muted-foreground">NFTs</span>
+                <span className="font-semibold">{data.walletSummary.nftCount}</span>
+              </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Activity</CardTitle>
+          <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium">Activity</CardTitle>
             </CardHeader>
-            <CardContent className="text-sm space-y-1">
-              <div>Transactions: {data.walletSummary.transactionCount}</div>
-              <div>Network OK: {data.walletSummary.networkOk ? 'Yes' : 'No'}</div>
+            <CardContent className="text-sm space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Transactions</span>
+                <span className="font-semibold">{data.walletSummary.transactionCount}</span>
+              </div>
+              <div className="flex justify-between items-center pt-2 border-t border-border/60">
+                <span className="text-muted-foreground">Network</span>
+                <span className={`font-semibold ${data.walletSummary.networkOk ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                  {data.walletSummary.networkOk ? 'OK' : 'Error'}
+                </span>
+              </div>
             </CardContent>
           </Card>
         </div>

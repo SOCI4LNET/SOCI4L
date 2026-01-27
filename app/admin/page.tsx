@@ -160,115 +160,115 @@ export default async function AdminOverviewPage() {
       mode="constrained"
     >
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Total Profiles</CardTitle>
+        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Profiles</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">{stats.totalProfiles.toLocaleString('en-US')}</p>
-            <p className="text-xs text-muted-foreground mt-1">
+          <CardContent className="space-y-1">
+            <p className="text-3xl font-semibold tracking-tight">{stats.totalProfiles.toLocaleString('en-US')}</p>
+            <p className="text-xs text-muted-foreground">
               {stats.claimedProfiles.toLocaleString('en-US')} claimed (
               {profileClaimRate.toFixed(1)}%)
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Public Profiles</CardTitle>
+        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Public Profiles</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">
+          <CardContent className="space-y-1">
+            <p className="text-3xl font-semibold tracking-tight">
               {stats.publicProfiles.toLocaleString('en-US')}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">Visible on public directory</p>
+            <p className="text-xs text-muted-foreground">Visible on public directory</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>New Claims (24h)</CardTitle>
+        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">New Claims (24h)</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">
+          <CardContent className="space-y-1">
+            <p className="text-3xl font-semibold tracking-tight">
               {stats.newClaims24h.toLocaleString('en-US')}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">Profiles claimed in last 24 hours</p>
+            <p className="text-xs text-muted-foreground">Profiles claimed in last 24 hours</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Follows</CardTitle>
+        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Follows</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">
+          <CardContent className="space-y-1">
+            <p className="text-3xl font-semibold tracking-tight">
               {stats.totalFollows.toLocaleString('en-US')}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground">
               Total follow relationships between profiles
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile Links</CardTitle>
+        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Profile Links</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">
+          <CardContent className="space-y-1">
+            <p className="text-3xl font-semibold tracking-tight">
               {stats.totalLinks.toLocaleString('en-US')}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground">
               Links added across all SOCI4L profiles
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Email Subscribers</CardTitle>
+        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Email Subscribers</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">
+          <CardContent className="space-y-1">
+            <p className="text-3xl font-semibold tracking-tight">
               {stats.totalEmailSubscribers.toLocaleString('en-US')}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground">
               Newsletter subscribers collected via SOCI4L
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile Views</CardTitle>
+        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Profile Views</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">
+          <CardContent className="space-y-1">
+            <p className="text-3xl font-semibold tracking-tight">
               {stats.totalProfileViews.toLocaleString('en-US')}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground">
               Total profile views tracked
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Link Clicks</CardTitle>
+        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Link Clicks</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">
+          <CardContent className="space-y-1">
+            <p className="text-3xl font-semibold tracking-tight">
               {stats.totalLinkClicks.toLocaleString('en-US')}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground">
               Total link clicks tracked
             </p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-8">
         <OverviewTrends trends={stats.trends} />
       </div>
     </PageShell>
