@@ -228,7 +228,7 @@ export default async function AdminAnalyticsPage() {
         </h2>
         <div className="grid gap-4 md:grid-cols-2">
           {/* Profile Views - Primary */}
-          <Card className="border-2 border-primary/20 bg-card shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary/30 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+          <Card className="border-2 border-primary/20 bg-card shadow-sm transition-all duration-200 ease-out hover:shadow-md hover:border-primary/30 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -264,7 +264,7 @@ export default async function AdminAnalyticsPage() {
           </Card>
 
           {/* Link Clicks - Primary */}
-          <Card className="border-2 border-primary/20 bg-card shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary/30 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+          <Card className="border-2 border-primary/20 bg-card shadow-sm transition-all duration-200 ease-out hover:shadow-md hover:border-primary/30 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -348,9 +348,9 @@ export default async function AdminAnalyticsPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Top Viewed Profiles</CardTitle>
+        <Card className="transition-all duration-200 ease-out hover:shadow-md hover:border-border/80 hover:scale-[1.005]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Top Viewed Profiles</CardTitle>
           </CardHeader>
           <CardContent>
             {analytics.topViewed.length === 0 ? (
@@ -384,7 +384,7 @@ export default async function AdminAnalyticsPage() {
                         <div className="flex flex-col gap-1.5">
                           <Link
                             href={`/p/${row.slug || row.address}`}
-                            className="text-sm font-semibold hover:underline transition-colors duration-200 hover:text-primary flex items-center gap-1.5 group-hover:text-primary"
+                            className="text-sm font-semibold hover:underline transition-colors duration-150 hover:text-primary flex items-center gap-1.5"
                           >
                             {row.displayName || row.address}
                             <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -408,9 +408,9 @@ export default async function AdminAnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Top Clicked Links</CardTitle>
+        <Card className="transition-all duration-200 ease-out hover:shadow-md hover:border-border/80 hover:scale-[1.005]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Top Clicked Links</CardTitle>
           </CardHeader>
           <CardContent>
             {analytics.topClicked.length === 0 ? (
@@ -450,7 +450,7 @@ export default async function AdminAnalyticsPage() {
                               href={row.linkUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-xs text-muted-foreground hover:text-foreground hover:underline truncate max-w-xs transition-colors duration-200 flex items-center gap-1"
+                              className="text-xs text-muted-foreground hover:text-foreground hover:underline truncate max-w-xs transition-colors duration-150 flex items-center gap-1"
                             >
                               {row.linkUrl.length > 50 ? row.linkUrl.slice(0, 50) + '...' : row.linkUrl}
                               <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -462,7 +462,7 @@ export default async function AdminAnalyticsPage() {
                               {row.displayName || row.slug ? (
                                 <Link
                                   href={`/p/${row.slug || row.profileAddress}`}
-                                  className="hover:underline hover:text-foreground transition-colors duration-200 font-medium"
+                                  className="hover:underline hover:text-foreground transition-colors duration-150 font-medium"
                                 >
                                   {row.displayName || row.slug || row.profileAddress}
                                 </Link>

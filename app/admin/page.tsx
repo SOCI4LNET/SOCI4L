@@ -213,7 +213,7 @@ export default async function AdminOverviewPage() {
         </h2>
         <div className="grid gap-4 md:grid-cols-2">
           {/* Profile Views - Primary */}
-          <Card className="border-2 border-primary/20 bg-card shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary/30 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+          <Card className="border-2 border-primary/20 bg-card shadow-sm transition-all duration-200 ease-out hover:shadow-md hover:border-primary/30 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -261,7 +261,7 @@ export default async function AdminOverviewPage() {
           </Card>
 
           {/* Link Clicks - Primary */}
-          <Card className="border-2 border-primary/20 bg-card shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary/30 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+          <Card className="border-2 border-primary/20 bg-card shadow-sm transition-all duration-200 ease-out hover:shadow-md hover:border-primary/30 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">

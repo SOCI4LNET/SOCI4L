@@ -82,7 +82,7 @@ export default async function AdminContentPage() {
                   <div className="flex flex-col gap-1.5">
                     <Link
                       href={`/p/${link.profile.slug || link.profile.address}`}
-                      className="text-sm font-semibold hover:underline transition-colors duration-200 hover:text-primary"
+                      className="text-sm font-semibold hover:underline transition-colors duration-150 hover:text-primary"
                     >
                       {link.profile.displayName || link.profile.address.slice(0, 10) + '...'}
                     </Link>
@@ -108,7 +108,7 @@ export default async function AdminContentPage() {
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:underline break-all transition-colors duration-200 hover:text-primary flex items-center gap-1"
+                    className="hover:underline break-all transition-colors duration-150 hover:text-primary flex items-center gap-1"
                   >
                     {link.url.length > 40 ? link.url.slice(0, 40) + '...' : link.url}
                     <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />

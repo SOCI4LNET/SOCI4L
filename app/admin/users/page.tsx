@@ -291,12 +291,12 @@ export default async function AdminUsersPage({
               return (
                 <TableRow
                   key={profile.id}
-                  className="group transition-colors duration-200 hover:bg-muted/60 border-b border-border/40"
+                  className="group transition-all duration-150 ease-out hover:bg-muted/60 hover:shadow-sm border-b border-border/40"
                 >
                   <TableCell className="font-mono text-xs py-4 align-top">
                     <Link
                       href={`/p/${profile.slug || profile.address}`}
-                      className="hover:underline break-all transition-colors duration-200 hover:text-primary font-medium"
+                      className="hover:underline break-all transition-colors duration-150 hover:text-primary font-medium"
                     >
                       {profile.address.slice(0, 10)}...
                     </Link>
@@ -373,7 +373,7 @@ export default async function AdminUsersPage({
                         asChild
                         variant="ghost"
                         size="sm"
-                        className="h-7 text-xs font-medium gap-1.5 text-muted-foreground hover:text-foreground group-hover:scale-105"
+                        className="h-7 text-xs font-medium gap-1.5 text-muted-foreground hover:text-foreground"
                       >
                         <Link href={`/admin/users/${encodeURIComponent(profile.address.toLowerCase())}`}>
                           <Eye className="h-3 w-3 transition-transform duration-150 group-hover:scale-110" />
@@ -396,7 +396,7 @@ export default async function AdminUsersPage({
                 {page > 1 && (
                   <Link
                     href={`/admin/users?search=${encodeURIComponent(search)}&page=${page - 1}`}
-                    className="text-xs text-primary hover:underline whitespace-nowrap transition-colors duration-150 hover:text-primary/80"
+                    className="text-xs text-primary hover:underline whitespace-nowrap transition-colors duration-150"
                   >
                     Previous
                   </Link>
@@ -404,7 +404,7 @@ export default async function AdminUsersPage({
                 {page < totalPages && (
                   <Link
                     href={`/admin/users?search=${encodeURIComponent(search)}&page=${page + 1}`}
-                    className="text-xs text-primary hover:underline whitespace-nowrap transition-colors duration-150 hover:text-primary/80"
+                    className="text-xs text-primary hover:underline whitespace-nowrap transition-colors duration-150"
                   >
                     Next
                   </Link>

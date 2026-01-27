@@ -102,13 +102,13 @@ export default async function AdminSystemPage() {
     >
       <div className="space-y-8">
         <div>
-          <h2 className="text-sm font-semibold mb-4 uppercase tracking-wide text-muted-foreground">Database Tables</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Database Tables</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card className="transition-all duration-200 ease-out hover:shadow-md hover:border-border/80 hover:scale-[1.01]">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Profiles</CardTitle>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Profiles</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-1">
+              <CardContent className="space-y-1.5">
                 <p className="text-2xl font-semibold tracking-tight">
                   {stats.profileCount.toLocaleString('en-US')}
                 </p>
@@ -227,7 +227,7 @@ export default async function AdminSystemPage() {
         </div>
 
         <div>
-          <h2 className="text-sm font-semibold mb-4 uppercase tracking-wide text-muted-foreground">Admin Activity / Audit Log</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4">Admin Activity / Audit Log</h2>
           <div className="rounded-lg border border-border/60 bg-card shadow-sm overflow-hidden overflow-x-auto">
             <Table>
               <TableHeader>
@@ -308,7 +308,7 @@ export default async function AdminSystemPage() {
                           {metadataObj.pathname ? (
                             <span
                               title={metadataObj.pathname}
-                              className="hover:text-foreground transition-colors duration-200 font-mono"
+                              className="hover:text-foreground transition-colors duration-150 font-mono"
                             >
                               {metadataObj.pathname}
                             </span>
