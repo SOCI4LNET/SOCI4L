@@ -24,9 +24,11 @@ export function WalletConnectButtons({
   size = 'sm',
   className = ''
 }: WalletConnectButtonsProps) {
-  const { connect, connectors, isPending: isConnecting } = useConnect({
-    onError: (error) => {
-      // Handle WalletConnect proposal expired error
+  const { connect, connectors, isPending: isConnecting, error } = useConnect()
+  
+  // Handle connection errors
+  useEffect(() => {
+    if (error) {
       if (error.message?.includes('expired') || error.message?.includes('Proposal expired')) {
         toast.error('Bağlantı süresi doldu. Lütfen tekrar deneyin.', {
           description: 'QR kodunu tarayıp bağlantıyı 5 dakika içinde onaylamanız gerekiyor.',
@@ -34,12 +36,13 @@ export function WalletConnectButtons({
       } else if (error.message?.includes('User rejected')) {
         toast.error('Bağlantı reddedildi')
       } else {
+        console.error('Wallet connection error:', error)
         toast.error('Bağlantı hatası', {
           description: error.message || 'Cüzdan bağlantısı sırasında bir hata oluştu.',
         })
       }
-    },
-  })
+    }
+  }, [error])
 
   const [mounted, setMounted] = useState(false)
   const [hasInjectedWallets, setHasInjectedWallets] = useState(false)
