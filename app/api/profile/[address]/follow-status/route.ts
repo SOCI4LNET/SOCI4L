@@ -22,32 +22,38 @@ export async function GET(
 
     const normalizedAddress = address.toLowerCase()
 
-    // Get follower address: from query param (test mode) or session (production)
-    let followerAddress: string | null = null
+    // Get session address (the authenticated wallet)
+    const sessionAddress = await getSessionAddress()
 
-    if (TEST_MODE) {
-      const searchParams = request.nextUrl.searchParams
-      followerAddress = searchParams.get('followerAddress')
-      
-      if (!followerAddress || !isValidAddress(followerAddress)) {
-        // Fallback to session if query param invalid
-        followerAddress = await getSessionAddress()
-      }
-    }
-
-    // Fallback to session if not in test mode or query param not provided
-    if (!followerAddress) {
-      followerAddress = await getSessionAddress()
-    }
-
-    if (!followerAddress) {
+    if (!sessionAddress) {
       return NextResponse.json(
         { error: 'Session not found. Please log in.' },
         { status: 401 }
       )
     }
 
-    const normalizedFollower = followerAddress.toLowerCase()
+    // Get connected wallet address from query param (sent by frontend)
+    // This is used to verify that the session matches the connected wallet
+    const searchParams = request.nextUrl.searchParams
+    const connectedWalletAddress = searchParams.get('connectedAddress')
+    
+    // If connected wallet address is provided, verify it matches session
+    // This prevents showing wrong follow status when user switches wallets
+    if (connectedWalletAddress && isValidAddress(connectedWalletAddress)) {
+      const normalizedConnected = connectedWalletAddress.toLowerCase()
+      const normalizedSession = sessionAddress.toLowerCase()
+      
+      // If connected wallet doesn't match session, return false
+      // This means user switched wallets but session wasn't updated
+      if (normalizedConnected !== normalizedSession) {
+        return NextResponse.json({
+          isFollowing: false,
+        })
+      }
+    }
+
+    // Use session address as follower address
+    const normalizedFollower = sessionAddress.toLowerCase()
 
     // Check if follower address follows this address
     const follow = await prisma.follow.findUnique({

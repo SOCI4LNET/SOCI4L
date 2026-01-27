@@ -58,17 +58,32 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
 
         // Fetch follow status (requires session)
         if (isConnected && connectedAddress) {
-          const statusResponse = await fetch(`/api/profile/${normalizedAddress}/follow-status`, {
+          const normalizedConnectedAddress = connectedAddress.toLowerCase()
+          // Include connected address as query param to verify session matches
+          const statusResponse = await fetch(`/api/profile/${normalizedAddress}/follow-status?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
             cache: 'no-store',
             credentials: 'include',
           })
+          
           if (statusResponse.ok) {
             const status = await statusResponse.json()
+            // API will return false if session doesn't match connected wallet
             setIsFollowing(status.isFollowing || false)
+          } else if (statusResponse.status === 401) {
+            // No valid session or session doesn't match connected wallet
+            setIsFollowing(false)
+          } else {
+            // Other error - default to false
+            setIsFollowing(false)
           }
+        } else {
+          // Not connected - definitely not following
+          setIsFollowing(false)
         }
       } catch (error) {
         console.error('Error fetching follow data:', error)
+        // On error, default to false
+        setIsFollowing(false)
       }
     }
 
@@ -86,7 +101,9 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
     // Check if we have a valid session by trying to get follow status
     try {
       const normalizedAddress = address.toLowerCase()
-      const statusResponse = await fetch(`/api/profile/${normalizedAddress}/follow-status`, {
+      const normalizedConnectedAddress = connectedAddress.toLowerCase()
+      // Include connected address as query param to verify session matches
+      const statusResponse = await fetch(`/api/profile/${normalizedAddress}/follow-status?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
         cache: 'no-store',
         credentials: 'include',
       })
