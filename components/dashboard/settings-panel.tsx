@@ -126,7 +126,8 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
       if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
         toast.error('Transaction rejected')
       } else {
-        toast.error('Failed to save custom URL. Please try again.')
+        // Show actual error from backend (e.g. "Slug already taken")
+        toast.error(error.message || 'Failed to save custom URL')
       }
     } finally {
       setSavingSlug(false)
@@ -301,15 +302,20 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
             <div className="flex items-center gap-2">
               <Input
                 value={slug}
-                onChange={(e) => setSlug(e.target.value)}
+                onChange={(e) => {
+                  // Strict validation: alphanumeric and hyphens only, lowercase
+                  const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '')
+                  setSlug(val)
+                }}
                 placeholder="your-slug"
-                className="font-mono"
+                className={`font-mono ${(slug.length > 0 && slug.length < 3) ? 'border-destructive focus-visible:ring-destructive' : ''
+                  }`}
               />
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleSaveSlug}
-                disabled={savingSlug || slug === (profile.slug || "")}
+                disabled={savingSlug || slug === (profile.slug || "") || (slug.length > 0 && slug.length < 3)}
               >
                 {savingSlug ? (
                   <>
@@ -321,6 +327,11 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
                 )}
               </Button>
             </div>
+            {slug.length > 0 && slug.length < 3 && (
+              <p className="text-xs text-destructive font-medium">
+                Slug must be at least 3 characters long
+              </p>
+            )}
             <p className="text-xs text-muted-foreground">
               Your public link: <span className="font-mono">/p/{slug || "your-slug"}</span>
             </p>

@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import { getPublicProfileHref } from '@/lib/routing'
 import Link from 'next/link'
-import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Eye, Share2, Instagram, Youtube, Sparkles } from 'lucide-react'
+import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Eye, Share2, Instagram, Youtube, Sparkles, ShieldAlert } from 'lucide-react'
 import { XIcon } from '@/components/icons/x-icon'
 import { ClaimProfileButton } from '@/components/claim-profile-button'
 import { FollowToggle, FollowStats } from '@/components/follow-toggle'
@@ -86,7 +86,7 @@ export default function ProfilePage({ params }: PageProps) {
   const { address: connectedAddress } = useAccount()
   const [walletData, setWalletData] = useState<WalletData | null>(null)
   const [profileStatus, setProfileStatus] = useState<'UNCLAIMED' | 'CLAIMED+PUBLIC' | 'CLAIMED+PRIVATE'>('UNCLAIMED')
-  const [profile, setProfile] = useState<{ 
+  const [profile, setProfile] = useState<{
     address: string
     slug: string | null
     displayName?: string | null
@@ -126,7 +126,7 @@ export default function ProfilePage({ params }: PageProps) {
       try {
         // Check if id is an address (starts with 0x) or a slug
         const isAddress = params.id.startsWith('0x') && isValidAddress(params.id)
-        
+
         let response: Response
         // Add cache bust timestamp to ensure fresh data (especially after Builder changes)
         // Use both timestamp and random to prevent aggressive caching
@@ -287,14 +287,14 @@ export default function ProfilePage({ params }: PageProps) {
   useEffect(() => {
     // Guard: only track on client
     if (typeof window === 'undefined') return
-    
+
     // Guard: need stable profile ID
     if (!stableProfileId) {
       // Reset guard if profile ID is not available yet
       trackedProfileIdRef.current = null
       return
     }
-    
+
     // Guard: already tracked for this profile ID in this render cycle (React Strict Mode protection)
     if (trackedProfileIdRef.current === stableProfileId) {
       return
@@ -313,7 +313,7 @@ export default function ProfilePage({ params }: PageProps) {
     // Track view with source attribution from URL query params
     const source = getSourceFromUrl(searchParams)
     trackProfileView(stableProfileId, source)
-    
+
     // Mark as tracked for this profile ID to prevent double invoke
     trackedProfileIdRef.current = stableProfileId
   }, [stableProfileId, searchParams, connectedAddress])
@@ -377,18 +377,18 @@ export default function ProfilePage({ params }: PageProps) {
     // Get the resolved address (from profile or params)
     // Normalize to lowercase for consistency
     const resolvedAddress = profile?.address?.toLowerCase() || (params.id.startsWith('0x') ? params.id.toLowerCase() : null)
-    
+
     if (resolvedAddress) {
       // Refresh router cache first
       router.refresh()
-      
+
       // Refetch data to get updated profile status
       const normalizedAddress = resolvedAddress.toLowerCase()
       const response = await fetch(`/api/wallet?address=${normalizedAddress}`, {
         cache: 'no-store',
       })
       const data = await response.json()
-      
+
       if (data.profile) {
         setProfile({
           address: data.profile.address,
@@ -439,8 +439,8 @@ export default function ProfilePage({ params }: PageProps) {
   const shortAddress = resolvedAddress
     ? formatAddress(resolvedAddress)
     : params.id.startsWith('0x')
-    ? formatAddress(params.id)
-    : params.id
+      ? formatAddress(params.id)
+      : params.id
   const primaryDisplayName = profile?.displayName || shortAddress
 
   const getSocialIcon = (platform: string) => {
@@ -498,8 +498,8 @@ export default function ProfilePage({ params }: PageProps) {
 
   // Use row-based layout if available, otherwise fall back to grid-based
   const useRowLayout = effectiveLayoutConfig.rows && effectiveLayoutConfig.rows.length > 0
-  const layoutRows: LayoutRow[] = useRowLayout 
-    ? effectiveLayoutConfig.rows! 
+  const layoutRows: LayoutRow[] = useRowLayout
+    ? effectiveLayoutConfig.rows!
     : []
 
   // Create block map for quick lookup
@@ -520,7 +520,7 @@ export default function ProfilePage({ params }: PageProps) {
       const colB = b.col ?? 0
       return colA - colB
     })
-  
+
   // Row packing logic: Group blocks by row and determine computed span
   // If a row has only 1 block, render it as full-width regardless of stored span
   const blocksByRow = new Map<number, ProfileLayoutBlock[]>()
@@ -531,22 +531,22 @@ export default function ProfilePage({ params }: PageProps) {
     }
     blocksByRow.get(row)!.push(block)
   }
-  
+
   // Compute span for each block based on row packing
   const blocksWithComputedSpan = visibleBlocks.map((block) => {
     const row = block.row ?? 0
     const rowBlocks = blocksByRow.get(row) || []
     const blockCount = rowBlocks.length
-    
+
     // Auto-span rule: if row has only 1 block, make it full-width
     const computedSpan = blockCount === 1 ? 'full' : (block.span || 'half')
-    
+
     return {
       ...block,
       computedSpan,
     }
   })
-  
+
   // Debug: Log visible blocks and appearance config (only if loaded)
   if (layoutConfig && appearanceConfig) {
     console.log('[PublicProfile] Visible blocks:', visibleBlocks)
@@ -675,18 +675,18 @@ export default function ProfilePage({ params }: PageProps) {
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <div 
+                                <div
                                   className={`
                                     inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full cursor-default
                                     text-xs font-semibold transition-all
-                                    ${score.tier === 'legendary' 
-                                      ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25' 
-                                      : score.tier === 'elite' 
-                                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md shadow-purple-500/20' 
-                                        : score.tier === 'established' 
-                                          ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md shadow-blue-500/20' 
-                                          : score.tier === 'rising' 
-                                            ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-sm' 
+                                    ${score.tier === 'legendary'
+                                      ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25'
+                                      : score.tier === 'elite'
+                                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md shadow-purple-500/20'
+                                        : score.tier === 'established'
+                                          ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md shadow-blue-500/20'
+                                          : score.tier === 'rising'
+                                            ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-sm'
                                             : score.tier === 'newcomer'
                                               ? 'bg-gradient-to-r from-slate-500 to-zinc-500 text-white'
                                               : 'bg-muted text-muted-foreground'
@@ -847,431 +847,443 @@ export default function ProfilePage({ params }: PageProps) {
                   const block = blockMap.get(sectionId)
                   if (!block || !block.enabled) return null
                   const variant = block.variant || 'compact'
-                  
+
                   // Determine grid column span based on row type
                   const gridColSpan = colSpan === 'full' ? 'md:col-span-12' : 'md:col-span-6'
 
                   if (sectionId === 'links') {
-                // Unified Link Hub: Merge social links and custom links into single system
-                type UnifiedLink = {
-                  id: string
-                  title: string
-                  url: string
-                  category: string
-                  type: 'social' | 'featured' | 'custom'
-                  icon?: React.ReactNode
-                  order: number
-                }
+                    // Unified Link Hub: Merge social links and custom links into single system
+                    type UnifiedLink = {
+                      id: string
+                      title: string
+                      url: string
+                      category: string
+                      type: 'social' | 'featured' | 'custom'
+                      icon?: React.ReactNode
+                      order: number
+                    }
 
-                const allLinks: UnifiedLink[] = []
+                    const allLinks: UnifiedLink[] = []
 
-                // Create category map for quick lookup
-                const categoryMap = new Map<string, { id: string; name: string; order: number }>()
-                linkCategories.forEach((cat) => {
-                  categoryMap.set(cat.id, { id: cat.id, name: cat.name, order: cat.order })
-                })
-
-                // Find default category (usually "General")
-                const defaultCategory = linkCategories.find(cat => cat.slug === 'general') || linkCategories[0]
-                const defaultCategoryName = defaultCategory?.name || 'Links'
-
-                // Add custom profile links with their categories
-                // IMPORTANT: Sort by categoryId first, then by link.order within each category
-                enabledProfileLinks.forEach((link, index) => {
-                  // Links without category go to "Uncategorized"
-                  const category = link.categoryId && categoryMap.has(link.categoryId)
-                    ? categoryMap.get(link.categoryId)!.name
-                    : 'Uncategorized'
-                  allLinks.push({
-                    id: link.id,
-                    title: link.title || link.url,
-                    url: link.url,
-                    category,
-                    type: 'featured',
-                    order: (link as any).order ?? index, // Use explicit order from database
-                  })
-                })
-
-                // Add social links to "Socials" category (keep as special category)
-                if (profile?.socialLinks && profile.socialLinks.length > 0) {
-                  profile.socialLinks.forEach((link, index) => {
-                    allLinks.push({
-                      id: link.id || `social-${link.url}`,
-                      title: getSocialLabel(link),
-                      url: getSocialUrl(link),
-                      category: 'Socials',
-                      type: 'social',
-                      icon: getSocialIcon(link.platform || link.type || 'website'),
-                      order: 1000 + index, // Social links come after featured
+                    // Create category map for quick lookup
+                    const categoryMap = new Map<string, { id: string; name: string; order: number }>()
+                    linkCategories.forEach((cat) => {
+                      categoryMap.set(cat.id, { id: cat.id, name: cat.name, order: cat.order })
                     })
-                  })
-                }
 
-                // Group links by category FIRST (before sorting)
-                const linksByCategory = new Map<string, UnifiedLink[]>()
-                allLinks.forEach((link) => {
-                  if (!linksByCategory.has(link.category)) {
-                    linksByCategory.set(link.category, [])
-                  }
-                  linksByCategory.get(link.category)!.push(link)
-                })
+                    // Find default category (usually "General")
+                    const defaultCategory = linkCategories.find(cat => cat.slug === 'general') || linkCategories[0]
+                    const defaultCategoryName = defaultCategory?.name || 'Links'
 
-                // Sort links WITHIN each category by order (deterministic ordering)
-                linksByCategory.forEach((links, categoryName) => {
-                  links.sort((a, b) => {
-                    // Primary sort: order field
-                    if (a.order !== b.order) {
-                      return a.order - b.order
-                    }
-                    // Fallback: sort by id for stability
-                    return a.id.localeCompare(b.id)
-                  })
-                })
+                    // Add custom profile links with their categories
+                    // IMPORTANT: Sort by categoryId first, then by link.order within each category
+                    enabledProfileLinks.forEach((link, index) => {
+                      // Links without category go to "Uncategorized"
+                      const category = link.categoryId && categoryMap.has(link.categoryId)
+                        ? categoryMap.get(link.categoryId)!.name
+                        : 'Uncategorized'
+                      allLinks.push({
+                        id: link.id,
+                        title: link.title || link.url,
+                        url: link.url,
+                        category,
+                        type: 'featured',
+                        order: (link as any).order ?? index, // Use explicit order from database
+                      })
+                    })
 
-                // Sort categories: Use category order from database (STRICT ordering by category.order)
-                // Build category order map from database categories
-                const categoryOrderMap = new Map<string, number>()
-                linkCategories.forEach((cat) => {
-                  categoryOrderMap.set(cat.name, cat.order ?? 0) // Use explicit order from database
-                })
-                
-                const categories = Array.from(linksByCategory.keys())
-                  .filter(cat => {
-                    // Only show categories that have links
-                    const categoryLinks = linksByCategory.get(cat) || []
-                    if (categoryLinks.length === 0) return false
-                    
-                    // "Uncategorized" and "Socials" are always visible (they're virtual categories)
-                    if (cat === 'Uncategorized' || cat === 'Socials') return true
-                    
-                    // Check visibility for database categories
-                    const categoryData = linkCategories.find(c => c.name === cat)
-                    // If category exists in database, check visibility. If not found, show it (might be a new category)
-                    if (categoryData) {
-                      return categoryData.isVisible !== false // Default to true if undefined
+                    // Add social links to "Socials" category (keep as special category)
+                    if (profile?.socialLinks && profile.socialLinks.length > 0) {
+                      profile.socialLinks.forEach((link, index) => {
+                        allLinks.push({
+                          id: link.id || `social-${link.url}`,
+                          title: getSocialLabel(link),
+                          url: getSocialUrl(link),
+                          category: 'Socials',
+                          type: 'social',
+                          icon: getSocialIcon(link.platform || link.type || 'website'),
+                          order: 1000 + index, // Social links come after featured
+                        })
+                      })
                     }
-                    
-                    // If category not found in database, show it (might be a legacy category)
-                    return true
-                  })
-                  .sort((a, b) => {
-                    // Deterministic ordering: Uncategorized always comes last
-                    if (a === 'Uncategorized') return 1
-                    if (b === 'Uncategorized') return -1
-                    // Socials comes before Uncategorized but after all database categories
-                    if (a === 'Socials') {
-                      // Socials should come after all database categories (order >= 1000)
-                      return 1
-                    }
-                    if (b === 'Socials') {
-                      return -1
-                    }
-                    
-                    // For database categories: use strict order from database
-                    const orderA = categoryOrderMap.get(a) ?? 999
-                    const orderB = categoryOrderMap.get(b) ?? 999
-                    if (orderA !== orderB) {
-                      return orderA - orderB // Strict ordering by category.order
-                    }
-                    // If order is same, sort alphabetically for stability
-                    return a.localeCompare(b)
-                  })
-                
-                const totalLinks = allLinks.length
-                
-                // Show category headers if more than one category, or if the only category is not "Uncategorized"
-                const shouldShowCategoryHeaders = categories.length > 1 || (categories.length === 1 && categories[0] !== 'Uncategorized')
 
-                return (
-                  <Card 
-                    key="links" 
-                    ref={linksBlockRef}
-                    className={`${getThemeCardClasses(effectiveAppearanceConfig.theme, 'links')} ${gridColSpan} w-full`}
-                  >
-                    <CardHeader>
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="space-y-1">
-                          <CardTitle className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'title')}>
-                            Links
-                          </CardTitle>
-                          <CardDescription>
-                            Curated destinations (trackable)
-                          </CardDescription>
-                        </div>
-                        {/* Optional stats placeholder */}
-                        {totalLinks > 0 && (
-                          <div className="text-right">
-                            <p className="text-xs text-muted-foreground">
-                              {totalLinks} {totalLinks === 1 ? 'link' : 'links'}
-                            </p>
-                            {/* Placeholder for future stats */}
-                            {/* <p className="text-[10px] text-muted-foreground mt-0.5">
+                    // Group links by category FIRST (before sorting)
+                    const linksByCategory = new Map<string, UnifiedLink[]>()
+                    allLinks.forEach((link) => {
+                      if (!linksByCategory.has(link.category)) {
+                        linksByCategory.set(link.category, [])
+                      }
+                      linksByCategory.get(link.category)!.push(link)
+                    })
+
+                    // Sort links WITHIN each category by order (deterministic ordering)
+                    linksByCategory.forEach((links, categoryName) => {
+                      links.sort((a, b) => {
+                        // Primary sort: order field
+                        if (a.order !== b.order) {
+                          return a.order - b.order
+                        }
+                        // Fallback: sort by id for stability
+                        return a.id.localeCompare(b.id)
+                      })
+                    })
+
+                    // Sort categories: Use category order from database (STRICT ordering by category.order)
+                    // Build category order map from database categories
+                    const categoryOrderMap = new Map<string, number>()
+                    linkCategories.forEach((cat) => {
+                      categoryOrderMap.set(cat.name, cat.order ?? 0) // Use explicit order from database
+                    })
+
+                    const categories = Array.from(linksByCategory.keys())
+                      .filter(cat => {
+                        // Only show categories that have links
+                        const categoryLinks = linksByCategory.get(cat) || []
+                        if (categoryLinks.length === 0) return false
+
+                        // "Uncategorized" and "Socials" are always visible (they're virtual categories)
+                        if (cat === 'Uncategorized' || cat === 'Socials') return true
+
+                        // Check visibility for database categories
+                        const categoryData = linkCategories.find(c => c.name === cat)
+                        // If category exists in database, check visibility. If not found, show it (might be a new category)
+                        if (categoryData) {
+                          return categoryData.isVisible !== false // Default to true if undefined
+                        }
+
+                        // If category not found in database, show it (might be a legacy category)
+                        return true
+                      })
+                      .sort((a, b) => {
+                        // Deterministic ordering: Uncategorized always comes last
+                        if (a === 'Uncategorized') return 1
+                        if (b === 'Uncategorized') return -1
+                        // Socials comes before Uncategorized but after all database categories
+                        if (a === 'Socials') {
+                          // Socials should come after all database categories (order >= 1000)
+                          return 1
+                        }
+                        if (b === 'Socials') {
+                          return -1
+                        }
+
+                        // For database categories: use strict order from database
+                        const orderA = categoryOrderMap.get(a) ?? 999
+                        const orderB = categoryOrderMap.get(b) ?? 999
+                        if (orderA !== orderB) {
+                          return orderA - orderB // Strict ordering by category.order
+                        }
+                        // If order is same, sort alphabetically for stability
+                        return a.localeCompare(b)
+                      })
+
+                    const totalLinks = allLinks.length
+
+                    // Show category headers if more than one category, or if the only category is not "Uncategorized"
+                    const shouldShowCategoryHeaders = categories.length > 1 || (categories.length === 1 && categories[0] !== 'Uncategorized')
+
+                    return (
+                      <Card
+                        key="links"
+                        ref={linksBlockRef}
+                        className={`${getThemeCardClasses(effectiveAppearanceConfig.theme, 'links')} ${gridColSpan} w-full`}
+                      >
+                        <CardHeader>
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="space-y-1">
+                              <CardTitle className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'title')}>
+                                Links
+                              </CardTitle>
+                              <CardDescription>
+                                Curated destinations (trackable)
+                              </CardDescription>
+                            </div>
+                            {/* Optional stats placeholder */}
+                            {totalLinks > 0 && (
+                              <div className="text-right">
+                                <p className="text-xs text-muted-foreground">
+                                  {totalLinks} {totalLinks === 1 ? 'link' : 'links'}
+                                </p>
+                                {/* Placeholder for future stats */}
+                                {/* <p className="text-[10px] text-muted-foreground mt-0.5">
                               Views · Clicks (7d)
                             </p> */}
-                          </div>
-                        )}
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      {totalLinks === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-8 text-center">
-                          <Link2 className="h-8 w-8 text-muted-foreground mb-2" />
-                          <p className="text-sm text-muted-foreground">
-                            This profile hasn&apos;t shared any links yet.
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          {categories.map((category) => {
-                            const categoryLinks = linksByCategory.get(category) || []
-                            const categoryData = linkCategories.find(cat => cat.name === category)
-                            return (
-                              <div key={category} className="space-y-2">
-                                {shouldShowCategoryHeaders && (
-                                  <>
-                                    <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                      {category}
-                                    </h3>
-                                    {categoryData?.description && (
-                                      <p className="text-xs text-muted-foreground">{categoryData.description}</p>
-                                    )}
-                                  </>
-                                )}
-                                <div className="space-y-2">
-                                  {categoryLinks.map((link) => {
-                                    // Use redirect endpoint for tracking
-                                    // This ensures clicks are tracked even if user right-clicks or opens in new tab
-                                    const redirectUrl = `/r/${link.id}?source=profile`
-                                    
-                                    return (
-                                    <a
-                                      key={link.id}
-                                      href={redirectUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="group flex items-center justify-between rounded-md border border-border/60 bg-background/60 px-3 py-2 text-xs transition-colors hover:border-primary/50 hover:bg-primary/5"
-                                    >
-                                      <div className="flex min-w-0 items-center gap-2">
-                                        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-muted/60 text-muted-foreground shrink-0">
-                                          {link.icon || <Link2 className="h-3.5 w-3.5" />}
-                                        </div>
-                                        <div className="min-w-0 space-y-0.5">
-                                          <p className="truncate text-sm font-medium text-foreground">
-                                            {link.title}
-                                          </p>
-                                          <p className="truncate text-[11px] text-muted-foreground">
-                                            {link.url}
-                                          </p>
-                                        </div>
-                                      </div>
-                                      <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
-                                    </a>
-                                    )
-                                  })}
-                                </div>
                               </div>
-                            )
-                          })}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                  )
-                }
+                            )}
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          {totalLinks === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-8 text-center">
+                              <Link2 className="h-8 w-8 text-muted-foreground mb-2" />
+                              <p className="text-sm text-muted-foreground">
+                                This profile hasn&apos;t shared any links yet.
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="space-y-4">
+                              {categories.map((category) => {
+                                const categoryLinks = linksByCategory.get(category) || []
+                                const categoryData = linkCategories.find(cat => cat.name === category)
+                                return (
+                                  <div key={category} className="space-y-2">
+                                    {shouldShowCategoryHeaders && (
+                                      <>
+                                        <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                          {category}
+                                        </h3>
+                                        {categoryData?.description && (
+                                          <p className="text-xs text-muted-foreground">{categoryData.description}</p>
+                                        )}
+                                      </>
+                                    )}
+                                    <div className="space-y-2">
+                                      {categoryLinks.map((link) => {
+                                        // Use redirect endpoint for tracking
+                                        // This ensures clicks are tracked even if user right-clicks or opens in new tab
+                                        const redirectUrl = `/r/${link.id}?source=profile`
 
-                if (sectionId === 'activity') {
-                const showAmounts = variant !== 'hiddenAmounts'
-                const isCompact = variant === 'compact'
-                const isFull = variant === 'full'
-                const maxItems = isFull ? 20 : (isCompact ? 5 : 10)
+                                        return (
+                                          <a
+                                            key={link.id}
+                                            href={redirectUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="group flex items-center justify-between rounded-md border border-border/60 bg-background/60 px-3 py-2 text-xs transition-colors hover:border-primary/50 hover:bg-primary/5"
+                                          >
+                                            <div className="flex min-w-0 items-center gap-2">
+                                              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-muted/60 text-muted-foreground shrink-0">
+                                                {link.icon || <Link2 className="h-3.5 w-3.5" />}
+                                              </div>
+                                              <div className="min-w-0 space-y-0.5">
+                                                <p className="truncate text-sm font-medium text-foreground">
+                                                  {link.title}
+                                                </p>
+                                                <p className="truncate text-[11px] text-muted-foreground flex items-center gap-1.5">
+                                                  {link.url}
+                                                  {link.url.startsWith('http://') && (
+                                                    <TooltipProvider>
+                                                      <Tooltip>
+                                                        <TooltipTrigger>
+                                                          <ShieldAlert className="h-3 w-3 text-red-500/80 hover:text-red-500 transition-colors" />
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                          <p>Insecure connection (HTTP)</p>
+                                                        </TooltipContent>
+                                                      </Tooltip>
+                                                    </TooltipProvider>
+                                                  )}
+                                                </p>
+                                              </div>
+                                            </div>
+                                            <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
+                                          </a>
+                                        )
+                                      })}
+                                    </div>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )
+                  }
 
-                return (
-                  <Card key="activity" className={`${getThemeCardClasses(effectiveAppearanceConfig.theme, 'activity')} ${gridColSpan} w-full`}>
-                    <CardHeader>
-                      <CardTitle className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'title')}>Activity</CardTitle>
-                      <CardDescription className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>Recent transactions</CardDescription>
-                    </CardHeader>
-                    <CardContent className={isFull ? 'space-y-4' : 'space-y-3'}>
-                      {walletData.transactions && walletData.transactions.length > 0 ? (
-                        walletData.transactions.slice(0, maxItems).map((tx, idx) => (
-                          <div 
-                            key={idx} 
-                            className={`${isFull ? 'space-y-2 p-3 rounded-md border bg-muted/30' : 'space-y-1 border-b pb-2'} last:border-0`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2 min-w-0">
+                  if (sectionId === 'activity') {
+                    const showAmounts = variant !== 'hiddenAmounts'
+                    const isCompact = variant === 'compact'
+                    const isFull = variant === 'full'
+                    const maxItems = isFull ? 20 : (isCompact ? 5 : 10)
+
+                    return (
+                      <Card key="activity" className={`${getThemeCardClasses(effectiveAppearanceConfig.theme, 'activity')} ${gridColSpan} w-full`}>
+                        <CardHeader>
+                          <CardTitle className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'title')}>Activity</CardTitle>
+                          <CardDescription className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>Recent transactions</CardDescription>
+                        </CardHeader>
+                        <CardContent className={isFull ? 'space-y-4' : 'space-y-3'}>
+                          {walletData.transactions && walletData.transactions.length > 0 ? (
+                            walletData.transactions.slice(0, maxItems).map((tx, idx) => (
+                              <div
+                                key={idx}
+                                className={`${isFull ? 'space-y-2 p-3 rounded-md border bg-muted/30' : 'space-y-1 border-b pb-2'} last:border-0`}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    {isFull && (
+                                      <div className="flex h-6 w-6 items-center justify-center rounded bg-primary/10 shrink-0">
+                                        <Activity className="h-3 w-3 text-primary" />
+                                      </div>
+                                    )}
+                                    <div className="min-w-0">
+                                      <p className={`font-mono ${isFull ? 'text-sm' : 'text-xs'} truncate`}>
+                                        {isFull ? tx.hash : formatAddress(tx.hash)}
+                                      </p>
+                                      {isFull && (
+                                        <p className="text-xs text-muted-foreground mt-0.5">
+                                          Block #{tx.blockNumber}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <a
+                                    href={`https://snowtrace.io/tx/${tx.hash}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-muted-foreground hover:text-foreground shrink-0"
+                                  >
+                                    <ExternalLink className={isFull ? 'h-4 w-4' : 'h-3 w-3'} />
+                                  </a>
+                                </div>
                                 {isFull && (
-                                  <div className="flex h-6 w-6 items-center justify-center rounded bg-primary/10 shrink-0">
-                                    <Activity className="h-3 w-3 text-primary" />
+                                  <div className="grid grid-cols-2 gap-2 text-xs">
+                                    <div>
+                                      <p className="text-muted-foreground">From</p>
+                                      <p className="font-mono truncate">{formatAddress(tx.from)}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-muted-foreground">To</p>
+                                      <p className="font-mono truncate">{formatAddress(tx.to)}</p>
+                                    </div>
                                   </div>
                                 )}
-                                <div className="min-w-0">
-                                  <p className={`font-mono ${isFull ? 'text-sm' : 'text-xs'} truncate`}>
-                                    {isFull ? tx.hash : formatAddress(tx.hash)}
+                                {showAmounts && (
+                                  <p className={`${isFull ? 'text-sm font-semibold' : 'text-xs'} text-muted-foreground`}>
+                                    {parseFloat(tx.value).toFixed(4)} AVAX
                                   </p>
-                                  {isFull && (
-                                    <p className="text-xs text-muted-foreground mt-0.5">
-                                      Block #{tx.blockNumber}
+                                )}
+                                <p className={`${isFull ? 'text-xs' : 'text-xs'} text-muted-foreground`}>
+                                  {new Date(tx.timestamp * 1000).toLocaleString('tr-TR')}
+                                </p>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="flex flex-col items-center justify-center py-6 text-center">
+                              <Activity className="h-8 w-8 text-muted-foreground mb-2" />
+                              <p className="text-sm text-muted-foreground">
+                                No recent transactions
+                              </p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )
+                  }
+
+                  if (sectionId === 'assets') {
+                    const showAmounts = variant !== 'hiddenAmounts'
+                    const isCompact = variant === 'compact'
+                    const isFull = variant === 'full'
+                    // Full variant shows more items, compact shows fewer
+                    const maxItems = isFull ? 20 : (isCompact ? 5 : 10)
+
+                    return (
+                      <Card key="assets" className={`${getThemeCardClasses(effectiveAppearanceConfig.theme, 'assets')} ${gridColSpan} w-full`}>
+                        <CardHeader>
+                          <CardTitle className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'title')}>Assets</CardTitle>
+                          <CardDescription className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>Tokens and NFTs</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-2">Tokens</p>
+                            {/* Native AVAX Balance */}
+                            {walletData.nativeBalance && parseFloat(walletData.nativeBalance) > 0 && (
+                              <div className="flex justify-between items-center mb-2">
+                                <div>
+                                  <p className="text-sm font-medium">AVAX</p>
+                                  <p className="text-xs text-muted-foreground">Avalanche</p>
+                                </div>
+                                {showAmounts && (
+                                  <p className="text-sm font-mono">
+                                    {parseFloat(walletData.nativeBalance).toFixed(4)}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                            {/* ERC-20 Tokens */}
+                            {walletData.tokenBalances && walletData.tokenBalances.length > 0 ? (
+                              walletData.tokenBalances.slice(0, maxItems).map((token, idx) => (
+                                <div key={idx} className="flex justify-between items-center mb-2">
+                                  <div>
+                                    <p className="text-sm font-medium">{token.symbol}</p>
+                                    <p className="text-xs text-muted-foreground">{token.name}</p>
+                                  </div>
+                                  {showAmounts && (
+                                    <p className="text-sm font-mono">
+                                      {parseFloat(token.balance).toFixed(4)}
                                     </p>
                                   )}
                                 </div>
-                              </div>
-                              <a
-                                href={`https://snowtrace.io/tx/${tx.hash}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-muted-foreground hover:text-foreground shrink-0"
-                              >
-                                <ExternalLink className={isFull ? 'h-4 w-4' : 'h-3 w-3'} />
-                              </a>
-                            </div>
-                            {isFull && (
-                              <div className="grid grid-cols-2 gap-2 text-xs">
-                                <div>
-                                  <p className="text-muted-foreground">From</p>
-                                  <p className="font-mono truncate">{formatAddress(tx.from)}</p>
-                                </div>
-                                <div>
-                                  <p className="text-muted-foreground">To</p>
-                                  <p className="font-mono truncate">{formatAddress(tx.to)}</p>
-                                </div>
-                              </div>
-                            )}
-                            {showAmounts && (
-                              <p className={`${isFull ? 'text-sm font-semibold' : 'text-xs'} text-muted-foreground`}>
-                                {parseFloat(tx.value).toFixed(4)} AVAX
-                              </p>
-                            )}
-                            <p className={`${isFull ? 'text-xs' : 'text-xs'} text-muted-foreground`}>
-                              {new Date(tx.timestamp * 1000).toLocaleString('tr-TR')}
-                            </p>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="flex flex-col items-center justify-center py-6 text-center">
-                          <Activity className="h-8 w-8 text-muted-foreground mb-2" />
-                          <p className="text-sm text-muted-foreground">
-                            No recent transactions
-                          </p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                  )
-                }
-
-                if (sectionId === 'assets') {
-                const showAmounts = variant !== 'hiddenAmounts'
-                const isCompact = variant === 'compact'
-                const isFull = variant === 'full'
-                // Full variant shows more items, compact shows fewer
-                const maxItems = isFull ? 20 : (isCompact ? 5 : 10)
-
-                return (
-                  <Card key="assets" className={`${getThemeCardClasses(effectiveAppearanceConfig.theme, 'assets')} ${gridColSpan} w-full`}>
-                    <CardHeader>
-                      <CardTitle className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'title')}>Assets</CardTitle>
-                      <CardDescription className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>Tokens and NFTs</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-2">Tokens</p>
-                        {/* Native AVAX Balance */}
-                        {walletData.nativeBalance && parseFloat(walletData.nativeBalance) > 0 && (
-                          <div className="flex justify-between items-center mb-2">
-                            <div>
-                              <p className="text-sm font-medium">AVAX</p>
-                              <p className="text-xs text-muted-foreground">Avalanche</p>
-                            </div>
-                            {showAmounts && (
-                              <p className="text-sm font-mono">
-                                {parseFloat(walletData.nativeBalance).toFixed(4)}
-                              </p>
+                              ))
+                            ) : (
+                              !walletData.nativeBalance || parseFloat(walletData.nativeBalance) === 0 ? (
+                                <p className="text-xs text-muted-foreground">—</p>
+                              ) : null
                             )}
                           </div>
-                        )}
-                        {/* ERC-20 Tokens */}
-                        {walletData.tokenBalances && walletData.tokenBalances.length > 0 ? (
-                          walletData.tokenBalances.slice(0, maxItems).map((token, idx) => (
-                            <div key={idx} className="flex justify-between items-center mb-2">
-                              <div>
-                                <p className="text-sm font-medium">{token.symbol}</p>
-                                <p className="text-xs text-muted-foreground">{token.name}</p>
-                              </div>
-                              {showAmounts && (
-                                <p className="text-sm font-mono">
-                                  {parseFloat(token.balance).toFixed(4)}
-                                </p>
-                              )}
+                          <div className="pt-4 border-t">
+                            <p className="text-sm text-muted-foreground mb-2">NFTs</p>
+                            {walletData.nfts && walletData.nfts.length > 0 ? (
+                              walletData.nfts.slice(0, maxItems).map((nft, idx) => (
+                                <div key={idx} className="flex justify-between items-center mb-2">
+                                  <div>
+                                    <p className="text-sm font-medium">
+                                      {nft.name || 'Unnamed NFT'}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground font-mono">
+                                      {formatAddress(nft.contractAddress)} #{nft.tokenId}
+                                    </p>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <p className="text-xs text-muted-foreground">—</p>
+                            )}
+                          </div>
+                          {walletData.address && (
+                            <div className="pt-3 border-t">
+                              <Button variant="outline" size="sm" asChild className="w-full">
+                                <a
+                                  href={`https://snowtrace.io/address/${walletData.address}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  View all assets on Snowtrace
+                                </a>
+                              </Button>
                             </div>
-                          ))
-                        ) : (
-                          !walletData.nativeBalance || parseFloat(walletData.nativeBalance) === 0 ? (
-                            <p className="text-xs text-muted-foreground">—</p>
-                          ) : null
-                        )}
-                      </div>
-                      <div className="pt-4 border-t">
-                        <p className="text-sm text-muted-foreground mb-2">NFTs</p>
-                        {walletData.nfts && walletData.nfts.length > 0 ? (
-                          walletData.nfts.slice(0, maxItems).map((nft, idx) => (
-                            <div key={idx} className="flex justify-between items-center mb-2">
-                              <div>
-                                <p className="text-sm font-medium">
-                                  {nft.name || 'Unnamed NFT'}
-                                </p>
-                                <p className="text-xs text-muted-foreground font-mono">
-                                  {formatAddress(nft.contractAddress)} #{nft.tokenId}
-                                </p>
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-xs text-muted-foreground">—</p>
-                        )}
-                      </div>
-                      {walletData.address && (
-                        <div className="pt-3 border-t">
-                          <Button variant="outline" size="sm" asChild className="w-full">
-                            <a
-                              href={`https://snowtrace.io/address/${walletData.address}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              View all assets on Snowtrace
-                            </a>
-                          </Button>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                  )
-                }
+                          )}
+                        </CardContent>
+                      </Card>
+                    )
+                  }
 
-                // Summary block is deprecated
-                if (sectionId === 'summary') {
+                  // Summary block is deprecated
+                  if (sectionId === 'summary') {
+                    return null
+                  }
+
                   return null
                 }
 
-                return null
-              }
-
-              // Render row based on type
-              if (row.type === 'single') {
-                return (
-                  <div key={row.id} className="w-full">
-                    {renderBlockBySectionId(row.left, 'full')}
-                  </div>
-                )
-              } else {
-                return (
-                  <div key={row.id} className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full">
-                    {renderBlockBySectionId(row.left, 'half')}
-                    {renderBlockBySectionId(row.right, 'half')}
-                  </div>
-                )
-              }
-            })}
+                // Render row based on type
+                if (row.type === 'single') {
+                  return (
+                    <div key={row.id} className="w-full">
+                      {renderBlockBySectionId(row.left, 'full')}
+                    </div>
+                  )
+                } else {
+                  return (
+                    <div key={row.id} className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full">
+                      {renderBlockBySectionId(row.left, 'half')}
+                      {renderBlockBySectionId(row.right, 'half')}
+                    </div>
+                  )
+                }
+              })}
             </div>
           ) : (
             // Fallback to grid-based layout
