@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { logAdminAction } from '@/lib/admin-audit'
+// No changes needed for imports as they are relative or lib. 
+// However, I should check if there are any hardcoded links in the export routes redirects or similar. 
+// Based on grep, there were no hardcoded redirects in export routes, just imports.
+// I will just update the log message in the export routes if they exist to be accurate.
 
 export async function GET(request: NextRequest) {
   try {

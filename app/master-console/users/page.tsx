@@ -270,110 +270,108 @@ export default async function AdminUsersPage({
               </TableRow>
             ) : (
               profiles.map((profile) => {
-              const isClaimed =
-                profile.status === 'CLAIMED' ||
-                !!profile.claimedAt ||
-                !!profile.ownerAddress ||
-                !!profile.owner
-              const isPublic =
-                profile.visibility === 'PUBLIC' || profile.isPublic === true
+                const isClaimed =
+                  profile.status === 'CLAIMED' ||
+                  !!profile.claimedAt ||
+                  !!profile.ownerAddress ||
+                  !!profile.owner
+                const isPublic =
+                  profile.visibility === 'PUBLIC' || profile.isPublic === true
 
-              return (
-                <TableRow
-                  key={profile.id}
-                  className="group transition-all duration-150 ease-out hover:bg-muted/60 hover:shadow-sm border-b border-border/40"
-                >
-                  <TableCell className="font-mono text-xs py-4 align-top">
-                    <Link
-                      href={`/p/${profile.slug || profile.address}`}
-                      className="hover:underline break-all transition-colors duration-150 hover:text-primary font-medium"
-                    >
-                      {profile.address.slice(0, 10)}...
-                    </Link>
-                    <div className="sm:hidden mt-1.5">
-                      {profile.displayName && (
-                        <div className="text-xs text-muted-foreground truncate">
-                          {profile.displayName}
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="max-w-[180px] truncate hidden sm:table-cell py-4 align-top">
-                    <span className="text-sm">
-                      {profile.displayName || <span className="text-muted-foreground">—</span>}
-                    </span>
-                  </TableCell>
-                  <TableCell className="max-w-[140px] truncate hidden md:table-cell py-4 align-top">
-                    <span className="text-sm text-muted-foreground">
-                      {profile.slug || <span className="text-muted-foreground/60">—</span>}
-                    </span>
-                  </TableCell>
-                  <TableCell className="py-4 align-top">
-                    <Badge
-                      variant={isClaimed ? 'default' : 'outline'}
-                      className={`text-xs font-semibold ${
-                        isClaimed
+                return (
+                  <TableRow
+                    key={profile.id}
+                    className="group transition-all duration-150 ease-out hover:bg-muted/60 hover:shadow-sm border-b border-border/40"
+                  >
+                    <TableCell className="font-mono text-xs py-4 align-top">
+                      <Link
+                        href={`/p/${profile.slug || profile.address}`}
+                        className="hover:underline break-all transition-colors duration-150 hover:text-primary font-medium"
+                      >
+                        {profile.address.slice(0, 10)}...
+                      </Link>
+                      <div className="sm:hidden mt-1.5">
+                        {profile.displayName && (
+                          <div className="text-xs text-muted-foreground truncate">
+                            {profile.displayName}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="max-w-[180px] truncate hidden sm:table-cell py-4 align-top">
+                      <span className="text-sm">
+                        {profile.displayName || <span className="text-muted-foreground">—</span>}
+                      </span>
+                    </TableCell>
+                    <TableCell className="max-w-[140px] truncate hidden md:table-cell py-4 align-top">
+                      <span className="text-sm text-muted-foreground">
+                        {profile.slug || <span className="text-muted-foreground/60">—</span>}
+                      </span>
+                    </TableCell>
+                    <TableCell className="py-4 align-top">
+                      <Badge
+                        variant={isClaimed ? 'default' : 'outline'}
+                        className={`text-xs font-semibold ${isClaimed
                           ? 'bg-green-600/10 text-green-700 dark:text-green-400 border-green-600/20 dark:border-green-400/30'
                           : 'bg-muted/50 text-muted-foreground border-border'
-                      }`}
-                    >
-                      {isClaimed ? 'Claimed' : 'Unclaimed'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell py-4 align-top">
-                    <Badge
-                      variant={isPublic ? 'default' : 'outline'}
-                      className={`text-xs font-semibold ${
-                        isPublic
+                          }`}
+                      >
+                        {isClaimed ? 'Claimed' : 'Unclaimed'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell py-4 align-top">
+                      <Badge
+                        variant={isPublic ? 'default' : 'outline'}
+                        className={`text-xs font-semibold ${isPublic
                           ? 'bg-blue-600/10 text-blue-700 dark:text-blue-400 border-blue-600/20 dark:border-blue-400/30'
                           : 'bg-muted/50 text-muted-foreground border-border'
-                      }`}
-                    >
-                      {isPublic ? 'Public' : 'Private'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="py-4 align-top">
-                    <span className="text-sm font-semibold">
-                      {followerCountMap.get(profile.address.toLowerCase()) ?? 0}
-                    </span>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell py-4 align-top">
-                    {profile.claimedAt ? (
-                      <span className="text-xs text-muted-foreground">
-                        {profile.claimedAt.toISOString().slice(0, 10)}
+                          }`}
+                      >
+                        {isPublic ? 'Public' : 'Private'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="py-4 align-top">
+                      <span className="text-sm font-semibold">
+                        {followerCountMap.get(profile.address.toLowerCase()) ?? 0}
                       </span>
-                    ) : (
-                      <span className="text-muted-foreground/60 text-xs">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right py-4 align-top">
-                    <div className="flex flex-col sm:flex-row justify-end gap-2">
-                      <Button
-                        asChild
-                        variant="default"
-                        size="sm"
-                        className="h-7 text-xs font-medium gap-1.5 group-hover:scale-105"
-                      >
-                        <Link href={`/p/${profile.slug || profile.address}`}>
-                          <ExternalLink className="h-3 w-3 transition-transform duration-150 group-hover:scale-110" />
-                          View Profile
-                        </Link>
-                      </Button>
-                      <Button
-                        asChild
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 text-xs font-medium gap-1.5 text-muted-foreground hover:text-foreground"
-                      >
-                        <Link href={`/admin/users/${encodeURIComponent(profile.address.toLowerCase())}`}>
-                          <Eye className="h-3 w-3 transition-transform duration-150 group-hover:scale-110" />
-                          Admin View
-                        </Link>
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell py-4 align-top">
+                      {profile.claimedAt ? (
+                        <span className="text-xs text-muted-foreground">
+                          {profile.claimedAt.toISOString().slice(0, 10)}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground/60 text-xs">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right py-4 align-top">
+                      <div className="flex flex-col sm:flex-row justify-end gap-2">
+                        <Button
+                          asChild
+                          variant="default"
+                          size="sm"
+                          className="h-7 text-xs font-medium gap-1.5 group-hover:scale-105"
+                        >
+                          <Link href={`/p/${profile.slug || profile.address}`}>
+                            <ExternalLink className="h-3 w-3 transition-transform duration-150 group-hover:scale-110" />
+                            View Profile
+                          </Link>
+                        </Button>
+                        <Button
+                          asChild
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs font-medium gap-1.5 text-muted-foreground hover:text-foreground"
+                        >
+                          <Link href={`/master-console/users/${encodeURIComponent(profile.address.toLowerCase())}`}>
+                            <Eye className="h-3 w-3 transition-transform duration-150 group-hover:scale-110" />
+                            Admin View
+                          </Link>
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )
               })
             )}
           </TableBody>
@@ -385,7 +383,7 @@ export default async function AdminUsersPage({
               <div className="flex items-center gap-3">
                 {page > 1 && (
                   <Link
-                    href={`/admin/users?search=${encodeURIComponent(search)}&page=${page - 1}`}
+                    href={`/master-console/users?search=${encodeURIComponent(search)}&page=${page - 1}`}
                     className="text-xs text-primary hover:underline whitespace-nowrap transition-colors duration-150"
                   >
                     Previous
@@ -393,7 +391,7 @@ export default async function AdminUsersPage({
                 )}
                 {page < totalPages && (
                   <Link
-                    href={`/admin/users?search=${encodeURIComponent(search)}&page=${page + 1}`}
+                    href={`/master-console/users?search=${encodeURIComponent(search)}&page=${page + 1}`}
                     className="text-xs text-primary hover:underline whitespace-nowrap transition-colors duration-150"
                   >
                     Next
@@ -404,7 +402,7 @@ export default async function AdminUsersPage({
           </TableCaption>
         </Table>
       </div>
-    </PageShell>
+    </PageShell >
   )
 }
 

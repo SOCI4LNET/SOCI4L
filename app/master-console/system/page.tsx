@@ -78,7 +78,7 @@ async function getSystemStats(searchParams: SearchParams) {
   const pageSize = 50
   const page = Math.max(parseInt(searchParams.page || '1', 10), 1)
   const skip = (page - 1) * pageSize
-  
+
   const [auditLogs, totalAuditLogCount] = await Promise.all([
     prisma.adminAuditLog.findMany({
       orderBy: { createdAt: 'desc' },
@@ -355,7 +355,7 @@ export default async function AdminSystemPage({
                   <div className="flex items-center gap-3">
                     {stats.auditLogPage > 1 && (
                       <Link
-                        href={`/admin/system?page=${stats.auditLogPage - 1}`}
+                        href={`/master-console/system?page=${stats.auditLogPage - 1}`}
                         className="text-xs text-primary hover:underline whitespace-nowrap transition-colors duration-150"
                       >
                         Previous
@@ -363,7 +363,7 @@ export default async function AdminSystemPage({
                     )}
                     {stats.auditLogPage < stats.auditLogTotalPages && (
                       <Link
-                        href={`/admin/system?page=${stats.auditLogPage + 1}`}
+                        href={`/master-console/system?page=${stats.auditLogPage + 1}`}
                         className="text-xs text-primary hover:underline whitespace-nowrap transition-colors duration-150"
                       >
                         Next
