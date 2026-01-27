@@ -132,12 +132,8 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
           showTransactionLoader("Creating session...")
         } catch (error: any) {
           hideTransactionLoader()
-          if (error.code === 4001 || error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
-            toast.error('Signature rejected')
-          } else {
-            toast.error('Signing failed')
-          }
-          return false
+          // Re-throw to be handled by the main catch block
+          throw error
         }
 
         // Step 3: Verify and create session

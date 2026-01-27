@@ -840,20 +840,19 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
         console.log('[BuilderPanel] Profile info saved successfully')
       } catch (error: any) {
         console.error('[BuilderPanel] Failed to save profile info:', error)
-        if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
-          toast.error('Transaction rejected')
-        } else {
-          toast.error('Failed to save profile. Please try again.')
-        }
-        // Force break so it doesn't show success toast
+        // Re-throw to be handled by the main catch block
         throw error
       }
 
       toast.success('Layout, appearance and profile information saved. Please refresh the public profile page.')
       setHasUnsavedChanges(false)
-    } catch (error) {
+    } catch (error: any) {
       console.error('[BuilderPanel] Failed to save layout', error)
-      toast.error('Failed to save layout. Please try again.')
+      if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
+        toast.error('Transaction rejected')
+      } else {
+        toast.error('Failed to save layout. Please try again.')
+      }
     } finally {
       setSaving(false)
       hideTransactionLoader()
