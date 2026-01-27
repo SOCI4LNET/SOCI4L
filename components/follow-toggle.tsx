@@ -148,6 +148,21 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
           toast.error('Failed to create session. Please try again.')
           return false
         }
+
+        // Wait for cookie to be written (serverless-friendly)
+        await new Promise(resolve => setTimeout(resolve, 200))
+
+        // Verify session was created by checking follow status again
+        const verifyStatusResponse = await fetch(`/api/profile/${normalizedAddress}/follow-status?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
+          cache: 'no-store',
+          credentials: 'include',
+        })
+
+        // If still 401, session creation failed
+        if (verifyStatusResponse.status === 401) {
+          console.error('Session creation verification failed')
+          return false
+        }
       }
 
       return true
@@ -217,17 +232,35 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
             // Try to recreate session and retry once
             const retrySession = await ensureSession()
             if (retrySession) {
-              // Retry the follow request
-              const retryResponse = await fetch(`/api/profile/${normalizedAddress}/follow?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
-                method: 'POST',
+              // Wait for cookie to be written (serverless-friendly)
+              await new Promise(resolve => setTimeout(resolve, 200))
+              
+              // Verify session was created by checking follow status
+              const verifyResponse = await fetch(`/api/profile/${normalizedAddress}/follow-status?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
+                cache: 'no-store',
                 credentials: 'include',
               })
-              if (retryResponse.ok) {
-                const retryData = await retryResponse.json()
-                setFollowersCount(retryData.followersCount ?? followersCount)
-                setIsFollowing(retryData.isFollowing ?? true)
-                onFollowChange?.(retryData.isFollowing ?? true)
-                return
+              
+              if (verifyResponse.ok || verifyResponse.status === 401) {
+                // Session exists or will be created, retry the follow request
+                const retryResponse = await fetch(`/api/profile/${normalizedAddress}/follow?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
+                  method: 'POST',
+                  credentials: 'include',
+                })
+                if (retryResponse.ok) {
+                  const retryData = await retryResponse.json()
+                  setFollowersCount(retryData.followersCount ?? followersCount)
+                  setIsFollowing(retryData.isFollowing ?? true)
+                  onFollowChange?.(retryData.isFollowing ?? true)
+                  return
+                }
+                // If retry still fails, check if it's still a session error
+                if (retryResponse.status === 401 || retryResponse.status === 403) {
+                  toast.error('Session expired. Please reconnect your wallet.')
+                  setIsFollowing(false)
+                  setFollowersCount(previousFollowersCount)
+                  return
+                }
               }
             }
             toast.error('Session expired. Please reconnect your wallet.')
@@ -259,17 +292,35 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
             // Try to recreate session and retry once
             const retrySession = await ensureSession()
             if (retrySession) {
-              // Retry the unfollow request
-              const retryResponse = await fetch(`/api/profile/${normalizedAddress}/follow?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
-                method: 'DELETE',
+              // Wait for cookie to be written (serverless-friendly)
+              await new Promise(resolve => setTimeout(resolve, 200))
+              
+              // Verify session was created by checking follow status
+              const verifyResponse = await fetch(`/api/profile/${normalizedAddress}/follow-status?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
+                cache: 'no-store',
                 credentials: 'include',
               })
-              if (retryResponse.ok) {
-                const retryData = await retryResponse.json()
-                setFollowersCount(retryData.followersCount ?? Math.max(0, followersCount - 1))
-                setIsFollowing(retryData.isFollowing ?? false)
-                onFollowChange?.(retryData.isFollowing ?? false)
-                return
+              
+              if (verifyResponse.ok || verifyResponse.status === 401) {
+                // Session exists or will be created, retry the unfollow request
+                const retryResponse = await fetch(`/api/profile/${normalizedAddress}/follow?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
+                  method: 'DELETE',
+                  credentials: 'include',
+                })
+                if (retryResponse.ok) {
+                  const retryData = await retryResponse.json()
+                  setFollowersCount(retryData.followersCount ?? Math.max(0, followersCount - 1))
+                  setIsFollowing(retryData.isFollowing ?? false)
+                  onFollowChange?.(retryData.isFollowing ?? false)
+                  return
+                }
+                // If retry still fails, check if it's still a session error
+                if (retryResponse.status === 401 || retryResponse.status === 403) {
+                  toast.error('Session expired. Please reconnect your wallet.')
+                  setIsFollowing(previousState)
+                  setFollowersCount(previousFollowersCount)
+                  return
+                }
               }
             }
             toast.error('Session expired. Please reconnect your wallet.')
