@@ -228,15 +228,15 @@ export default async function AdminSystemPage() {
 
         <div>
           <h2 className="text-sm font-medium mb-4">Admin Activity / Audit Log</h2>
-          <div className="rounded-md border bg-card">
+          <div className="rounded-md border bg-card overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Time</TableHead>
-                  <TableHead>Admin</TableHead>
-                  <TableHead>Action</TableHead>
-                  <TableHead>Target</TableHead>
-                  <TableHead>Details</TableHead>
+                  <TableHead className="min-w-[120px]">Time</TableHead>
+                  <TableHead className="min-w-[100px] hidden sm:table-cell">Admin</TableHead>
+                  <TableHead className="min-w-[100px]">Action</TableHead>
+                  <TableHead className="min-w-[100px] hidden md:table-cell">Target</TableHead>
+                  <TableHead className="min-w-[150px] hidden lg:table-cell">Details</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -266,14 +266,17 @@ export default async function AdminSystemPage() {
                             hour: '2-digit',
                             minute: '2-digit',
                           })}
+                          <div className="sm:hidden mt-1 text-muted-foreground">
+                            {log.adminAddress.slice(0, 6)}...{log.adminAddress.slice(-4)}
+                          </div>
                         </TableCell>
-                        <TableCell className="font-mono text-xs">
+                        <TableCell className="font-mono text-xs hidden sm:table-cell">
                           {log.adminAddress.slice(0, 6)}...{log.adminAddress.slice(-4)}
                         </TableCell>
                         <TableCell>
                           <span className="text-xs font-medium">{log.action}</span>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden md:table-cell">
                           {log.targetType && log.targetId ? (
                             <span className="text-xs text-muted-foreground">
                               {log.targetType}: {log.targetId.slice(0, 8)}...
@@ -284,7 +287,7 @@ export default async function AdminSystemPage() {
                             <span className="text-xs text-muted-foreground">—</span>
                           )}
                         </TableCell>
-                        <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground">
+                        <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground hidden lg:table-cell">
                           {metadataObj.pathname ? (
                             <span title={metadataObj.pathname}>{metadataObj.pathname}</span>
                           ) : (

@@ -244,13 +244,14 @@ export default async function AdminAnalyticsPage() {
             {analytics.topViewed.length === 0 ? (
               <p className="text-xs text-muted-foreground">No profile view data yet.</p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Profile</TableHead>
-                    <TableHead>Views</TableHead>
-                  </TableRow>
-                </TableHeader>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[200px]">Profile</TableHead>
+                      <TableHead className="min-w-[80px] text-right">Views</TableHead>
+                    </TableRow>
+                  </TableHeader>
                 <TableBody>
                   {analytics.topViewed.map((row) => (
                     <TableRow key={row.address}>
@@ -267,7 +268,7 @@ export default async function AdminAnalyticsPage() {
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-right">
                         <span className="text-sm font-semibold">
                           {row.views.toLocaleString('en-US')}
                         </span>
@@ -276,6 +277,7 @@ export default async function AdminAnalyticsPage() {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -288,13 +290,14 @@ export default async function AdminAnalyticsPage() {
             {analytics.topClicked.length === 0 ? (
               <p className="text-xs text-muted-foreground">No link click data yet.</p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Link</TableHead>
-                    <TableHead>Clicks</TableHead>
-                  </TableRow>
-                </TableHeader>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[200px]">Link</TableHead>
+                      <TableHead className="min-w-[80px] text-right">Clicks</TableHead>
+                    </TableRow>
+                  </TableHeader>
                 <TableBody>
                   {analytics.topClicked.map((row, idx) => (
                     <TableRow key={row.linkId || `link-${idx}`}>
@@ -330,7 +333,7 @@ export default async function AdminAnalyticsPage() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-right">
                         <span className="text-sm font-semibold">
                           {row.clicks.toLocaleString('en-US')}
                         </span>
@@ -339,6 +342,7 @@ export default async function AdminAnalyticsPage() {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             )}
           </CardContent>
         </Card>

@@ -33,16 +33,16 @@ export default async function AdminContentPage() {
       subtitle="Recently added links across SOCI4L profiles."
       mode="constrained"
     >
-      <div className="rounded-md border bg-card">
+      <div className="rounded-md border bg-card overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Profile</TableHead>
-              <TableHead>Link Title</TableHead>
-              <TableHead>URL</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Enabled</TableHead>
-              <TableHead>Created At</TableHead>
+              <TableHead className="min-w-[150px]">Profile</TableHead>
+              <TableHead className="min-w-[120px] hidden sm:table-cell">Link Title</TableHead>
+              <TableHead className="min-w-[200px]">URL</TableHead>
+              <TableHead className="min-w-[100px] hidden md:table-cell">Category</TableHead>
+              <TableHead className="min-w-[80px] hidden sm:table-cell">Enabled</TableHead>
+              <TableHead className="min-w-[140px] hidden lg:table-cell">Created At</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -54,14 +54,21 @@ export default async function AdminContentPage() {
                       href={`/p/${link.profile.slug || link.profile.address}`}
                       className="text-sm font-medium hover:underline"
                     >
-                      {link.profile.displayName || link.profile.address}
+                      {link.profile.displayName || link.profile.address.slice(0, 10) + '...'}
                     </Link>
                     <span className="text-xs text-muted-foreground font-mono">
-                      {link.profile.address}
+                      {link.profile.address.slice(0, 10)}...
                     </span>
+                    <div className="sm:hidden mt-1">
+                      {link.title && (
+                        <div className="text-xs text-muted-foreground truncate">
+                          {link.title}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </TableCell>
-                <TableCell className="max-w-[180px] truncate">
+                <TableCell className="max-w-[180px] truncate hidden sm:table-cell">
                   {link.title || <span className="text-muted-foreground">Untitled</span>}
                 </TableCell>
                 <TableCell className="max-w-[260px] truncate font-mono text-xs">
@@ -69,21 +76,21 @@ export default async function AdminContentPage() {
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:underline"
+                    className="hover:underline break-all"
                   >
-                    {link.url}
+                    {link.url.length > 40 ? link.url.slice(0, 40) + '...' : link.url}
                   </a>
                 </TableCell>
-                <TableCell className="max-w-[140px] truncate">
+                <TableCell className="max-w-[140px] truncate hidden md:table-cell">
                   {link.category?.name || <span className="text-muted-foreground">—</span>}
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">
                   <span className="text-xs">
                     {link.enabled ? 'Yes' : 'No'}
                   </span>
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground">
-                  {link.createdAt.toISOString()}
+                <TableCell className="text-xs text-muted-foreground hidden lg:table-cell">
+                  {link.createdAt.toISOString().slice(0, 10)}
                 </TableCell>
               </TableRow>
             ))}

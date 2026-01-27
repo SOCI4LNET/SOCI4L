@@ -32,36 +32,41 @@ export default async function AdminSubscribersPage() {
       subtitle="Email addresses collected through SOCI4L."
       mode="constrained"
     >
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
         <p className="text-xs text-muted-foreground">
           Showing {subscribers.length} of {totalCount.toLocaleString('en-US')} subscribers
         </p>
-        <form action="/api/admin/export/subscribers" method="get">
-          <Button type="submit" variant="outline" size="sm" className="gap-2">
+        <form action="/api/admin/export/subscribers" method="get" className="w-full sm:w-auto">
+          <Button type="submit" variant="outline" size="sm" className="gap-2 w-full sm:w-auto">
             <Download className="h-3.5 w-3.5" />
             Export CSV
           </Button>
         </form>
       </div>
 
-      <div className="rounded-md border bg-card">
+      <div className="rounded-md border bg-card overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Email</TableHead>
-              <TableHead>Subscribed At</TableHead>
-              <TableHead>Last Updated</TableHead>
+              <TableHead className="min-w-[200px]">Email</TableHead>
+              <TableHead className="min-w-[140px] hidden sm:table-cell">Subscribed At</TableHead>
+              <TableHead className="min-w-[140px] hidden md:table-cell">Last Updated</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {subscribers.map((sub) => (
               <TableRow key={sub.id}>
-                <TableCell className="font-mono text-xs">{sub.email}</TableCell>
-                <TableCell className="text-xs text-muted-foreground">
-                  {sub.createdAt.toISOString()}
+                <TableCell className="font-mono text-xs break-all">
+                  {sub.email}
+                  <div className="sm:hidden mt-1 text-muted-foreground">
+                    {sub.createdAt.toISOString().slice(0, 10)}
+                  </div>
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground">
-                  {sub.updatedAt.toISOString()}
+                <TableCell className="text-xs text-muted-foreground hidden sm:table-cell">
+                  {sub.createdAt.toISOString().slice(0, 10)}
+                </TableCell>
+                <TableCell className="text-xs text-muted-foreground hidden md:table-cell">
+                  {sub.updatedAt.toISOString().slice(0, 10)}
                 </TableCell>
               </TableRow>
             ))}
