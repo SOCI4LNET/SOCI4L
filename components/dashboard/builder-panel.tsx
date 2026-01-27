@@ -1669,12 +1669,19 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
                 </DropdownMenu>
                 <Button
                   type="button"
-                  variant="default"
+                  variant="outline"
                   size="sm"
                   onClick={handleSaveLayout}
-                  disabled={saving || loading}
+                  disabled={saving || loading || !hasUnsavedChanges}
                 >
-                  Save layout
+                  {saving ? (
+                    <>
+                      <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Changes'
+                  )}
                 </Button>
               </div>
             </div>
