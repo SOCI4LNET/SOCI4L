@@ -79,14 +79,29 @@ export async function POST(request: NextRequest) {
     })
 
     if (!profile) {
-      // Create profile if it doesn't exist
-      profile = await prisma.profile.create({
-        data: {
-          address: normalizedAddress,
-          status: 'UNCLAIMED',
-          visibility: 'PUBLIC',
-        },
-      })
+      // Create profile if it doesn't exist (idempotent - handle race conditions)
+      try {
+        profile = await prisma.profile.create({
+          data: {
+            address: normalizedAddress,
+            status: 'UNCLAIMED',
+            visibility: 'PUBLIC',
+          },
+        })
+      } catch (error: any) {
+        // Handle unique constraint violation (race condition)
+        if (error.code === 'P2002') {
+          // Another request created it concurrently, fetch it
+          profile = await prisma.profile.findUnique({
+            where: { address: normalizedAddress },
+          })
+          if (!profile) {
+            throw error // Still doesn't exist, rethrow
+          }
+        } else {
+          throw error
+        }
+      }
     }
 
     // Ensure default category exists
@@ -98,17 +113,48 @@ export async function POST(request: NextRequest) {
     })
 
     if (!defaultCategory) {
-      defaultCategory = await prisma.linkCategory.create({
-        data: {
-          profileId: profile.id,
-          name: 'General',
-          slug: 'general',
-          description: null,
-          order: 0,
-          isVisible: true,
-          isDefault: true,
+      // Check again to handle race conditions
+      const checkDefault = await prisma.linkCategory.findUnique({
+        where: {
+          profileId_slug: {
+            profileId: profile.id,
+            slug: 'general',
+          },
         },
       })
+
+      if (!checkDefault) {
+        try {
+          defaultCategory = await prisma.linkCategory.create({
+            data: {
+              profileId: profile.id,
+              name: 'General',
+              slug: 'general',
+              description: null,
+              order: 0,
+              isVisible: true,
+              isDefault: true,
+            },
+          })
+        } catch (error: any) {
+          // Handle unique constraint violation (race condition)
+          if (error.code === 'P2002') {
+            // Another request created it, fetch it
+            defaultCategory = await prisma.linkCategory.findUnique({
+              where: {
+                profileId_slug: {
+                  profileId: profile.id,
+                  slug: 'general',
+                },
+              },
+            })
+          } else {
+            throw error
+          }
+        }
+      } else {
+        defaultCategory = checkDefault
+      }
     }
 
     // Validate links

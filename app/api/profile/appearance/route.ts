@@ -78,15 +78,30 @@ export async function POST(request: NextRequest) {
     })
 
     if (!profile) {
-      // Create profile if it doesn't exist
-      profile = await prisma.profile.create({
-        data: {
-          address: normalizedAddress,
-          status: 'UNCLAIMED',
-          visibility: 'PUBLIC',
-          appearanceConfig: JSON.stringify(normalizedAppearance),
-        },
-      })
+      // Create profile if it doesn't exist (idempotent - handle race conditions)
+      try {
+        profile = await prisma.profile.create({
+          data: {
+            address: normalizedAddress,
+            status: 'UNCLAIMED',
+            visibility: 'PUBLIC',
+            appearanceConfig: JSON.stringify(normalizedAppearance),
+          },
+        })
+      } catch (error: any) {
+        // Handle unique constraint violation (race condition)
+        if (error.code === 'P2002') {
+          // Another request created it concurrently, fetch it
+          profile = await prisma.profile.findUnique({
+            where: { address: normalizedAddress },
+          })
+          if (!profile) {
+            throw error // Still doesn't exist, rethrow
+          }
+        } else {
+          throw error
+        }
+      }
     } else {
       // Update existing profile
       profile = await prisma.profile.update({

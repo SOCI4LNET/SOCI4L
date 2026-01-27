@@ -186,8 +186,9 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
 
     setIsPending(true)
     const previousState = isFollowing
+    const previousFollowersCount = followersCount
 
-    // Optimistic update
+    // Optimistic update (for UI responsiveness)
     setIsFollowing(pressed)
     if (pressed) {
       setFollowersCount((prev) => prev + 1)
@@ -209,9 +210,11 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
         }
 
         const data = await response.json()
-        setFollowersCount(data.followersCount || followersCount + 1)
-        setIsFollowing(true)
-        onFollowChange?.(true)
+        // Use backend response to ensure accuracy (overrides optimistic update)
+        // Backend returns the actual current state, handling idempotent operations
+        setFollowersCount(data.followersCount ?? followersCount)
+        setIsFollowing(data.isFollowing ?? true)
+        onFollowChange?.(data.isFollowing ?? true)
       } else {
         // Unfollow
         const response = await fetch(`/api/profile/${normalizedAddress}/follow`, {
@@ -225,18 +228,15 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
         }
 
         const data = await response.json()
-        setFollowersCount(data.followersCount || Math.max(0, followersCount - 1))
-        setIsFollowing(false)
-        onFollowChange?.(false)
+        // Use backend response to ensure accuracy (overrides optimistic update)
+        setFollowersCount(data.followersCount ?? Math.max(0, followersCount - 1))
+        setIsFollowing(data.isFollowing ?? false)
+        onFollowChange?.(data.isFollowing ?? false)
       }
     } catch (error: any) {
-      // Rollback on error
+      // Rollback on error - restore previous state
       setIsFollowing(previousState)
-      if (pressed) {
-        setFollowersCount((prev) => Math.max(0, prev - 1))
-      } else {
-        setFollowersCount((prev) => prev + 1)
-      }
+      setFollowersCount(previousFollowersCount)
       toast.error('Action failed. Please try again.')
     } finally {
       setIsPending(false)

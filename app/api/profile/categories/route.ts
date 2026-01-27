@@ -96,14 +96,29 @@ export async function POST(request: NextRequest) {
     })
 
     if (!profile) {
-      // Create profile if it doesn't exist
-      profile = await prisma.profile.create({
-        data: {
-          address: normalizedAddress,
-          status: 'UNCLAIMED',
-          visibility: 'PUBLIC',
-        },
-      })
+      // Create profile if it doesn't exist (idempotent - handle race conditions)
+      try {
+        profile = await prisma.profile.create({
+          data: {
+            address: normalizedAddress,
+            status: 'UNCLAIMED',
+            visibility: 'PUBLIC',
+          },
+        })
+      } catch (error: any) {
+        // Handle unique constraint violation (race condition)
+        if (error.code === 'P2002') {
+          // Another request created it concurrently, fetch it
+          profile = await prisma.profile.findUnique({
+            where: { address: normalizedAddress },
+          })
+          if (!profile) {
+            throw error // Still doesn't exist, rethrow
+          }
+        } else {
+          throw error
+        }
+      }
     }
 
     // Validate categories
@@ -233,18 +248,52 @@ export async function POST(request: NextRequest) {
             },
           })
         } else {
-          // Create new
-          return prisma.linkCategory.create({
-            data: {
-              profileId: profile.id,
-              name: cat.name.trim(),
-              slug,
-              description: cat.description?.trim() || null,
-              order: cat.order !== undefined ? cat.order : index,
-              isVisible: cat.isVisible !== undefined ? cat.isVisible : true,
-              isDefault: cat.isDefault === true,
+          // Create new (idempotent - check if exists first)
+          // Double-check slug uniqueness to handle race conditions
+          const existingWithSlug = await prisma.linkCategory.findUnique({
+            where: {
+              profileId_slug: {
+                profileId: profile.id,
+                slug,
+              },
             },
           })
+
+          if (existingWithSlug) {
+            // Already exists, return existing
+            return existingWithSlug
+          }
+
+          try {
+            return await prisma.linkCategory.create({
+              data: {
+                profileId: profile.id,
+                name: cat.name.trim(),
+                slug,
+                description: cat.description?.trim() || null,
+                order: cat.order !== undefined ? cat.order : index,
+                isVisible: cat.isVisible !== undefined ? cat.isVisible : true,
+                isDefault: cat.isDefault === true,
+              },
+            })
+          } catch (error: any) {
+            // Handle unique constraint violation (race condition)
+            if (error.code === 'P2002') {
+              // Another request created it concurrently, fetch and return it
+              const concurrentCreated = await prisma.linkCategory.findUnique({
+                where: {
+                  profileId_slug: {
+                    profileId: profile.id,
+                    slug,
+                  },
+                },
+              })
+              if (concurrentCreated) {
+                return concurrentCreated
+              }
+            }
+            throw error
+          }
         }
       })
     )
@@ -258,17 +307,37 @@ export async function POST(request: NextRequest) {
     })
 
     if (!finalDefault) {
-      await prisma.linkCategory.create({
-        data: {
-          profileId: profile.id,
-          name: 'General',
-          slug: 'general',
-          description: null,
-          order: -1, // Before all others
-          isVisible: true,
-          isDefault: true,
+      // Check if default category exists (idempotent)
+      const checkDefault = await prisma.linkCategory.findUnique({
+        where: {
+          profileId_slug: {
+            profileId: profile.id,
+            slug: 'general',
+          },
         },
       })
+
+      if (!checkDefault) {
+        try {
+          await prisma.linkCategory.create({
+            data: {
+              profileId: profile.id,
+              name: 'General',
+              slug: 'general',
+              description: null,
+              order: -1, // Before all others
+              isVisible: true,
+              isDefault: true,
+            },
+          })
+        } catch (error: any) {
+          // Handle unique constraint violation (race condition)
+          if (error.code !== 'P2002') {
+            throw error
+          }
+          // Another request created it, that's fine
+        }
+      }
     }
 
     // Fetch all categories with link counts

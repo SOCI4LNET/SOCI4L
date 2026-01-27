@@ -107,22 +107,48 @@ export async function POST(
       )
     }
 
-    // Create follow relationship (idempotent - ignore if exists)
-    try {
-      await prisma.follow.create({
-        data: {
+    // Check if follow relationship already exists (idempotent operation)
+    const existingFollow = await prisma.follow.findUnique({
+      where: {
+        followerAddress_followingAddress: {
           followerAddress: normalizedFollower,
           followingAddress: normalizedAddress,
         },
-      })
-    } catch (error: any) {
-      // If unique constraint violation, follow already exists - that's fine
-      if (error.code !== 'P2002') {
-        throw error
+      },
+    })
+
+    // Only create if it doesn't exist
+    if (!existingFollow) {
+      try {
+        await prisma.follow.create({
+          data: {
+            followerAddress: normalizedFollower,
+            followingAddress: normalizedAddress,
+          },
+        })
+      } catch (error: any) {
+        // If unique constraint violation, another request created it concurrently
+        // That's fine, we'll return the current state
+        if (error.code !== 'P2002') {
+          throw error
+        }
+        // Double-check: fetch again to ensure we have the latest state
+        const doubleCheck = await prisma.follow.findUnique({
+          where: {
+            followerAddress_followingAddress: {
+              followerAddress: normalizedFollower,
+              followingAddress: normalizedAddress,
+            },
+          },
+        })
+        if (!doubleCheck) {
+          // Still doesn't exist after error, something went wrong
+          throw error
+        }
       }
     }
 
-    // Get updated followers count (instant consistency)
+    // Get updated followers count (always return current state)
     const followersCount = await prisma.follow.count({
       where: {
         followingAddress: normalizedAddress,
