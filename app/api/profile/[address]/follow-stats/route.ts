@@ -76,11 +76,11 @@ export async function GET(
     console.log('[Follow Stats API] Success:', { address: normalizedAddress, followersCount, followingCount, isFollowing })
     
     const response: {
-      followerCount: number
+      followersCount: number
       followingCount: number
       isFollowing?: boolean
     } = {
-      followerCount: followersCount,
+      followersCount: followersCount,
       followingCount: followingCount,
     }
 
