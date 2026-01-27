@@ -56,12 +56,17 @@ const SidebarProvider = React.forwardRef<
   const getInitialOpenState = React.useCallback(() => {
     if (typeof window === "undefined") return defaultOpen
     
-    // On desktop, check localStorage for persisted state
-    if (window.innerWidth >= SIDEBAR_MOBILE_BREAKPOINT) {
-      const persisted = localStorage.getItem(SIDEBAR_LOCALSTORAGE_KEY)
-      if (persisted !== null) {
-        return persisted === "false" // stored as string
+    try {
+      // On desktop, check localStorage for persisted state
+      if (window.innerWidth >= SIDEBAR_MOBILE_BREAKPOINT) {
+        const persisted = localStorage.getItem(SIDEBAR_LOCALSTORAGE_KEY)
+        if (persisted !== null) {
+          return persisted === "false" // stored as string
+        }
       }
+    } catch (error) {
+      // Silently fail if localStorage is not available (e.g., in SSR or private browsing)
+      console.warn('[Sidebar] Failed to access localStorage', error)
     }
     
     return defaultOpen
@@ -78,7 +83,12 @@ const SidebarProvider = React.forwardRef<
         
         // Persist to localStorage on desktop (only when collapsed)
         if (typeof window !== "undefined" && window.innerWidth >= SIDEBAR_MOBILE_BREAKPOINT) {
-          localStorage.setItem(SIDEBAR_LOCALSTORAGE_KEY, String(!newOpen))
+          try {
+            localStorage.setItem(SIDEBAR_LOCALSTORAGE_KEY, String(!newOpen))
+          } catch (error) {
+            // Silently fail if localStorage is not available
+            console.warn('[Sidebar] Failed to save to localStorage', error)
+          }
         }
       }
       onOpenChange?.(newOpen)
@@ -94,9 +104,14 @@ const SidebarProvider = React.forwardRef<
       
       // On desktop, restore persisted state
       if (!isMobileView && openProp === undefined) {
-        const persisted = localStorage.getItem(SIDEBAR_LOCALSTORAGE_KEY)
-        if (persisted !== null) {
-          setInternalOpen(persisted === "false")
+        try {
+          const persisted = localStorage.getItem(SIDEBAR_LOCALSTORAGE_KEY)
+          if (persisted !== null) {
+            setInternalOpen(persisted === "false")
+          }
+        } catch (error) {
+          // Silently fail if localStorage is not available
+          console.warn('[Sidebar] Failed to read from localStorage', error)
         }
       }
     }
