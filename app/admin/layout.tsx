@@ -19,22 +19,42 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [mounted, setMounted] = useState(false)
+  const [walletChecked, setWalletChecked] = useState(false)
   const loggedLoginRef = useRef(false)
   const lastPathnameRef = useRef<string | null>(null)
   
-  // Wagmi hooks - safe to call, but only use values after mount
-  const { address, isConnected } = useAccount()
+  // Wagmi hooks - safe to call, but only use values after mount and status check
+  const { address, isConnected, status } = useAccount()
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
+  // Wait for Wagmi to be ready before checking wallet connection
   useEffect(() => {
     if (!mounted) return
+    
+    // Wait for Wagmi status to be determined (not 'connecting' or 'reconnecting')
+    if (status === 'connecting' || status === 'reconnecting') {
+      return
+    }
+    
+    // Mark wallet as checked once status is determined
+    if (!walletChecked) {
+      setWalletChecked(true)
+    }
+  }, [mounted, status, walletChecked])
 
-    if (!isConnected || !address) {
-      toast.error('Connect your wallet to access admin')
-      router.push('/')
+  useEffect(() => {
+    if (!mounted || !walletChecked) return
+
+    // Only check after Wagmi has determined connection status
+    if (status !== 'connected' || !isConnected || !address) {
+      // Only show error if we've confirmed wallet is not connected (not during initial check)
+      if (status === 'disconnected') {
+        toast.error('Connect your wallet to access admin')
+        router.push('/')
+      }
       return
     }
 
@@ -107,9 +127,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     }
 
     lastPathnameRef.current = pathname
-  }, [mounted, isConnected, address, router, pathname])
+  }, [mounted, walletChecked, status, isConnected, address, router, pathname])
 
-  if (!mounted) {
+  // Show loading state while checking wallet connection
+  if (!mounted || !walletChecked) {
     return (
       <div className="flex min-h-svh w-full">
         <div className="flex flex-1 flex-col">
@@ -125,8 +146,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     )
   }
 
-  const normalizedAddress = address?.toLowerCase()
-  const isAdmin = isConnected && normalizedAddress && ADMIN_ADDRESSES.includes(normalizedAddress)
+  // Only render admin content if wallet is connected and user is authorized
+  if (status !== 'connected' || !isConnected || !address) {
+    return null
+  }
+
+  const normalizedAddress = address.toLowerCase()
+  const isAdmin = ADMIN_ADDRESSES.includes(normalizedAddress)
 
   if (!isAdmin) {
     return null
