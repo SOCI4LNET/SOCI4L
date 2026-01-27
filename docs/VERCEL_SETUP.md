@@ -18,7 +18,14 @@ Bu proje Vercel'de PostgreSQL kullanır. Development'ta SQLite kullanmak için �
 5. **DATABASE_URL environment variable'ını ayarlayın**:
    - Vercel Dashboard > Settings > Environment Variables
    - `DATABASE_URL` adında yeni bir variable ekleyin
-   - **Vercel Postgres kullanıyorsanız (ÖNERİLEN)**:
+   - **Prisma Postgres kullanıyorsanız (ÖNERİLEN)**:
+     - Storage sekmesinde oluşturduğunuz Prisma Postgres veritabanına gidin (`soci4l-db`)
+     - `.env.local` tab'ına gidin
+     - `PRISMA_DATABASE_URL` veya `POSTGRES_URL` değerini kopyalayın
+     - Bu değeri `DATABASE_URL` olarak Vercel environment variables'a ekleyin
+     - ⚠️ **NOT**: `db.prisma.io` içeren URL'ler Prisma Postgres için geçerlidir - bu normaldir!
+     - Detaylı adımlar için `docs/PRISMA_POSTGRES_SETUP.md` dosyasına bakın
+   - **Vercel Postgres (standart) kullanıyorsanız**:
      - Storage sekmesinde oluşturduğunuz Postgres veritabanına gidin
      - `.env.local` veya Connection String bölümünden `POSTGRES_PRISMA_URL` değerini kopyalayın
      - Bu değeri `DATABASE_URL` olarak ekleyin (connection pooling dahil)
@@ -28,7 +35,6 @@ Bu proje Vercel'de PostgreSQL kullanır. Development'ta SQLite kullanmak için �
        ```
        postgresql://user:password@host:5432/database?sslmode=require
        ```
-   - ⚠️ **ÖNEMLİ**: `db.prisma.io` veya placeholder değerler kullanmayın - bu hatalara neden olur!
 
 ### Development'ta SQLite Kullanımı (Opsiyonel)
 
