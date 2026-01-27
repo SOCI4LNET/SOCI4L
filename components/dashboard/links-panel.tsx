@@ -783,8 +783,8 @@ export function LinksPanel() {
       }
       const { nonce } = await nonceResponse.json()
 
-      // Step 2: Sign message
-      const message = `Update profile for ${targetAddress}. Nonce: ${nonce}`
+      // Step 2: Sign message (must match API's expected format)
+      const message = `Update social profile for ${targetAddress}. Nonce: ${nonce}`
       const signature = await signMessageAsync({ message })
 
       // Step 3: Update profile
