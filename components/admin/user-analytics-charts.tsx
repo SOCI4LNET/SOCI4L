@@ -85,7 +85,7 @@ export function UserAnalyticsCharts({
               <p className="text-xs text-muted-foreground mt-1">Last 30 days</p>
             </div>
           </div>
-          <div className="h-64">
+          <div className="h-64 min-h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={timeSeriesData}>
                 <CartesianGrid {...chartGridProps} />
@@ -119,7 +119,7 @@ export function UserAnalyticsCharts({
             <CardTitle>Score History</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-64">
+            <div className="h-64 min-h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={scoreHistory.map((point) => ({
@@ -185,40 +185,42 @@ export function UserAnalyticsCharts({
             <CardTitle>Top Clicked Links</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Link</TableHead>
-                  <TableHead>Clicks</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {topClickedLinks.map((link, idx) => (
-                  <TableRow key={link.linkId || `link-${idx}`}>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <div className="text-sm font-medium">{link.linkTitle}</div>
-                        {link.linkUrl && (
-                          <a
-                            href={link.linkUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-muted-foreground hover:underline truncate max-w-xs"
-                          >
-                            {link.linkUrl}
-                          </a>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm font-semibold">
-                        {link.clicks.toLocaleString('en-US')}
-                      </span>
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="min-w-[200px]">Link</TableHead>
+                    <TableHead className="min-w-[80px] text-right">Clicks</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {topClickedLinks.map((link, idx) => (
+                    <TableRow key={link.linkId || `link-${idx}`}>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <div className="text-sm font-medium">{link.linkTitle}</div>
+                          {link.linkUrl && (
+                            <a
+                              href={link.linkUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-muted-foreground hover:underline break-all"
+                            >
+                              {link.linkUrl.length > 50 ? link.linkUrl.slice(0, 50) + '...' : link.linkUrl}
+                            </a>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span className="text-sm font-semibold">
+                          {link.clicks.toLocaleString('en-US')}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       )}
