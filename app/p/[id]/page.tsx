@@ -677,7 +677,7 @@ export default function ProfilePage({ params }: PageProps) {
                               <TooltipTrigger asChild>
                                 <div 
                                   className={`
-                                    inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full cursor-help
+                                    inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full cursor-default
                                     text-xs font-semibold transition-all
                                     ${score.tier === 'legendary' 
                                       ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25' 
