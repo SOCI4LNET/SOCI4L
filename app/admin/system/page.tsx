@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { PageShell } from '@/components/app-shell/page-shell'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -5,6 +6,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableCaption,
   TableHead,
   TableHeader,
   TableRow,
@@ -13,7 +15,11 @@ import {
 // Force dynamic rendering since this page uses Prisma queries
 export const dynamic = 'force-dynamic'
 
-async function getSystemStats() {
+interface SearchParams {
+  page?: string
+}
+
+async function getSystemStats(searchParams: SearchParams) {
   const [
     profileCount,
     followCount,
@@ -68,11 +74,21 @@ async function getSystemStats() {
     }),
   ])
 
-  // Get recent admin audit logs (last 50)
-  const recentAuditLogs = await prisma.adminAuditLog.findMany({
-    orderBy: { createdAt: 'desc' },
-    take: 50,
-  })
+  // Get admin audit logs with pagination
+  const pageSize = 50
+  const page = Math.max(parseInt(searchParams.page || '1', 10), 1)
+  const skip = (page - 1) * pageSize
+  
+  const [auditLogs, totalAuditLogCount] = await Promise.all([
+    prisma.adminAuditLog.findMany({
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: pageSize,
+    }),
+    prisma.adminAuditLog.count(),
+  ])
+
+  const totalPages = Math.ceil(totalAuditLogCount / pageSize)
 
   return {
     profileCount,
@@ -90,12 +106,19 @@ async function getSystemStats() {
     recentAnalyticsEvents,
     recentScoreSnapshots,
     recentAdminAuditLogs,
-    auditLogs: recentAuditLogs,
+    auditLogs,
+    auditLogPage: page,
+    auditLogTotalPages: totalPages,
+    auditLogTotalCount: totalAuditLogCount,
   }
 }
 
-export default async function AdminSystemPage() {
-  const stats = await getSystemStats()
+export default async function AdminSystemPage({
+  searchParams,
+}: {
+  searchParams: SearchParams
+}) {
+  const stats = await getSystemStats(searchParams)
 
   return (
     <PageShell
@@ -324,6 +347,31 @@ export default async function AdminSystemPage() {
                   })
                 )}
               </TableBody>
+              <TableCaption className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-4 pb-4 border-t border-border/60 mt-4">
+                <span className="text-xs text-muted-foreground">
+                  Showing page {stats.auditLogPage} of {stats.auditLogTotalPages} • {stats.auditLogTotalCount.toLocaleString('en-US')} total logs
+                </span>
+                {stats.auditLogTotalPages > 1 && (
+                  <div className="flex items-center gap-3">
+                    {stats.auditLogPage > 1 && (
+                      <Link
+                        href={`/admin/system?page=${stats.auditLogPage - 1}`}
+                        className="text-xs text-primary hover:underline whitespace-nowrap transition-colors duration-150"
+                      >
+                        Previous
+                      </Link>
+                    )}
+                    {stats.auditLogPage < stats.auditLogTotalPages && (
+                      <Link
+                        href={`/admin/system?page=${stats.auditLogPage + 1}`}
+                        className="text-xs text-primary hover:underline whitespace-nowrap transition-colors duration-150"
+                      >
+                        Next
+                      </Link>
+                    )}
+                  </div>
+                )}
+              </TableCaption>
             </Table>
           </div>
         </div>
