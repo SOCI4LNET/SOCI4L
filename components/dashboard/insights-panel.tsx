@@ -198,6 +198,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
   const [profile, setProfile] = useState<{ slug?: string | null } | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
+  const [serverEvents, setServerEvents] = useState<AnalyticsEvent[] | null>(null)
 
   useEffect(() => {
     // Load categories from API (not localStorage)
@@ -286,6 +287,25 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
         }
       }
       loadProfile()
+
+      // Load analytics events from server (with fallback to localStorage)
+      const loadAnalytics = async () => {
+        try {
+          const response = await fetch(
+            `/api/analytics/profile/${encodeURIComponent(address)}`,
+          )
+          if (response.ok) {
+            const data = await response.json()
+            if (Array.isArray(data.events)) {
+              setServerEvents(data.events as AnalyticsEvent[])
+            }
+          }
+        } catch (error) {
+          console.error('[InsightsPanel] Failed to load analytics from API', error)
+          // Fallback is handled in useMemo via getEventsForProfile
+        }
+      }
+      loadAnalytics()
     } else {
       setLoading(false)
     }
@@ -308,7 +328,12 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
 
     // Normalize address to lowercase for consistent lookup
     const normalizedAddress = address.toLowerCase()
-    const allEvents = getEventsForProfile(normalizedAddress)
+
+    // Prefer server-side analytics if available, otherwise fall back to localStorage
+    const allEvents =
+      serverEvents && serverEvents.length > 0
+        ? serverEvents
+        : getEventsForProfile(normalizedAddress)
     console.log('[InsightsPanel] Analytics data', {
       address: normalizedAddress,
       totalEvents: allEvents.length,
@@ -569,7 +594,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
       recentActivityCount: result.recentActivity.length,
     })
     return result
-  }, [address, range, links, categories])
+  }, [address, range, links, categories, serverEvents])
 
   // Generate suggestions based on analytics and layout config
   const suggestions: Suggestion[] = useMemo(() => {

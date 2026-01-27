@@ -179,6 +179,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
   const profileId = params.address.toLowerCase()
   const linkId = params.linkId
   const [loading, setLoading] = useState(true)
+  const [serverEvents, setServerEvents] = useState<AnalyticsEvent[] | null>(null)
 
   useEffect(() => {
     const loadLink = async () => {
@@ -213,11 +214,36 @@ export default function LinkInsightsPage({ params }: PageProps) {
     }
 
     loadLink()
+
+    // Load analytics events from server (with fallback to localStorage)
+    const loadAnalytics = async () => {
+      try {
+        const response = await fetch(
+          `/api/analytics/profile/${encodeURIComponent(profileId)}`,
+        )
+        if (response.ok) {
+          const data = await response.json()
+          if (Array.isArray(data.events)) {
+            setServerEvents(data.events as AnalyticsEvent[])
+          }
+        }
+      } catch (error) {
+        console.error('[LinkDetail] Failed to load analytics from API', error)
+        // Fallback is handled in useMemo via getEventsForProfile
+      }
+    }
+
+    loadAnalytics()
   }, [linkId, profileId])
 
   const analytics = useMemo(() => {
     const now = Date.now()
-    const allEvents = getEventsForProfile(profileId)
+
+    // Prefer server-side analytics if available, otherwise fall back to localStorage
+    const allEvents =
+      serverEvents && serverEvents.length > 0
+        ? serverEvents
+        : getEventsForProfile(profileId)
 
     const fromTs =
       range === 'all'
@@ -292,7 +318,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
       buckets,
       maxBucketCount,
     }
-  }, [profileId, linkId, range])
+  }, [profileId, linkId, range, serverEvents])
 
   const handleCopyRedirect = async () => {
     const path = getRedirectPath(linkId)

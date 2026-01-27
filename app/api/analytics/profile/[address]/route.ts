@@ -1,0 +1,64 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { isValidAddress } from '@/lib/utils'
+
+export async function GET(
+  _request: NextRequest,
+  context: { params: { address: string } },
+) {
+  try {
+    const rawAddress = context.params.address
+    if (!rawAddress) {
+      return NextResponse.json(
+        { error: 'Missing address parameter' },
+        { status: 400 },
+      )
+    }
+
+    const decoded = decodeURIComponent(rawAddress)
+    const normalizedAddress = decoded.toLowerCase()
+
+    if (!isValidAddress(normalizedAddress)) {
+      return NextResponse.json(
+        { error: 'Invalid address' },
+        { status: 400 },
+      )
+    }
+
+    const events = await prisma.analyticsEvent.findMany({
+      where: {
+        profileId: normalizedAddress,
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    })
+
+    const mapped = events.map((event) => ({
+      type: event.type === 'link_click' ? 'link_click' as const : 'profile_view' as const,
+      profileId: event.profileId,
+      linkId: event.linkId ?? undefined,
+      linkTitle: event.linkTitle ?? undefined,
+      linkUrl: event.linkUrl ?? undefined,
+      categoryId: event.categoryId ?? undefined,
+      ts: event.createdAt.getTime(),
+      source:
+        event.source === 'profile' ||
+        event.source === 'qr' ||
+        event.source === 'copy'
+          ? (event.source as 'profile' | 'qr' | 'copy')
+          : ('unknown' as const),
+    }))
+
+    return NextResponse.json({
+      events: mapped,
+    })
+  } catch (error: any) {
+    console.error('[GET /api/analytics/profile/[address]] Unexpected error', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
+  }
+}
+
