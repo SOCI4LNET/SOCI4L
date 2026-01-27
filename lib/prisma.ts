@@ -8,17 +8,12 @@ export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-    // Connection pool settings for serverless environments (Vercel)
-    datasources: {
-      db: {
-        url: process.env.DATABASE_URL,
-      },
-    },
   })
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
-
-// Gracefully handle database connection errors
-prisma.$connect().catch((error) => {
-  console.error('[Prisma] Failed to connect to database:', error)
-})
+// Reuse Prisma client in both development and production (important for serverless)
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma
+} else {
+  // In production (Vercel), also cache the client to avoid creating multiple instances
+  globalForPrisma.prisma = prisma
+}
