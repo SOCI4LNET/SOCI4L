@@ -4,14 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && prisma db push --skip-generate && next build",
+    "build": "prisma generate && prisma migrate deploy && next build",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate deploy",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "db:dev:sqlite": "echo '⚠️  Development için SQLite kullanıyorsunuz. Schema PostgreSQL için ayarlı. Production deploy öncesi kontrol edin!'"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

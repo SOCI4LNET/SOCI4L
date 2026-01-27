@@ -80,6 +80,8 @@ pnpm dlx shadcn@latest add [component-name]
 echo 'DATABASE_URL="file:./dev.db"' > .env
 ```
 
+**⚠️ Önemli**: Development'ta SQLite kullanıyorsanız, schema PostgreSQL için ayarlıdır. Production (Vercel) deploy için PostgreSQL veritabanı gereklidir. Detaylar için `docs/VERCEL_SETUP.md` dosyasına bakın.
+
 Opsiyonel değişkenler:
 - `NEXT_PUBLIC_AVALANCHE_RPC`: Avalanche RPC endpoint (varsayılan: public RPC)
 - `OPENSEA_API_KEY`: **Önerilen** - OpenSea API v2 anahtarı (NFT'leri görüntülemek için)
