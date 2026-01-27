@@ -102,7 +102,7 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
       }
     } catch (error: any) {
       console.error('Error claiming profile:', error)
-      toast.error(error.message || 'An error occurred while claiming profile')
+      toast.error('Profil sahiplenme başarısız. Lütfen tekrar deneyin.')
     } finally {
       setIsSubmitting(false)
     }

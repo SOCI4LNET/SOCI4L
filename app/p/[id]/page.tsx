@@ -395,7 +395,7 @@ export default function ProfilePage({ params }: PageProps) {
       await navigator.clipboard.writeText(resolvedAddress)
       toast.success('Address copied')
     } catch {
-      toast.error('Copy failed')
+      toast.error('Kopyalanamadı')
     }
   }
 
@@ -408,7 +408,7 @@ export default function ProfilePage({ params }: PageProps) {
       await navigator.clipboard.writeText(profileUrl)
       toast.success('Profile link copied')
     } catch {
-      toast.error('Copy failed')
+      toast.error('Kopyalanamadı')
     }
   }
 

@@ -688,7 +688,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
 
   const handleShareInsights = async () => {
     if (!publicInsightsUrl) {
-      toast.error('Unable to generate share link')
+      toast.error('Paylaşım linki oluşturulamadı')
       return
     }
 
@@ -696,9 +696,9 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
 
     try {
       await navigator.clipboard.writeText(fullUrl)
-      toast.success('Insights link copied')
+      toast.success('Link kopyalandı')
     } catch (error) {
-      toast.error('Failed to copy link')
+      toast.error('Kopyalanamadı')
       console.error('[InsightsPanel] Failed to copy link', error)
     }
   }
@@ -789,7 +789,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                     size="sm"
                     onClick={async () => {
                       if (!address || !links.length) {
-                        toast.error('No address or links available')
+                        toast.error('Link bulunamadı')
                         return
                       }
                       const testLink = links[0]

@@ -323,7 +323,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
       await navigator.clipboard.writeText(hash)
       toast.success('Hash copied')
     } catch {
-      toast.error('Copy failed')
+      toast.error('Kopyalanamadı')
     }
   }
 
@@ -396,7 +396,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
       await navigator.clipboard.writeText(normalizedAddress)
       toast.success('Address copied')
     } catch {
-      toast.error('Copy failed')
+      toast.error('Kopyalanamadı')
     }
   }
 
@@ -408,7 +408,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
       await navigator.clipboard.writeText(profileUrl)
       toast.success('Profile link copied')
     } catch {
-      toast.error('Copy failed')
+      toast.error('Kopyalanamadı')
     }
   }
 

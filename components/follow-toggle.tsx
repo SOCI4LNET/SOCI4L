@@ -98,7 +98,7 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
           credentials: 'include',
         })
         if (!nonceResponse.ok) {
-          toast.error('Failed to get nonce')
+          toast.error('Bağlantı hazırlanamadı. Lütfen tekrar deneyin.')
           return false
         }
         const { nonce } = await nonceResponse.json()
@@ -111,9 +111,9 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
           signature = await signMessageAsync({ message })
         } catch (error: any) {
           if (error.code === 4001) {
-            toast.error('Signature rejected')
+            toast.error('İmza reddedildi')
           } else {
-            toast.error('Signature error')
+            toast.error('İmzalama sırasında bir hata oluştu')
           }
           return false
         }
@@ -128,7 +128,7 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
 
         if (!verifyResponse.ok) {
           const error = await verifyResponse.json()
-          toast.error(error.error || 'Failed to create session')
+          toast.error('Oturum oluşturulamadı. Lütfen tekrar deneyin.')
           return false
         }
       }
@@ -136,7 +136,7 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
       return true
     } catch (error) {
       console.error('Error ensuring session:', error)
-      toast.error('Session check failed')
+      toast.error('Oturum doğrulanamadı. Lütfen tekrar deneyin.')
       return false
     }
   }
@@ -163,7 +163,7 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
 
     // Prevent self-follow
     if (normalizedConnectedAddress === normalizedAddress) {
-      toast.error('You cannot follow yourself')
+      toast.error('Kendinizi takip edemezsiniz')
       return
     }
 
@@ -220,7 +220,7 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
       } else {
         setFollowersCount((prev) => prev + 1)
       }
-      toast.error(error.message || 'An error occurred')
+      toast.error('İşlem başarısız oldu. Lütfen tekrar deneyin.')
     } finally {
       setIsPending(false)
     }

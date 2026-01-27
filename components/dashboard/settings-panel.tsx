@@ -67,7 +67,7 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
       await navigator.clipboard.writeText(targetAddress)
       toast.success('Address copied')
     } catch (error) {
-      toast.error('Copy failed')
+      toast.error('Kopyalanamadı')
     }
   }
 
@@ -76,7 +76,7 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
       await navigator.clipboard.writeText(publicProfileUrl)
       toast.success('Profile link copied')
     } catch (error) {
-      toast.error('Copy failed')
+      toast.error('Kopyalanamadı')
     }
   }
 
@@ -118,7 +118,7 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
       toast.success('Saved')
     } catch (error: any) {
       console.error('Error updating slug:', error)
-      toast.error(error.message || 'Failed to update custom URL')
+      toast.error('Özel URL kaydedilemedi. Lütfen tekrar deneyin.')
     } finally {
       setSavingSlug(false)
     }
@@ -161,7 +161,7 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
       toast.success('Visibility updated')
     } catch (error: any) {
       console.error('Error updating visibility:', error)
-      toast.error(error.message || 'Failed to update visibility')
+      toast.error('Görünürlük ayarı kaydedilemedi. Lütfen tekrar deneyin.')
     } finally {
       setSavingVisibility(false)
     }

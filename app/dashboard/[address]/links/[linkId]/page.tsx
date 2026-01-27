@@ -303,7 +303,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
       await navigator.clipboard.writeText(url)
       toast.success('Redirect link copied')
     } catch {
-      toast.error('Copy failed')
+      toast.error('Kopyalanamadı')
     }
   }
 
@@ -363,7 +363,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
       toast.success(updated?.enabled ? 'Link enabled' : 'Link disabled')
     } catch (error) {
       console.error('[LinkDetail] Failed to toggle link enabled', error)
-      toast.error('Failed to update link')
+      toast.error('Link güncellenemedi')
     }
   }
 

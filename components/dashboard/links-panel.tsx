@@ -719,8 +719,7 @@ export function LinksPanel() {
         )
       } catch (error) {
         console.error('[LinksPanel] Failed to load links from API', error)
-        const errorMessage = error instanceof Error ? error.message : 'An error occurred while loading links'
-        toast.error(errorMessage)
+        toast.error('Linkler yüklenemedi. Lütfen sayfayı yenileyin.')
         // Set empty links array on error to prevent UI blocking
         setLinks([])
       } finally {
@@ -769,7 +768,7 @@ export function LinksPanel() {
   // Save social links
   const saveSocialLinks = async (linksToSave: SocialLink[]) => {
     if (!targetAddress) {
-      toast.error('Wallet address not found')
+      toast.error('Cüzdan bağlantısı bulunamadı')
       return false
     }
 
@@ -821,7 +820,7 @@ export function LinksPanel() {
       return true
     } catch (error) {
       console.error('[LinksPanel] Failed to save social links', error)
-      toast.error(error instanceof Error ? error.message : 'An error occurred while saving social links')
+      toast.error('Sosyal linkler kaydedilemedi. Lütfen tekrar deneyin.')
       return false
     } finally {
       setSocialLinksSaving(false)
@@ -830,7 +829,7 @@ export function LinksPanel() {
 
   const saveCategories = async (categoriesToSave: (Omit<LinkCategory, 'id' | 'createdAt' | 'updatedAt' | 'linkCount'> & { id?: string })[]) => {
     if (!targetAddress) {
-      toast.error('Wallet address not found')
+      toast.error('Cüzdan bağlantısı bulunamadı')
       return false
     }
 
@@ -883,7 +882,7 @@ export function LinksPanel() {
       return true
     } catch (error) {
       console.error('[LinksPanel] Failed to save categories', error)
-      toast.error(error instanceof Error ? error.message : 'An error occurred while saving categories')
+      toast.error('Kategoriler kaydedilemedi. Lütfen tekrar deneyin.')
       return false
     } finally {
       setCategoriesSaving(false)
@@ -892,7 +891,7 @@ export function LinksPanel() {
 
   const saveLinks = async (linksToSave: LinkItem[]) => {
     if (!targetAddress) {
-      toast.error('Wallet address not found')
+      toast.error('Cüzdan bağlantısı bulunamadı')
       return false
     }
 
@@ -943,7 +942,7 @@ export function LinksPanel() {
       return true
     } catch (error) {
       console.error('[LinksPanel] Failed to save links', error)
-      toast.error(error instanceof Error ? error.message : 'An error occurred while saving links')
+      toast.error('Linkler kaydedilemedi. Lütfen tekrar deneyin.')
       return false
     } finally {
       setSaving(false)
@@ -1099,7 +1098,7 @@ export function LinksPanel() {
       
       if (!success) {
         setCategories(previousCategories)
-        toast.error('Kategori sıralaması kaydedilemedi.')
+        toast.error('Kategori sıralanamadı')
       }
       return
     }
@@ -1129,7 +1128,7 @@ export function LinksPanel() {
       const success = await saveLinks(updated)
       if (!success) {
         setLinks(previousLinks)
-        toast.error('Link taşınamadı.')
+        toast.error('Link taşınamadı')
       }
       return
     }
@@ -1174,7 +1173,7 @@ export function LinksPanel() {
       const success = await saveLinks(updated)
       if (!success) {
         setLinks(previousLinks)
-        toast.error('Link taşınamadı.')
+        toast.error('Link taşınamadı')
       }
     } else {
       // Reordering within same category
@@ -1202,7 +1201,7 @@ export function LinksPanel() {
       // Rollback on failure
       if (!success) {
         setLinks(previousLinks)
-        toast.error('Failed to save link order. Reverting changes.')
+        toast.error('Link sıralanamadı')
       }
     }
   }
@@ -1259,7 +1258,7 @@ export function LinksPanel() {
     const trimmedUrl = formUrl.trim()
     const urlError = validateUrl(trimmedUrl)
     if (urlError) {
-      toast.error(urlError)
+      toast.error('Geçerli bir URL giriniz (http:// veya https:// ile başlamalı)')
       return
     }
 
@@ -1325,7 +1324,7 @@ export function LinksPanel() {
   const handleCategorySubmit = async () => {
     const trimmedName = categoryFormName.trim()
     if (!trimmedName) {
-      toast.error('Category name is required')
+      toast.error('Kategori adı gereklidir')
       return
     }
 
@@ -1381,7 +1380,7 @@ export function LinksPanel() {
   const handleDeleteCategory = async (id: string) => {
     const category = categories.find(cat => cat.id === id)
     if (category?.isDefault) {
-      toast.error('Default category cannot be deleted')
+      toast.error('Varsayılan kategori silinemez')
       return
     }
 
@@ -1472,12 +1471,12 @@ export function LinksPanel() {
 
   const handleSaveSocialLink = async () => {
     if (!newSocialUrl.trim()) {
-      toast.error('URL is required')
+      toast.error('URL gereklidir')
       return
     }
 
     if (!newSocialUrl.startsWith('http://') && !newSocialUrl.startsWith('https://')) {
-      toast.error('URL must start with http:// or https://')
+      toast.error('URL http:// veya https:// ile başlamalıdır')
       return
     }
 
@@ -1492,7 +1491,7 @@ export function LinksPanel() {
     } else {
       // Check if platform already exists
       if (socialLinks.some(link => link.platform === newSocialPlatform)) {
-        toast.error(`${getSocialLabel(newSocialPlatform)} is already added`)
+        toast.error(`${getSocialLabel(newSocialPlatform)} zaten ekli`)
         return
       }
       

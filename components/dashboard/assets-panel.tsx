@@ -426,7 +426,7 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
       await navigator.clipboard.writeText(address)
       toast.success('Address copied')
     } catch {
-      toast.error('Copy failed')
+      toast.error('Kopyalanamadı')
     }
   }
 
@@ -437,7 +437,7 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
       await navigator.clipboard.writeText(url)
       toast.success('Link copied')
     } catch {
-      toast.error('Copy failed')
+      toast.error('Kopyalanamadı')
     }
   }
 
@@ -454,21 +454,21 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
         const result = await refetchTokens()
         if (result.data && !result.error) {
           setTokensLastUpdatedAt(Date.now())
-          toast.success('Tokens refreshed')
+          toast.success('Token\'lar yenilendi')
         } else if (result.error) {
-          toast.error('Failed to refresh tokens')
+          toast.error('Token\'lar yenilenemedi')
         }
       } else {
         const result = await refetchNFTs()
         if (result.data && !result.error) {
           setNftsLastUpdatedAt(Date.now())
-          toast.success('NFTs refreshed')
+          toast.success('NFT\'ler yenilendi')
         } else if (result.error) {
-          toast.error('Failed to refresh NFTs')
+          toast.error('NFT\'ler yenilenemedi')
         }
       }
     } catch (error) {
-      toast.error('Failed to refresh assets')
+      toast.error('Varlıklar yenilenemedi')
     }
   }
 

@@ -65,12 +65,12 @@ export default function Footer15({ className }: Footer15Props = {}) {
     e.preventDefault()
     
     if (!email.trim()) {
-      toast.error('Please enter an email address')
+      toast.error('Lütfen e-posta adresinizi girin')
       return
     }
 
     if (!validateEmail(email)) {
-      toast.error('Please enter a valid email address')
+      toast.error('Geçerli bir e-posta adresi girin')
       return
     }
 
