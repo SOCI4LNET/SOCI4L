@@ -45,17 +45,26 @@ export async function GET(
       (profile.claimedAt || profile.displayName || profile.slug || profile.status === 'CLAIMED')
     )
 
-    // Get wallet data with fallback
+    // Get wallet data with fallback and timeout
     let walletData = null
     let balance = '0'
     let transactionCount = 0
 
     try {
-      walletData = await getWalletData(normalizedAddress)
-      balance = walletData.nativeBalance || '0'
-      transactionCount = walletData.txCount ?? 0
+      // Add timeout to prevent hanging (8 seconds)
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Wallet data fetch timeout')), 8000)
+      )
+      
+      walletData = await Promise.race([
+        getWalletData(normalizedAddress),
+        timeoutPromise,
+      ]) as any
+      
+      balance = walletData?.nativeBalance || '0'
+      transactionCount = walletData?.txCount ?? 0
     } catch (walletError) {
-      console.error('Error fetching wallet data:', walletError)
+      console.error('[Wallet Summary API] Error fetching wallet data:', walletError)
       // Fallback: return 200 but with default values
       // For test compatibility, balance and transactionCount must be guaranteed
     }
