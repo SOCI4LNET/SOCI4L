@@ -33,6 +33,7 @@ export default function LinkTrackPage() {
     const url = searchParams.get('url')
     const profileId = searchParams.get('profileId')
     const categoryId = searchParams.get('categoryId')
+    const linkTitle = searchParams.get('title')
     const sourceParam = searchParams.get('source') || 'unknown'
 
     if (!url || !profileId || !linkId) {
@@ -60,6 +61,7 @@ export default function LinkTrackPage() {
       profileId,
       linkId,
       categoryId,
+      linkTitle,
       source,
       url,
     })
@@ -68,7 +70,9 @@ export default function LinkTrackPage() {
       profileId,
       linkId,
       source,
-      categoryId || null
+      categoryId || null,
+      linkTitle || undefined,
+      url
     )
 
     // Immediately redirect to the actual URL

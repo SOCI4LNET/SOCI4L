@@ -28,6 +28,8 @@ export type AnalyticsEvent =
       type: 'link_click'
       profileId: string
       linkId: string
+      linkTitle?: string // Stored at event time for persistence
+      linkUrl?: string   // Stored at event time for persistence
       categoryId?: string | null
       ts: number
       source: AnalyticsSource
@@ -176,7 +178,9 @@ export function trackLinkClick(
   profileId: string,
   linkId: string,
   source: AnalyticsSource = 'unknown',
-  categoryId?: string | null
+  categoryId?: string | null,
+  linkTitle?: string,
+  linkUrl?: string
 ): void {
   if (!profileId || !linkId) return
 
@@ -187,12 +191,14 @@ export function trackLinkClick(
     type: 'link_click',
     profileId: normalizedProfileId,
     linkId,
+    linkTitle: linkTitle || undefined,
+    linkUrl: linkUrl || undefined,
     categoryId: categoryId || null,
     ts: Date.now(),
     source,
   }
 
-  console.log('[analytics] trackLinkClick', { profileId: normalizedProfileId, linkId, source, categoryId, ts: event.ts })
+  console.log('[analytics] trackLinkClick', { profileId: normalizedProfileId, linkId, linkTitle, source, categoryId, ts: event.ts })
   writeEvent(event)
 }
 

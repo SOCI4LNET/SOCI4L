@@ -383,23 +383,38 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
       linkClickCounts.set(event.linkId, count + 1)
     }
 
+    // Build a map of linkId -> best known title/url from events
+    const linkInfoFromEvents = new Map<string, { title?: string; url?: string }>()
+    for (const event of linkClickEventsInRange) {
+      if (!linkInfoFromEvents.has(event.linkId)) {
+        linkInfoFromEvents.set(event.linkId, {
+          title: event.linkTitle,
+          url: event.linkUrl,
+        })
+      }
+    }
+
     const topLinks: TopLinkRow[] = Array.from(linkClickCounts.entries())
       .map(([linkId, clicks]) => {
         const link = linkById.get(linkId)
-        if (!link) return null
+        const eventInfo = linkInfoFromEvents.get(linkId)
+        
+        // Use current link data if available, otherwise fall back to event data
+        const title = link?.title || eventInfo?.title || link?.url || eventInfo?.url || 'Untitled link'
+        const url = link?.url || eventInfo?.url || ''
 
-        const categoryId = link.categoryId
+        const categoryId = link?.categoryId
         const category = categoryId ? categoryById.get(categoryId) : null
 
         return {
           id: linkId,
-          title: link.title || link.url || 'Untitled link',
-          url: link.url,
+          title,
+          url,
           categoryName: category?.name || null,
           clicks,
         }
       })
-      .filter((row): row is TopLinkRow => row !== null)
+      .filter((row): row is TopLinkRow => row !== null && row.url !== '')
       .sort((a, b) => b.clicks - a.clicks)
       .slice(0, 10) // Top 10
 
@@ -414,10 +429,12 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
     const recentActivity: RecentActivity[] = allEventsInRange.map((event) => {
       if (event.type === 'link_click') {
         const link = linkById.get(event.linkId)
+        // Priority: 1) Event's stored title 2) Current link title 3) Event's stored URL 4) Current link URL 5) Fallback
+        const displayTitle = event.linkTitle || link?.title || event.linkUrl || link?.url || 'Untitled link'
         return {
           type: 'link_click' as const,
           timestamp: event.ts,
-          linkTitle: link?.title || link?.url || 'Untitled link',
+          linkTitle: displayTitle,
           linkId: event.linkId,
         }
       } else {
@@ -516,7 +533,8 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
 
         if (topLinkId) {
           const link = linkById.get(topLinkId)
-          topLinkLabel = link?.title || link?.url || 'Untitled link'
+          const eventInfo = linkInfoFromEvents.get(topLinkId)
+          topLinkLabel = link?.title || eventInfo?.title || link?.url || eventInfo?.url || 'Untitled link'
         }
       }
 
@@ -774,9 +792,16 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                         toast.error('No address or links available')
                         return
                       }
-                      const testLinkId = links[0].id
+                      const testLink = links[0]
                       const { trackLinkClick } = await import('@/lib/analytics')
-                      trackLinkClick(address.toLowerCase(), testLinkId, 'unknown', null)
+                      trackLinkClick(
+                        address.toLowerCase(),
+                        testLink.id,
+                        'unknown',
+                        testLink.categoryId || null,
+                        testLink.title || undefined,
+                        testLink.url
+                      )
                       toast.success('Test click event recorded. Refresh to see changes.')
                     }}
                     className="flex items-center gap-2"

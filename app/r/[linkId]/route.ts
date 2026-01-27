@@ -84,6 +84,10 @@ export async function GET(
     if (categoryId) {
       trackingUrl.searchParams.set('categoryId', categoryId)
     }
+    // Include link title for analytics persistence
+    if (link.title) {
+      trackingUrl.searchParams.set('title', link.title)
+    }
     trackingUrl.searchParams.set('source', source)
 
     return NextResponse.redirect(trackingUrl.toString())
