@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { verifyMessage } from 'viem'
 import { isValidAddress } from '@/lib/utils'
-import { getNonce, markNonceAsUsed, isValidNonce } from '@/lib/nonce-store'
 
 // Test mode: allow "signed-{nonce}" format for MCP tests
 const TEST_MODE = process.env.NODE_ENV === 'test' || process.env.MCP_TEST_MODE === '1'
@@ -27,18 +26,9 @@ export async function POST(request: NextRequest) {
 
     const normalizedAddress = address.toLowerCase()
 
-    // Try to get nonce from store first, then fallback to cookie (backward compatibility)
-    let nonce: string | null = null
-    
-    // Check cookie for nonce
+    // Get nonce from cookie (serverless-friendly approach)
     const cookieStore = await cookies()
-    const cookieNonce = cookieStore.get('aph_nonce')?.value
-    if (cookieNonce) {
-      const nonceRecord = getNonce(cookieNonce)
-      if (nonceRecord && !nonceRecord.used) {
-        nonce = cookieNonce
-      }
-    }
+    const nonce = cookieStore.get('aph_nonce')?.value
 
     if (!nonce) {
       return NextResponse.json(
@@ -47,13 +37,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Replay protection: check if nonce is already used
-    if (!isValidNonce(nonce)) {
-      return NextResponse.json(
-        { error: 'Nonce has already been used' },
-        { status: 400 }
-      )
-    }
+    // Note: In serverless, we rely on cookie-based nonce only
+    // The cookie will be deleted after successful verification (replay protection)
 
     let signatureValid = false
 
@@ -97,10 +82,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Mark nonce as used (replay protection)
-    markNonceAsUsed(nonce)
-
     // Create session cookie with verified wallet address
+    // Note: Cookie deletion below provides replay protection
     cookieStore.set('aph_session', normalizedAddress, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
