@@ -22,7 +22,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const [walletChecked, setWalletChecked] = useState(false)
   const loggedLoginRef = useRef(false)
   const lastPathnameRef = useRef<string | null>(null)
-  
+
   // Wagmi hooks - safe to call, but only use values after mount and status check
   const { address, isConnected, status } = useAccount()
 
@@ -33,12 +33,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   // Wait for Wagmi to be ready before checking wallet connection
   useEffect(() => {
     if (!mounted) return
-    
+
     // Wait for Wagmi status to be determined (not 'connecting' or 'reconnecting')
     if (status === 'connecting' || status === 'reconnecting') {
       return
     }
-    
+
     // Mark wallet as checked once status is determined
     if (!walletChecked) {
       setWalletChecked(true)
@@ -88,23 +88,23 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       let targetType: string | undefined = 'system'
       let targetId: string | undefined = undefined
 
-      if (pathname === '/admin') {
+      if (pathname === '/master-console') {
         action = 'view_overview'
         targetType = 'analytics'
-      } else if (pathname === '/admin/users') {
+      } else if (pathname === '/master-console/users') {
         action = 'view_users'
         targetType = 'system'
-      } else if (pathname.startsWith('/admin/users/')) {
+      } else if (pathname.startsWith('/master-console/users/')) {
         action = 'view_user'
         targetType = 'profile'
-        const match = pathname.match(/\/admin\/users\/(.+)$/)
+        const match = pathname.match(/\/master-console\/users\/(.+)$/)
         if (match) {
           targetId = decodeURIComponent(match[1]).toLowerCase()
         }
-      } else if (pathname === '/admin/analytics') {
+      } else if (pathname === '/master-console/analytics') {
         action = 'view_analytics'
         targetType = 'analytics'
-      } else if (pathname === '/admin/system') {
+      } else if (pathname === '/master-console/system') {
         action = 'view_system'
         targetType = 'system'
       }

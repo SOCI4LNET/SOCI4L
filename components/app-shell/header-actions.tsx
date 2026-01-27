@@ -28,7 +28,7 @@ export function HeaderActions() {
   const [imageError, setImageError] = useState(false)
   const [profile, setProfile] = useState<{ slug?: string | null; displayName?: string | null } | null>(null)
   const [qrModalOpen, setQrModalOpen] = useState(false)
-  
+
   // Wagmi hooks - will be safe once component mounts (client-side only)
   // These hooks internally check for browser APIs, but we guard usage with mounted state
   const { address: connectedAddress, isConnected } = useAccount()
@@ -55,7 +55,7 @@ export function HeaderActions() {
           cache: 'no-store',
         })
         const data = await response.json()
-        
+
         if (data.profile) {
           setProfile({
             slug: data.profile.slug,
@@ -76,32 +76,32 @@ export function HeaderActions() {
   // Handle wallet not connected - show Connect Wallet button
   if (!mounted || !isConnected || !connectedAddress) {
     return (
-      <WalletConnectButtons 
-        variant="default" 
-        size="sm" 
+      <WalletConnectButtons
+        variant="default"
+        size="sm"
         className="bg-accent-primary text-black hover:bg-accent-primary/90"
       />
     )
   }
 
   const normalizedConnectedAddress = connectedAddress.toLowerCase()
-  
+
   // Dashboard href ALWAYS uses connected wallet (never current profile) - fixes routing bug
   const dashboardHref = getConnectedDashboardHref(connectedAddress)
-  
+
   // Public profile href uses connected wallet (for avatar dropdown context)
   const publicProfileHref = normalizedConnectedAddress ? getPublicProfileHref(normalizedConnectedAddress, profile?.slug) : null
-  
+
   // Generate avatar URL using effigy.im
   const avatarUrl = `https://effigy.im/a/${normalizedConnectedAddress}.svg`
-  
+
   // Get first 2-3 characters for fallback
   const fallbackText = connectedAddress.slice(2, 5).toUpperCase()
 
   const handleCopyAddress = async () => {
     // Always copy connected wallet address (for avatar dropdown context)
     if (!connectedAddress) return
-    
+
     try {
       await navigator.clipboard.writeText(connectedAddress)
       toast.success('Address copied')
@@ -219,8 +219,8 @@ export function HeaderActions() {
             <Button variant="ghost" size="icon" className="h-8 w-8 min-h-8 min-w-8 rounded-full shrink-0">
               <Avatar className="h-8 w-8 min-h-8 min-w-8 shrink-0">
                 {!imageError && (
-                  <AvatarImage 
-                    src={avatarUrl} 
+                  <AvatarImage
+                    src={avatarUrl}
                     alt={formatAddress(connectedAddress)}
                     onError={() => setImageError(true)}
                   />
@@ -243,38 +243,41 @@ export function HeaderActions() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            
-            {/* My Account Section */}
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuItem onClick={handleDashboard}>
-                <LayoutDashboard className="mr-2 h-4 w-4" />
-                <span>Dashboard</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handlePublicProfile} disabled={!publicProfileHref}>
-                <User className="mr-2 h-4 w-4" />
-                <span>Public Profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleBuilder}>
-                <Sparkles className="mr-2 h-4 w-4" />
-                <span>Builder</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleLinks}>
-                <Link2 className="mr-2 h-4 w-4" />
-                <span>Links</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleInsights}>
-                <BarChart2 className="mr-2 h-4 w-4" />
-                <span>Insights</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleSettings}>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            
-            <DropdownMenuSeparator />
-            
+
+            {/* My Account Section - Hide in Admin Console */}
+            {!pathname?.startsWith('/master-console') && (
+              <>
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={handleDashboard}>
+                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    <span>Dashboard</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handlePublicProfile} disabled={!publicProfileHref}>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Public Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleBuilder}>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    <span>Builder</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLinks}>
+                    <Link2 className="mr-2 h-4 w-4" />
+                    <span>Links</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleInsights}>
+                    <BarChart2 className="mr-2 h-4 w-4" />
+                    <span>Insights</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleSettings}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+              </>
+            )}
+
             {/* Actions Section */}
             <DropdownMenuGroup>
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
@@ -291,9 +294,9 @@ export function HeaderActions() {
                 <span>QR Code</span>
               </DropdownMenuItem>
             </DropdownMenuGroup>
-            
+
             <DropdownMenuSeparator />
-            
+
             {/* Disconnect Section */}
             <DropdownMenuItem onClick={handleDisconnect} className="text-destructive focus:text-destructive">
               <LogOut className="mr-2 h-4 w-4" />

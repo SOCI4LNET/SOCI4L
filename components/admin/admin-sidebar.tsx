@@ -26,13 +26,13 @@ import {
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 
 const adminNav = [
-  { label: 'Overview', icon: LayoutDashboard, href: '/admin' },
-  { label: 'Users', icon: Users, href: '/admin/users' },
-  { label: 'Analytics', icon: BarChart3, href: '/admin/analytics' },
-  { label: 'Content', icon: FileText, href: '/admin/content' },
-  { label: 'Subscribers', icon: Mail, href: '/admin/subscribers' },
-  { label: 'System', icon: Server, href: '/admin/system' },
-  { label: 'Settings', icon: Settings, href: '/admin/settings' },
+  { label: 'Overview', icon: LayoutDashboard, href: '/master-console' },
+  { label: 'Users', icon: Users, href: '/master-console/users' },
+  { label: 'Analytics', icon: BarChart3, href: '/master-console/analytics' },
+  { label: 'Content', icon: FileText, href: '/master-console/content' },
+  { label: 'Subscribers', icon: Mail, href: '/master-console/subscribers' },
+  { label: 'System', icon: Server, href: '/master-console/system' },
+  { label: 'Settings', icon: Settings, href: '/master-console/settings' },
 ]
 
 export function AdminSidebar({
@@ -44,7 +44,7 @@ export function AdminSidebar({
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <Link
-          href="/admin"
+          href="/master-console"
           className="flex items-center justify-center w-full px-2 hover:opacity-80 transition-opacity"
         >
           <Soci4LLogo variant="combination" width={100} height={19} />
@@ -58,7 +58,7 @@ export function AdminSidebar({
                 const Icon = item.icon
                 const isActive =
                   pathname === item.href ||
-                  (item.href !== '/admin' && pathname.startsWith(item.href))
+                  (item.href !== '/master-console' && pathname.startsWith(item.href))
 
                 return (
                   <SidebarMenuItem key={item.href}>

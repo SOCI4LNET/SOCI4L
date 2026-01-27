@@ -19,6 +19,8 @@ model Profile {
   status       String   @default("UNCLAIMED") // UNCLAIMED | CLAIMED
   visibility   String   @default("PUBLIC")   // PUBLIC | PRIVATE
   isPublic     Boolean  @default(false)       // kept for backward compatibility
+  isBanned     Boolean  @default(false)
+  role         String   @default("USER")      // USER | ADMIN
   claimedAt    DateTime?
   displayName      String?  // max 32 characters
   bio              String?  // max 160 characters
@@ -31,11 +33,26 @@ model Profile {
   showcase ShowcaseItem[]
   links    ProfileLink[]
   categories LinkCategory[]
+  activityLogs UserActivityLog[]
 
   @@index([address])
   @@index([slug])
   @@index([owner])
   @@index([ownerAddress])
+  @@index([isBanned])
+}
+
+model UserActivityLog {
+  id        String   @id @default(cuid())
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  action    String   // 'login' | 'update_profile' | 'ban' | 'unban' | ...
+  metadata  String?  // JSON additional context
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([profileId])
+  @@index([createdAt])
 }
 
 model ShowcaseItem {

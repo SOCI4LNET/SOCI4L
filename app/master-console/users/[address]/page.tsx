@@ -5,6 +5,8 @@ import { calculateScore, getScoreTier } from '@/lib/score'
 import { UserAnalyticsCharts } from '@/components/admin/user-analytics-charts'
 import { getScoreHistory } from '@/lib/score-snapshot'
 import { getWalletData } from '@/lib/avalanche'
+import { AdminUserActions } from '@/components/admin/admin-user-actions'
+import { AdminUserLogs } from '@/components/admin/admin-user-logs'
 
 // Force dynamic rendering since this page uses Prisma queries and dynamic params
 export const dynamic = 'force-dynamic'
@@ -25,6 +27,10 @@ async function getUserData(rawAddress: string) {
       links: {
         where: { enabled: true },
       },
+      activityLogs: {
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+      }
     },
   })
 
@@ -54,10 +60,10 @@ async function getUserData(rawAddress: string) {
   const scoreInput = {
     isClaimed: Boolean(
       profile &&
-        (profile.claimedAt ||
-          profile.displayName ||
-          profile.slug ||
-          profile.status === 'CLAIMED'),
+      (profile.claimedAt ||
+        profile.displayName ||
+        profile.slug ||
+        profile.status === 'CLAIMED'),
     ),
     displayName: profile?.displayName || null,
     bio: profile?.bio || null,
@@ -154,17 +160,17 @@ async function getUserData(rawAddress: string) {
 
   try {
     // Add timeout to prevent hanging (8 seconds)
-    const timeoutPromise = new Promise((_, reject) => 
+    const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('Wallet data fetch timeout')), 8000)
     )
-    
+
     const walletData = await Promise.race([
       getWalletData(normalizedAddress),
       timeoutPromise,
     ]) as any
 
     const isClaimed = Boolean(
-      profile && 
+      profile &&
       (profile.claimedAt || profile.displayName || profile.slug || profile.status === 'CLAIMED')
     )
 
@@ -184,7 +190,7 @@ async function getUserData(rawAddress: string) {
     }
     // Set default values on error
     const isClaimed = Boolean(
-      profile && 
+      profile &&
       (profile.claimedAt || profile.displayName || profile.slug || profile.status === 'CLAIMED')
     )
     walletSummary = {
@@ -236,6 +242,15 @@ export default async function AdminUserDetailPage({ params }: AdminUserPageProps
       subtitle="Admin view of a single SOCI4L profile."
       mode="constrained"
     >
+      <div className="flex items-center justify-end mb-6">
+        <AdminUserActions
+          address={data.address}
+          isBanned={data.profile?.isBanned || false}
+          currentBio={data.profile?.bio}
+          currentDisplayName={data.profile?.displayName}
+        />
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-8">
         <Card className="transition-all duration-200 hover:shadow-md hover:border-border/80">
           <CardHeader className="pb-3">
@@ -261,6 +276,11 @@ export default async function AdminUserDetailPage({ params }: AdminUserPageProps
               <span className="inline-flex items-center rounded-full bg-muted/80 px-2.5 py-1 text-xs font-medium">
                 {data.profile?.visibility === 'PRIVATE' ? 'Private' : 'Public'}
               </span>
+              {data.profile?.isBanned && (
+                <span className="inline-flex items-center rounded-full bg-destructive/10 text-destructive px-2.5 py-1 text-xs font-medium border border-destructive/20">
+                  BANNED
+                </span>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -371,13 +391,26 @@ export default async function AdminUserDetailPage({ params }: AdminUserPageProps
         </div>
       )}
 
-      <UserAnalyticsCharts
-        timeSeriesData={data.analytics.timeSeriesData}
-        totalProfileViews={data.analytics.totalProfileViews}
-        totalLinkClicks={data.analytics.totalLinkClicks}
-        topClickedLinks={data.analytics.topClickedLinks}
-        scoreHistory={data.scoreHistory}
-      />
+      <div className="grid gap-8 mb-8">
+        <UserAnalyticsCharts
+          timeSeriesData={data.analytics.timeSeriesData}
+          totalProfileViews={data.analytics.totalProfileViews}
+          totalLinkClicks={data.analytics.totalLinkClicks}
+          topClickedLinks={data.analytics.topClickedLinks}
+          scoreHistory={data.scoreHistory}
+        />
+
+        {data.profile?.activityLogs && (
+          <AdminUserLogs
+            logs={data.profile.activityLogs.map(log => ({
+              id: log.id,
+              action: log.action,
+              metadata: log.metadata,
+              createdAt: log.createdAt
+            }))}
+          />
+        )}
+      </div>
     </PageShell>
   )
 }
