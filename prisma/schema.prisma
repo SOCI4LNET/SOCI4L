@@ -148,3 +148,18 @@ model ScoreSnapshot {
   @@index([profileId])
   @@index([profileId, createdAt])
 }
+
+model AdminAuditLog {
+  id           String   @id @default(cuid())
+  adminAddress String
+  action       String   // 'login' | 'view_user' | 'export_data' | ...
+  targetType   String?  // 'profile' | 'link' | 'subscriber' | 'system'
+  targetId     String?
+  metadata     String?  // JSON additional context
+  ipHash       String?  // Hashed IP for security audit (optional for now)
+  createdAt    DateTime @default(now())
+  
+  @@index([adminAddress])
+  @@index([action])
+  @@index([createdAt])
+}

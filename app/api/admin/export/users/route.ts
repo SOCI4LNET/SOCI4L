@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { logAdminAction } from '@/lib/admin-audit'
 
 export async function GET(request: NextRequest) {
   try {
@@ -46,6 +47,19 @@ export async function GET(request: NextRequest) {
       .join('\n')
 
     const csv = csvHeader + csvRows
+
+    // Best-effort audit log
+    const adminAddress = request.headers.get('x-admin-address')
+    await logAdminAction({
+      adminAddress,
+      action: 'export_users',
+      targetType: 'export',
+      targetId: null,
+      metadata: {
+        limit,
+        profileCount: profiles.length,
+      },
+    })
 
     return new NextResponse(csv, {
       headers: {

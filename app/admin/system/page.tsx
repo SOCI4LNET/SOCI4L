@@ -1,6 +1,15 @@
 import { prisma } from '@/lib/prisma'
 import { PageShell } from '@/components/app-shell/page-shell'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { AdminActivityLogger } from '@/components/admin/admin-activity-logger'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 
 async function getSystemStats() {
   const [
@@ -12,6 +21,7 @@ async function getSystemStats() {
     scoreSnapshotCount,
     categoryCount,
     showcaseItemCount,
+    adminAuditLogCount,
   ] = await Promise.all([
     prisma.profile.count(),
     prisma.follow.count(),
@@ -21,6 +31,7 @@ async function getSystemStats() {
     prisma.scoreSnapshot.count(),
     prisma.linkCategory.count(),
     prisma.showcaseItem.count(),
+    prisma.adminAuditLog.count(),
   ])
 
   // Get recent activity counts (last 24h)
@@ -33,6 +44,7 @@ async function getSystemStats() {
     recentLinks,
     recentAnalyticsEvents,
     recentScoreSnapshots,
+    recentAdminAuditLogs,
   ] = await Promise.all([
     prisma.profile.count({
       where: { createdAt: { gte: yesterday } },
@@ -49,7 +61,16 @@ async function getSystemStats() {
     prisma.scoreSnapshot.count({
       where: { createdAt: { gte: yesterday } },
     }),
+    prisma.adminAuditLog.count({
+      where: { createdAt: { gte: yesterday } },
+    }),
   ])
+
+  // Get recent admin audit logs (last 50)
+  const recentAuditLogs = await prisma.adminAuditLog.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 50,
+  })
 
   return {
     profileCount,
@@ -60,11 +81,14 @@ async function getSystemStats() {
     scoreSnapshotCount,
     categoryCount,
     showcaseItemCount,
+    adminAuditLogCount,
     recentProfiles,
     recentFollows,
     recentLinks,
     recentAnalyticsEvents,
     recentScoreSnapshots,
+    recentAdminAuditLogs,
+    auditLogs: recentAuditLogs,
   }
 }
 
@@ -77,6 +101,7 @@ export default async function AdminSystemPage() {
       subtitle="High-level system health for SOCI4L."
       mode="constrained"
     >
+      <AdminActivityLogger action="view_system" targetType="system" />
       <div className="space-y-6">
         <div>
           <h2 className="text-sm font-medium mb-4">Database Tables</h2>
@@ -186,6 +211,94 @@ export default async function AdminSystemPage() {
                 <p className="text-xs text-muted-foreground mt-1">NFT showcase items</p>
               </CardContent>
             </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Admin Audit Logs</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-semibold">
+                  {stats.adminAuditLogCount.toLocaleString('en-US')}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {stats.recentAdminAuditLogs > 0 && `+${stats.recentAdminAuditLogs} in 24h`}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        <div>
+          <h2 className="text-sm font-medium mb-4">Admin Activity / Audit Log</h2>
+          <div className="rounded-md border bg-card">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Time</TableHead>
+                  <TableHead>Admin</TableHead>
+                  <TableHead>Action</TableHead>
+                  <TableHead>Target</TableHead>
+                  <TableHead>Details</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {stats.auditLogs.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground text-xs py-8">
+                      No admin activity logged yet.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  stats.auditLogs.map((log) => {
+                    let metadataObj: any = {}
+                    try {
+                      if (log.metadata) {
+                        metadataObj = JSON.parse(log.metadata)
+                      }
+                    } catch {
+                      // ignore parse errors
+                    }
+
+                    return (
+                      <TableRow key={log.id}>
+                        <TableCell className="text-xs font-mono">
+                          {log.createdAt.toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </TableCell>
+                        <TableCell className="font-mono text-xs">
+                          {log.adminAddress.slice(0, 6)}...{log.adminAddress.slice(-4)}
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-xs font-medium">{log.action}</span>
+                        </TableCell>
+                        <TableCell>
+                          {log.targetType && log.targetId ? (
+                            <span className="text-xs text-muted-foreground">
+                              {log.targetType}: {log.targetId.slice(0, 8)}...
+                            </span>
+                          ) : log.targetType ? (
+                            <span className="text-xs text-muted-foreground">{log.targetType}</span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground">
+                          {metadataObj.pathname ? (
+                            <span title={metadataObj.pathname}>{metadataObj.pathname}</span>
+                          ) : (
+                            <span>—</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
+                )}
+              </TableBody>
+            </Table>
           </div>
         </div>
       </div>

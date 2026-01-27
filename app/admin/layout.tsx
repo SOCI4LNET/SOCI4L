@@ -39,6 +39,19 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       router.push('/')
       return
     }
+
+    // Log admin login
+    fetch('/api/admin/log-action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'login',
+        targetType: 'system',
+        metadata: { adminAddress: normalized },
+      }),
+    }).catch(() => {
+      // Silently fail
+    })
   }, [mounted, isConnected, address, router])
 
   if (!mounted) {

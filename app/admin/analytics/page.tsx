@@ -11,6 +11,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { AnalyticsTrends } from '@/components/admin/analytics-trends'
+import { AdminActivityLogger } from '@/components/admin/admin-activity-logger'
 
 async function getAnalytics() {
   const thirtyDaysAgo = new Date()
@@ -172,6 +173,7 @@ export default async function AdminAnalyticsPage() {
       subtitle="High-level engagement metrics across SOCI4L."
       mode="constrained"
     >
+      <AdminActivityLogger action="view_analytics" targetType="analytics" />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
         <Card>
           <CardHeader>
