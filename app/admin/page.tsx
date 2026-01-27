@@ -2,7 +2,8 @@ import { prisma } from '@/lib/prisma'
 import { PageShell } from '@/components/app-shell/page-shell'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { OverviewTrends } from '@/components/admin/overview-trends'
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { EmptyState } from '@/components/admin/empty-state'
+import { TrendingUp, TrendingDown, Minus, Eye, MousePointerClick, Users, UserPlus, Link2, Mail, FileText } from 'lucide-react'
 
 async function getOverviewStats() {
   const now = new Date()
@@ -228,22 +229,34 @@ export default async function AdminOverviewPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-2">
-              <p className="text-4xl font-bold tracking-tight">{stats.totalProfileViews.toLocaleString('en-US')}</p>
-              <div className="flex items-center gap-2">
-                <p className="text-xs text-muted-foreground">Total tracked</p>
-                {Math.abs(stats.profileViewsTrend) > 0.1 && (
-                  <span
-                    className={`text-xs font-medium ${
-                      stats.profileViewsTrend > 0
-                        ? 'text-green-600 dark:text-green-400'
-                        : 'text-red-600 dark:text-red-400'
-                    }`}
-                  >
-                    {stats.profileViewsTrend > 0 ? '+' : ''}
-                    {stats.profileViewsTrend.toFixed(1)}% vs last week
-                  </span>
-                )}
-              </div>
+              {stats.totalProfileViews === 0 ? (
+                <EmptyState
+                  icon={Eye}
+                  title="0"
+                  description="Tracking active"
+                  hint="Views will appear here as profiles are visited"
+                  variant="tracking"
+                />
+              ) : (
+                <>
+                  <p className="text-4xl font-bold tracking-tight">{stats.totalProfileViews.toLocaleString('en-US')}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs text-muted-foreground">Total tracked</p>
+                    {Math.abs(stats.profileViewsTrend) > 0.1 && (
+                      <span
+                        className={`text-xs font-medium ${
+                          stats.profileViewsTrend > 0
+                            ? 'text-green-600 dark:text-green-400'
+                            : 'text-red-600 dark:text-red-400'
+                        }`}
+                      >
+                        {stats.profileViewsTrend > 0 ? '+' : ''}
+                        {stats.profileViewsTrend.toFixed(1)}% vs last week
+                      </span>
+                    )}
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -264,22 +277,34 @@ export default async function AdminOverviewPage() {
               </div>
             </CardHeader>
             <CardContent className="space-y-2">
-              <p className="text-4xl font-bold tracking-tight">{stats.totalLinkClicks.toLocaleString('en-US')}</p>
-              <div className="flex items-center gap-2">
-                <p className="text-xs text-muted-foreground">Total tracked</p>
-                {Math.abs(stats.linkClicksTrend) > 0.1 && (
-                  <span
-                    className={`text-xs font-medium ${
-                      stats.linkClicksTrend > 0
-                        ? 'text-green-600 dark:text-green-400'
-                        : 'text-red-600 dark:text-red-400'
-                    }`}
-                  >
-                    {stats.linkClicksTrend > 0 ? '+' : ''}
-                    {stats.linkClicksTrend.toFixed(1)}% vs last week
-                  </span>
-                )}
-              </div>
+              {stats.totalLinkClicks === 0 ? (
+                <EmptyState
+                  icon={MousePointerClick}
+                  title="0"
+                  description="Tracking active"
+                  hint="Clicks will appear here as links are clicked"
+                  variant="tracking"
+                />
+              ) : (
+                <>
+                  <p className="text-4xl font-bold tracking-tight">{stats.totalLinkClicks.toLocaleString('en-US')}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs text-muted-foreground">Total tracked</p>
+                    {Math.abs(stats.linkClicksTrend) > 0.1 && (
+                      <span
+                        className={`text-xs font-medium ${
+                          stats.linkClicksTrend > 0
+                            ? 'text-green-600 dark:text-green-400'
+                            : 'text-red-600 dark:text-red-400'
+                        }`}
+                      >
+                        {stats.linkClicksTrend > 0 ? '+' : ''}
+                        {stats.linkClicksTrend.toFixed(1)}% vs last week
+                      </span>
+                    )}
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -299,10 +324,21 @@ export default async function AdminOverviewPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-1.5">
-              <p className="text-3xl font-semibold tracking-tight">{stats.totalProfiles.toLocaleString('en-US')}</p>
-              <p className="text-xs text-muted-foreground">
-                {stats.claimedProfiles.toLocaleString('en-US')} claimed ({profileClaimRate.toFixed(1)}%)
-              </p>
+              {stats.totalProfiles === 0 ? (
+                <EmptyState
+                  icon={Users}
+                  title="0"
+                  description="No profiles yet"
+                  variant="empty"
+                />
+              ) : (
+                <>
+                  <p className="text-3xl font-semibold tracking-tight">{stats.totalProfiles.toLocaleString('en-US')}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {stats.claimedProfiles.toLocaleString('en-US')} claimed ({profileClaimRate.toFixed(1)}%)
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -314,10 +350,21 @@ export default async function AdminOverviewPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-1.5">
-              <p className="text-3xl font-semibold tracking-tight">
-                {stats.publicProfiles.toLocaleString('en-US')}
-              </p>
-              <p className="text-xs text-muted-foreground">Visible on public directory</p>
+              {stats.publicProfiles === 0 ? (
+                <EmptyState
+                  icon={Users}
+                  title="0"
+                  description="No public profiles"
+                  variant="empty"
+                />
+              ) : (
+                <>
+                  <p className="text-3xl font-semibold tracking-tight">
+                    {stats.publicProfiles.toLocaleString('en-US')}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Visible on public directory</p>
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -329,10 +376,22 @@ export default async function AdminOverviewPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-1.5">
-              <p className="text-3xl font-semibold tracking-tight">
-                {stats.newClaims24h.toLocaleString('en-US')}
-              </p>
-              <p className="text-xs text-muted-foreground">Profiles claimed in last 24 hours</p>
+              {stats.newClaims24h === 0 ? (
+                <EmptyState
+                  icon={UserPlus}
+                  title="0"
+                  description="No new claims"
+                  hint="Last 24 hours"
+                  variant="empty"
+                />
+              ) : (
+                <>
+                  <p className="text-3xl font-semibold tracking-tight">
+                    {stats.newClaims24h.toLocaleString('en-US')}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Profiles claimed in last 24 hours</p>
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -344,12 +403,23 @@ export default async function AdminOverviewPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-1.5">
-              <p className="text-3xl font-semibold tracking-tight">
-                {stats.totalFollows.toLocaleString('en-US')}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Total follow relationships
-              </p>
+              {stats.totalFollows === 0 ? (
+                <EmptyState
+                  icon={Users}
+                  title="0"
+                  description="No follows yet"
+                  variant="empty"
+                />
+              ) : (
+                <>
+                  <p className="text-3xl font-semibold tracking-tight">
+                    {stats.totalFollows.toLocaleString('en-US')}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Total follow relationships
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -361,12 +431,23 @@ export default async function AdminOverviewPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-1.5">
-              <p className="text-3xl font-semibold tracking-tight">
-                {stats.totalLinks.toLocaleString('en-US')}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Links across all profiles
-              </p>
+              {stats.totalLinks === 0 ? (
+                <EmptyState
+                  icon={Link2}
+                  title="0"
+                  description="No links added"
+                  variant="empty"
+                />
+              ) : (
+                <>
+                  <p className="text-3xl font-semibold tracking-tight">
+                    {stats.totalLinks.toLocaleString('en-US')}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Links across all profiles
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -378,12 +459,23 @@ export default async function AdminOverviewPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-1.5">
-              <p className="text-3xl font-semibold tracking-tight">
-                {stats.totalEmailSubscribers.toLocaleString('en-US')}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Newsletter subscribers
-              </p>
+              {stats.totalEmailSubscribers === 0 ? (
+                <EmptyState
+                  icon={Mail}
+                  title="0"
+                  description="No subscribers yet"
+                  variant="empty"
+                />
+              ) : (
+                <>
+                  <p className="text-3xl font-semibold tracking-tight">
+                    {stats.totalEmailSubscribers.toLocaleString('en-US')}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Newsletter subscribers
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>

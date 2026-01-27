@@ -10,8 +10,9 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import { EmptyState } from '@/components/admin/empty-state'
 import Link from 'next/link'
-import { ExternalLink } from 'lucide-react'
+import { ExternalLink, Link2 } from 'lucide-react'
 
 async function getRecentLinks() {
   const links = await prisma.profileLink.findMany({
@@ -60,7 +61,19 @@ export default async function AdminContentPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {links.map((link) => (
+            {links.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="py-12">
+                  <EmptyState
+                    icon={Link2}
+                    title="No links yet"
+                    description="Links will appear here once users add them to their profiles"
+                    variant="empty"
+                  />
+                </TableCell>
+              </TableRow>
+            ) : (
+              links.map((link) => (
               <TableRow
                 key={link.id}
                 className="group transition-colors duration-200 hover:bg-muted/60 border-b border-border/40"
@@ -122,7 +135,8 @@ export default async function AdminContentPage() {
                   {link.createdAt.toISOString().slice(0, 10)}
                 </TableCell>
               </TableRow>
-            ))}
+              ))
+            )}
           </TableBody>
           <TableCaption className="pt-4 pb-4 border-t border-border/60 mt-4">
             Showing the 200 most recently created links. Moderation and flagging tools will be added

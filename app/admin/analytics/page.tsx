@@ -10,9 +10,10 @@ import {
 } from '@/components/ui/table'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { EmptyState } from '@/components/admin/empty-state'
 import Link from 'next/link'
 import { AnalyticsTrends } from '@/components/admin/analytics-trends'
-import { TrendingUp, TrendingDown, Minus, ExternalLink } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, ExternalLink, Eye, MousePointerClick } from 'lucide-react'
 
 async function getAnalytics() {
   const thirtyDaysAgo = new Date()
@@ -353,7 +354,13 @@ export default async function AdminAnalyticsPage() {
           </CardHeader>
           <CardContent>
             {analytics.topViewed.length === 0 ? (
-              <p className="text-xs text-muted-foreground py-4">No profile view data yet.</p>
+              <EmptyState
+                icon={Eye}
+                title="No views yet"
+                description="Tracking active"
+                hint="Top viewed profiles will appear here"
+                variant="tracking"
+              />
             ) : (
               <div className="overflow-x-auto">
                 <Table>
@@ -407,7 +414,13 @@ export default async function AdminAnalyticsPage() {
           </CardHeader>
           <CardContent>
             {analytics.topClicked.length === 0 ? (
-              <p className="text-xs text-muted-foreground py-4">No link click data yet.</p>
+              <EmptyState
+                icon={MousePointerClick}
+                title="No clicks yet"
+                description="Tracking active"
+                hint="Top clicked links will appear here"
+                variant="tracking"
+              />
             ) : (
               <div className="overflow-x-auto">
                 <Table>

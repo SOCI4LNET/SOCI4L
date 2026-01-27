@@ -261,7 +261,26 @@ export default async function AdminUsersPage({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {profiles.map((profile) => {
+            {profiles.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8} className="py-12">
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <div className="w-12 h-12 rounded-full bg-muted/30 flex items-center justify-center mb-3">
+                      <Users className="h-6 w-6 text-muted-foreground/40" />
+                    </div>
+                    <p className="text-sm font-medium text-foreground mb-1">
+                      {totalCount === 0 ? 'No profiles found' : 'No profiles match your filters'}
+                    </p>
+                    <p className="text-xs text-muted-foreground max-w-sm">
+                      {totalCount === 0
+                        ? 'Profiles will appear here once users claim their addresses'
+                        : 'Try adjusting your search or filter criteria'}
+                    </p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              profiles.map((profile) => {
               const isClaimed =
                 profile.status === 'CLAIMED' ||
                 !!profile.claimedAt ||
@@ -366,7 +385,8 @@ export default async function AdminUsersPage({
                   </TableCell>
                 </TableRow>
               )
-            })}
+              })
+            )}
           </TableBody>
           <TableCaption className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-4 pb-4 border-t border-border/60 mt-4">
             <span className="text-xs text-muted-foreground">

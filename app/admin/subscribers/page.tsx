@@ -10,7 +10,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { Download } from 'lucide-react'
+import { EmptyState } from '@/components/admin/empty-state'
+import { Download, Mail } from 'lucide-react'
 
 async function getSubscribers() {
   const subscribers = await prisma.emailSubscription.findMany({
@@ -60,7 +61,19 @@ export default async function AdminSubscribersPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {subscribers.map((sub) => (
+            {subscribers.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} className="py-12">
+                  <EmptyState
+                    icon={Mail}
+                    title="No subscribers yet"
+                    description="Email addresses will appear here once users subscribe"
+                    variant="empty"
+                  />
+                </TableCell>
+              </TableRow>
+            ) : (
+              subscribers.map((sub) => (
               <TableRow
                 key={sub.id}
                 className="group transition-colors duration-200 hover:bg-muted/60 border-b border-border/40"
@@ -78,7 +91,8 @@ export default async function AdminSubscribersPage() {
                   {sub.updatedAt.toISOString().slice(0, 10)}
                 </TableCell>
               </TableRow>
-            ))}
+              ))
+            )}
           </TableBody>
           <TableCaption className="pt-4 pb-4 border-t border-border/60 mt-4">
             Showing up to 500 most recent subscribers. Use Export CSV to download all subscribers.
