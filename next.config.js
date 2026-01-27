@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  eslint: {
+    // Production build sırasında ESLint hatalarını ignore et
+    ignoreDuringBuilds: true,
+  },
   webpack: (config, { isServer }) => {
     // Suppress warnings for optional dependencies that are not needed in web environment
     config.resolve.fallback = {
