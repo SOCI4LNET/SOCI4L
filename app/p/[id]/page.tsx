@@ -98,6 +98,7 @@ export default function ProfilePage({ params }: PageProps) {
   const [qrModalOpen, setQrModalOpen] = useState(false)
   const [profileLinks, setProfileLinks] = useState<ProfileLink[]>([])
   const [linkCategories, setLinkCategories] = useState<Array<{ id: string; name: string; slug: string; description: string | null; order: number; isVisible?: boolean }>>([])
+  const [score, setScore] = useState<{ total: number; tier: string; tierLabel: string } | null>(null)
   // useRef guard to prevent double tracking (React Strict Mode + hydration safe)
   // Stores the profile ID that was already tracked to detect profile changes
   const trackedProfileIdRef = useRef<string | null>(null)
@@ -245,6 +246,24 @@ export default function ProfilePage({ params }: PageProps) {
             // Use default if no appearance config (already initialized with default, but update for consistency)
             console.warn('[PublicProfile] No appearance config in API response, using default')
             setAppearanceConfig(getDefaultAppearanceConfig())
+          }
+
+          // Fetch score for this profile
+          if (data.profile?.address || data.walletData?.address) {
+            const scoreAddress = data.profile?.address || data.walletData?.address
+            try {
+              const scoreResponse = await fetch(`/api/profile/${scoreAddress}/score`)
+              if (scoreResponse.ok) {
+                const scoreData = await scoreResponse.json()
+                setScore({
+                  total: scoreData.score,
+                  tier: scoreData.tier,
+                  tierLabel: scoreData.tierLabel,
+                })
+              }
+            } catch (scoreError) {
+              console.error('[PublicProfile] Failed to fetch score:', scoreError)
+            }
           }
         }
       } catch (err) {
@@ -651,6 +670,23 @@ export default function ProfilePage({ params }: PageProps) {
                           <span className="flex items-center gap-1">
                             <FollowStats address={resolvedAddress} />
                           </span>
+                        )}
+                        {score && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge 
+                                  variant="secondary" 
+                                  className="text-[11px] px-2 py-0 cursor-help"
+                                >
+                                  {score.total} pts
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{score.tierLabel} • Soci4l Score</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
                         {resolvedAddress && isValidAddress(resolvedAddress) && (
                           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">

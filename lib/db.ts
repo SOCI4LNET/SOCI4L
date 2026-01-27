@@ -52,6 +52,69 @@ export async function getProfileByAddress(address: string): Promise<ProfileData 
 }
 
 /**
+ * Get followers count for an address
+ */
+export async function getFollowersCount(address: string): Promise<number> {
+  const normalizedAddress = address.toLowerCase()
+  
+  const count = await prisma.follow.count({
+    where: { followingAddress: normalizedAddress },
+  })
+  
+  return count
+}
+
+/**
+ * Get profile links for an address
+ */
+export async function getProfileLinks(address: string): Promise<Array<{ id: string; title: string; url: string }>> {
+  const normalizedAddress = address.toLowerCase()
+  
+  const profile = await prisma.profile.findUnique({
+    where: { address: normalizedAddress },
+    include: {
+      links: {
+        where: { enabled: true },
+        orderBy: { order: 'asc' },
+      },
+    },
+  })
+  
+  if (!profile) return []
+  
+  return profile.links.map(link => ({
+    id: link.id,
+    title: link.title,
+    url: link.url,
+  }))
+}
+
+/**
+ * Get social links for an address
+ * Social links are stored as JSON in profile.socialLinks
+ */
+export async function getSocialLinks(address: string): Promise<Array<{ platform: string; url: string }>> {
+  const normalizedAddress = address.toLowerCase()
+  
+  const profile = await prisma.profile.findUnique({
+    where: { address: normalizedAddress },
+    select: { socialLinks: true },
+  })
+  
+  if (!profile?.socialLinks) return []
+  
+  try {
+    const parsed = JSON.parse(profile.socialLinks)
+    if (Array.isArray(parsed)) {
+      return parsed
+    }
+    return []
+  } catch {
+    return []
+  }
+}
+
+/**
  * Get profile by slug
  * Returns null if profile doesn't exist
  */
