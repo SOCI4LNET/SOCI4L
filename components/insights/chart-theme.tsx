@@ -9,7 +9,7 @@ export function CustomTooltip({ active, payload, label }: TooltipProps<number, s
   }
 
   return (
-    <div className="rounded-lg border border-border/80 bg-background/98 px-4 py-2.5 text-sm text-foreground shadow-lg backdrop-blur-sm">
+    <div className="rounded-lg border border-border/80 bg-background/98 px-4 py-2.5 text-sm text-foreground shadow-lg backdrop-blur-sm transition-all duration-150 ease-out animate-in fade-in-0 zoom-in-95">
       {label && (
         <p className="mb-2 font-semibold text-xs uppercase tracking-wider text-muted-foreground border-b border-border/60 pb-1.5">
           {label}
@@ -17,9 +17,9 @@ export function CustomTooltip({ active, payload, label }: TooltipProps<number, s
       )}
       <div className="space-y-1.5">
         {payload.map((entry, index) => (
-          <div key={index} className="flex items-center gap-2.5">
+          <div key={index} className="flex items-center gap-2.5 transition-opacity duration-150">
             <div
-              className="h-2.5 w-2.5 rounded-full border border-background/50"
+              className="h-2.5 w-2.5 rounded-full border border-background/50 transition-transform duration-150 hover:scale-110"
               style={{ backgroundColor: entry.color }}
             />
             <span className="text-xs font-medium text-muted-foreground min-w-[100px]">
@@ -71,15 +71,18 @@ export const chartBarProps = {
   radius: [4, 4, 0, 0] as [number, number, number, number],
 }
 
-// Shared line props - Enhanced visibility
+// Shared line props - Enhanced visibility with micro-interactions
 export const chartLineProps = {
   strokeWidth: 2,
   dot: false,
   activeDot: {
-    r: 5,
+    r: 6,
     fill: 'hsl(var(--primary))',
     stroke: 'hsl(var(--background))',
     strokeWidth: 2,
+    style: {
+      transition: 'r 0.15s ease-out',
+    },
   },
   animationDuration: 300,
 }

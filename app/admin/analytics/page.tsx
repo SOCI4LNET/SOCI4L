@@ -378,7 +378,7 @@ export default async function AdminAnalyticsPage() {
                   {analytics.topViewed.map((row) => (
                     <TableRow
                       key={row.address}
-                      className="group transition-colors duration-200 hover:bg-muted/60 border-b border-border/40"
+                      className="group transition-all duration-150 ease-out hover:bg-muted/60 hover:shadow-sm border-b border-border/40"
                     >
                       <TableCell className="py-4 align-top">
                         <div className="flex flex-col gap-1.5">
@@ -438,7 +438,7 @@ export default async function AdminAnalyticsPage() {
                   {analytics.topClicked.map((row, idx) => (
                     <TableRow
                       key={row.linkId || `link-${idx}`}
-                      className="group transition-colors duration-200 hover:bg-muted/60 border-b border-border/40"
+                      className="group transition-all duration-150 ease-out hover:bg-muted/60 hover:shadow-sm border-b border-border/40"
                     >
                       <TableCell className="py-4 align-top">
                         <div className="flex flex-col gap-1.5">

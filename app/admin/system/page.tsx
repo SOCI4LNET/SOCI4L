@@ -270,7 +270,7 @@ export default async function AdminSystemPage() {
                     return (
                       <TableRow
                         key={log.id}
-                        className="group transition-colors duration-200 hover:bg-muted/60 border-b border-border/40"
+                        className="group transition-all duration-150 ease-out hover:bg-muted/60 hover:shadow-sm border-b border-border/40"
                       >
                         <TableCell className="text-xs font-mono py-4 align-top">
                           <span className="font-medium">

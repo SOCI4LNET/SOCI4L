@@ -192,14 +192,13 @@ export default async function AdminUsersPage({
               name="search"
               defaultValue={search}
               placeholder="Search by address, slug, or display name…"
-              className="transition-all duration-200 focus:ring-2 focus:ring-ring focus:ring-offset-0"
             />
           </div>
           <div className="flex flex-wrap gap-2">
             <select
               name="status"
               defaultValue={status || ''}
-              className="h-9 rounded-md border border-input bg-background px-3 text-xs transition-colors hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0"
+              className="h-9 rounded-md border border-input bg-background px-3 text-xs transition-all duration-150 ease-out hover:bg-accent hover:border-border/80 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0 focus:border-ring/50 active:scale-[0.98]"
             >
               <option value="">All statuses</option>
               <option value="claimed">Claimed</option>
@@ -208,7 +207,7 @@ export default async function AdminUsersPage({
             <select
               name="visibility"
               defaultValue={visibility || ''}
-              className="h-9 rounded-md border border-input bg-background px-3 text-xs transition-colors hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0"
+              className="h-9 rounded-md border border-input bg-background px-3 text-xs transition-all duration-150 ease-out hover:bg-accent hover:border-border/80 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0 focus:border-ring/50 active:scale-[0.98]"
             >
               <option value="">All visibilities</option>
               <option value="public">Public</option>
@@ -217,14 +216,14 @@ export default async function AdminUsersPage({
           </div>
           <button
             type="submit"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-all duration-200 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 hover:shadow-md hover:shadow-primary/20 transition-all duration-150 ease-out whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0 active:scale-[0.98]"
           >
             Apply
           </button>
         </form>
         <form action="/api/admin/export/users" method="get" className="w-full sm:w-auto">
-          <Button type="submit" variant="outline" size="sm" className="gap-2 w-full sm:w-auto transition-all duration-200 hover:bg-accent hover:text-accent-foreground">
-            <Download className="h-3.5 w-3.5" />
+          <Button type="submit" variant="outline" size="sm" className="gap-2 w-full sm:w-auto">
+            <Download className="h-3.5 w-3.5 transition-transform duration-150 group-hover:scale-110" />
             Export CSV
           </Button>
         </form>
@@ -363,10 +362,10 @@ export default async function AdminUsersPage({
                         asChild
                         variant="default"
                         size="sm"
-                        className="h-7 text-xs font-medium gap-1.5"
+                        className="h-7 text-xs font-medium gap-1.5 group-hover:scale-105"
                       >
                         <Link href={`/p/${profile.slug || profile.address}`}>
-                          <ExternalLink className="h-3 w-3" />
+                          <ExternalLink className="h-3 w-3 transition-transform duration-150 group-hover:scale-110" />
                           View Profile
                         </Link>
                       </Button>
@@ -374,10 +373,10 @@ export default async function AdminUsersPage({
                         asChild
                         variant="ghost"
                         size="sm"
-                        className="h-7 text-xs font-medium gap-1.5 text-muted-foreground hover:text-foreground"
+                        className="h-7 text-xs font-medium gap-1.5 text-muted-foreground hover:text-foreground group-hover:scale-105"
                       >
                         <Link href={`/admin/users/${encodeURIComponent(profile.address.toLowerCase())}`}>
-                          <Eye className="h-3 w-3" />
+                          <Eye className="h-3 w-3 transition-transform duration-150 group-hover:scale-110" />
                           Admin View
                         </Link>
                       </Button>

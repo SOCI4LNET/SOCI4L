@@ -35,8 +35,8 @@ export function EmptyState({
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
       {Icon && (
-        <div className={`w-12 h-12 rounded-full ${iconBg} flex items-center justify-center mb-3`}>
-          <Icon className={`h-6 w-6 ${iconColor}`} />
+        <div className={`w-12 h-12 rounded-full ${iconBg} flex items-center justify-center mb-3 transition-all duration-200 ease-out hover:scale-110`}>
+          <Icon className={`h-6 w-6 ${iconColor} transition-opacity duration-200`} />
         </div>
       )}
       <p className="text-sm font-medium text-foreground mb-1">{title}</p>

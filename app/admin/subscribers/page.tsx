@@ -38,8 +38,8 @@ export default async function AdminSubscribersPage() {
           Showing {subscribers.length} of {totalCount.toLocaleString('en-US')} subscribers
         </p>
         <form action="/api/admin/export/subscribers" method="get" className="w-full sm:w-auto">
-          <Button type="submit" variant="outline" size="sm" className="gap-2 w-full sm:w-auto transition-all duration-200 hover:bg-accent hover:text-accent-foreground">
-            <Download className="h-3.5 w-3.5" />
+          <Button type="submit" variant="outline" size="sm" className="gap-2 w-full sm:w-auto">
+            <Download className="h-3.5 w-3.5 transition-transform duration-150 group-hover:scale-110" />
             Export CSV
           </Button>
         </form>
@@ -76,7 +76,7 @@ export default async function AdminSubscribersPage() {
               subscribers.map((sub) => (
               <TableRow
                 key={sub.id}
-                className="group transition-colors duration-200 hover:bg-muted/60 border-b border-border/40"
+                className="group transition-all duration-150 ease-out hover:bg-muted/60 hover:shadow-sm border-b border-border/40"
               >
                 <TableCell className="font-mono text-xs break-all py-4 align-top">
                   <span className="font-medium">{sub.email}</span>
