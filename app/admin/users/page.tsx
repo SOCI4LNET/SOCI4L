@@ -16,6 +16,8 @@ import { Input } from '@/components/ui/input'
 interface SearchParams {
   search?: string
   page?: string
+  status?: string
+  visibility?: string
 }
 
 async function getUsers(searchParams: SearchParams) {
@@ -23,19 +25,60 @@ async function getUsers(searchParams: SearchParams) {
   const page = Math.max(parseInt(searchParams.page || '1', 10), 1)
   const skip = (page - 1) * pageSize
   const search = (searchParams.search || '').trim()
+  const statusFilter = (searchParams.status || '').toLowerCase()
+  const visibilityFilter = (searchParams.visibility || '').toLowerCase()
 
-  const where =
-    search.length > 0
-      ? {
-          OR: [
-            { address: { contains: search.toLowerCase() } },
-            { slug: { contains: search.toLowerCase() } },
-            { displayName: { contains: search, mode: 'insensitive' as const } },
-          ],
-        }
-      : {}
+  const where: any = {}
 
-  const [profiles, totalCount] = await Promise.all([
+  if (search.length > 0) {
+    where.OR = [
+      { address: { contains: search.toLowerCase() } },
+      { slug: { contains: search.toLowerCase() } },
+      { displayName: { contains: search, mode: 'insensitive' as const } },
+    ]
+  }
+
+  if (statusFilter === 'claimed') {
+    where.OR = [
+      ...(where.OR || []),
+      { status: 'CLAIMED' },
+      { claimedAt: { not: null } },
+      { ownerAddress: { not: null } },
+      { owner: { not: null } },
+    ]
+  } else if (statusFilter === 'unclaimed') {
+    where.AND = [
+      ...(where.AND || []),
+      {
+        AND: [
+          { status: { not: 'CLAIMED' } },
+          { claimedAt: null },
+          { ownerAddress: null },
+          { owner: null },
+        ],
+      },
+    ]
+  }
+
+  if (visibilityFilter === 'public') {
+    where.OR = [
+      ...(where.OR || []),
+      { visibility: 'PUBLIC' },
+      { isPublic: true },
+    ]
+  } else if (visibilityFilter === 'private') {
+    where.AND = [
+      ...(where.AND || []),
+      {
+        AND: [
+          { OR: [{ visibility: 'PRIVATE' }, { visibility: null }] },
+          { OR: [{ isPublic: false }, { isPublic: null }] },
+        ],
+      },
+    ]
+  }
+
+  const [profiles, totalCount, followerCounts] = await Promise.all([
     prisma.profile.findMany({
       where,
       orderBy: { createdAt: 'desc' },
@@ -43,7 +86,29 @@ async function getUsers(searchParams: SearchParams) {
       take: pageSize,
     }),
     prisma.profile.count({ where }),
+    // Follower counts per profile (simple but fine for small pages)
+    prisma.follow.groupBy({
+      by: ['followingAddress'],
+      _count: { _all: true },
+      where: {
+        followingAddress: {
+          in: (
+            await prisma.profile.findMany({
+              where,
+              select: { address: true },
+              skip,
+              take: pageSize,
+            })
+          ).map((p) => p.address.toLowerCase()),
+        },
+      },
+    }),
   ])
+
+  const followerCountMap = new Map<string, number>()
+  for (const row of followerCounts) {
+    followerCountMap.set(row.followingAddress.toLowerCase(), row._count._all)
+  }
 
   return {
     profiles,
@@ -52,6 +117,9 @@ async function getUsers(searchParams: SearchParams) {
     pageSize,
     totalPages: Math.max(1, Math.ceil(totalCount / pageSize)),
     search,
+    status: statusFilter,
+    visibility: visibilityFilter,
+    followerCountMap,
   }
 }
 
@@ -60,7 +128,16 @@ export default async function AdminUsersPage({
 }: {
   searchParams: SearchParams
 }) {
-  const { profiles, totalCount, page, totalPages, search } = await getUsers(searchParams)
+  const {
+    profiles,
+    totalCount,
+    page,
+    totalPages,
+    search,
+    status,
+    visibility,
+    followerCountMap,
+  } = await getUsers(searchParams)
 
   return (
     <PageShell
@@ -68,18 +145,39 @@ export default async function AdminUsersPage({
       subtitle="Browse and inspect SOCI4L profiles across the platform."
       mode="constrained"
     >
-      <form className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
-        <Input
-          name="search"
-          defaultValue={search}
-          placeholder="Search by address, slug, or display name…"
-          className="sm:max-w-sm"
-        />
+      <form className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:gap-4">
+        <div className="flex-1 flex flex-col gap-1 sm:max-w-sm">
+          <Input
+            name="search"
+            defaultValue={search}
+            placeholder="Search by address, slug, or display name…"
+          />
+        </div>
+        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+          <select
+            name="status"
+            defaultValue={status || ''}
+            className="h-8 rounded border bg-background px-2 text-xs"
+          >
+            <option value="">All statuses</option>
+            <option value="claimed">Claimed</option>
+            <option value="unclaimed">Unclaimed</option>
+          </select>
+          <select
+            name="visibility"
+            defaultValue={visibility || ''}
+            className="h-8 rounded border bg-background px-2 text-xs"
+          >
+            <option value="">All visibilities</option>
+            <option value="public">Public</option>
+            <option value="private">Private</option>
+          </select>
+        </div>
         <button
           type="submit"
           className="inline-flex items-center justify-center rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
         >
-          Search
+          Apply
         </button>
       </form>
 
@@ -92,6 +190,7 @@ export default async function AdminUsersPage({
               <TableHead>Slug</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Visibility</TableHead>
+              <TableHead>Followers</TableHead>
               <TableHead>Claimed At</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -131,6 +230,11 @@ export default async function AdminUsersPage({
                     <Badge variant={isPublic ? 'default' : 'outline'}>
                       {isPublic ? 'Public' : 'Private'}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-xs">
+                      {followerCountMap.get(profile.address.toLowerCase()) ?? 0}
+                    </span>
                   </TableCell>
                   <TableCell>
                     {profile.claimedAt ? (
