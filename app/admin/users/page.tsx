@@ -1,6 +1,12 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
-import { PageShell } from '@/components/app-shell/page-shell'
+import dynamic from 'next/dynamic'
+
+// Dynamic import to prevent server-side rendering issues with client components
+const PageShell = dynamic(
+  () => import('@/components/app-shell/page-shell').then((mod) => ({ default: mod.PageShell })),
+  { ssr: true }
+)
 import {
   Table,
   TableBody,
