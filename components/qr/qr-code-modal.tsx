@@ -752,7 +752,21 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md bg-card border shadow-lg p-0 overflow-hidden">
+      <DialogContent
+        className="max-w-md bg-card border shadow-lg p-0 overflow-hidden"
+        hideClose
+      >
+        {/* Close button - top right */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-4 right-4 z-10 h-8 w-8 hover:bg-background/50"
+          onClick={() => handleOpenChange(false)}
+          aria-label="Close"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+
         <DialogTitle className="sr-only">QR Code for {displayName}</DialogTitle>
         <DialogDescription className="sr-only">
           Scan this QR code to open the profile for {displayName} ({formatAddress(profile.address, 4)})
