@@ -200,7 +200,29 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
 
   useEffect(() => {
-    setCategories(loadCategoriesFromStorage())
+    // Load categories from API (not localStorage)
+    const loadCategories = async () => {
+      try {
+        const response = await fetch(`/api/profile/categories?address=${encodeURIComponent(address)}`)
+        if (response.ok) {
+          const data = await response.json()
+          setCategories(
+            (data.categories || []).map((cat: any) => ({
+              id: cat.id,
+              name: cat.name,
+              order: cat.order || 0,
+            }))
+          )
+        } else {
+          // Fallback to localStorage if API fails
+          setCategories(loadCategoriesFromStorage())
+        }
+      } catch (error) {
+        console.error('[InsightsPanel] Failed to load categories from API', error)
+        // Fallback to localStorage
+        setCategories(loadCategoriesFromStorage())
+      }
+    }
     
     // Load links from API
     const loadLinks = async () => {
@@ -217,7 +239,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
             title: link.title || '',
             url: link.url,
             enabled: link.enabled,
-            categoryId: null, // Categories not yet in DB schema
+            categoryId: link.categoryId || null, // Use categoryId from API
             createdAt: link.createdAt || new Date().toISOString(),
             updatedAt: link.updatedAt || new Date().toISOString(),
           }))
@@ -232,6 +254,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
     }
 
     if (address) {
+      loadCategories()
       loadLinks()
       
       // Load layout config for suggestions
@@ -283,7 +306,21 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
       }
     }
 
-    const allEvents = getEventsForProfile(address)
+    // Normalize address to lowercase for consistent lookup
+    const normalizedAddress = address.toLowerCase()
+    const allEvents = getEventsForProfile(normalizedAddress)
+    console.log('[InsightsPanel] Analytics data', {
+      address: normalizedAddress,
+      totalEvents: allEvents.length,
+      linkClickEvents: allEvents.filter(e => e.type === 'link_click').length,
+      profileViewEvents: allEvents.filter(e => e.type === 'profile_view').length,
+      range,
+      categoriesCount: categories.length,
+      categories: categories.map(c => ({ id: c.id, name: c.name })),
+      linksCount: links.length,
+      linksWithCategory: links.filter(l => l.categoryId).length,
+      linksWithoutCategory: links.filter(l => !l.categoryId).length,
+    })
     const now = Date.now()
 
     const fromTs =
@@ -432,6 +469,19 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
           ? rawCategoryId
           : GENERAL_CATEGORY_ID
 
+      // Debug logging
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[InsightsPanel] Category assignment', {
+          linkId: event.linkId,
+          eventCategoryId,
+          linkCategoryId,
+          rawCategoryId,
+          effectiveCategoryId,
+          categoryExists: categoryMap.has(effectiveCategoryId),
+          availableCategories: Array.from(categoryMap.keys()),
+        })
+      }
+
       const bucket = categoryMap.get(effectiveCategoryId)
       if (!bucket) continue
 
@@ -482,7 +532,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
     // Sort categories by total clicks (desc)
     categoryRows.sort((a, b) => b.totalClicks - a.totalClicks)
 
-    return {
+    const result = {
       totalProfileViews,
       totalLinkClicks,
       ctr,
@@ -493,6 +543,14 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
       recentActivity,
       sourceBreakdown,
     }
+    console.log('[InsightsPanel] Calculated analytics', {
+      totalProfileViews: result.totalProfileViews,
+      totalLinkClicks: result.totalLinkClicks,
+      ctr: result.ctr,
+      topLinksCount: result.topLinks.length,
+      recentActivityCount: result.recentActivity.length,
+    })
+    return result
   }, [address, range, links, categories])
 
   // Generate suggestions based on analytics and layout config
@@ -706,6 +764,26 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                   <Share2 className="h-3.5 w-3.5" />
                   Share Insights
                 </Button>
+                {process.env.NODE_ENV === 'development' && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      if (!address || !links.length) {
+                        toast.error('No address or links available')
+                        return
+                      }
+                      const testLinkId = links[0].id
+                      const { trackLinkClick } = await import('@/lib/analytics')
+                      trackLinkClick(address.toLowerCase(), testLinkId, 'unknown', null)
+                      toast.success('Test click event recorded. Refresh to see changes.')
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    Test Click
+                  </Button>
+                )}
               </div>
             }
           />
@@ -1209,7 +1287,8 @@ function CategoryDetailSheet({
     })
 
     // Get all link click events for this category
-    const allEvents = getEventsForProfile(address)
+    const normalizedAddress = address.toLowerCase()
+    const allEvents = getEventsForProfile(normalizedAddress)
     const now = Date.now()
     const fromTs =
       range === 'all'

@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma'
 import { getSessionAddress } from '@/lib/auth'
 import { isValidAddress } from '@/lib/utils'
 
+// Test mode: allow query param-based follower address
+const TEST_MODE = process.env.NODE_ENV === 'test' || process.env.MCP_TEST_MODE === '1'
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { address: string } }
@@ -17,23 +20,40 @@ export async function GET(
       )
     }
 
-    // Get session address
-    const sessionAddress = await getSessionAddress()
+    const normalizedAddress = address.toLowerCase()
 
-    if (!sessionAddress) {
+    // Get follower address: from query param (test mode) or session (production)
+    let followerAddress: string | null = null
+
+    if (TEST_MODE) {
+      const searchParams = request.nextUrl.searchParams
+      followerAddress = searchParams.get('followerAddress')
+      
+      if (!followerAddress || !isValidAddress(followerAddress)) {
+        // Fallback to session if query param invalid
+        followerAddress = await getSessionAddress()
+      }
+    }
+
+    // Fallback to session if not in test mode or query param not provided
+    if (!followerAddress) {
+      followerAddress = await getSessionAddress()
+    }
+
+    if (!followerAddress) {
       return NextResponse.json(
         { error: 'Session not found. Please log in.' },
         { status: 401 }
       )
     }
 
-    const normalizedAddress = address.toLowerCase()
+    const normalizedFollower = followerAddress.toLowerCase()
 
-    // Check if session address follows this address
+    // Check if follower address follows this address
     const follow = await prisma.follow.findUnique({
       where: {
         followerAddress_followingAddress: {
-          followerAddress: sessionAddress,
+          followerAddress: normalizedFollower,
           followingAddress: normalizedAddress,
         },
       },

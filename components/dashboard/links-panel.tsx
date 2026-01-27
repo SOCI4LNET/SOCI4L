@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { useAccount } from 'wagmi'
 import { useParams, useSearchParams } from 'next/navigation'
 
@@ -12,7 +12,11 @@ import {
   useSensor,
   useSensors,
   useDroppable,
+  DragOverlay,
   type DragEndEvent,
+  type DragStartEvent,
+  type DragOverEvent,
+  type CollisionDetection,
 } from '@dnd-kit/core'
 import {
   SortableContext,
@@ -21,9 +25,9 @@ import {
   verticalListSortingStrategy,
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable'
-import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers'
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Link2, Plus, Pencil, Trash2, ExternalLink, BarChart2, Github, Linkedin, Globe, Youtube, Eye, EyeOff, ArrowUp, ArrowDown, Folder, ChevronDown, ChevronRight } from 'lucide-react'
+import { GripVertical, Link2, Plus, Pencil, Trash2, ExternalLink, BarChart2, Github, Linkedin, Globe, Youtube, Eye, EyeOff, ArrowUp, ArrowDown, Folder, ChevronDown, ChevronRight, MoreVertical } from 'lucide-react'
 import { XIcon } from '@/components/icons/x-icon'
 import { useRouter } from 'next/navigation'
 import { useSignMessage } from 'wagmi'
@@ -56,6 +60,12 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Toggle } from '@/components/ui/toggle'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
 
 type LinkItem = {
@@ -64,6 +74,7 @@ type LinkItem = {
   url: string
   enabled: boolean
   categoryId?: string | null
+  order?: number
   createdAt: string
   updatedAt: string
 }
@@ -99,66 +110,216 @@ type StoredLinksState = {
 const PRIMARY_STORAGE_KEY = 'soci4l.links.v1'
 const LEGACY_STORAGE_KEY = 'soci4l.profileLinks.v1'
 
-type SortableLinkRowProps = {
-  link: LinkItem
-  targetAddress: string
-  highlighted?: boolean
-  onToggleEnabled: (id: string, enabled: boolean) => void
-  onEdit: (link: LinkItem) => void
-  onDelete: (id: string) => void
-}
 
-// Category Drop Zone Component
-function CategoryDropZone({ categoryId, children }: { categoryId: string; children: React.ReactNode }) {
-  const { setNodeRef, isOver } = useDroppable({
-    id: `category-${categoryId}`,
-  })
+// =============================================================================
+// DRAG & DROP COMPONENTS
+// =============================================================================
 
-  return (
-    <div
-      ref={setNodeRef}
-      className={`transition-colors ${isOver ? 'bg-primary/5 border-primary/20 border-2 border-dashed rounded-md' : ''}`}
-    >
-      {children}
-    </div>
-  )
-}
-
-function SortableLinkRow({ link, targetAddress, highlighted, onToggleEnabled, onEdit, onDelete }: SortableLinkRowProps) {
-  const router = useRouter()
-  
-  const handleViewDetails = () => {
-    router.push(`/dashboard/${targetAddress}/links/${link.id}`)
-  }
+// Draggable Category Header - only the header is draggable for categories
+function DraggableCategoryHeader({
+  category,
+  linkCount,
+  isCollapsed,
+  onToggleCollapse,
+  onToggleVisibility,
+  onEdit,
+  onDelete,
+  canDelete,
+  isDragDisabled,
+}: {
+  category: LinkCategory
+  linkCount: number
+  isCollapsed: boolean
+  onToggleCollapse: () => void
+  onToggleVisibility: () => void
+  onEdit: () => void
+  onDelete: () => void
+  canDelete: boolean
+  isDragDisabled: boolean
+}) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: link.id,
+    id: `cat-${category.id}`,
+    data: { type: 'category', category },
+    disabled: isDragDisabled,
   })
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-  }
-
-  const handleToggle = (pressed: boolean) => {
-    onToggleEnabled(link.id, pressed)
+    opacity: isDragging ? 0.5 : 1,
   }
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`rounded-md border px-3 py-3 shadow-sm transition 
-      ${highlighted ? 'border-primary ring-2 ring-primary/20 bg-primary/5' : 'border-border/60 bg-background/60'} 
-      ${!link.enabled ? 'opacity-60' : ''} 
-      ${isDragging ? 'ring-1 ring-primary/40 shadow-lg bg-background' : ''}`}
+      className={`flex items-center gap-2 px-2 py-1.5 rounded-md border transition-colors ${
+        isDragging ? 'border-primary bg-primary/10' : 'border-border/40 bg-muted/20'
+      }`}
+    >
+      <button
+        type="button"
+        onClick={onToggleCollapse}
+        className="flex items-center justify-center h-6 w-6 rounded hover:bg-muted/60 transition-colors"
+        aria-label={isCollapsed ? 'Expand category' : 'Collapse category'}
+      >
+        {isCollapsed ? (
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        ) : (
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+        )}
+      </button>
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className={`flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:text-foreground ${
+          isDragDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-grab active:cursor-grabbing'
+        }`}
+        aria-label={`${category.name} drag handle`}
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-medium">{category.name}</p>
+          <Badge variant="secondary" className="text-xs">{linkCount}</Badge>
+          {category.isDefault && <Badge variant="outline" className="text-xs">Default</Badge>}
+        </div>
+      </div>
+      <Toggle
+        aria-label={`Toggle ${category.name} visibility`}
+        size="sm"
+        variant="outline"
+        pressed={category.isVisible}
+        onPressedChange={onToggleVisibility}
+      >
+        {category.isVisible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+      </Toggle>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button type="button" variant="ghost" size="icon" className="h-7 w-7" aria-label="Category menu">
+            <MoreVertical className="h-3.5 w-3.5" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={onEdit}>
+            <Pencil className="mr-2 h-3.5 w-3.5" />
+            Edit
+          </DropdownMenuItem>
+          {canDelete && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                  <Trash2 className="mr-2 h-3.5 w-3.5" />
+                  Delete
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete category?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will move all links in this category to the default category.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    onClick={onDelete}
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  )
+}
+
+// Drop zone for links - each category has one, shows when link is dragged over
+function LinkDropZone({ 
+  categoryId, 
+  isActive,
+  isEmpty,
+}: { 
+  categoryId: string
+  isActive: boolean
+  isEmpty: boolean
+}) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `drop-${categoryId}`,
+    data: { type: 'category-drop', categoryId },
+  })
+
+  // Only show drop zone when actively dragging a link and this zone is active
+  if (!isActive) return null
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`min-h-[40px] rounded-md border-2 border-dashed transition-colors mx-4 my-2 flex items-center justify-center ${
+        isOver 
+          ? 'border-primary bg-primary/10 text-primary' 
+          : 'border-muted-foreground/30 text-muted-foreground'
+      }`}
+    >
+      <span className="text-xs">
+        {isOver ? 'Buraya bırak' : (isEmpty ? 'Link eklemek için sürükle' : '')}
+      </span>
+    </div>
+  )
+}
+
+// Draggable Link Row
+function DraggableLinkRow({
+  link,
+  targetAddress,
+  highlighted,
+  onToggleEnabled,
+  onEdit,
+  onDelete,
+  isDragDisabled,
+}: {
+  link: LinkItem
+  targetAddress: string
+  highlighted?: boolean
+  onToggleEnabled: (id: string, enabled: boolean) => void
+  onEdit: (link: LinkItem) => void
+  onDelete: (id: string) => void
+  isDragDisabled: boolean
+}) {
+  const router = useRouter()
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: link.id,
+    data: { type: 'link', link },
+    disabled: isDragDisabled,
+  })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`rounded-md border px-3 py-3 shadow-sm transition ${
+        highlighted ? 'border-primary ring-2 ring-primary/20 bg-primary/5' : 'border-border/60 bg-background/60'
+      } ${!link.enabled ? 'opacity-60' : ''} ${isDragging ? 'ring-1 ring-primary/40 shadow-lg bg-background' : ''}`}
     >
       <div className="flex items-center gap-3">
         <button
           type="button"
           {...attributes}
           {...listeners}
-          className={`flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing ${
-            isDragging ? 'text-foreground bg-muted/60' : ''
+          className={`flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground ${
+            isDragDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-grab active:cursor-grabbing'
           }`}
           aria-label={`${link.title || link.url} drag handle`}
         >
@@ -167,9 +328,7 @@ function SortableLinkRow({ link, targetAddress, highlighted, onToggleEnabled, on
         <div className="flex-1 min-w-0 space-y-1">
           <div className="flex items-center gap-2 min-w-0">
             <Link2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-            <p className="text-sm font-medium leading-none truncate">
-              {link.title || link.url}
-            </p>
+            <p className="text-sm font-medium leading-none truncate">{link.title || link.url}</p>
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
             <a
@@ -198,7 +357,7 @@ function SortableLinkRow({ link, targetAddress, highlighted, onToggleEnabled, on
             size="sm"
             variant="outline"
             pressed={link.enabled}
-            onPressedChange={handleToggle}
+            onPressedChange={(pressed) => onToggleEnabled(link.id, pressed)}
           >
             {link.enabled ? 'On' : 'Off'}
           </Toggle>
@@ -207,7 +366,7 @@ function SortableLinkRow({ link, targetAddress, highlighted, onToggleEnabled, on
             variant="ghost"
             size="icon"
             className="h-8 w-8"
-            onClick={handleViewDetails}
+            onClick={() => router.push(`/dashboard/${targetAddress}/links/${link.id}`)}
             aria-label="View link details"
           >
             <BarChart2 className="h-3.5 w-3.5" />
@@ -238,8 +397,7 @@ function SortableLinkRow({ link, targetAddress, highlighted, onToggleEnabled, on
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete link?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will remove the link from your profile builder. You can add it again later if
-                  needed.
+                  This will remove the link from your profile builder.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -258,6 +416,83 @@ function SortableLinkRow({ link, targetAddress, highlighted, onToggleEnabled, on
     </div>
   )
 }
+
+// Category Block - contains header and links
+function CategoryBlock({
+  category,
+  categoryLinks,
+  isCollapsed,
+  onToggleCollapse,
+  onToggleVisibility,
+  onEdit,
+  onDelete,
+  canDelete,
+  targetAddress,
+  highlightedLinkId,
+  onToggleEnabled,
+  onEditLink,
+  onDeleteLink,
+  activeDragType,
+  isLinkDragging,
+}: {
+  category: LinkCategory
+  categoryLinks: LinkItem[]
+  isCollapsed: boolean
+  onToggleCollapse: () => void
+  onToggleVisibility: () => void
+  onEdit: () => void
+  onDelete: () => void
+  canDelete: boolean
+  targetAddress: string
+  highlightedLinkId: string | null
+  onToggleEnabled: (id: string, enabled: boolean) => void
+  onEditLink: (link: LinkItem) => void
+  onDeleteLink: (id: string) => void
+  activeDragType: 'category' | 'link' | null
+  isLinkDragging: boolean
+}) {
+  return (
+    <div className="space-y-2">
+      <DraggableCategoryHeader
+        category={category}
+        linkCount={categoryLinks.length}
+        isCollapsed={isCollapsed}
+        onToggleCollapse={onToggleCollapse}
+        onToggleVisibility={onToggleVisibility}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        canDelete={canDelete}
+        isDragDisabled={activeDragType === 'link'}
+      />
+      
+      {!isCollapsed && (
+        <div className="pl-4 space-y-2">
+          {/* Links */}
+          {categoryLinks.map((link) => (
+            <DraggableLinkRow
+              key={link.id}
+              link={link}
+              targetAddress={targetAddress}
+              highlighted={highlightedLinkId === link.id}
+              onToggleEnabled={onToggleEnabled}
+              onEdit={onEditLink}
+              onDelete={onDeleteLink}
+              isDragDisabled={activeDragType === 'category'}
+            />
+          ))}
+          
+          {/* Drop zone for empty categories or when dragging links */}
+          <LinkDropZone
+            categoryId={category.id}
+            isActive={isLinkDragging}
+            isEmpty={categoryLinks.length === 0}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
 
 export function LinksPanel() {
   const params = useParams()
@@ -278,6 +513,7 @@ export function LinksPanel() {
   const [categoriesSaving, setCategoriesSaving] = useState(false)
   const [highlightedLinkId, setHighlightedLinkId] = useState<string | null>(null)
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set())
+  const [activeId, setActiveId] = useState<string | null>(null)
   
   // Category management state
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
@@ -592,7 +828,7 @@ export function LinksPanel() {
     }
   }
 
-  const saveCategories = async (categoriesToSave: Omit<LinkCategory, 'id' | 'createdAt' | 'updatedAt' | 'linkCount'>[]) => {
+  const saveCategories = async (categoriesToSave: (Omit<LinkCategory, 'id' | 'createdAt' | 'updatedAt' | 'linkCount'> & { id?: string })[]) => {
     if (!targetAddress) {
       toast.error('Wallet address not found')
       return false
@@ -607,7 +843,7 @@ export function LinksPanel() {
         },
         body: JSON.stringify({
           address: targetAddress,
-          categories: categoriesToSave.map((cat, index) => ({
+          categories: categoriesToSave.map((cat: Omit<LinkCategory, 'id' | 'createdAt' | 'updatedAt' | 'linkCount'> & { id?: string }, index) => ({
             id: cat.id || undefined,
             name: cat.name,
             slug: cat.slug,
@@ -720,8 +956,8 @@ export function LinksPanel() {
     await saveLinks(next)
   }
 
-  // Group links by category
-  const linksByCategory = (() => {
+  // Group links by category - memoized to prevent recalculation issues
+  const linksByCategory = useMemo(() => {
     const grouped = new Map<string | null, LinkItem[]>()
     
     // Initialize with all categories
@@ -747,14 +983,14 @@ export function LinksPanel() {
     })
     
     return grouped
-  })()
+  }, [categories, links])
 
-  // Get sorted categories (by order, with uncategorized last)
-  const sortedCategories = [...categories].sort((a, b) => {
-    if (a.isDefault && !b.isDefault) return -1
-    if (!a.isDefault && b.isDefault) return 1
-    return (a.order || 0) - (b.order || 0)
-  })
+  // Get sorted categories (by order only - all categories can be sorted) - memoized
+  const sortedCategories = useMemo(() => {
+    return [...categories].sort((a, b) => {
+      return (a.order || 0) - (b.order || 0)
+    })
+  }, [categories])
 
   // Get link count for a category
   const getCategoryLinkCount = (categoryId: string | null) => {
@@ -773,41 +1009,180 @@ export function LinksPanel() {
     })
   }
 
+  // =============================================================================
+  // DRAG & DROP STATE AND HANDLERS
+  // =============================================================================
+  
+  // Determine what type of item is being dragged
+  const getActiveDragType = (): 'category' | 'link' | null => {
+    if (!activeId) return null
+    if (typeof activeId === 'string' && activeId.startsWith('cat-')) return 'category'
+    // If it's a link ID (not starting with special prefix)
+    if (links.some(l => l.id === activeId)) return 'link'
+    return null
+  }
+  
+  const activeDragType = getActiveDragType()
+  const isLinkDragging = activeDragType === 'link'
+  const isCategoryDragging = activeDragType === 'category'
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string)
+  }
+
+  // Custom collision detection
+  const customCollisionDetection: CollisionDetection = (args) => {
+    const { active } = args
+    const activeIdStr = active.id as string
+    
+    // For categories, only collide with other categories
+    if (activeIdStr.startsWith('cat-')) {
+      const collisions = closestCenter(args)
+      return collisions.filter(c => {
+        const id = c.id as string
+        return id.startsWith('cat-')
+      })
+    }
+    
+    // For links, collide with other links and drop zones
+    return closestCenter(args)
+  }
+
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
+    setActiveId(null)
+    
     if (!over || active.id === over.id) return
+    
+    const activeIdStr = active.id as string
+    const overIdStr = over.id as string
 
-    // Check if dragging to a category drop zone
-    if (typeof over.id === 'string' && over.id.startsWith('category-')) {
-      const targetCategoryId = over.id.replace('category-', '') || null
-      const link = links.find(l => l.id === active.id)
-      if (link) {
-        const updated = links.map(l =>
-          l.id === active.id
-            ? { ...l, categoryId: targetCategoryId === 'null' ? null : targetCategoryId }
-            : l
-        )
-        setLinks(updated)
-        await saveLinks(updated)
+    // =======================================================================
+    // CATEGORY REORDERING
+    // =======================================================================
+    if (activeIdStr.startsWith('cat-')) {
+      const activeCategoryId = activeIdStr.replace('cat-', '')
+      
+      // Only accept drops on other categories
+      if (!overIdStr.startsWith('cat-')) return
+      
+      const overCategoryId = overIdStr.replace('cat-', '')
+      
+      const activeIndex = sortedCategories.findIndex(cat => cat.id === activeCategoryId)
+      const overIndex = sortedCategories.findIndex(cat => cat.id === overCategoryId)
+      
+      if (activeIndex === -1 || overIndex === -1 || activeIndex === overIndex) return
+      
+      // Reorder categories
+      const reordered = arrayMove(sortedCategories, activeIndex, overIndex)
+      const withOrder = reordered.map((cat, idx) => ({
+        ...cat,
+        order: idx,
+      }))
+      
+      // Save previous state for rollback
+      const previousCategories = [...categories]
+      
+      // Optimistic update
+      setCategories(withOrder)
+      
+      // Persist to server
+      const success = await saveCategories(withOrder.map(cat => ({
+        id: cat.id,
+        name: cat.name,
+        slug: cat.slug,
+        description: cat.description,
+        order: cat.order,
+        isVisible: cat.isVisible,
+        isDefault: cat.isDefault,
+      })))
+      
+      if (!success) {
+        setCategories(previousCategories)
+        toast.error('Kategori sıralaması kaydedilemedi.')
       }
       return
     }
 
-    // Regular link reordering within category
-    const activeLink = links.find(l => l.id === active.id)
-    const overLink = links.find(l => l.id === over.id)
-    
-    if (!activeLink || !overLink) return
-    
-    // If same category, reorder within category
-    if (activeLink.categoryId === overLink.categoryId) {
-      const categoryLinks = linksByCategory.get(activeLink.categoryId || null) || []
-      const oldIndex = categoryLinks.findIndex(l => l.id === active.id)
-      const newIndex = categoryLinks.findIndex(l => l.id === over.id)
+    // =======================================================================
+    // LINK OPERATIONS
+    // =======================================================================
+    const activeLink = links.find(l => l.id === activeIdStr)
+    if (!activeLink) return
+
+    // Case 1: Dropping on a category drop zone (empty area in category)
+    if (overIdStr.startsWith('drop-')) {
+      const targetCategoryId = overIdStr.replace('drop-', '')
       
-      if (oldIndex === -1 || newIndex === -1) return
+      // Move link to new category
+      const targetCategoryLinks = linksByCategory.get(targetCategoryId) || []
+      const newOrder = targetCategoryLinks.length
       
-      const reordered = arrayMove(categoryLinks, oldIndex, newIndex)
+      const previousLinks = [...links]
+      const updated = links.map(l =>
+        l.id === activeIdStr
+          ? { ...l, categoryId: targetCategoryId, order: newOrder }
+          : l
+      )
+      setLinks(updated)
+      
+      const success = await saveLinks(updated)
+      if (!success) {
+        setLinks(previousLinks)
+        toast.error('Link taşınamadı.')
+      }
+      return
+    }
+
+    // Case 2: Dropping on another link
+    const overLink = links.find(l => l.id === overIdStr)
+    if (!overLink) return
+    
+    const targetCategoryId = overLink.categoryId || null
+    const targetCategoryLinks = linksByCategory.get(targetCategoryId) || []
+    const overIndex = targetCategoryLinks.findIndex(l => l.id === overIdStr)
+    
+    if (overIndex === -1) return
+    
+    // Moving to different category
+    if (activeLink.categoryId !== targetCategoryId) {
+      const oldCategoryLinks = linksByCategory.get(activeLink.categoryId || null) || []
+      
+      // Remove from old category
+      const updatedOldLinks = oldCategoryLinks
+        .filter(l => l.id !== activeIdStr)
+        .map((link, idx) => ({ ...link, order: idx }))
+      
+      // Add to new category at target position
+      const newCategoryLinks = [...targetCategoryLinks]
+      newCategoryLinks.splice(overIndex, 0, { ...activeLink, categoryId: targetCategoryId })
+      const updatedNewLinks = newCategoryLinks.map((link, idx) => ({
+        ...link,
+        categoryId: targetCategoryId,
+        order: idx,
+      }))
+      
+      const previousLinks = [...links]
+      const updated = links.map(l => {
+        const inOld = updatedOldLinks.find(wl => wl.id === l.id)
+        const inNew = updatedNewLinks.find(wl => wl.id === l.id)
+        return inNew || inOld || l
+      })
+      
+      setLinks(updated)
+      
+      const success = await saveLinks(updated)
+      if (!success) {
+        setLinks(previousLinks)
+        toast.error('Link taşınamadı.')
+      }
+    } else {
+      // Reordering within same category
+      const activeIndex = targetCategoryLinks.findIndex(l => l.id === activeIdStr)
+      if (activeIndex === -1 || activeIndex === overIndex) return
+      
+      const previousLinks = [...links]
+      const reordered = arrayMove(targetCategoryLinks, activeIndex, overIndex)
       const withOrder = reordered.map((link, index) => ({
         ...link,
         order: index,
@@ -820,9 +1195,15 @@ export function LinksPanel() {
       })
       
       setLinks(updated)
-      await saveLinks(updated)
-    } else {
-      // Moving between categories - handled by category drop zone above
+      
+      // Persist to server
+      const success = await saveLinks(updated)
+      
+      // Rollback on failure
+      if (!success) {
+        setLinks(previousLinks)
+        toast.error('Failed to save link order. Reverting changes.')
+      }
     }
   }
 
@@ -1148,259 +1529,134 @@ export function LinksPanel() {
   return (
     <PageShell
       title="Links"
-      subtitle="Manage the external links that appear on your public SOCI4L profile."
+      subtitle="Control which links appear on your public profile."
     >
-      <div className="space-y-6">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs text-muted-foreground">
-            Add, reorder and toggle links that will be visible on your public profile. Only enabled
-            links are shown publicly.
-          </p>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button type="button" size="sm" variant="default" onClick={openAddDialog}>
-                <Plus className="mr-2 h-3.5 w-3.5" />
-                Add link
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{editingLink ? 'Edit link' : 'Add link'}</DialogTitle>
-                <DialogDescription>
-                  Provide a title and URL for the link you want to surface on your profile.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="link-title">Title (optional)</Label>
-                  <Input
-                    id="link-title"
-                    value={formTitle}
-                    onChange={(e) => setFormTitle(e.target.value)}
-                    placeholder="e.g. Personal website"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="link-url">URL</Label>
-                  <Input
-                    id="link-url"
-                    value={formUrl}
-                    onChange={(e) => setFormUrl(e.target.value)}
-                    placeholder="https://..."
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    URL must start with <span className="font-mono">http://</span> or{' '}
-                    <span className="font-mono">https://</span>.
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="link-category">Category</Label>
-                  <Select value={formCategoryId} onValueChange={setFormCategoryId}>
-                    <SelectTrigger id="link-category">
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories
-                        .sort((a, b) => a.order - b.order)
-                        .map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id}>
-                            {cat.name}
-                            {cat.isDefault && ' (Default)'}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+      <div className="space-y-4">
+        {/* Add Link Dialog */}
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{editingLink ? 'Edit link' : 'Add link'}</DialogTitle>
+              <DialogDescription>
+                Provide a title and URL for the link you want to surface on your profile.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="link-title">Title (optional)</Label>
+                <Input
+                  id="link-title"
+                  value={formTitle}
+                  onChange={(e) => setFormTitle(e.target.value)}
+                  placeholder="e.g. Personal website"
+                />
               </div>
-              <DialogFooter>
-                <Button type="button" variant="outline" size="sm" onClick={() => setDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="button" size="sm" onClick={handleSubmit}>
-                  {editingLink ? 'Save changes' : 'Add link'}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
+              <div className="space-y-2">
+                <Label htmlFor="link-url">URL</Label>
+                <Input
+                  id="link-url"
+                  value={formUrl}
+                  onChange={(e) => setFormUrl(e.target.value)}
+                  placeholder="https://..."
+                />
+                <p className="text-xs text-muted-foreground">
+                  URL must start with <span className="font-mono">http://</span> or{' '}
+                  <span className="font-mono">https://</span>.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="link-category">Category</Label>
+                <Select value={formCategoryId} onValueChange={setFormCategoryId}>
+                  <SelectTrigger id="link-category">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories
+                      .sort((a, b) => a.order - b.order)
+                      .map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                          {cat.isDefault && ' (Default)'}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" size="sm" onClick={() => setDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="button" size="sm" onClick={handleSubmit}>
+                {editingLink ? 'Save changes' : 'Add link'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-        {/* Categories Management */}
+        {/* Add Category Dialog */}
+        <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{editingCategory ? 'Edit category' : 'Add category'}</DialogTitle>
+              <DialogDescription>
+                Create a category to organize your links.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="category-name">Name</Label>
+                <Input
+                  id="category-name"
+                  value={categoryFormName}
+                  onChange={(e) => setCategoryFormName(e.target.value)}
+                  placeholder="e.g. Projects, Resources"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="category-description">Description (optional)</Label>
+                <Input
+                  id="category-description"
+                  value={categoryFormDescription}
+                  onChange={(e) => setCategoryFormDescription(e.target.value)}
+                  placeholder="Short description"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" size="sm" onClick={() => setCategoryDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="button" size="sm" onClick={handleCategorySubmit} disabled={categoriesSaving}>
+                {editingCategory ? 'Save changes' : 'Add category'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         <Card className="bg-card border border-border/60 shadow-sm">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base">Link Categories</CardTitle>
-                <CardDescription>
-                  Organize your links into categories. Categories can be shown or hidden on your public profile.
-                </CardDescription>
-              </div>
-              <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button type="button" size="sm" variant="outline" onClick={openAddCategoryDialog}>
-                    <Plus className="mr-2 h-3.5 w-3.5" />
-                    Add Category
+              <CardTitle className="text-base">Profile Links</CardTitle>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button type="button" variant="outline" size="sm" className="h-8 gap-1">
+                    <Plus className="h-3.5 w-3.5" />
+                    Add
                   </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>{editingCategory ? 'Edit category' : 'Add category'}</DialogTitle>
-                    <DialogDescription>
-                      Create a category to organize your links.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="category-name">Name</Label>
-                      <Input
-                        id="category-name"
-                        value={categoryFormName}
-                        onChange={(e) => setCategoryFormName(e.target.value)}
-                        placeholder="e.g. Projects, Resources"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="category-description">Description (optional)</Label>
-                      <Input
-                        id="category-description"
-                        value={categoryFormDescription}
-                        onChange={(e) => setCategoryFormDescription(e.target.value)}
-                        placeholder="Short description"
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button type="button" variant="outline" size="sm" onClick={() => setCategoryDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button type="button" size="sm" onClick={handleCategorySubmit} disabled={categoriesSaving}>
-                      {editingCategory ? 'Save changes' : 'Add category'}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={openAddDialog} className="font-medium">
+                    <Link2 className="mr-2 h-4 w-4" />
+                    Add link
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={openAddCategoryDialog} className="text-muted-foreground">
+                    <Folder className="mr-2 h-4 w-4" />
+                    Add category
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-          </CardHeader>
-          <CardContent>
-            {categoriesLoading ? (
-              <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-6 text-center text-xs text-muted-foreground">
-                Loading categories...
-              </div>
-            ) : categories.length === 0 ? (
-              <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-6 text-center text-xs text-muted-foreground">
-                No categories yet. Create your first category above.
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {categories
-                  .sort((a, b) => a.order - b.order)
-                  .map((category, index) => (
-                    <div
-                      key={category.id}
-                      className="flex items-center gap-3 rounded-md border border-border/60 bg-background/60 px-3 py-2.5"
-                    >
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handleMoveCategory(category.id, 'up')}
-                          disabled={index === 0}
-                          className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                          aria-label="Move up"
-                        >
-                          <ArrowUp className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleMoveCategory(category.id, 'down')}
-                          disabled={index === categories.length - 1}
-                          className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
-                          aria-label="Move down"
-                        >
-                          <ArrowDown className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                      <Folder className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <div className="flex-1 min-w-0 space-y-0.5">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium">
-                            {category.name}
-                            {category.isDefault && (
-                              <Badge variant="secondary" className="ml-2 text-xs">Default</Badge>
-                            )}
-                          </p>
-                        </div>
-                        {category.description && (
-                          <p className="text-xs text-muted-foreground">{category.description}</p>
-                        )}
-                        <p className="text-xs text-muted-foreground">
-                          {category.linkCount || 0} {category.linkCount === 1 ? 'link' : 'links'}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Toggle
-                          aria-label={`Toggle ${category.name} visibility`}
-                          size="sm"
-                          variant="outline"
-                          pressed={category.isVisible}
-                          onPressedChange={() => handleToggleCategoryVisibility(category.id)}
-                        >
-                          {category.isVisible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-                        </Toggle>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={() => openEditCategoryDialog(category)}
-                          aria-label="Edit category"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                        {!category.isDefault && (
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 text-destructive hover:text-destructive"
-                                aria-label="Delete category"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete category?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This will move all links in this category to the default category. The category will be removed.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                  onClick={() => handleDeleteCategory(category.id)}
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card border border-border/60 shadow-sm">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-base">Profile Links</CardTitle>
-            <CardDescription>
-              Organize links into categories. Drag links to reorder them within or between categories.
-            </CardDescription>
           </CardHeader>
           <CardContent>
             {loading || categoriesLoading ? (
@@ -1429,68 +1685,84 @@ export function LinksPanel() {
             ) : (
               <DndContext
                 sensors={sensors}
-                collisionDetection={closestCenter}
+                collisionDetection={customCollisionDetection}
+                onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
-                modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+                modifiers={[restrictToVerticalAxis]}
               >
-                <div ref={linksListRef} className="space-y-4">
-                  {sortedCategories.map((category) => {
-                    const categoryLinks = linksByCategory.get(category.id) || []
-                    const isCollapsed = collapsedCategories.has(category.id)
-                    const linkCount = categoryLinks.length
-                    
-                    // Don't show empty categories
-                    if (linkCount === 0) return null
-                    
-                    return (
-                      <div key={category.id} className="space-y-2">
-                        {/* Category Header */}
-                        <div className="flex items-center gap-2 px-2 py-1.5 rounded-md border border-border/40 bg-muted/20">
-                          <button
-                            type="button"
-                            onClick={() => toggleCategoryCollapse(category.id)}
-                            className="flex items-center justify-center h-6 w-6 rounded hover:bg-muted/60 transition-colors"
-                            aria-label={isCollapsed ? 'Expand category' : 'Collapse category'}
-                          >
-                            {isCollapsed ? (
-                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                            ) : (
-                              <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                            )}
-                          </button>
-                          <GripVertical className="h-4 w-4 text-muted-foreground" />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <p className="text-sm font-medium">{category.name}</p>
-                              <Badge variant="secondary" className="text-xs">
-                                {linkCount}
-                              </Badge>
-                              {category.isDefault && (
-                                <Badge variant="outline" className="text-xs">Default</Badge>
-                              )}
-                            </div>
-                          </div>
-                          <Toggle
-                            aria-label={`Toggle ${category.name} visibility`}
-                            size="sm"
-                            variant="outline"
-                            pressed={category.isVisible}
-                            onPressedChange={() => handleToggleCategoryVisibility(category.id)}
-                          >
-                            {category.isVisible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-                          </Toggle>
-                        </div>
+                {/* SortableContext for categories */}
+                <SortableContext
+                  items={sortedCategories.map(c => `cat-${c.id}`)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {/* SortableContext for all links */}
+                  <SortableContext
+                    items={links.map(l => l.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div ref={linksListRef} className="space-y-4">
+                      {sortedCategories.map((category) => {
+                        const categoryLinks = linksByCategory.get(category.id) || []
+                        const isCollapsed = collapsedCategories.has(category.id)
                         
-                        {/* Category Links */}
-                        {!isCollapsed && (
-                          <CategoryDropZone categoryId={category.id}>
-                            <div className="space-y-2 pl-4">
-                            <SortableContext
-                              items={categoryLinks.map(l => l.id)}
-                              strategy={verticalListSortingStrategy}
+                        return (
+                          <CategoryBlock
+                            key={category.id}
+                            category={category}
+                            categoryLinks={categoryLinks}
+                            isCollapsed={isCollapsed}
+                            onToggleCollapse={() => toggleCategoryCollapse(category.id)}
+                            onToggleVisibility={() => handleToggleCategoryVisibility(category.id)}
+                            onEdit={() => openEditCategoryDialog(category)}
+                            onDelete={() => handleDeleteCategory(category.id)}
+                            canDelete={!category.isDefault}
+                            targetAddress={targetAddress}
+                            highlightedLinkId={highlightedLinkId}
+                            onToggleEnabled={handleToggleEnabled}
+                            onEditLink={openEditDialog}
+                            onDeleteLink={handleDelete}
+                            activeDragType={activeDragType}
+                            isLinkDragging={isLinkDragging}
+                          />
+                        )
+                      })}
+                    
+                    {/* Uncategorized Links */}
+                    {(() => {
+                      const uncategorizedLinks = linksByCategory.get(null) || []
+                      if (uncategorizedLinks.length === 0) return null
+                      
+                      const isCollapsed = collapsedCategories.has('uncategorized')
+                      
+                      return (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 px-2 py-1.5 rounded-md border border-border/40 bg-muted/20">
+                            <button
+                              type="button"
+                              onClick={() => toggleCategoryCollapse('uncategorized')}
+                              className="flex items-center justify-center h-6 w-6 rounded hover:bg-muted/60 transition-colors"
+                              aria-label={isCollapsed ? 'Expand uncategorized' : 'Collapse uncategorized'}
                             >
-                              {categoryLinks.map((link) => (
-                                <SortableLinkRow
+                              {isCollapsed ? (
+                                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                              )}
+                            </button>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <p className="text-sm font-medium">Uncategorized</p>
+                                <Badge variant="secondary" className="text-xs">
+                                  {uncategorizedLinks.length}
+                                </Badge>
+                              </div>
+                            </div>
+                        </div>
+                          
+                          {!isCollapsed && (
+                            <div className="space-y-2 pl-4">
+                              {uncategorizedLinks.map((link) => (
+                                <DraggableLinkRow
                                   key={link.id}
                                   link={link}
                                   targetAddress={targetAddress}
@@ -1498,74 +1770,71 @@ export function LinksPanel() {
                                   onToggleEnabled={handleToggleEnabled}
                                   onEdit={openEditDialog}
                                   onDelete={handleDelete}
+                                  isDragDisabled={isCategoryDragging}
                                 />
                               ))}
-                            </SortableContext>
                             </div>
-                          </CategoryDropZone>
-                        )}
-                      </div>
-                    )
-                  })}
-                  
-                  {/* Uncategorized Links */}
-                  {(() => {
-                    const uncategorizedLinks = linksByCategory.get(null) || []
-                    if (uncategorizedLinks.length === 0) return null
-                    
-                    const isCollapsed = collapsedCategories.has('uncategorized')
-                    
-                    return (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 px-2 py-1.5 rounded-md border border-border/40 bg-muted/20">
-                          <button
-                            type="button"
-                            onClick={() => toggleCategoryCollapse('uncategorized')}
-                            className="flex items-center justify-center h-6 w-6 rounded hover:bg-muted/60 transition-colors"
-                            aria-label={isCollapsed ? 'Expand uncategorized' : 'Collapse uncategorized'}
-                          >
-                            {isCollapsed ? (
-                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                            ) : (
-                              <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                            )}
-                          </button>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <p className="text-sm font-medium">Uncategorized</p>
-                              <Badge variant="secondary" className="text-xs">
-                                {uncategorizedLinks.length}
-                              </Badge>
+                          )}
+                        </div>
+                      )
+                    })()}
+                    </div>
+                  </SortableContext>
+                </SortableContext>
+                
+                {/* Drag Overlay - shows preview of dragged item */}
+                <DragOverlay dropAnimation={null}>
+                  {activeId && isCategoryDragging ? (
+                    (() => {
+                      const draggedCategory = sortedCategories.find(c => `cat-${c.id}` === activeId)
+                      if (!draggedCategory) return null
+                      
+                      const draggedCategoryLinks = linksByCategory.get(draggedCategory.id) || []
+                      const MAX_PREVIEW = 2
+                      const visibleLinks = draggedCategoryLinks.slice(0, MAX_PREVIEW)
+                      const hiddenCount = Math.max(0, draggedCategoryLinks.length - MAX_PREVIEW)
+                      
+                      return (
+                        <div className="rounded-md border-2 border-primary bg-background shadow-xl w-80">
+                          <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 border-b border-primary/20">
+                            <GripVertical className="h-4 w-4 text-primary" />
+                            <span className="text-sm font-medium">{draggedCategory.name}</span>
+                            <Badge variant="secondary" className="text-xs ml-auto">{draggedCategoryLinks.length}</Badge>
+                          </div>
+                          {visibleLinks.length > 0 && (
+                            <div className="p-2 space-y-1">
+                              {visibleLinks.map((link) => (
+                                <div key={link.id} className="flex items-center gap-2 px-2 py-1 rounded bg-muted/50 text-xs">
+                                  <Link2 className="h-3 w-3 text-muted-foreground" />
+                                  <span className="truncate">{link.title || link.url}</span>
+                                </div>
+                              ))}
+                              {hiddenCount > 0 && (
+                                <div className="text-xs text-muted-foreground text-center py-1">
+                                  +{hiddenCount} daha fazla
+                                </div>
+                              )}
                             </div>
+                          )}
+                        </div>
+                      )
+                    })()
+                  ) : activeId && isLinkDragging ? (
+                    (() => {
+                      const link = links.find(l => l.id === activeId)
+                      if (!link) return null
+                      return (
+                        <div className="rounded-md border-2 border-primary bg-background px-3 py-2 shadow-xl">
+                          <div className="flex items-center gap-2">
+                            <GripVertical className="h-4 w-4 text-primary" />
+                            <Link2 className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="text-sm font-medium truncate">{link.title || link.url}</span>
                           </div>
                         </div>
-                        
-                        {!isCollapsed && (
-                          <CategoryDropZone categoryId="null">
-                            <div className="space-y-2 pl-4">
-                              <SortableContext
-                                items={uncategorizedLinks.map(l => l.id)}
-                                strategy={verticalListSortingStrategy}
-                              >
-                                {uncategorizedLinks.map((link) => (
-                                  <SortableLinkRow
-                                    key={link.id}
-                                    link={link}
-                                    targetAddress={targetAddress}
-                                    highlighted={highlightedLinkId === link.id}
-                                    onToggleEnabled={handleToggleEnabled}
-                                    onEdit={openEditDialog}
-                                    onDelete={handleDelete}
-                                  />
-                                ))}
-                              </SortableContext>
-                            </div>
-                          </CategoryDropZone>
-                        )}
-                      </div>
-                    )
-                  })()}
-                </div>
+                      )
+                    })()
+                  ) : null}
+                </DragOverlay>
               </DndContext>
             )}
           </CardContent>

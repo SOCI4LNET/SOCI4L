@@ -24,7 +24,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
-import { trackProfileView, trackLinkClick, getSourceFromUrl, getProfileViewCount } from '@/lib/analytics'
+import { trackProfileView, getSourceFromUrl, getProfileViewCount } from '@/lib/analytics'
 import { type ProfileLink } from '@/lib/profile-links'
 import {
   type ProfileLayoutConfig,
@@ -938,7 +938,7 @@ export default function ProfilePage({ params }: PageProps) {
                         <div className="flex flex-col items-center justify-center py-8 text-center">
                           <Link2 className="h-8 w-8 text-muted-foreground mb-2" />
                           <p className="text-sm text-muted-foreground">
-                            This profile hasn't shared any links yet.
+                            This profile hasn&apos;t shared any links yet.
                           </p>
                         </div>
                       ) : (
@@ -960,22 +960,16 @@ export default function ProfilePage({ params }: PageProps) {
                                 )}
                                 <div className="space-y-2">
                                   {categoryLinks.map((link) => {
-                                    const handleLinkClick = () => {
-                                      if (stableProfileId && link.id) {
-                                        // Find categoryId for this link
-                                        const linkCategoryId = enabledProfileLinks.find(l => l.id === link.id)?.categoryId || null
-                                        // Links clicked from profile page always have source="profile"
-                                        trackLinkClick(stableProfileId, link.id, 'profile', linkCategoryId)
-                                      }
-                                    }
+                                    // Use redirect endpoint for tracking
+                                    // This ensures clicks are tracked even if user right-clicks or opens in new tab
+                                    const redirectUrl = `/r/${link.id}?source=profile`
                                     
                                     return (
                                     <a
                                       key={link.id}
-                                      href={link.url}
+                                      href={redirectUrl}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      onClick={handleLinkClick}
                                       className="group flex items-center justify-between rounded-md border border-border/60 bg-background/60 px-3 py-2 text-xs transition-colors hover:border-primary/50 hover:bg-primary/5"
                                     >
                                       <div className="flex min-w-0 items-center gap-2">

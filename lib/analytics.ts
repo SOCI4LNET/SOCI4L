@@ -154,17 +154,21 @@ export function trackProfileView(
 ): void {
   if (!profileId) return
 
-  if (!shouldLogProfileView(profileId)) {
+  // Normalize profileId to lowercase for consistency
+  const normalizedProfileId = profileId.toLowerCase()
+
+  if (!shouldLogProfileView(normalizedProfileId)) {
     return
   }
 
   const event: AnalyticsEvent = {
     type: 'profile_view',
-    profileId,
+    profileId: normalizedProfileId,
     ts: Date.now(),
     source,
   }
 
+  console.log('[analytics] trackProfileView', { profileId: normalizedProfileId, source, ts: event.ts })
   writeEvent(event)
 }
 
@@ -176,22 +180,28 @@ export function trackLinkClick(
 ): void {
   if (!profileId || !linkId) return
 
+  // Normalize profileId to lowercase for consistency
+  const normalizedProfileId = profileId.toLowerCase()
+
   const event: AnalyticsEvent = {
     type: 'link_click',
-    profileId,
+    profileId: normalizedProfileId,
     linkId,
     categoryId: categoryId || null,
     ts: Date.now(),
     source,
   }
 
+  console.log('[analytics] trackLinkClick', { profileId: normalizedProfileId, linkId, source, categoryId, ts: event.ts })
   writeEvent(event)
 }
 
 export function getEventsForProfile(profileId: string): AnalyticsEvent[] {
   if (!profileId) return []
   const all = readEventsFromStorage()
-  return all.filter((event) => event.profileId === profileId)
+  // Normalize addresses for comparison (case-insensitive)
+  const normalizedProfileId = profileId.toLowerCase()
+  return all.filter((event) => event.profileId.toLowerCase() === normalizedProfileId)
 }
 
 /**
