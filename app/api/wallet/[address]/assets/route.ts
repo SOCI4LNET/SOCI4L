@@ -271,80 +271,73 @@ export async function GET(
         chain: string
       }> = []
 
-      // Try OpenSea API first (preferred source)
+      const hasOpenseaApiKey = !!process.env.OPENSEA_API_KEY
       let openseaError: any = null
       let openseaAttempted = false
-      try {
-        openseaAttempted = true
-        // Convert cursor to OpenSea pagination format
-        // If cursor is numeric (old format), start fresh with OpenSea
-        // Otherwise use cursor as OpenSea next token
-        const openseaNext = cursor && cursor !== '0' && !/^\d+$/.test(cursor) ? cursor : null
-        
-        console.log('[Assets API] Attempting OpenSea fetch:', {
-          address: normalizedAddress,
-          chain: 'avalanche',
-          limit,
-          cursor: openseaNext,
-          hasApiKey: !!process.env.OPENSEA_API_KEY,
-        })
-        
-        const openseaData = await fetchAccountNfts('avalanche', normalizedAddress, limit, openseaNext)
-        
-        console.log('[Assets API] OpenSea raw response:', {
-          nftCount: openseaData.nfts?.length || 0,
-          hasNext: !!openseaData.next,
-          firstNft: openseaData.nfts?.[0] || null,
-        })
-        
-        nfts = openseaData.nfts.map((openseaNft) => ({
-          contract: openseaNft.contract || '',
-          tokenId: openseaNft.identifier || '',
-          name: openseaNft.name || undefined,
-          collectionName: openseaNft.collection || undefined,
-          imageUrl: openseaNft.image_url || undefined,
-          floorUsd: undefined, // OpenSea v2 doesn't provide floor price in this endpoint
-          traitsCount: undefined,
-          chain: 'Avalanche C-Chain',
-        }))
+      let dataSource = 'none'
 
-        // Use OpenSea's next cursor if available
-        if (openseaData.next) {
-          result.nextCursor = openseaData.next
-        }
-
-        console.log('[Assets API] NFTs from OpenSea (mapped):', {
-          total: nfts.length,
-          hasNext: !!openseaData.next,
-          sampleNft: nfts[0] || null,
-        })
-      } catch (error: any) {
-        openseaError = error
-        console.error('[Assets API] OpenSea fetch failed, falling back to RPC:', {
-          error: error.message,
-          errorType: error.constructor.name,
-          stack: error.stack,
-          address: normalizedAddress,
-        })
-
-        // Fallback to RPC data if OpenSea fails
-        if (rpcData) {
-          nfts = rpcData.nfts.map((nft) => ({
-            contract: nft.contractAddress,
-            tokenId: nft.tokenId,
-            name: nft.name,
-            collectionName: undefined,
-            imageUrl: nft.imageUrl,
+      // If OpenSea API key exists, try OpenSea first (preferred - has images)
+      if (hasOpenseaApiKey) {
+        try {
+          openseaAttempted = true
+          // Convert cursor to OpenSea pagination format
+          const openseaNext = cursor && cursor !== '0' && !/^\d+$/.test(cursor) ? cursor : null
+          
+          console.log('[Assets API] Attempting OpenSea fetch:', {
+            address: normalizedAddress,
+            chain: 'avalanche',
+            limit,
+            cursor: openseaNext,
+          })
+          
+          const openseaData = await fetchAccountNfts('avalanche', normalizedAddress, limit, openseaNext)
+          
+          nfts = openseaData.nfts.map((openseaNft) => ({
+            contract: openseaNft.contract || '',
+            tokenId: openseaNft.identifier || '',
+            name: openseaNft.name || undefined,
+            collectionName: openseaNft.collection || undefined,
+            imageUrl: openseaNft.image_url || undefined,
             floorUsd: undefined,
             traitsCount: undefined,
             chain: 'Avalanche C-Chain',
           }))
 
-          console.log('[Assets API] NFTs from RPC fallback:', {
+          if (openseaData.next) {
+            result.nextCursor = openseaData.next
+          }
+
+          dataSource = 'opensea'
+          console.log('[Assets API] NFTs from OpenSea:', {
+            total: nfts.length,
+            hasNext: !!openseaData.next,
+          })
+        } catch (error: any) {
+          openseaError = error
+          console.error('[Assets API] OpenSea fetch failed:', error.message)
+        }
+      }
+
+      // If OpenSea failed or no API key, use Snowtrace data (from rpcData)
+      if (!hasOpenseaApiKey || openseaError) {
+        if (rpcData && rpcData.nfts && rpcData.nfts.length > 0) {
+          nfts = rpcData.nfts.map((nft) => ({
+            contract: nft.contractAddress,
+            tokenId: nft.tokenId,
+            name: nft.name,
+            collectionName: undefined,
+            imageUrl: nft.imageUrl, // Snowtrace doesn't provide images
+            floorUsd: undefined,
+            traitsCount: undefined,
+            chain: 'Avalanche C-Chain',
+          }))
+
+          dataSource = 'snowtrace'
+          console.log('[Assets API] NFTs from Snowtrace:', {
             total: nfts.length,
           })
 
-          // Pagination for RPC data (numeric cursor)
+          // Pagination for Snowtrace data (numeric cursor)
           const startIndex = parseInt(cursor, 10)
           const endIndex = startIndex + limit
           const paginatedNfts = nfts.slice(startIndex, endIndex)
@@ -354,45 +347,23 @@ export async function GET(
             result.nextCursor = endIndex.toString()
           }
         } else {
-          // No data from either source
           result.nfts = []
-          result.nextCursor = undefined
+          dataSource = 'none'
         }
-      }
-
-      // If OpenSea succeeded, use its data directly (already paginated by OpenSea)
-      // Always set result.nfts even if empty array (to distinguish from "not fetched")
-      if (!openseaError) {
-        result.nfts = nfts
-        console.log('[Assets API] NFTs from OpenSea (success):', {
-          total: nfts.length,
-          hasNext: !!result.nextCursor,
-        })
       } else {
-        // OpenSea failed - use RPC fallback data (already set above in catch block)
-        console.log('[Assets API] NFTs from RPC fallback:', {
-          total: result.nfts?.length || 0,
-          hasNext: !!result.nextCursor,
-        })
+        // OpenSea succeeded
+        result.nfts = nfts
       }
 
       console.log('[Assets API] Processed NFTs (final):', {
         total: result.nfts?.length || 0,
-        source: openseaError ? (rpcData ? 'rpc-fallback' : 'none') : 'opensea',
+        source: dataSource,
+        hasOpenseaApiKey,
         openseaAttempted,
         openseaError: openseaError?.message || null,
-        rpcHasNfts: rpcData?.nfts?.length || 0,
+        snowtraceNftCount: rpcData?.nfts?.length || 0,
         hasNext: !!result.nextCursor,
       })
-      
-      // If OpenSea was attempted but failed and RPC has no NFTs, log warning
-      if (openseaAttempted && openseaError && (!rpcData || !rpcData.nfts || rpcData.nfts.length === 0)) {
-        console.warn('[Assets API] No NFTs found from any source:', {
-          openseaError: openseaError.message,
-          rpcNftCount: rpcData?.nfts?.length || 0,
-          note: 'RPC fallback does not support NFT discovery - only OpenSea can fetch NFTs',
-        })
-      }
     }
 
     const duration = Date.now() - startTime

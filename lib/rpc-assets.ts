@@ -100,6 +100,13 @@ export interface RPCToken {
   coingeckoId?: string // Optional, for price fetching
 }
 
+export interface RPCNFT {
+  contractAddress: string
+  tokenId: string
+  name?: string
+  imageUrl?: string
+}
+
 export interface RPCAssetsResponse {
   address: string
   chainId: number
@@ -113,13 +120,71 @@ export interface RPCAssetsResponse {
     logoUrl?: string
   }
   tokens: RPCToken[]
-  nfts: Array<{
-    contractAddress: string
-    tokenId: string
-    name?: string
-    imageUrl?: string
-  }>
+  nfts: RPCNFT[]
   updatedAt: string
+}
+
+/**
+ * Fetch NFTs from SnowTrace API using tokennfttx endpoint
+ * This gets all NFT transfers and calculates current ownership
+ */
+async function fetchNFTsFromSnowTrace(address: string): Promise<RPCNFT[]> {
+  const normalizedAddress = address.toLowerCase()
+  const apiKeyParam = SNOWTRACE_API_KEY ? `&apikey=${SNOWTRACE_API_KEY}` : ''
+  
+  try {
+    const nftTxUrl = `${SNOWTRACE_API_URL}?module=account&action=tokennfttx&address=${normalizedAddress}&startblock=0&endblock=99999999&sort=asc${apiKeyParam}`
+    
+    console.log('[RPC Assets] Fetching NFTs from SnowTrace API...')
+    const response = await fetch(nftTxUrl, {
+      next: { revalidate: 60 }, // Cache for 60 seconds
+    })
+    
+    if (!response.ok) {
+      throw new Error(`SnowTrace API error: ${response.status}`)
+    }
+    
+    const data = await response.json()
+    
+    if (data.status !== '1' || !data.result || !Array.isArray(data.result)) {
+      console.warn('[RPC Assets] SnowTrace API returned no NFT data')
+      return []
+    }
+    
+    // Group NFTs by contract and tokenId to get unique NFTs
+    // Track ownership by processing all transfers chronologically
+    const nftMap = new Map<string, { contractAddress: string; tokenId: string; name?: string }>()
+    
+    for (const tx of data.result) {
+      const contract = tx.contractAddress?.toLowerCase()
+      const tokenId = tx.tokenID
+      
+      if (!contract || !tokenId) continue
+      
+      const key = `${contract}-${tokenId}`
+      
+      // If NFT was transferred TO this address, add it
+      if (tx.to?.toLowerCase() === normalizedAddress) {
+        nftMap.set(key, {
+          contractAddress: contract,
+          tokenId,
+          name: tx.tokenName || undefined,
+        })
+      } 
+      // If NFT was transferred FROM this address, remove it
+      else if (tx.from?.toLowerCase() === normalizedAddress) {
+        nftMap.delete(key)
+      }
+    }
+    
+    const nfts = Array.from(nftMap.values())
+    console.log(`[RPC Assets] Found ${nfts.length} NFTs from SnowTrace for address ${address}`)
+    
+    return nfts
+  } catch (error) {
+    console.error('[RPC Assets] Error fetching NFTs from SnowTrace:', error)
+    return []
+  }
 }
 
 /**
@@ -509,10 +574,14 @@ export async function fetchAssetsFromRPC(
       tokens: tokens.map((t) => ({ symbol: t.symbol, balance: t.balanceFormatted })),
     })
 
+    // 4. Fetch NFTs from SnowTrace
+    const nfts = await fetchNFTsFromSnowTrace(normalizedAddress)
+
     const duration = Date.now() - startTime
     console.log('[RPC Assets] Fetch completed:', {
       duration: `${duration}ms`,
       tokenCount: tokens.length,
+      nftCount: nfts.length,
     })
 
     return {
@@ -528,7 +597,7 @@ export async function fetchAssetsFromRPC(
         logoUrl: avaxLogoUrl || undefined, // Only use CoinGecko logo, no fallback
       },
       tokens,
-      nfts: [], // NFT discovery via RPC is more complex, can add later
+      nfts,
       updatedAt: new Date().toISOString(),
     }
   } catch (error) {
