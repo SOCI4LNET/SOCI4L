@@ -232,11 +232,21 @@ export default async function AdminSystemPage() {
             <Table>
               <TableHeader>
                 <TableRow className="border-border/60">
-                  <TableHead className="min-w-[120px]">Time</TableHead>
-                  <TableHead className="min-w-[100px] hidden sm:table-cell">Admin</TableHead>
-                  <TableHead className="min-w-[100px]">Action</TableHead>
-                  <TableHead className="min-w-[100px] hidden md:table-cell">Target</TableHead>
-                  <TableHead className="min-w-[150px] hidden lg:table-cell">Details</TableHead>
+                  <TableHead className="min-w-[120px] h-12 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Time
+                  </TableHead>
+                  <TableHead className="min-w-[100px] hidden sm:table-cell h-12 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Admin
+                  </TableHead>
+                  <TableHead className="min-w-[100px] h-12 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Action
+                  </TableHead>
+                  <TableHead className="min-w-[100px] hidden md:table-cell h-12 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Target
+                  </TableHead>
+                  <TableHead className="min-w-[150px] hidden lg:table-cell h-12 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Details
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -258,40 +268,52 @@ export default async function AdminSystemPage() {
                     }
 
                     return (
-                      <TableRow key={log.id} className="transition-colors duration-150 hover:bg-muted/50">
-                        <TableCell className="text-xs font-mono py-3">
-                          {log.createdAt.toLocaleString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                          <div className="sm:hidden mt-1 text-muted-foreground">
+                      <TableRow
+                        key={log.id}
+                        className="group transition-colors duration-200 hover:bg-muted/60 border-b border-border/40"
+                      >
+                        <TableCell className="text-xs font-mono py-4 align-top">
+                          <span className="font-medium">
+                            {log.createdAt.toLocaleString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </span>
+                          <div className="sm:hidden mt-1.5 text-muted-foreground text-xs">
                             {log.adminAddress.slice(0, 6)}...{log.adminAddress.slice(-4)}
                           </div>
                         </TableCell>
-                        <TableCell className="font-mono text-xs hidden sm:table-cell py-3">
-                          {log.adminAddress.slice(0, 6)}...{log.adminAddress.slice(-4)}
+                        <TableCell className="font-mono text-xs hidden sm:table-cell py-4 align-top">
+                          <span className="font-medium">
+                            {log.adminAddress.slice(0, 6)}...{log.adminAddress.slice(-4)}
+                          </span>
                         </TableCell>
-                        <TableCell className="py-3">
-                          <span className="text-xs font-medium">{log.action}</span>
+                        <TableCell className="py-4 align-top">
+                          <span className="text-xs font-semibold uppercase tracking-wide">{log.action}</span>
                         </TableCell>
-                        <TableCell className="hidden md:table-cell py-3">
+                        <TableCell className="hidden md:table-cell py-4 align-top">
                           {log.targetType && log.targetId ? (
                             <span className="text-xs text-muted-foreground">
-                              {log.targetType}: {log.targetId.slice(0, 8)}...
+                              {log.targetType}: <span className="font-mono">{log.targetId.slice(0, 8)}...</span>
                             </span>
                           ) : log.targetType ? (
                             <span className="text-xs text-muted-foreground">{log.targetType}</span>
                           ) : (
-                            <span className="text-xs text-muted-foreground">—</span>
+                            <span className="text-xs text-muted-foreground/60">—</span>
                           )}
                         </TableCell>
-                        <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground hidden lg:table-cell py-3">
+                        <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground hidden lg:table-cell py-4 align-top">
                           {metadataObj.pathname ? (
-                            <span title={metadataObj.pathname} className="hover:text-foreground transition-colors duration-150">{metadataObj.pathname}</span>
+                            <span
+                              title={metadataObj.pathname}
+                              className="hover:text-foreground transition-colors duration-200 font-mono"
+                            >
+                              {metadataObj.pathname}
+                            </span>
                           ) : (
-                            <span>—</span>
+                            <span className="text-muted-foreground/60">—</span>
                           )}
                         </TableCell>
                       </TableRow>

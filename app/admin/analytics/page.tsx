@@ -9,9 +9,10 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { AnalyticsTrends } from '@/components/admin/analytics-trends'
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, ExternalLink } from 'lucide-react'
 
 async function getAnalytics() {
   const thirtyDaysAgo = new Date()
@@ -358,28 +359,36 @@ export default async function AdminAnalyticsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow className="border-border/60">
-                      <TableHead className="min-w-[200px]">Profile</TableHead>
-                      <TableHead className="min-w-[80px] text-right">Views</TableHead>
+                      <TableHead className="min-w-[200px] h-12 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Profile
+                      </TableHead>
+                      <TableHead className="min-w-[100px] text-right h-12 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Views
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                 <TableBody>
                   {analytics.topViewed.map((row) => (
-                    <TableRow key={row.address} className="transition-colors duration-150 hover:bg-muted/50">
-                      <TableCell className="py-3">
-                        <div className="flex flex-col gap-1">
+                    <TableRow
+                      key={row.address}
+                      className="group transition-colors duration-200 hover:bg-muted/60 border-b border-border/40"
+                    >
+                      <TableCell className="py-4 align-top">
+                        <div className="flex flex-col gap-1.5">
                           <Link
                             href={`/p/${row.slug || row.address}`}
-                            className="text-sm font-medium hover:underline transition-colors duration-150 hover:text-primary"
+                            className="text-sm font-semibold hover:underline transition-colors duration-200 hover:text-primary flex items-center gap-1.5 group-hover:text-primary"
                           >
                             {row.displayName || row.address}
+                            <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                           </Link>
                           <span className="text-xs text-muted-foreground font-mono">
-                            {row.address}
+                            {row.address.slice(0, 10)}...{row.address.slice(-6)}
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right py-3">
-                        <span className="text-sm font-semibold">
+                      <TableCell className="text-right py-4 align-top">
+                        <span className="text-sm font-bold">
                           {row.views.toLocaleString('en-US')}
                         </span>
                       </TableCell>
@@ -404,16 +413,23 @@ export default async function AdminAnalyticsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow className="border-border/60">
-                      <TableHead className="min-w-[200px]">Link</TableHead>
-                      <TableHead className="min-w-[80px] text-right">Clicks</TableHead>
+                      <TableHead className="min-w-[200px] h-12 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Link
+                      </TableHead>
+                      <TableHead className="min-w-[100px] text-right h-12 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Clicks
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                 <TableBody>
                   {analytics.topClicked.map((row, idx) => (
-                    <TableRow key={row.linkId || `link-${idx}`} className="transition-colors duration-150 hover:bg-muted/50">
-                      <TableCell className="py-3">
-                        <div className="flex flex-col gap-1">
-                          <div className="text-sm font-medium">
+                    <TableRow
+                      key={row.linkId || `link-${idx}`}
+                      className="group transition-colors duration-200 hover:bg-muted/60 border-b border-border/40"
+                    >
+                      <TableCell className="py-4 align-top">
+                        <div className="flex flex-col gap-1.5">
+                          <div className="text-sm font-semibold">
                             {row.linkTitle}
                           </div>
                           {row.linkUrl && (
@@ -421,30 +437,31 @@ export default async function AdminAnalyticsPage() {
                               href={row.linkUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-xs text-muted-foreground hover:text-foreground hover:underline truncate max-w-xs transition-colors duration-150"
+                              className="text-xs text-muted-foreground hover:text-foreground hover:underline truncate max-w-xs transition-colors duration-200 flex items-center gap-1"
                             >
-                              {row.linkUrl}
+                              {row.linkUrl.length > 50 ? row.linkUrl.slice(0, 50) + '...' : row.linkUrl}
+                              <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </a>
                           )}
                           {row.profileAddress && (
-                            <div className="text-xs text-muted-foreground mt-1">
+                            <div className="text-xs text-muted-foreground mt-0.5">
                               by{' '}
                               {row.displayName || row.slug ? (
                                 <Link
                                   href={`/p/${row.slug || row.profileAddress}`}
-                                  className="hover:underline hover:text-foreground transition-colors duration-150"
+                                  className="hover:underline hover:text-foreground transition-colors duration-200 font-medium"
                                 >
                                   {row.displayName || row.slug || row.profileAddress}
                                 </Link>
                               ) : (
-                                <span className="font-mono">{row.profileAddress}</span>
+                                <span className="font-mono">{row.profileAddress.slice(0, 10)}...</span>
                               )}
                             </div>
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="text-right py-3">
-                        <span className="text-sm font-semibold">
+                      <TableCell className="text-right py-4 align-top">
+                        <span className="text-sm font-bold">
                           {row.clicks.toLocaleString('en-US')}
                         </span>
                       </TableCell>

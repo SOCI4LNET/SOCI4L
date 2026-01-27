@@ -9,7 +9,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
+import { ExternalLink } from 'lucide-react'
 
 async function getRecentLinks() {
   const links = await prisma.profileLink.findMany({
@@ -37,27 +39,42 @@ export default async function AdminContentPage() {
         <Table>
           <TableHeader>
             <TableRow className="border-border/60">
-              <TableHead className="min-w-[150px]">Profile</TableHead>
-              <TableHead className="min-w-[120px] hidden sm:table-cell">Link Title</TableHead>
-              <TableHead className="min-w-[200px]">URL</TableHead>
-              <TableHead className="min-w-[100px] hidden md:table-cell">Category</TableHead>
-              <TableHead className="min-w-[80px] hidden sm:table-cell">Enabled</TableHead>
-              <TableHead className="min-w-[140px] hidden lg:table-cell">Created At</TableHead>
+              <TableHead className="min-w-[150px] h-12 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Profile
+              </TableHead>
+              <TableHead className="min-w-[120px] hidden sm:table-cell h-12 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Link Title
+              </TableHead>
+              <TableHead className="min-w-[200px] h-12 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                URL
+              </TableHead>
+              <TableHead className="min-w-[100px] hidden md:table-cell h-12 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Category
+              </TableHead>
+              <TableHead className="min-w-[80px] hidden sm:table-cell h-12 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Enabled
+              </TableHead>
+              <TableHead className="min-w-[140px] hidden lg:table-cell h-12 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Created At
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {links.map((link) => (
-              <TableRow key={link.id} className="transition-colors duration-150 hover:bg-muted/50">
-                <TableCell className="py-3">
-                  <div className="flex flex-col gap-1">
+              <TableRow
+                key={link.id}
+                className="group transition-colors duration-200 hover:bg-muted/60 border-b border-border/40"
+              >
+                <TableCell className="py-4 align-top">
+                  <div className="flex flex-col gap-1.5">
                     <Link
                       href={`/p/${link.profile.slug || link.profile.address}`}
-                      className="text-sm font-medium hover:underline transition-colors duration-150 hover:text-primary"
+                      className="text-sm font-semibold hover:underline transition-colors duration-200 hover:text-primary"
                     >
                       {link.profile.displayName || link.profile.address.slice(0, 10) + '...'}
                     </Link>
                     <span className="text-xs text-muted-foreground font-mono">
-                      {link.profile.address.slice(0, 10)}...
+                      {link.profile.address.slice(0, 10)}...{link.profile.address.slice(-6)}
                     </span>
                     <div className="sm:hidden mt-1">
                       {link.title && (
@@ -68,28 +85,40 @@ export default async function AdminContentPage() {
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="max-w-[180px] truncate hidden sm:table-cell py-3">
-                  {link.title || <span className="text-muted-foreground">Untitled</span>}
+                <TableCell className="max-w-[180px] truncate hidden sm:table-cell py-4 align-top">
+                  <span className="text-sm">
+                    {link.title || <span className="text-muted-foreground/60">Untitled</span>}
+                  </span>
                 </TableCell>
-                <TableCell className="max-w-[260px] truncate font-mono text-xs py-3">
+                <TableCell className="max-w-[260px] truncate font-mono text-xs py-4 align-top">
                   <a
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:underline break-all transition-colors duration-150 hover:text-primary"
+                    className="hover:underline break-all transition-colors duration-200 hover:text-primary flex items-center gap-1"
                   >
                     {link.url.length > 40 ? link.url.slice(0, 40) + '...' : link.url}
+                    <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </a>
                 </TableCell>
-                <TableCell className="max-w-[140px] truncate hidden md:table-cell py-3">
-                  {link.category?.name || <span className="text-muted-foreground">—</span>}
-                </TableCell>
-                <TableCell className="hidden sm:table-cell py-3">
-                  <span className={`text-xs font-medium ${link.enabled ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
-                    {link.enabled ? 'Yes' : 'No'}
+                <TableCell className="max-w-[140px] truncate hidden md:table-cell py-4 align-top">
+                  <span className="text-sm text-muted-foreground">
+                    {link.category?.name || <span className="text-muted-foreground/60">—</span>}
                   </span>
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground hidden lg:table-cell py-3">
+                <TableCell className="hidden sm:table-cell py-4 align-top">
+                  <Badge
+                    variant={link.enabled ? 'default' : 'outline'}
+                    className={`text-xs font-semibold ${
+                      link.enabled
+                        ? 'bg-green-600/10 text-green-700 dark:text-green-400 border-green-600/20 dark:border-green-400/30'
+                        : 'bg-muted/50 text-muted-foreground border-border'
+                    }`}
+                  >
+                    {link.enabled ? 'Yes' : 'No'}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-xs text-muted-foreground hidden lg:table-cell py-4 align-top">
                   {link.createdAt.toISOString().slice(0, 10)}
                 </TableCell>
               </TableRow>

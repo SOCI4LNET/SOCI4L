@@ -48,24 +48,33 @@ export default async function AdminSubscribersPage() {
         <Table>
           <TableHeader>
             <TableRow className="border-border/60">
-              <TableHead className="min-w-[200px]">Email</TableHead>
-              <TableHead className="min-w-[140px] hidden sm:table-cell">Subscribed At</TableHead>
-              <TableHead className="min-w-[140px] hidden md:table-cell">Last Updated</TableHead>
+              <TableHead className="min-w-[200px] h-12 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Email
+              </TableHead>
+              <TableHead className="min-w-[140px] hidden sm:table-cell h-12 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Subscribed At
+              </TableHead>
+              <TableHead className="min-w-[140px] hidden md:table-cell h-12 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Last Updated
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {subscribers.map((sub) => (
-              <TableRow key={sub.id} className="transition-colors duration-150 hover:bg-muted/50">
-                <TableCell className="font-mono text-xs break-all py-3">
-                  {sub.email}
-                  <div className="sm:hidden mt-1 text-muted-foreground">
+              <TableRow
+                key={sub.id}
+                className="group transition-colors duration-200 hover:bg-muted/60 border-b border-border/40"
+              >
+                <TableCell className="font-mono text-xs break-all py-4 align-top">
+                  <span className="font-medium">{sub.email}</span>
+                  <div className="sm:hidden mt-1.5 text-muted-foreground text-xs">
                     {sub.createdAt.toISOString().slice(0, 10)}
                   </div>
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground hidden sm:table-cell py-3">
+                <TableCell className="text-xs text-muted-foreground hidden sm:table-cell py-4 align-top">
                   {sub.createdAt.toISOString().slice(0, 10)}
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground hidden md:table-cell py-3">
+                <TableCell className="text-xs text-muted-foreground hidden md:table-cell py-4 align-top">
                   {sub.updatedAt.toISOString().slice(0, 10)}
                 </TableCell>
               </TableRow>
