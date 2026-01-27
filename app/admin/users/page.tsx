@@ -80,7 +80,8 @@ async function getUsers(searchParams: SearchParams) {
     ]
   }
 
-  const [profiles, totalCount, followerCounts] = await Promise.all([
+  // Load profiles and total count first
+  const [profiles, totalCount] = await Promise.all([
     prisma.profile.findMany({
       where,
       orderBy: { createdAt: 'desc' },
@@ -88,24 +89,32 @@ async function getUsers(searchParams: SearchParams) {
       take: pageSize,
     }),
     prisma.profile.count({ where }),
-    // Follower counts per profile (simple but fine for small pages)
-    prisma.follow.groupBy({
-      by: ['followingAddress'],
-      _count: { followingAddress: true },
-      where: {
-        followingAddress: {
-          in: (
-            await prisma.profile.findMany({
-              where,
-              select: { address: true },
-              skip,
-              take: pageSize,
-            })
-          ).map((p) => p.address.toLowerCase()),
-        },
-      },
-    }),
   ])
+
+  // Follower counts per profile (best-effort; UI should not break if this fails)
+  let followerCounts: Array<{
+    followingAddress: string
+    _count: { followingAddress: number }
+  }> = []
+
+  try {
+    const profileAddresses = profiles.map((p) => p.address.toLowerCase())
+
+    if (profileAddresses.length > 0) {
+      followerCounts = await prisma.follow.groupBy({
+        by: ['followingAddress'],
+        _count: { followingAddress: true },
+        where: {
+          followingAddress: {
+            in: profileAddresses,
+          },
+        },
+      })
+    }
+  } catch (error) {
+    console.error('[Admin Users] Failed to load followerCounts', error)
+    followerCounts = []
+  }
 
   const followerCountMap = new Map<string, number>()
   for (const row of followerCounts) {
