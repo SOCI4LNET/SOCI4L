@@ -11,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Loader2, Copy } from "lucide-react"
 import { toast } from "sonner"
 import { PageShell } from "@/components/app-shell/page-shell"
+import { useTransaction } from '@/components/providers/transaction-provider'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { formatAddress } from "@/lib/utils"
@@ -37,6 +38,7 @@ interface SettingsPanelProps {
 
 export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPanelProps) {
   const { signMessageAsync } = useSignMessage()
+  const { showTransactionLoader, hideTransactionLoader } = useTransaction()
   const [savingSlug, setSavingSlug] = useState(false)
   const [slug, setSlug] = useState<string>(profile.slug || '')
   const [savingVisibility, setSavingVisibility] = useState(false)
@@ -91,8 +93,11 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
       const { nonce } = await nonceResponse.json()
 
       // Step 2: Sign message
+      showTransactionLoader("Confirm in Wallet...")
       const message = `Set slug for ${targetAddress} to ${slug || '(empty)'}. Nonce: ${nonce}`
       const signature = await signMessageAsync({ message })
+
+      showTransactionLoader("Updating custom URL...")
 
       // Step 3: Update slug
       const updateResponse = await fetch('/api/profile/slug', {
@@ -118,9 +123,14 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
       toast.success('Saved')
     } catch (error: any) {
       console.error('Error updating slug:', error)
-      toast.error('Failed to save custom URL. Please try again.')
+      if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
+        toast.error('Transaction rejected')
+      } else {
+        toast.error('Failed to save custom URL. Please try again.')
+      }
     } finally {
       setSavingSlug(false)
+      hideTransactionLoader()
     }
   }
 
@@ -135,8 +145,11 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
       const { nonce } = await nonceResponse.json()
 
       // Step 2: Sign message
+      showTransactionLoader("Confirm in Wallet...")
       const message = `Update visibility for ${targetAddress} to ${visibility}. Nonce: ${nonce}`
       const signature = await signMessageAsync({ message })
+
+      showTransactionLoader("Updating visibility...")
 
       // Step 3: Update visibility
       const visibilityResponse = await fetch('/api/profile/visibility', {
@@ -161,9 +174,14 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
       toast.success('Visibility updated')
     } catch (error: any) {
       console.error('Error updating visibility:', error)
-      toast.error('Failed to save visibility settings. Please try again.')
+      if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
+        toast.error('Transaction rejected')
+      } else {
+        toast.error('Failed to save visibility settings. Please try again.')
+      }
     } finally {
       setSavingVisibility(false)
+      hideTransactionLoader()
     }
   }
 
@@ -318,8 +336,8 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <RadioGroup 
-              value={visibility} 
+            <RadioGroup
+              value={visibility}
               onValueChange={(value) => {
                 setVisibility(value as 'PUBLIC' | 'PRIVATE')
               }}

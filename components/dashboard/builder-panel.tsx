@@ -43,6 +43,7 @@ import {
 } from '@/components/ui/dialog'
 import { useSignMessage } from 'wagmi'
 import { Loader2 } from 'lucide-react'
+import { useTransaction } from '@/components/providers/transaction-provider'
 
 import { PageShell } from '@/components/app-shell/page-shell'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -82,7 +83,7 @@ import {
   normalizeAppearanceConfig,
 } from '@/lib/profile-appearance'
 
-type SectionId = ProfileBlockKey
+// type SectionId = ProfileBlockKey // Removed conflict
 
 type SocialLinkPlatform = 'x' | 'instagram' | 'youtube' | 'github' | 'linkedin' | 'website'
 
@@ -206,9 +207,8 @@ function DisabledSectionsZone({ children }: { children: React.ReactNode }) {
   return (
     <div
       ref={setNodeRef}
-      className={`rounded-md border-2 border-dashed transition-colors p-4 ${
-        isOver ? 'border-destructive bg-destructive/5' : 'border-border/40 bg-muted/10'
-      }`}
+      className={`rounded-md border-2 border-dashed transition-colors p-4 ${isOver ? 'border-destructive bg-destructive/5' : 'border-border/40 bg-muted/10'
+        }`}
     >
       {children}
     </div>
@@ -236,13 +236,12 @@ function RowSlotDropZone({
   return (
     <div
       ref={setNodeRef}
-      className={`min-h-[80px] rounded-md border-2 border-dashed transition-all duration-200 p-3 ${
-        isOver
-          ? 'border-primary bg-primary/10 shadow-sm scale-[1.02]'
-          : isDragging
+      className={`min-h-[80px] rounded-md border-2 border-dashed transition-all duration-200 p-3 ${isOver
+        ? 'border-primary bg-primary/10 shadow-sm scale-[1.02]'
+        : isDragging
           ? 'border-border/60 bg-muted/30'
           : 'border-border/40 bg-muted/20'
-      }`}
+        }`}
     >
       {children}
     </div>
@@ -294,9 +293,8 @@ function RowBuilder({
     <div
       ref={setNodeRef}
       style={style}
-      className={`rounded-lg border border-border/60 bg-background/40 p-4 space-y-3 transition ${
-        isDragging ? 'ring-2 ring-primary/40 shadow-lg bg-background' : ''
-      }`}
+      className={`rounded-lg border border-border/60 bg-background/40 p-4 space-y-3 transition ${isDragging ? 'ring-2 ring-primary/40 shadow-lg bg-background' : ''
+        }`}
     >
       {/* Row Header */}
       <div className="flex items-center justify-between">
@@ -449,9 +447,8 @@ function SortableSectionRow({ section, onToggle, onVariantChange, rowId, slotInd
           type="button"
           {...attributes}
           {...listeners}
-          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing ${
-            isDragging ? 'text-foreground bg-muted/60' : ''
-          }`}
+          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing ${isDragging ? 'text-foreground bg-muted/60' : ''
+            }`}
           aria-label={`${section.title} section drag handle`}
         >
           <GripVertical className="h-4 w-4" />
@@ -462,15 +459,15 @@ function SortableSectionRow({ section, onToggle, onVariantChange, rowId, slotInd
             {(() => {
               const recommendation = getRecommendation(section.id)
               if (!recommendation.badge) return null
-              
+
               // HARD_HEAVY (assets): "Recommended: Full width"
               // SOFT_HEAVY (activity, links): "Optional: Full width"
               const isHardHeavy = section.id === 'assets'
               const badgeText = isHardHeavy ? 'Recommended: Full width' : 'Optional: Full width'
-              const tooltipText = isHardHeavy 
+              const tooltipText = isHardHeavy
                 ? 'Assets section is recommended to be full width for better display.'
                 : 'This section can optionally be set to full width for better display.'
-              
+
               return (
                 <TooltipProvider>
                   <Tooltip>
@@ -539,6 +536,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
   const searchParams = useSearchParams()
   const linksSectionRef = useRef<HTMLDivElement>(null)
   const { signMessageAsync } = useSignMessage()
+  const { showTransactionLoader, hideTransactionLoader } = useTransaction()
   const [sections, setSections] = useState<ProfileSection[]>(INITIAL_SECTIONS)
   const [layoutConfig, setLayoutConfig] = useState<ProfileLayoutConfig>(() =>
     getDefaultProfileLayout()
@@ -557,7 +555,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
   const [highlightedLinkId, setHighlightedLinkId] = useState<string | null>(null)
   const [highlightedCategoryId, setHighlightedCategoryId] = useState<string | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
-  
+
   // Profile Info state
   const [displayName, setDisplayName] = useState<string>('')
   const [bio, setBio] = useState<string>('')
@@ -575,22 +573,22 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
         const layoutResponse = await fetch(`/api/profile/layout?address=${encodeURIComponent(address)}`)
         const appearanceResponse = await fetch(`/api/profile/appearance?address=${encodeURIComponent(address)}`)
         const profileResponse = await fetch(`/api/wallet?address=${encodeURIComponent(address)}`)
-        
+
         if (!layoutResponse.ok) {
           const errorData = await layoutResponse.json().catch(() => ({ error: 'Unknown error' }))
           throw new Error(errorData.error || `HTTP ${layoutResponse.status}: Failed to load layout`)
         }
-        
+
         const layoutData = await layoutResponse.json()
-        
+
         // Check if response has an error field
         if (layoutData.error) {
           throw new Error(layoutData.error)
         }
-        
+
         const config = layoutData.layout || getDefaultProfileLayout()
         setLayoutConfig(config)
-        
+
         // Update row-based layout
         if (config.rows && config.rows.length > 0) {
           setLayoutRows(config.rows)
@@ -737,7 +735,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
 
     try {
       setSaving(true)
-      
+
       // Convert row-based layout to grid-based for backward compatibility
       const allBlocks = sections.map((section) => ({
         key: section.id,
@@ -745,10 +743,10 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
         variant: section.variant || 'compact',
         order: 0,
         row: 0,
-        col: 0,
+        col: 0 as 0 | 1,
         span: 'half' as const,
       }))
-      
+
       const gridConfig = rowToGridLayout({ rows: layoutRows }, allBlocks)
       const nextConfig: ProfileLayoutConfig = {
         ...gridConfig,
@@ -814,8 +812,11 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
         const { nonce } = await nonceResponse.json()
 
         // Step 2: Sign message (must match API's expected format)
+        showTransactionLoader("Confirm in Wallet...")
         const message = `Update social profile for ${address}. Nonce: ${nonce}`
         const signature = await signMessageAsync({ message })
+
+        showTransactionLoader("Saving profile...")
 
         // Step 3: Update profile (display name and bio only - social links are managed in Links panel)
         const profileResponse = await fetch('/api/profile/social', {
@@ -837,9 +838,15 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
         }
 
         console.log('[BuilderPanel] Profile info saved successfully')
-      } catch (error) {
+      } catch (error: any) {
         console.error('[BuilderPanel] Failed to save profile info:', error)
-        toast.error('Failed to save profile. Please try again.')
+        if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
+          toast.error('Transaction rejected')
+        } else {
+          toast.error('Failed to save profile. Please try again.')
+        }
+        // Force break so it doesn't show success toast
+        throw error
       }
 
       toast.success('Layout, appearance and profile information saved. Please refresh the public profile page.')
@@ -849,6 +856,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
       toast.error('Failed to save layout. Please try again.')
     } finally {
       setSaving(false)
+      hideTransactionLoader()
     }
   }
 
@@ -884,7 +892,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event
     setActiveId(active.id as string)
-    
+
     // Determine drag type from data
     const data = active.data.current
     if (data?.type === 'row') {
@@ -905,7 +913,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
   // Unified drag end handler for both rows and sections
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
-    
+
     if (!over || !activeDrag) {
       setActiveId(null)
       setActiveDrag(null)
@@ -919,7 +927,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
         setActiveDrag(null)
         return
       }
-      
+
       // Check if dropping on another row
       const isDroppingOnRow = typeof over.id === 'string' && over.id.startsWith('row-')
       if (isDroppingOnRow) {
@@ -971,7 +979,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
 
     // Handle drop to slot or section card (section cards are also droppable with slot ID)
     let slotInfo = parseSlotId(over.id as string)
-    
+
     // If over.id is a section ID (not a slot ID), find the slot that contains this section
     if (!slotInfo) {
       const overSectionId = over.id as string
@@ -985,10 +993,10 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
         }
       }
     }
-    
+
     if (slotInfo) {
       const { rowId: targetRowId, slotIndex: targetSlotIndex } = slotInfo
-      
+
       // Find target row to determine max slot index
       const targetRowForValidation = layoutRows.find((r) => r.id === targetRowId)
       if (!targetRowForValidation) {
@@ -1004,7 +1012,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
       // Find source row and slot (if known from drag data)
       const sourceRowId = dragData.fromRowId
       const sourceSlotIndex = dragData.fromSlotIndex
-      
+
       // Calculate swapped section ID before state update
       let swappedSectionId: SectionId | null = null
       const targetRowForSwap = layoutRows.find((r) => r.id === targetRowId)
@@ -1015,26 +1023,26 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
           swappedSectionId = targetSlotValue as SectionId
         }
       }
-      
+
       setLayoutRows((prev) => {
         // Find target row and check if swap is needed
         const targetRow = prev.find((r) => r.id === targetRowId)
         if (!targetRow) return prev
-        
+
         const targetSlots = rowToSlots(targetRow)
         const targetSlotValue = targetSlots[clampedSlotIndex]
         const needsSwap = targetSlotValue !== 'EMPTY' && targetSlotValue !== sectionId
-        
+
         // Find source row to determine if it's same row swap
         const sourceRow = sourceRowId ? prev.find((r) => r.id === sourceRowId) : null
         const isSameRowSwap = sourceRowId === targetRowId && needsSwap
-        
+
         return prev.map((r) => {
           if (r.id === targetRowId) {
             // Target row: place or swap section
             const slots = [...targetSlots]
             slots[clampedSlotIndex] = sectionId
-            
+
             // If same row swap, also handle the swapped section
             if (isSameRowSwap && swappedSectionId && typeof sourceSlotIndex === 'number') {
               // Place swapped section in the original position of dragged section
@@ -1043,7 +1051,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
               // Same row, moving to empty slot - clear the source slot
               slots[sourceSlotIndex] = 'EMPTY'
             }
-            
+
             return slotsToRow(r.id, r.type, slots)
           } else if (needsSwap && swappedSectionId && r.id === sourceRowId && typeof sourceSlotIndex === 'number' && !isSameRowSwap) {
             // Source row (different from target): place swapped section in the slot where dragged section was
@@ -1055,7 +1063,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
             // Other rows: remove dragged section if present (enforce uniqueness)
             const slots = rowToSlots(r)
             const newSlots = slots.map((slot) => (slot === sectionId ? 'EMPTY' : slot))
-            
+
             // If swap occurred and sourceRowId is unknown, we need to find where swapped section is
             // and remove it from other rows (except target row which already handled it)
             if (needsSwap && swappedSectionId && !isSameRowSwap) {
@@ -1067,12 +1075,12 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
                 }
               }
             }
-            
+
             return slotsToRow(r.id, r.type, newSlots)
           }
         })
       })
-      
+
       // Update sections: enable dragged section and swapped section (if any)
       setSections((prev) =>
         prev.map((s) => {
@@ -1099,12 +1107,12 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
   const handleToggleRowType = (rowId: string) => {
     setLayoutRows((prev) => {
       let removedSectionId: SectionId | null = null
-      
+
       const updatedRows = prev.map((row) => {
         if (row.id !== rowId) return row
-        
+
         const slots = rowToSlots(row)
-        
+
         if (row.type === 'single') {
           // Split: Convert single to double
           // Preserve left content, right becomes empty
@@ -1113,16 +1121,16 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
           // Merge: Convert double to single
           // Preserve left if exists, otherwise use right
           const preservedSlot = slots[0] !== 'EMPTY' ? slots[0] : slots[1]
-          
+
           // If both slots have content, the right one will be removed
           if (slots[0] !== 'EMPTY' && slots[1] !== 'EMPTY') {
             removedSectionId = slots[1] as SectionId
           }
-          
+
           return slotsToRow(row.id, 'single', [preservedSlot])
         }
       })
-      
+
       // If a section was removed (right slot in double -> single conversion), disable it
       if (removedSectionId) {
         setSections((prevSections) =>
@@ -1131,7 +1139,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
           )
         )
       }
-      
+
       return updatedRows
     })
     setHasUnsavedChanges(true)
@@ -1234,10 +1242,10 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
 
     try {
       setSaving(true)
-      
+
       // Apply preset transform to current config (pure function)
       const nextConfig = applyPreset(layoutConfig, preset.id)
-      
+
       // Normalize to ensure consistency
       const normalizedConfig = normalizeLayoutConfig(nextConfig)
 
@@ -1263,7 +1271,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
 
       // Update state from saved config (single source of truth)
       setLayoutConfig(savedConfig)
-      
+
       // Update row-based layout
       if (savedConfig.rows && savedConfig.rows.length > 0) {
         setLayoutRows(savedConfig.rows)
@@ -1394,139 +1402,139 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
               </CardHeader>
               <CardContent className="space-y-4">
                 <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-                measuring={{
-                  droppable: {
-                    strategy: MeasuringStrategy.Always,
-                  },
-                }}
-              >
-                {/* SortableContext for rows (with vertical restriction) */}
-                <SortableContext
-                  items={layoutRows.map((row) => row.id)}
-                  strategy={verticalListSortingStrategy}
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                  measuring={{
+                    droppable: {
+                      strategy: MeasuringStrategy.Always,
+                    },
+                  }}
                 >
-                  {/* SortableContext for all sections/cards */}
+                  {/* SortableContext for rows (with vertical restriction) */}
                   <SortableContext
-                    items={sections.map((s) => s.id)}
+                    items={layoutRows.map((row) => row.id)}
                     strategy={verticalListSortingStrategy}
                   >
-                    {/* Row-based Layout Builder */}
-                    <div className="space-y-4">
-                      {layoutRows.map((row) => (
-                        <RowBuilder
-                          key={row.id}
-                          row={row}
-                          sections={sections}
-                          onToggleSection={handleToggleSection}
-                          onVariantChange={handleVariantChange}
-                          onToggleRowType={() => handleToggleRowType(row.id)}
-                          onRemoveRow={() => handleRemoveRow(row.id)}
-                          sensors={sensors}
-                          canRemove={layoutRows.length > 1}
-                          isDraggingCard={activeDrag?.type === 'card'}
-                        />
-                      ))}
-                    
-                    {/* Add Row Button */}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleAddRow}
-                      className="w-full"
+                    {/* SortableContext for all sections/cards */}
+                    <SortableContext
+                      items={sections.map((s) => s.id)}
+                      strategy={verticalListSortingStrategy}
                     >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Row
-                    </Button>
-                  </div>
-                  </SortableContext>
-                </SortableContext>
-                
-                {/* Disabled Sections Area */}
-                {(() => {
-                  const disabledSections = sections.filter((s) => !s.enabled)
-                  if (disabledSections.length === 0) return null
-                  
-                  return (
-                    <div className="mt-6 pt-6 border-t">
-                      <h3 className="text-sm font-medium mb-3 text-muted-foreground">
-                        Disabled Sections
-                      </h3>
-                      <DisabledSectionsZone>
-                        <SortableContext
-                          items={disabledSections.map((s) => s.id)}
-                          strategy={verticalListSortingStrategy}
+                      {/* Row-based Layout Builder */}
+                      <div className="space-y-4">
+                        {layoutRows.map((row) => (
+                          <RowBuilder
+                            key={row.id}
+                            row={row}
+                            sections={sections}
+                            onToggleSection={handleToggleSection}
+                            onVariantChange={handleVariantChange}
+                            onToggleRowType={() => handleToggleRowType(row.id)}
+                            onRemoveRow={() => handleRemoveRow(row.id)}
+                            sensors={sensors}
+                            canRemove={layoutRows.length > 1}
+                            isDraggingCard={activeDrag?.type === 'card'}
+                          />
+                        ))}
+
+                        {/* Add Row Button */}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleAddRow}
+                          className="w-full"
                         >
-                          <div className="space-y-2">
-                            {disabledSections.map((section) => (
-                              <SortableSectionRow
-                                key={section.id}
-                                section={section}
-                                onToggle={handleToggleSection}
-                                onVariantChange={handleVariantChange}
-                              />
-                            ))}
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Row
+                        </Button>
+                      </div>
+                    </SortableContext>
+                  </SortableContext>
+
+                  {/* Disabled Sections Area */}
+                  {(() => {
+                    const disabledSections = sections.filter((s) => !s.enabled)
+                    if (disabledSections.length === 0) return null
+
+                    return (
+                      <div className="mt-6 pt-6 border-t">
+                        <h3 className="text-sm font-medium mb-3 text-muted-foreground">
+                          Disabled Sections
+                        </h3>
+                        <DisabledSectionsZone>
+                          <SortableContext
+                            items={disabledSections.map((s) => s.id)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            <div className="space-y-2">
+                              {disabledSections.map((section) => (
+                                <SortableSectionRow
+                                  key={section.id}
+                                  section={section}
+                                  onToggle={handleToggleSection}
+                                  onVariantChange={handleVariantChange}
+                                />
+                              ))}
+                            </div>
+                          </SortableContext>
+                        </DisabledSectionsZone>
+                      </div>
+                    )
+                  })()}
+
+                  {/* Drag Overlay - shows preview while dragging */}
+                  <DragOverlay>
+                    {activeDrag ? (() => {
+                      if (activeDrag.type === 'row') {
+                        const activeRow = layoutRows.find((r) => r.id === activeDrag.id)
+                        if (!activeRow) return null
+                        return (
+                          <div className="rounded-lg border border-border/60 bg-background/40 p-4 shadow-lg ring-1 ring-border/60">
+                            <div className="flex items-center gap-2">
+                              <GripVertical className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-xs font-medium text-muted-foreground">
+                                {activeRow.type === 'single' ? 'Full Width Row' : 'Two Columns Row'}
+                              </span>
+                            </div>
                           </div>
-                        </SortableContext>
-                      </DisabledSectionsZone>
-                    </div>
-                  )
-                })()}
-                
-                {/* Drag Overlay - shows preview while dragging */}
-                <DragOverlay>
-                  {activeDrag ? (() => {
-                    if (activeDrag.type === 'row') {
-                      const activeRow = layoutRows.find((r) => r.id === activeDrag.id)
-                      if (!activeRow) return null
+                        )
+                      }
+
+                      // Dragging a section card - show actual card component
+                      const activeSection = sections.find((s) => s.id === activeDrag.id)
+                      if (!activeSection) return null
+
                       return (
-                        <div className="rounded-lg border border-border/60 bg-background/40 p-4 shadow-lg ring-1 ring-border/60">
-                          <div className="flex items-center gap-2">
-                            <GripVertical className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-xs font-medium text-muted-foreground">
-                              {activeRow.type === 'single' ? 'Full Width Row' : 'Two Columns Row'}
-                            </span>
+                        <div className="rounded-md border border-border/60 bg-background px-3 py-3 shadow-lg ring-1 ring-border/60">
+                          <div className="flex items-start gap-3">
+                            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground bg-muted/60">
+                              <GripVertical className="h-4 w-4" />
+                            </div>
+                            <div className="flex-1 min-w-0 space-y-1">
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="text-sm font-medium leading-none">{activeSection.title}</p>
+                                {(() => {
+                                  const recommendation = getRecommendation(activeSection.id)
+                                  if (!recommendation.badge) return null
+                                  const isHardHeavy = activeSection.id === 'assets'
+                                  const badgeText = isHardHeavy ? 'Recommended: Full width' : 'Optional: Full width'
+                                  return (
+                                    <Badge variant="outline" className="text-[9px] px-1.5 py-0.5 font-normal h-4 border-muted-foreground/30 text-muted-foreground shrink-0">
+                                      {badgeText}
+                                    </Badge>
+                                  )
+                                })()}
+                              </div>
+                              <p className="text-xs text-muted-foreground line-clamp-2">{activeSection.description}</p>
+                            </div>
                           </div>
                         </div>
                       )
-                    }
-                    
-                    // Dragging a section card - show actual card component
-                    const activeSection = sections.find((s) => s.id === activeDrag.id)
-                    if (!activeSection) return null
-                    
-                    return (
-                      <div className="rounded-md border border-border/60 bg-background px-3 py-3 shadow-lg ring-1 ring-border/60">
-                        <div className="flex items-start gap-3">
-                          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground bg-muted/60">
-                            <GripVertical className="h-4 w-4" />
-                          </div>
-                          <div className="flex-1 min-w-0 space-y-1">
-                            <div className="flex items-center justify-between gap-2">
-                              <p className="text-sm font-medium leading-none">{activeSection.title}</p>
-                              {(() => {
-                                const recommendation = getRecommendation(activeSection.id)
-                                if (!recommendation.badge) return null
-                                const isHardHeavy = activeSection.id === 'assets'
-                                const badgeText = isHardHeavy ? 'Recommended: Full width' : 'Optional: Full width'
-                                return (
-                                  <Badge variant="outline" className="text-[9px] px-1.5 py-0.5 font-normal h-4 border-muted-foreground/30 text-muted-foreground shrink-0">
-                                    {badgeText}
-                                  </Badge>
-                                )
-                              })()}
-                            </div>
-                            <p className="text-xs text-muted-foreground line-clamp-2">{activeSection.description}</p>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })() : null}
-                </DragOverlay>
+                    })() : null}
+                  </DragOverlay>
                 </DndContext>
               </CardContent>
             </Card>
@@ -1541,67 +1549,66 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
                 <p className="text-xs text-muted-foreground">Choose a visual style for your profile</p>
               </div>
               <div className="space-y-2">
-                  {(['default', 'minimal', 'dense', 'spotlight'] as ProfileTheme[]).map((theme) => {
-                    const isSelected = appearanceConfig.theme === theme
-                    const themeDescriptions: Record<ProfileTheme, { short: string; long: string }> = {
-                      default: {
-                        short: 'Standard spacing and styling',
-                        long: 'Standard spacing and styling with balanced visual hierarchy.',
-                      },
-                      minimal: {
-                        short: 'Reduced borders, larger spacing',
-                        long: 'Clean and minimal design with reduced borders and larger spacing for better readability.',
-                      },
-                      dense: {
-                        short: 'Tighter spacing, compact cards',
-                        long: 'Compact layout with tighter spacing and smaller cards for information-dense profiles.',
-                      },
-                      spotlight: {
-                        short: 'Emphasized header and links',
-                        long: 'Spotlight design that emphasizes the header and links section for maximum visibility.',
-                      },
-                    }
-                    const description = themeDescriptions[theme]
+                {(['default', 'minimal', 'dense', 'spotlight'] as ProfileTheme[]).map((theme) => {
+                  const isSelected = appearanceConfig.theme === theme
+                  const themeDescriptions: Record<ProfileTheme, { short: string; long: string }> = {
+                    default: {
+                      short: 'Standard spacing and styling',
+                      long: 'Standard spacing and styling with balanced visual hierarchy.',
+                    },
+                    minimal: {
+                      short: 'Reduced borders, larger spacing',
+                      long: 'Clean and minimal design with reduced borders and larger spacing for better readability.',
+                    },
+                    dense: {
+                      short: 'Tighter spacing, compact cards',
+                      long: 'Compact layout with tighter spacing and smaller cards for information-dense profiles.',
+                    },
+                    spotlight: {
+                      short: 'Emphasized header and links',
+                      long: 'Spotlight design that emphasizes the header and links section for maximum visibility.',
+                    },
+                  }
+                  const description = themeDescriptions[theme]
 
-                    return (
-                      <button
-                        key={theme}
-                        type="button"
-                        onClick={() => handleThemeChange(theme)}
-                        aria-pressed={isSelected}
-                        className={`w-full rounded-md border px-3 py-2.5 text-left transition-colors flex items-center justify-between gap-2 ${
-                          isSelected
-                            ? 'border-primary bg-primary/10 ring-1 ring-primary/20'
-                            : 'border-border/60 bg-background/60 hover:border-border hover:bg-background'
+                  return (
+                    <button
+                      key={theme}
+                      type="button"
+                      onClick={() => handleThemeChange(theme)}
+                      aria-pressed={isSelected}
+                      className={`w-full rounded-md border px-3 py-2.5 text-left transition-colors flex items-center justify-between gap-2 ${isSelected
+                        ? 'border-primary bg-primary/10 ring-1 ring-primary/20'
+                        : 'border-border/60 bg-background/60 hover:border-border hover:bg-background'
                         }`}
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium capitalize mb-0.5">{theme}</div>
-                          <div className="text-xs text-muted-foreground">{description.short}</div>
-                        </div>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                type="button"
-                                onClick={(e) => e.stopPropagation()}
-                                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
-                                aria-label={`${theme} theme information`}
-                              >
-                                <Info className="h-4 w-4" />
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="text-xs max-w-[200px]">{description.long}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </button>
-                    )
-                  })}
-                </div>
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium capitalize mb-0.5">{theme}</div>
+                        <div className="text-xs text-muted-foreground">{description.short}</div>
+                      </div>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              onClick={(e) => e.stopPropagation()}
+                              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                              aria-label={`${theme} theme information`}
+                            >
+                              <Info className="h-4 w-4" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-xs max-w-[200px]">{description.long}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </button>
+                  )
+                })}
               </div>
-            
+            </div>
+
             {/* Layout Actions - Moved from header */}
             <div className="mt-8 pt-6 border-t border-border/30 space-y-3 lg:sticky lg:bottom-6">
               <div className="flex items-center justify-between gap-2">
@@ -1626,9 +1633,8 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
                       return (
                         <DropdownMenuItem
                           key={preset.id}
-                          className={`flex flex-col items-start space-y-0.5 py-2 text-xs ${
-                            isActive ? 'bg-accent' : ''
-                          }`}
+                          className={`flex flex-col items-start space-y-0.5 py-2 text-xs ${isActive ? 'bg-accent' : ''
+                            }`}
                           onClick={() => handleApplyPreset(preset)}
                           disabled={saving || loading}
                         >

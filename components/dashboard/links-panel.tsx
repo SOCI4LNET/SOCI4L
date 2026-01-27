@@ -67,6 +67,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
+import { useTransaction } from '@/components/providers/transaction-provider'
 
 type LinkItem = {
   id: string
@@ -153,9 +154,8 @@ function DraggableCategoryHeader({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-2 px-2 py-1.5 rounded-md border transition-colors ${
-        isDragging ? 'border-primary bg-primary/10' : 'border-border/40 bg-muted/20'
-      }`}
+      className={`flex items-center gap-2 px-2 py-1.5 rounded-md border transition-colors ${isDragging ? 'border-primary bg-primary/10' : 'border-border/40 bg-muted/20'
+        }`}
     >
       <button
         type="button"
@@ -173,9 +173,8 @@ function DraggableCategoryHeader({
         type="button"
         {...attributes}
         {...listeners}
-        className={`flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:text-foreground ${
-          isDragDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-grab active:cursor-grabbing'
-        }`}
+        className={`flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:text-foreground ${isDragDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-grab active:cursor-grabbing'
+          }`}
         aria-label={`${category.name} drag handle`}
       >
         <GripVertical className="h-4 w-4" />
@@ -241,11 +240,11 @@ function DraggableCategoryHeader({
 }
 
 // Drop zone for links - each category has one, shows when link is dragged over
-function LinkDropZone({ 
-  categoryId, 
+function LinkDropZone({
+  categoryId,
   isActive,
   isEmpty,
-}: { 
+}: {
   categoryId: string
   isActive: boolean
   isEmpty: boolean
@@ -261,11 +260,10 @@ function LinkDropZone({
   return (
     <div
       ref={setNodeRef}
-      className={`min-h-[40px] rounded-md border-2 border-dashed transition-colors mx-4 my-2 flex items-center justify-center ${
-        isOver 
-          ? 'border-primary bg-primary/10 text-primary' 
+      className={`min-h-[40px] rounded-md border-2 border-dashed transition-colors mx-4 my-2 flex items-center justify-center ${isOver
+          ? 'border-primary bg-primary/10 text-primary'
           : 'border-muted-foreground/30 text-muted-foreground'
-      }`}
+        }`}
     >
       <span className="text-xs">
         {isOver ? 'Drop here' : (isEmpty ? 'Drag links here' : '')}
@@ -309,18 +307,16 @@ function DraggableLinkRow({
     <div
       ref={setNodeRef}
       style={style}
-      className={`rounded-md border px-3 py-3 shadow-sm transition ${
-        highlighted ? 'border-primary ring-2 ring-primary/20 bg-primary/5' : 'border-border/60 bg-background/60'
-      } ${!link.enabled ? 'opacity-60' : ''} ${isDragging ? 'ring-1 ring-primary/40 shadow-lg bg-background' : ''}`}
+      className={`rounded-md border px-3 py-3 shadow-sm transition ${highlighted ? 'border-primary ring-2 ring-primary/20 bg-primary/5' : 'border-border/60 bg-background/60'
+        } ${!link.enabled ? 'opacity-60' : ''} ${isDragging ? 'ring-1 ring-primary/40 shadow-lg bg-background' : ''}`}
     >
       <div className="flex items-center gap-3">
         <button
           type="button"
           {...attributes}
           {...listeners}
-          className={`flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground ${
-            isDragDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-grab active:cursor-grabbing'
-          }`}
+          className={`flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground ${isDragDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-grab active:cursor-grabbing'
+            }`}
           aria-label={`${link.title || link.url} drag handle`}
         >
           <GripVertical className="h-4 w-4" />
@@ -464,7 +460,7 @@ function CategoryBlock({
         canDelete={canDelete}
         isDragDisabled={activeDragType === 'link'}
       />
-      
+
       {!isCollapsed && (
         <div className="pl-4 space-y-2">
           {/* Links */}
@@ -480,7 +476,7 @@ function CategoryBlock({
               isDragDisabled={activeDragType === 'category'}
             />
           ))}
-          
+
           {/* Drop zone for empty categories or when dragging links */}
           <LinkDropZone
             categoryId={category.id}
@@ -499,6 +495,7 @@ export function LinksPanel() {
   const searchParams = useSearchParams()
   const { address: connectedAddress } = useAccount()
   const { signMessageAsync } = useSignMessage()
+  const { showTransactionLoader, hideTransactionLoader } = useTransaction()
   const linksListRef = useRef<HTMLDivElement>(null)
   const [links, setLinks] = useState<LinkItem[]>([])
   const [categories, setCategories] = useState<LinkCategory[]>([])
@@ -514,13 +511,13 @@ export function LinksPanel() {
   const [highlightedLinkId, setHighlightedLinkId] = useState<string | null>(null)
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set())
   const [activeId, setActiveId] = useState<string | null>(null)
-  
+
   // Category management state
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<LinkCategory | null>(null)
   const [categoryFormName, setCategoryFormName] = useState('')
   const [categoryFormDescription, setCategoryFormDescription] = useState('')
-  
+
   // Social Links state
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([])
   const [socialLinksLoading, setSocialLinksLoading] = useState(true)
@@ -573,7 +570,7 @@ export function LinksPanel() {
 
   // Fixed order for social links
   const SOCIAL_LINK_ORDER: SocialLinkPlatform[] = ['website', 'x', 'instagram', 'github', 'youtube', 'linkedin']
-  
+
   const sortSocialLinks = (links: SocialLink[]): SocialLink[] => {
     return [...links].sort((a, b) => {
       const indexA = SOCIAL_LINK_ORDER.indexOf(a.platform)
@@ -631,18 +628,18 @@ export function LinksPanel() {
       try {
         setCategoriesLoading(true)
         const response = await fetch(`/api/profile/categories?address=${encodeURIComponent(targetAddress)}`)
-        
+
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
           throw new Error(errorData.error || `HTTP ${response.status}: Failed to load categories`)
         }
-        
+
         const data = await response.json()
-        
+
         if (data.error) {
           throw new Error(data.error)
         }
-        
+
         const loadedCategories = (data.categories || []).map((cat: any) => ({
           id: cat.id,
           name: cat.name,
@@ -655,9 +652,9 @@ export function LinksPanel() {
           createdAt: cat.createdAt || new Date().toISOString(),
           updatedAt: cat.updatedAt || new Date().toISOString(),
         }))
-        
+
         setCategories(loadedCategories)
-        
+
         // If no categories exist, create default "General" category
         if (loadedCategories.length === 0) {
           await saveCategories([{
@@ -692,19 +689,19 @@ export function LinksPanel() {
       try {
         setLoading(true)
         const response = await fetch(`/api/profile/links?address=${encodeURIComponent(targetAddress)}`)
-        
+
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
           throw new Error(errorData.error || `HTTP ${response.status}: Failed to load links`)
         }
-        
+
         const data = await response.json()
-        
+
         // Check if response has an error field
         if (data.error) {
           throw new Error(data.error)
         }
-        
+
         setLinks(
           (data.links || []).map((link: any) => ({
             id: link.id,
@@ -741,11 +738,11 @@ export function LinksPanel() {
       try {
         setSocialLinksLoading(true)
         const response = await fetch(`/api/wallet?address=${encodeURIComponent(targetAddress)}`)
-        
+
         if (!response.ok) {
           throw new Error('Failed to load profile')
         }
-        
+
         const data = await response.json()
         const links = data.profile?.socialLinks || []
         setSocialLinks(links.map((link: any) => ({
@@ -774,7 +771,7 @@ export function LinksPanel() {
 
     try {
       setSocialLinksSaving(true)
-      
+
       // Step 1: Get nonce
       const nonceResponse = await fetch('/api/auth/nonce')
       if (!nonceResponse.ok) {
@@ -783,8 +780,11 @@ export function LinksPanel() {
       const { nonce } = await nonceResponse.json()
 
       // Step 2: Sign message (must match API's expected format)
+      showTransactionLoader("Confirm in Wallet...")
       const message = `Update social profile for ${targetAddress}. Nonce: ${nonce}`
       const signature = await signMessageAsync({ message })
+
+      showTransactionLoader("Saving social links...")
 
       // Step 3: Update profile
       const response = await fetch('/api/profile/social', {
@@ -805,11 +805,11 @@ export function LinksPanel() {
       }
 
       const data = await response.json()
-      
+
       if (data.error) {
         throw new Error(data.error)
       }
-      
+
       const savedLinks = data.profile?.socialLinks || []
       setSocialLinks(savedLinks.map((link: any) => ({
         id: link.id || crypto.randomUUID(),
@@ -818,12 +818,17 @@ export function LinksPanel() {
         label: link.label || '',
       })))
       return true
-    } catch (error) {
+    } catch (error: any) {
       console.error('[LinksPanel] Failed to save social links', error)
-      toast.error('Failed to save social links. Please try again.')
+      if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
+        toast.error('Transaction rejected')
+      } else {
+        toast.error('Failed to save social links. Please try again.')
+      }
       return false
     } finally {
       setSocialLinksSaving(false)
+      hideTransactionLoader()
     }
   }
 
@@ -860,11 +865,11 @@ export function LinksPanel() {
       }
 
       const data = await response.json()
-      
+
       if (data.error) {
         throw new Error(data.error)
       }
-      
+
       setCategories(
         (data.categories || []).map((cat: any) => ({
           id: cat.id,
@@ -921,12 +926,12 @@ export function LinksPanel() {
       }
 
       const data = await response.json()
-      
+
       // Check if response has an error field
       if (data.error) {
         throw new Error(data.error)
       }
-      
+
       setLinks(
         (data.links || []).map((link: any) => ({
           id: link.id,
@@ -958,15 +963,15 @@ export function LinksPanel() {
   // Group links by category - memoized to prevent recalculation issues
   const linksByCategory = useMemo(() => {
     const grouped = new Map<string | null, LinkItem[]>()
-    
+
     // Initialize with all categories
     categories.forEach(cat => {
       grouped.set(cat.id, [])
     })
-    
+
     // Add uncategorized bucket
     grouped.set(null, [])
-    
+
     // Group links
     links.forEach(link => {
       const categoryId = link.categoryId || null
@@ -975,12 +980,12 @@ export function LinksPanel() {
       }
       grouped.get(categoryId)!.push(link)
     })
-    
+
     // Sort links within each category by order
     grouped.forEach((linkList, categoryId) => {
       linkList.sort((a, b) => (a.order || 0) - (b.order || 0))
     })
-    
+
     return grouped
   }, [categories, links])
 
@@ -1011,7 +1016,7 @@ export function LinksPanel() {
   // =============================================================================
   // DRAG & DROP STATE AND HANDLERS
   // =============================================================================
-  
+
   // Determine what type of item is being dragged
   const getActiveDragType = (): 'category' | 'link' | null => {
     if (!activeId) return null
@@ -1020,7 +1025,7 @@ export function LinksPanel() {
     if (links.some(l => l.id === activeId)) return 'link'
     return null
   }
-  
+
   const activeDragType = getActiveDragType()
   const isLinkDragging = activeDragType === 'link'
   const isCategoryDragging = activeDragType === 'category'
@@ -1033,7 +1038,7 @@ export function LinksPanel() {
   const customCollisionDetection: CollisionDetection = (args) => {
     const { active } = args
     const activeIdStr = active.id as string
-    
+
     // For categories, only collide with other categories
     if (activeIdStr.startsWith('cat-')) {
       const collisions = closestCenter(args)
@@ -1042,7 +1047,7 @@ export function LinksPanel() {
         return id.startsWith('cat-')
       })
     }
-    
+
     // For links, collide with other links and drop zones
     return closestCenter(args)
   }
@@ -1050,9 +1055,9 @@ export function LinksPanel() {
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
     setActiveId(null)
-    
+
     if (!over || active.id === over.id) return
-    
+
     const activeIdStr = active.id as string
     const overIdStr = over.id as string
 
@@ -1061,30 +1066,30 @@ export function LinksPanel() {
     // =======================================================================
     if (activeIdStr.startsWith('cat-')) {
       const activeCategoryId = activeIdStr.replace('cat-', '')
-      
+
       // Only accept drops on other categories
       if (!overIdStr.startsWith('cat-')) return
-      
+
       const overCategoryId = overIdStr.replace('cat-', '')
-      
+
       const activeIndex = sortedCategories.findIndex(cat => cat.id === activeCategoryId)
       const overIndex = sortedCategories.findIndex(cat => cat.id === overCategoryId)
-      
+
       if (activeIndex === -1 || overIndex === -1 || activeIndex === overIndex) return
-      
+
       // Reorder categories
       const reordered = arrayMove(sortedCategories, activeIndex, overIndex)
       const withOrder = reordered.map((cat, idx) => ({
         ...cat,
         order: idx,
       }))
-      
+
       // Save previous state for rollback
       const previousCategories = [...categories]
-      
+
       // Optimistic update
       setCategories(withOrder)
-      
+
       // Persist to server
       const success = await saveCategories(withOrder.map(cat => ({
         id: cat.id,
@@ -1095,7 +1100,7 @@ export function LinksPanel() {
         isVisible: cat.isVisible,
         isDefault: cat.isDefault,
       })))
-      
+
       if (!success) {
         setCategories(previousCategories)
         toast.error('Failed to reorder categories')
@@ -1112,11 +1117,11 @@ export function LinksPanel() {
     // Case 1: Dropping on a category drop zone (empty area in category)
     if (overIdStr.startsWith('drop-')) {
       const targetCategoryId = overIdStr.replace('drop-', '')
-      
+
       // Move link to new category
       const targetCategoryLinks = linksByCategory.get(targetCategoryId) || []
       const newOrder = targetCategoryLinks.length
-      
+
       const previousLinks = [...links]
       const updated = links.map(l =>
         l.id === activeIdStr
@@ -1124,7 +1129,7 @@ export function LinksPanel() {
           : l
       )
       setLinks(updated)
-      
+
       const success = await saveLinks(updated)
       if (!success) {
         setLinks(previousLinks)
@@ -1136,22 +1141,22 @@ export function LinksPanel() {
     // Case 2: Dropping on another link
     const overLink = links.find(l => l.id === overIdStr)
     if (!overLink) return
-    
+
     const targetCategoryId = overLink.categoryId || null
     const targetCategoryLinks = linksByCategory.get(targetCategoryId) || []
     const overIndex = targetCategoryLinks.findIndex(l => l.id === overIdStr)
-    
+
     if (overIndex === -1) return
-    
+
     // Moving to different category
     if (activeLink.categoryId !== targetCategoryId) {
       const oldCategoryLinks = linksByCategory.get(activeLink.categoryId || null) || []
-      
+
       // Remove from old category
       const updatedOldLinks = oldCategoryLinks
         .filter(l => l.id !== activeIdStr)
         .map((link, idx) => ({ ...link, order: idx }))
-      
+
       // Add to new category at target position
       const newCategoryLinks = [...targetCategoryLinks]
       newCategoryLinks.splice(overIndex, 0, { ...activeLink, categoryId: targetCategoryId })
@@ -1160,16 +1165,16 @@ export function LinksPanel() {
         categoryId: targetCategoryId,
         order: idx,
       }))
-      
+
       const previousLinks = [...links]
       const updated = links.map(l => {
         const inOld = updatedOldLinks.find(wl => wl.id === l.id)
         const inNew = updatedNewLinks.find(wl => wl.id === l.id)
         return inNew || inOld || l
       })
-      
+
       setLinks(updated)
-      
+
       const success = await saveLinks(updated)
       if (!success) {
         setLinks(previousLinks)
@@ -1179,25 +1184,25 @@ export function LinksPanel() {
       // Reordering within same category
       const activeIndex = targetCategoryLinks.findIndex(l => l.id === activeIdStr)
       if (activeIndex === -1 || activeIndex === overIndex) return
-      
+
       const previousLinks = [...links]
       const reordered = arrayMove(targetCategoryLinks, activeIndex, overIndex)
       const withOrder = reordered.map((link, index) => ({
         ...link,
         order: index,
       }))
-      
+
       // Update all links, preserving other categories
       const updated = links.map(l => {
         const found = withOrder.find(wl => wl.id === l.id)
         return found || l
       })
-      
+
       setLinks(updated)
-      
+
       // Persist to server
       const success = await saveLinks(updated)
-      
+
       // Rollback on failure
       if (!success) {
         setLinks(previousLinks)
@@ -1227,10 +1232,10 @@ export function LinksPanel() {
     const updated = links.map((link) =>
       link.id === id
         ? {
-            ...link,
-            enabled,
-            updatedAt: new Date().toISOString(),
-          }
+          ...link,
+          enabled,
+          updatedAt: new Date().toISOString(),
+        }
         : link
     )
     setLinks(updated)
@@ -1271,12 +1276,12 @@ export function LinksPanel() {
       const updated = links.map((link) =>
         link.id === editingLink.id
           ? {
-              ...link,
-              title: trimmedTitle,
-              url: trimmedUrl,
-              categoryId,
-              updatedAt: now,
-            }
+            ...link,
+            title: trimmedTitle,
+            url: trimmedUrl,
+            categoryId,
+            updatedAt: now,
+          }
           : link
       )
       setLinks(updated)
@@ -1339,11 +1344,11 @@ export function LinksPanel() {
       const updated = categories.map((cat) =>
         cat.id === editingCategory.id
           ? {
-              ...cat,
-              name: trimmedName,
-              slug,
-              description: categoryFormDescription.trim() || null,
-            }
+            ...cat,
+            name: trimmedName,
+            slug,
+            description: categoryFormDescription.trim() || null,
+          }
           : cat
       )
       const success = await saveCategories(updated)
@@ -1481,7 +1486,7 @@ export function LinksPanel() {
     }
 
     let updatedLinks: SocialLink[]
-    
+
     if (editingSocialLink) {
       updatedLinks = socialLinks.map(link =>
         link.id === editingSocialLink.id
@@ -1494,7 +1499,7 @@ export function LinksPanel() {
         toast.error(`${getSocialLabel(newSocialPlatform)} is already added`)
         return
       }
-      
+
       updatedLinks = [
         ...socialLinks,
         {
@@ -1703,7 +1708,7 @@ export function LinksPanel() {
                       {sortedCategories.map((category) => {
                         const categoryLinks = linksByCategory.get(category.id) || []
                         const isCollapsed = collapsedCategories.has(category.id)
-                        
+
                         return (
                           <CategoryBlock
                             key={category.id}
@@ -1725,74 +1730,74 @@ export function LinksPanel() {
                           />
                         )
                       })}
-                    
-                    {/* Uncategorized Links */}
-                    {(() => {
-                      const uncategorizedLinks = linksByCategory.get(null) || []
-                      if (uncategorizedLinks.length === 0) return null
-                      
-                      const isCollapsed = collapsedCategories.has('uncategorized')
-                      
-                      return (
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 px-2 py-1.5 rounded-md border border-border/40 bg-muted/20">
-                            <button
-                              type="button"
-                              onClick={() => toggleCategoryCollapse('uncategorized')}
-                              className="flex items-center justify-center h-6 w-6 rounded hover:bg-muted/60 transition-colors"
-                              aria-label={isCollapsed ? 'Expand uncategorized' : 'Collapse uncategorized'}
-                            >
-                              {isCollapsed ? (
-                                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                              ) : (
-                                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                              )}
-                            </button>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <p className="text-sm font-medium">Uncategorized</p>
-                                <Badge variant="secondary" className="text-xs">
-                                  {uncategorizedLinks.length}
-                                </Badge>
+
+                      {/* Uncategorized Links */}
+                      {(() => {
+                        const uncategorizedLinks = linksByCategory.get(null) || []
+                        if (uncategorizedLinks.length === 0) return null
+
+                        const isCollapsed = collapsedCategories.has('uncategorized')
+
+                        return (
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 px-2 py-1.5 rounded-md border border-border/40 bg-muted/20">
+                              <button
+                                type="button"
+                                onClick={() => toggleCategoryCollapse('uncategorized')}
+                                className="flex items-center justify-center h-6 w-6 rounded hover:bg-muted/60 transition-colors"
+                                aria-label={isCollapsed ? 'Expand uncategorized' : 'Collapse uncategorized'}
+                              >
+                                {isCollapsed ? (
+                                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                ) : (
+                                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                )}
+                              </button>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm font-medium">Uncategorized</p>
+                                  <Badge variant="secondary" className="text-xs">
+                                    {uncategorizedLinks.length}
+                                  </Badge>
+                                </div>
                               </div>
                             </div>
-                        </div>
-                          
-                          {!isCollapsed && (
-                            <div className="space-y-2 pl-4">
-                              {uncategorizedLinks.map((link) => (
-                                <DraggableLinkRow
-                                  key={link.id}
-                                  link={link}
-                                  targetAddress={targetAddress}
-                                  highlighted={highlightedLinkId === link.id}
-                                  onToggleEnabled={handleToggleEnabled}
-                                  onEdit={openEditDialog}
-                                  onDelete={handleDelete}
-                                  isDragDisabled={isCategoryDragging}
-                                />
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })()}
+
+                            {!isCollapsed && (
+                              <div className="space-y-2 pl-4">
+                                {uncategorizedLinks.map((link) => (
+                                  <DraggableLinkRow
+                                    key={link.id}
+                                    link={link}
+                                    targetAddress={targetAddress}
+                                    highlighted={highlightedLinkId === link.id}
+                                    onToggleEnabled={handleToggleEnabled}
+                                    onEdit={openEditDialog}
+                                    onDelete={handleDelete}
+                                    isDragDisabled={isCategoryDragging}
+                                  />
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })()}
                     </div>
                   </SortableContext>
                 </SortableContext>
-                
+
                 {/* Drag Overlay - shows preview of dragged item */}
                 <DragOverlay dropAnimation={null}>
                   {activeId && isCategoryDragging ? (
                     (() => {
                       const draggedCategory = sortedCategories.find(c => `cat-${c.id}` === activeId)
                       if (!draggedCategory) return null
-                      
+
                       const draggedCategoryLinks = linksByCategory.get(draggedCategory.id) || []
                       const MAX_PREVIEW = 2
                       const visibleLinks = draggedCategoryLinks.slice(0, MAX_PREVIEW)
                       const hiddenCount = Math.max(0, draggedCategoryLinks.length - MAX_PREVIEW)
-                      
+
                       return (
                         <div className="rounded-md border-2 border-primary bg-background shadow-xl w-80">
                           <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 border-b border-primary/20">
@@ -1849,10 +1854,10 @@ export function LinksPanel() {
                   Add your social media profiles with icons
                 </CardDescription>
               </div>
-              <Button 
-                type="button" 
-                variant="outline" 
-                size="sm" 
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
                 className="h-8 gap-1"
                 onClick={openAddSocialDialog}
                 disabled={socialLinks.length >= 6}
@@ -1889,8 +1894,8 @@ export function LinksPanel() {
             ) : (
               <div className="space-y-2">
                 {sortSocialLinks(socialLinks).map((link) => (
-                  <div 
-                    key={link.id} 
+                  <div
+                    key={link.id}
                     className="flex items-center gap-3 p-3 rounded-md border border-border/60 bg-muted/5 hover:bg-muted/20 transition-colors"
                   >
                     <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted/50">
@@ -1898,9 +1903,9 @@ export function LinksPanel() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium">{getSocialLabel(link.platform)}</div>
-                      <a 
-                        href={link.url} 
-                        target="_blank" 
+                      <a
+                        href={link.url}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="text-xs text-muted-foreground hover:text-primary truncate block"
                       >
@@ -1946,8 +1951,8 @@ export function LinksPanel() {
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="social-platform">Platform</Label>
-                <Select 
-                  value={newSocialPlatform} 
+                <Select
+                  value={newSocialPlatform}
                   onValueChange={(value) => setNewSocialPlatform(value as SocialLinkPlatform)}
                   disabled={!!editingSocialLink}
                 >
@@ -1958,8 +1963,8 @@ export function LinksPanel() {
                     {SOCIAL_LINK_ORDER.map((platform) => {
                       const isAdded = !editingSocialLink && socialLinks.some(l => l.platform === platform)
                       return (
-                        <SelectItem 
-                          key={platform} 
+                        <SelectItem
+                          key={platform}
                           value={platform}
                           disabled={isAdded}
                         >
@@ -1991,9 +1996,9 @@ export function LinksPanel() {
               <Button type="button" variant="outline" size="sm" onClick={() => setSocialDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button 
-                type="button" 
-                size="sm" 
+              <Button
+                type="button"
+                size="sm"
                 onClick={handleSaveSocialLink}
                 disabled={socialLinksSaving}
               >

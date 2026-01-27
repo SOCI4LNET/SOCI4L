@@ -17,6 +17,7 @@ import {
 import { Bookmark as BookmarkIcon, Users, UserPlus } from 'lucide-react'
 import { toast } from 'sonner'
 import { isValidAddress } from '@/lib/utils'
+import { useTransaction } from '@/components/providers/transaction-provider'
 
 interface FollowToggleProps {
   address: string
@@ -33,6 +34,7 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
   const { address: connectedAddress, isConnected } = useAccount()
   const { connect, connectors, isPending: isConnecting } = useConnect()
   const { signMessageAsync } = useSignMessage()
+  const { showTransactionLoader, hideTransactionLoader } = useTransaction()
 
   useEffect(() => {
     setMounted(true)
@@ -64,7 +66,7 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
             cache: 'no-store',
             credentials: 'include',
           })
-          
+
           if (statusResponse.ok) {
             const status = await statusResponse.json()
             // API will return false if session doesn't match connected wallet
@@ -125,9 +127,12 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
         const message = `Follow auth for SOCI4L. Address: ${normalizedConnectedAddress}. Nonce: ${nonce}`
         let signature: string
         try {
+          showTransactionLoader("Confirm in Wallet...")
           signature = await signMessageAsync({ message })
+          showTransactionLoader("Creating session...")
         } catch (error: any) {
-          if (error.code === 4001) {
+          hideTransactionLoader()
+          if (error.code === 4001 || error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
             toast.error('Signature rejected')
           } else {
             toast.error('Signing failed')
@@ -154,7 +159,7 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
         let sessionVerified = false
         for (let attempt = 0; attempt < 3; attempt++) {
           await new Promise(resolve => setTimeout(resolve, 200 + (attempt * 100)))
-          
+
           // Verify session was created by checking follow status
           const verifyStatusResponse = await fetch(`/api/profile/${normalizedAddress}/follow-status?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
             cache: 'no-store',
@@ -197,6 +202,10 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
 
     const normalizedAddress = address.toLowerCase()
     const normalizedConnectedAddress = connectedAddress?.toLowerCase()
+    if (!normalizedConnectedAddress) {
+      toast.error('Wallet address not found')
+      return
+    }
 
     // Prevent self-follow
     if (normalizedConnectedAddress === normalizedAddress) {
@@ -229,6 +238,8 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
     }
 
     try {
+      // Show loader for the whole follow/unfollow process
+      showTransactionLoader(pressed ? "Following..." : "Unfollowing...")
       if (pressed) {
         // Follow - include connected address to verify session matches
         const response = await fetch(`/api/profile/${normalizedAddress}/follow?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
@@ -247,20 +258,20 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
               let sessionReady = false
               for (let attempt = 0; attempt < 3; attempt++) {
                 await new Promise(resolve => setTimeout(resolve, 300 + (attempt * 100)))
-                
+
                 // Verify session was created by checking follow status
                 const verifyResponse = await fetch(`/api/profile/${normalizedAddress}/follow-status?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
                   cache: 'no-store',
                   credentials: 'include',
                 })
-                
+
                 // If verifyResponse is ok, session exists and we can retry
                 if (verifyResponse.ok) {
                   sessionReady = true
                   break
                 }
               }
-              
+
               if (sessionReady) {
                 // Session exists, retry the follow request
                 const retryResponse = await fetch(`/api/profile/${normalizedAddress}/follow?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
@@ -322,20 +333,20 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
               let sessionReady = false
               for (let attempt = 0; attempt < 3; attempt++) {
                 await new Promise(resolve => setTimeout(resolve, 300 + (attempt * 100)))
-                
+
                 // Verify session was created by checking follow status
                 const verifyResponse = await fetch(`/api/profile/${normalizedAddress}/follow-status?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
                   cache: 'no-store',
                   credentials: 'include',
                 })
-                
+
                 // If verifyResponse is ok, session exists and we can retry
                 if (verifyResponse.ok) {
                   sessionReady = true
                   break
                 }
               }
-              
+
               if (sessionReady) {
                 // Session exists, retry the unfollow request
                 const retryResponse = await fetch(`/api/profile/${normalizedAddress}/follow?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
@@ -383,9 +394,14 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
       // Rollback on error - restore previous state
       setIsFollowing(previousState)
       setFollowersCount(previousFollowersCount)
-      toast.error('Action failed. Please try again.')
+      if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
+        toast.error('Transaction rejected')
+      } else {
+        toast.error('Action failed. Please try again.')
+      }
     } finally {
       setIsPending(false)
+      hideTransactionLoader()
     }
   }
 
