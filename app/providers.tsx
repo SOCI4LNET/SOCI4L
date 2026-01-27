@@ -5,6 +5,7 @@ import { WagmiProvider, createConfig, http, injected, type Config } from 'wagmi'
 import { walletConnect } from 'wagmi/connectors'
 import { avalanche } from 'viem/chains'
 import { useState, useMemo } from 'react'
+import { TransactionProvider } from '@/components/providers/transaction-provider'
 
 // WalletConnect v2 Project ID - required for WalletConnect connector
 // This enables: WalletConnect QR (mobile wallets), Ledger Live, Rainbow, Trust, Coinbase Wallet
@@ -30,15 +31,15 @@ function createWagmiConfig(): Config {
   // WalletConnect connector - ONLY for WalletConnect flows (QR/mobile/Ledger Live)
   const walletConnectConnector = walletConnectProjectId
     ? walletConnect({
-        projectId: walletConnectProjectId,
-        disableProviderPing: true,
-        metadata: {
-          name: 'SOCI4L',
-          description: 'Avalanche Wallet Profile Hub',
-          url: window.location.origin,
-          icons: [],
-        },
-      })
+      projectId: walletConnectProjectId,
+      disableProviderPing: true,
+      metadata: {
+        name: 'SOCI4L',
+        description: 'Avalanche Wallet Profile Hub',
+        url: window.location.origin,
+        icons: [],
+      },
+    })
     : null
 
   // Combined connectors array
@@ -82,7 +83,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        {children}
+        <TransactionProvider>
+          {children}
+        </TransactionProvider>
       </QueryClientProvider>
     </WagmiProvider>
   )
