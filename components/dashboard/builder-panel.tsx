@@ -814,8 +814,8 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
         }
         const { nonce } = await nonceResponse.json()
 
-        // Step 2: Sign message
-        const message = `Update profile for ${address}. Nonce: ${nonce}`
+        // Step 2: Sign message (must match API's expected format)
+        const message = `Update social profile for ${address}. Nonce: ${nonce}`
         const signature = await signMessageAsync({ message })
 
         // Step 3: Update profile (display name and bio only - social links are managed in Links panel)
