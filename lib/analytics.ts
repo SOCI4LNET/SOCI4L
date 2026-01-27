@@ -172,6 +172,28 @@ export function trackProfileView(
 
   console.log('[analytics] trackProfileView', { profileId: normalizedProfileId, source, ts: event.ts })
   writeEvent(event)
+
+  // Best-effort server-side analytics
+  try {
+    if (typeof window !== 'undefined') {
+      fetch('/api/analytics/event', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'profile_view',
+          profileId: normalizedProfileId,
+          source,
+          referrer: window.document.referrer || null,
+        }),
+      }).catch(() => {
+        // ignore network errors for analytics
+      })
+    }
+  } catch {
+    // ignore
+  }
 }
 
 export function trackLinkClick(
@@ -200,6 +222,32 @@ export function trackLinkClick(
 
   console.log('[analytics] trackLinkClick', { profileId: normalizedProfileId, linkId, linkTitle, source, categoryId, ts: event.ts })
   writeEvent(event)
+
+  // Best-effort server-side analytics
+  try {
+    if (typeof window !== 'undefined') {
+      fetch('/api/analytics/event', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'link_click',
+          profileId: normalizedProfileId,
+          linkId,
+          linkTitle: linkTitle || undefined,
+          linkUrl: linkUrl || undefined,
+          categoryId: categoryId || undefined,
+          source,
+          referrer: window.document.referrer || null,
+        }),
+      }).catch(() => {
+        // ignore network errors
+      })
+    }
+  } catch {
+    // ignore
+  }
 }
 
 export function getEventsForProfile(profileId: string): AnalyticsEvent[] {

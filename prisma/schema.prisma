@@ -106,3 +106,25 @@ model EmailSubscription {
 
   @@index([email])
 }
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  type      String   // 'profile_view' | 'link_click'
+  profileId String   // profile address (normalized lowercase)
+  linkId    String?  // for link_click events
+  linkTitle String?
+  linkUrl   String?
+  categoryId String?
+
+  source    String   @default("unknown") // 'profile' | 'qr' | 'copy' | 'unknown'
+  referrer  String?
+  country   String?
+  device    String?
+
+  createdAt DateTime @default(now())
+
+  @@index([profileId])
+  @@index([profileId, type])
+  @@index([linkId])
+  @@index([createdAt])
+}
