@@ -26,7 +26,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Download, ExternalLink, Eye } from 'lucide-react'
+import { Download, ExternalLink, Eye, Users } from 'lucide-react'
 
 interface SearchParams {
   search?: string

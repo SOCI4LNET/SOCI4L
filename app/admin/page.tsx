@@ -3,7 +3,7 @@ import { PageShell } from '@/components/app-shell/page-shell'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { OverviewTrends } from '@/components/admin/overview-trends'
 import { EmptyState } from '@/components/admin/empty-state'
-import { TrendingUp, TrendingDown, Minus, Eye, MousePointerClick, Users, UserPlus, Link2, Mail, FileText } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, Eye, MousePointerClick, Users, UserPlus, Link2, Mail } from 'lucide-react'
 
 async function getOverviewStats() {
   const now = new Date()
