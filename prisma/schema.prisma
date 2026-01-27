@@ -128,3 +128,23 @@ model AnalyticsEvent {
   @@index([linkId])
   @@index([createdAt])
 }
+
+model ScoreSnapshot {
+  id          String   @id @default(cuid())
+  profileId   String   // Profile address (normalized lowercase)
+  score       Float
+  tier        String
+  
+  // Breakdown
+  profileClaimed  Int   @default(0)
+  displayName     Int   @default(0)
+  bio             Int   @default(0)
+  socialLinks     Int   @default(0)
+  profileLinks    Int   @default(0)
+  followers       Float @default(0)
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([profileId])
+  @@index([profileId, createdAt])
+}

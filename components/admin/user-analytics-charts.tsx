@@ -33,11 +33,26 @@ interface TopClickedLink {
   clicks: number
 }
 
+interface ScoreHistoryPoint {
+  date: string
+  score: number
+  tier: string
+  breakdown: {
+    profileClaimed: number
+    displayName: number
+    bio: number
+    socialLinks: number
+    profileLinks: number
+    followers: number
+  }
+}
+
 interface UserAnalyticsChartsProps {
   timeSeriesData: TimeSeriesDataPoint[]
   totalProfileViews: number
   totalLinkClicks: number
   topClickedLinks: TopClickedLink[]
+  scoreHistory?: ScoreHistoryPoint[]
 }
 
 export function UserAnalyticsCharts({
@@ -45,6 +60,7 @@ export function UserAnalyticsCharts({
   totalProfileViews,
   totalLinkClicks,
   topClickedLinks,
+  scoreHistory = [],
 }: UserAnalyticsChartsProps) {
   return (
     <div className="grid gap-6 mb-6">
@@ -96,6 +112,72 @@ export function UserAnalyticsCharts({
           </div>
         </CardContent>
       </Card>
+
+      {scoreHistory.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Score History</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={scoreHistory.map((point) => ({
+                    date: new Date(point.date).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                    }),
+                    score: point.score,
+                  }))}
+                >
+                  <CartesianGrid {...chartGridProps} />
+                  <XAxis dataKey="date" {...chartAxisProps} />
+                  <YAxis {...chartAxisProps} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Line
+                    type="monotone"
+                    dataKey="score"
+                    stroke="hsl(var(--primary))"
+                    name="Score"
+                    {...chartLineProps}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+            {scoreHistory.length > 0 && (
+              <div className="mt-4 text-xs text-muted-foreground">
+                <p>
+                  Current score: <span className="font-semibold">{scoreHistory[scoreHistory.length - 1]?.score.toFixed(1)}</span> (
+                  {scoreHistory[scoreHistory.length - 1]?.tier})
+                </p>
+                {scoreHistory.length > 1 && (
+                  <p>
+                    Change:{' '}
+                    <span
+                      className={`font-semibold ${
+                        scoreHistory[scoreHistory.length - 1].score >=
+                        scoreHistory[0].score
+                          ? 'text-green-600'
+                          : 'text-red-600'
+                      }`}
+                    >
+                      {scoreHistory[scoreHistory.length - 1].score >=
+                      scoreHistory[0].score
+                        ? '+'
+                        : ''}
+                      {(
+                        scoreHistory[scoreHistory.length - 1].score -
+                        scoreHistory[0].score
+                      ).toFixed(1)}
+                    </span>{' '}
+                    over {scoreHistory.length} days
+                  </p>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {topClickedLinks.length > 0 && (
         <Card>

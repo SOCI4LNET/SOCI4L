@@ -3,6 +3,7 @@ import { PageShell } from '@/components/app-shell/page-shell'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { calculateScore, getScoreTier } from '@/lib/score'
 import { UserAnalyticsCharts } from '@/components/admin/user-analytics-charts'
+import { getScoreHistory } from '@/lib/score-snapshot'
 
 interface AdminUserPageProps {
   params: {
@@ -63,6 +64,9 @@ async function getUserData(rawAddress: string) {
 
   const breakdown = calculateScore(scoreInput)
   const tier = getScoreTier(breakdown.total)
+
+  // Fetch score history
+  const scoreHistory = await getScoreHistory(normalizedAddress, 30)
 
   // Fetch analytics data
   const thirtyDaysAgo = new Date()
@@ -188,6 +192,7 @@ async function getUserData(rawAddress: string) {
         clicks: row._count.linkId,
       })),
     },
+    scoreHistory,
   }
 }
 
@@ -317,6 +322,7 @@ export default async function AdminUserDetailPage({ params }: AdminUserPageProps
         totalProfileViews={data.analytics.totalProfileViews}
         totalLinkClicks={data.analytics.totalLinkClicks}
         topClickedLinks={data.analytics.topClickedLinks}
+        scoreHistory={data.scoreHistory}
       />
     </PageShell>
   )
