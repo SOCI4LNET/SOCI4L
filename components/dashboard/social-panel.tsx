@@ -121,7 +121,7 @@ export function SocialPanel({ address }: SocialPanelProps) {
       await navigator.clipboard.writeText(url)
       toast.success('Profile link copied')
     } catch {
-      toast.error('Kopyalanamadı')
+      toast.error('Failed to copy')
     }
   }
 
@@ -205,7 +205,7 @@ export function SocialPanel({ address }: SocialPanelProps) {
         }
       } catch (error) {
         console.error('Error fetching follows:', error)
-        toast.error('Takipçi listesi yüklenemedi')
+        toast.error('Failed to load followers')
       } finally {
         setLoading(false)
       }
@@ -264,7 +264,7 @@ export function SocialPanel({ address }: SocialPanelProps) {
       toast.success('Unfollowed successfully')
     } catch (error: any) {
       console.error('Error unfollowing:', error)
-      toast.error('Takipten çıkılamadı. Lütfen tekrar deneyin.')
+      toast.error('Failed to unfollow. Please try again.')
     }
   }
 

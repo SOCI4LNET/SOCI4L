@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       // Production mode: real ECDSA signature verification
       try {
         // Build message
-        const message = `Follow auth for Avalanche Profile Hub. Address: ${normalizedAddress}. Nonce: ${nonce}`
+        const message = `Follow auth for Soci4l. Address: ${normalizedAddress}. Nonce: ${nonce}`
 
         // Verify signature
         const isValid = await verifyMessage({

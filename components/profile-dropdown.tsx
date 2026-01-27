@@ -127,7 +127,7 @@ export function ProfileDropdown() {
       await navigator.clipboard.writeText(addressToCopy)
       toast.success('Address copied')
     } catch (error) {
-      toast.error('Kopyalanamadı')
+      toast.error('Failed to copy')
     }
   }
 
@@ -162,7 +162,7 @@ export function ProfileDropdown() {
       await navigator.clipboard.writeText(profileUrl)
       toast.success('Profile link copied')
     } catch (error) {
-      toast.error('Kopyalanamadı')
+      toast.error('Failed to copy')
     }
   }
 

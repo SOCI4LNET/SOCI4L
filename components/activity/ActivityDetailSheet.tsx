@@ -33,7 +33,7 @@ export function ActivityDetailSheet({ transaction, open, onOpenChange, address }
       await navigator.clipboard.writeText(text)
       toast.success(`${label} copied`)
     } catch {
-      toast.error('Kopyalanamadı')
+      toast.error('Failed to copy')
     }
   }
 

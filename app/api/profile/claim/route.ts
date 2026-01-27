@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
       // Production mode: real ECDSA signature verification
       try {
         // Build message
-        const message = `Claim Avalanche Profile Hub for ${normalizedAddress}. Nonce: ${nonce}`
+        const message = `Claim Soci4l profile for ${normalizedAddress}. Nonce: ${nonce}`
 
         // Verify signature
         const isValid = await verifyMessage({

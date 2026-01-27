@@ -20,14 +20,14 @@ export default function HomePage() {
 
   const openDashboard = () => {
     if (!isConnected || !connectedAddress) {
-      toast.error('Lütfen önce cüzdanınızı bağlayın')
+      toast.error('Please connect your wallet first')
       return
     }
     const dashboardHref = getConnectedDashboardHref(connectedAddress)
     if (dashboardHref) {
       router.push(dashboardHref)
     } else {
-      toast.error('Geçersiz cüzdan adresi')
+      toast.error('Invalid wallet address')
     }
   }
 
@@ -45,7 +45,7 @@ export default function HomePage() {
           <div className="space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/20 px-3 py-1 text-xs text-muted-foreground">
               <Badge variant="outline" className="h-5 px-2 text-[11px]">
-                Avalanche Build Games
+                Soci4l
               </Badge>
               <span>SOCI4L · Wallet-first profiles & link intelligence</span>
             </div>

@@ -24,7 +24,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     if (!mounted) return
     
     if (!isConnected || !connectedAddress) {
-      toast.error('Dashboard için cüzdanınızı bağlayın')
+      toast.error('Connect your wallet to access dashboard')
       router.push('/')
       return
     }
@@ -33,7 +33,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     
     // If user tries to access a different address's dashboard, redirect to their own
     if (normalizedTargetAddress && normalizedTargetAddress !== normalizedConnectedAddress) {
-      toast.error('Sadece kendi dashboard\'ınıza erişebilirsiniz')
+      toast.error('You can only access your own dashboard')
       router.push(`/dashboard/${normalizedConnectedAddress}`)
       return
     }

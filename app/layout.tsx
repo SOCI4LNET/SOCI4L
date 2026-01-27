@@ -9,8 +9,8 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "SOCI4L - Avalanche Wallet Profile Hub",
-  description: "SOCI4L turns your Avalanche wallet into a measurable, privacy-first public profile. Search and view Avalanche wallet profiles.",
+  title: "Soci4l - Web3 Profile & Link Hub",
+  description: "Soci4l turns your wallet into a measurable, privacy-first public profile. Create your Web3 profile with link analytics.",
 }
 
 export default function RootLayout({

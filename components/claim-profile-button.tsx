@@ -52,7 +52,7 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
       const { nonce } = await nonceResponse.json()
 
       // Step 2: Sign message
-      const message = `Claim Avalanche Profile Hub for ${address}. Nonce: ${nonce}`
+      const message = `Claim Soci4l profile for ${address}. Nonce: ${nonce}`
       const signature = await signMessageAsync({ message })
 
       // Step 3: Claim profile
@@ -102,7 +102,7 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
       }
     } catch (error: any) {
       console.error('Error claiming profile:', error)
-      toast.error('Profil sahiplenme başarısız. Lütfen tekrar deneyin.')
+      toast.error('Failed to claim profile. Please try again.')
     } finally {
       setIsSubmitting(false)
     }

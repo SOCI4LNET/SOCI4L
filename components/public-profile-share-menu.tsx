@@ -109,7 +109,7 @@ export function PublicProfileShareMenu({ address, slug, onOpenQR }: PublicProfil
       await navigator.clipboard.writeText(profileUrl)
       toast.success('Profile link copied')
     } catch (error) {
-      toast.error('Kopyalanamadı')
+      toast.error('Failed to copy')
     }
   }
 
@@ -119,7 +119,7 @@ export function PublicProfileShareMenu({ address, slug, onOpenQR }: PublicProfil
       await navigator.clipboard.writeText(address)
       toast.success('Address copied')
     } catch (error) {
-      toast.error('Kopyalanamadı')
+      toast.error('Failed to copy')
     }
   }
 
@@ -146,7 +146,7 @@ export function PublicProfileShareMenu({ address, slug, onOpenQR }: PublicProfil
       toast.success('Shared')
     } catch (error: any) {
       if (error.name !== 'AbortError') {
-        toast.error('Paylaşım iptal edildi')
+        toast.error('Share cancelled')
       }
     }
   }

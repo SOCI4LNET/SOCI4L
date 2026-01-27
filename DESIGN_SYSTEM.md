@@ -1,7 +1,7 @@
-# Avalanche Profile Hub — Design System
+# Soci4l — Design System
 
 This document defines the **UI/UX rules, component standards, and visual language**
-for Avalanche Profile Hub.  
+for Soci4l.  
 All UI work **must follow this document** to keep the product consistent, dense, and premium.
 
 ---

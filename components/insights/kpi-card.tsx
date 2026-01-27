@@ -21,7 +21,7 @@ export function KpiCard({ icon: Icon, label, value, description, className }: Kp
       )}
     >
       <div className="p-4 md:p-6 flex flex-col flex-1 min-w-0">
-        {/* A) Üst satır: ikon + label */}
+        {/* A) Top row: icon + label */}
         <div className="flex items-center gap-2 min-w-0">
           <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider truncate">
@@ -29,10 +29,10 @@ export function KpiCard({ icon: Icon, label, value, description, className }: Kp
           </p>
         </div>
 
-        {/* B) Ana değer */}
+        {/* B) Main value */}
         <p className="text-3xl font-bold truncate mt-4">{value}</p>
 
-        {/* C) Alt açıklama */}
+        {/* C) Description */}
         <p className="text-xs text-muted-foreground truncate mt-1">{description}</p>
       </div>
     </Card>

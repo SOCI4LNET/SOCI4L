@@ -688,7 +688,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
 
   const handleShareInsights = async () => {
     if (!publicInsightsUrl) {
-      toast.error('Paylaşım linki oluşturulamadı')
+      toast.error('Unable to generate share link')
       return
     }
 
@@ -696,9 +696,9 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
 
     try {
       await navigator.clipboard.writeText(fullUrl)
-      toast.success('Link kopyalandı')
+      toast.success('Link copied')
     } catch (error) {
-      toast.error('Kopyalanamadı')
+      toast.error('Failed to copy')
       console.error('[InsightsPanel] Failed to copy link', error)
     }
   }
@@ -789,7 +789,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                     size="sm"
                     onClick={async () => {
                       if (!address || !links.length) {
-                        toast.error('Link bulunamadı')
+                        toast.error('No links available')
                         return
                       }
                       const testLink = links[0]
@@ -993,7 +993,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                           {index + 1}
                         </Badge>
                         
-                        {/* B) Orta: Link adı + URL (primary content) */}
+                        {/* B) Middle: Link name + URL (primary content) */}
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-medium truncate mb-0.5">{link.title}</p>
                           <p className="text-[11px] text-muted-foreground truncate">
@@ -1006,7 +1006,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                           )}
                         </div>
                         
-                        {/* C) Sağ: Metric + View butonu (right actions) */}
+                        {/* C) Right: Metric + View button (right actions) */}
                         <div className="flex items-center gap-3 shrink-0">
                           <span className="text-xs font-semibold whitespace-nowrap">
                             {link.clicks.toLocaleString('en-US')}{' '}

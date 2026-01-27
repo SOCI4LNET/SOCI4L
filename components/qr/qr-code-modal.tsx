@@ -123,7 +123,7 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
         console.log('QR library loaded')
       }).catch((error) => {
         console.error('Failed to load QR code library:', error)
-        toast.error('QR kodu oluşturulamadı')
+        toast.error('Failed to generate QR code')
       })
     }
   }, [mounted])
@@ -260,7 +260,7 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
   const exportToPng = async (pixelRatio: number = 2) => {
     // Export only the QR code itself, not the wrapper with padding
     if (!qrContainerRef.current) {
-      toast.error('QR kodu bulunamadı')
+      toast.error('QR code not found')
       setExportAvailable(false)
       throw new Error('QR code container not found')
     }
@@ -297,7 +297,7 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
       })
 
       if (!exportTarget) {
-        toast.error('QR kodu bulunamadı')
+        toast.error('QR code not found')
         return
       }
 
@@ -481,14 +481,14 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
         errorMessage = error
       }
       
-      toast.error('PNG dışa aktarılamadı')
+      toast.error('Failed to export PNG')
     }
   }
 
   const exportToSvg = async () => {
     // Export only the QR code itself, not the wrapper with padding
     if (!qrContainerRef.current) {
-      toast.error('QR kodu bulunamadı')
+      toast.error('QR code not found')
       setExportAvailable(false)
       throw new Error('QR code container not found')
     }
@@ -738,7 +738,7 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
       await navigator.clipboard.writeText(profileUrl)
       toast.success('Profile link copied')
     } catch (error) {
-      toast.error('Kopyalanamadı')
+      toast.error('Failed to copy')
     }
   }
 

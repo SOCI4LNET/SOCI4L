@@ -103,13 +103,13 @@ export function HeaderActions() {
       await navigator.clipboard.writeText(connectedAddress)
       toast.success('Address copied')
     } catch (error) {
-      toast.error('Kopyalanamadı')
+      toast.error('Failed to copy')
     }
   }
 
   const handleShare = async () => {
     if (!publicProfileHref) {
-      toast.error('Profil linki oluşturulamadı')
+      toast.error('Profile URL not available')
       return
     }
 
@@ -138,13 +138,13 @@ export function HeaderActions() {
       await navigator.clipboard.writeText(profileUrl)
       toast.success('Profile link copied')
     } catch (error) {
-      toast.error('Kopyalanamadı')
+      toast.error('Failed to copy')
     }
   }
 
   const handleDashboard = () => {
     if (!isConnected || !connectedAddress) {
-      toast.error('Dashboard için cüzdanınızı bağlayın')
+      toast.error('Connect your wallet to access dashboard')
       return
     }
     if (dashboardHref) {
@@ -160,7 +160,7 @@ export function HeaderActions() {
 
   const handleSettings = () => {
     if (!isConnected || !connectedAddress) {
-      toast.error('Ayarlar için cüzdanınızı bağlayın')
+      toast.error('Connect your wallet to access settings')
       return
     }
     const dashboardHref = getConnectedDashboardHref(connectedAddress)
@@ -171,7 +171,7 @@ export function HeaderActions() {
 
   const handleBuilder = () => {
     if (!isConnected || !connectedAddress) {
-      toast.error('Builder için cüzdanınızı bağlayın')
+      toast.error('Connect your wallet to access builder')
       return
     }
     const dashboardHref = getConnectedDashboardHref(connectedAddress)
@@ -182,7 +182,7 @@ export function HeaderActions() {
 
   const handleLinks = () => {
     if (!isConnected || !connectedAddress) {
-      toast.error('Linkler için cüzdanınızı bağlayın')
+      toast.error('Connect your wallet to access links')
       return
     }
     const dashboardHref = getConnectedDashboardHref(connectedAddress)
@@ -193,7 +193,7 @@ export function HeaderActions() {
 
   const handleInsights = () => {
     if (!isConnected || !connectedAddress) {
-      toast.error('İstatistikler için cüzdanınızı bağlayın')
+      toast.error('Connect your wallet to access insights')
       return
     }
     const dashboardHref = getConnectedDashboardHref(connectedAddress)

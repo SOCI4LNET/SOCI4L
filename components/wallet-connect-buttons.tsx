@@ -30,15 +30,15 @@ export function WalletConnectButtons({
   useEffect(() => {
     if (error) {
       if (error.message?.includes('expired') || error.message?.includes('Proposal expired')) {
-        toast.error('Bağlantı süresi doldu. Lütfen tekrar deneyin.', {
-          description: 'QR kodunu tarayıp bağlantıyı 5 dakika içinde onaylamanız gerekiyor.',
+        toast.error('Connection expired. Please try again.', {
+          description: 'You need to scan the QR code and approve within 5 minutes.',
         })
       } else if (error.message?.includes('User rejected')) {
-        toast.error('Bağlantı reddedildi')
+        toast.error('Connection rejected')
       } else {
         console.error('Wallet connection error:', error)
-        toast.error('Bağlantı hatası', {
-          description: error.message || 'Cüzdan bağlantısı sırasında bir hata oluştu.',
+        toast.error('Connection error', {
+          description: error.message || 'An error occurred while connecting wallet.',
         })
       }
     }

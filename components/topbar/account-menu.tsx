@@ -118,7 +118,7 @@ export function AccountMenu() {
       await navigator.clipboard.writeText(profileUrl)
       toast.success('Link copied')
     } catch (error) {
-      toast.error('Kopyalanamadı')
+      toast.error('Failed to copy')
     }
   }
 

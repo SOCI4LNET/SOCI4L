@@ -98,22 +98,22 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
           credentials: 'include',
         })
         if (!nonceResponse.ok) {
-          toast.error('Bağlantı hazırlanamadı. Lütfen tekrar deneyin.')
+          toast.error('Connection failed. Please try again.')
           return false
         }
         const { nonce } = await nonceResponse.json()
 
         // Step 2: Sign message (use lowercase address to match backend verification)
         const normalizedConnectedAddress = connectedAddress.toLowerCase()
-        const message = `Follow auth for Avalanche Profile Hub. Address: ${normalizedConnectedAddress}. Nonce: ${nonce}`
+        const message = `Follow auth for Soci4l. Address: ${normalizedConnectedAddress}. Nonce: ${nonce}`
         let signature: string
         try {
           signature = await signMessageAsync({ message })
         } catch (error: any) {
           if (error.code === 4001) {
-            toast.error('İmza reddedildi')
+            toast.error('Signature rejected')
           } else {
-            toast.error('İmzalama sırasında bir hata oluştu')
+            toast.error('Signing failed')
           }
           return false
         }
@@ -128,7 +128,7 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
 
         if (!verifyResponse.ok) {
           const error = await verifyResponse.json()
-          toast.error('Oturum oluşturulamadı. Lütfen tekrar deneyin.')
+          toast.error('Failed to create session. Please try again.')
           return false
         }
       }
@@ -136,7 +136,7 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
       return true
     } catch (error) {
       console.error('Error ensuring session:', error)
-      toast.error('Oturum doğrulanamadı. Lütfen tekrar deneyin.')
+      toast.error('Session verification failed. Please try again.')
       return false
     }
   }
@@ -163,7 +163,7 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
 
     // Prevent self-follow
     if (normalizedConnectedAddress === normalizedAddress) {
-      toast.error('Kendinizi takip edemezsiniz')
+      toast.error('You cannot follow yourself')
       return
     }
 
@@ -220,7 +220,7 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
       } else {
         setFollowersCount((prev) => prev + 1)
       }
-      toast.error('İşlem başarısız oldu. Lütfen tekrar deneyin.')
+      toast.error('Action failed. Please try again.')
     } finally {
       setIsPending(false)
     }

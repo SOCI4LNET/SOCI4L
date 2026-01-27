@@ -9,7 +9,7 @@ export async function GET(
 ) {
   const address = params.address
 
-  // Address validasyonu - format kontrolü
+  // Address validation - format check
   if (!address) {
     return NextResponse.json(
       { error: 'Wallet address is required' },
@@ -35,7 +35,7 @@ export async function GET(
       profile = await getProfileByAddress(normalizedAddress)
     } catch (profileError) {
       console.error('Error fetching profile:', profileError)
-      // Profile hatası kritik değil, devam et
+      // Profile error is not critical, continue
     }
 
     // Claim status must come from profile record only
@@ -56,8 +56,8 @@ export async function GET(
       transactionCount = walletData.txCount ?? 0
     } catch (walletError) {
       console.error('Error fetching wallet data:', walletError)
-      // Fallback: 200 dön ama default değerlerle
-      // Test uyumu için balance ve transactionCount garantili olmalı
+      // Fallback: return 200 but with default values
+      // For test compatibility, balance and transactionCount must be guaranteed
     }
 
     // Check network (Avalanche C-Chain)
@@ -71,7 +71,7 @@ export async function GET(
       address: normalizedAddress,
       balance: balance,
       transactionCount: transactionCount,
-      // Backward compatibility: eski alanları da koru
+      // Backward compatibility: keep legacy fields
       avaxBalance: balance,
       txCount: transactionCount,
       tokenCount: walletData?.tokenBalances?.length || 0,
@@ -88,7 +88,7 @@ export async function GET(
     })
   } catch (error) {
     console.error('Error fetching wallet summary:', error)
-    // Fallback: Test uyumu için 200 dön ama default değerlerle
+    // Fallback: return 200 with default values for test compatibility
     return NextResponse.json({
       address: normalizedAddress,
       balance: '0',

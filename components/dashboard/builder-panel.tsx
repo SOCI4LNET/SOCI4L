@@ -676,7 +676,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
         setHasUnsavedChanges(false)
       } catch (error) {
         console.error('[BuilderPanel] Failed to load layout config', error)
-        toast.error('Düzen yüklenemedi. Lütfen sayfayı yenileyin.')
+        toast.error('Failed to load layout. Please refresh the page.')
         // Set default configs on error to prevent UI blocking
         setLayoutConfig(getDefaultProfileLayout())
         setAppearanceConfig(getDefaultAppearanceConfig())
@@ -839,14 +839,14 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
         console.log('[BuilderPanel] Profile info saved successfully')
       } catch (error) {
         console.error('[BuilderPanel] Failed to save profile info:', error)
-        toast.error('Profil bilgileri kaydedilemedi. Lütfen tekrar deneyin.')
+        toast.error('Failed to save profile. Please try again.')
       }
 
       toast.success('Layout, appearance and profile information saved. Please refresh the public profile page.')
       setHasUnsavedChanges(false)
     } catch (error) {
       console.error('[BuilderPanel] Failed to save layout', error)
-      toast.error('Düzen kaydedilemedi. Lütfen tekrar deneyin.')
+      toast.error('Failed to save layout. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -1228,7 +1228,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
 
   const handleApplyPreset = async (preset: PresetDefinition) => {
     if (!address) {
-      toast.error('Cüzdan bağlantısı gerekli')
+      toast.error('Wallet connection required')
       return
     }
 
@@ -1328,7 +1328,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
       })
     } catch (error) {
       console.error('[BuilderPanel] Failed to apply preset', error)
-      toast.error('Şablon uygulanamadı. Lütfen tekrar deneyin.')
+      toast.error('Failed to apply preset. Please try again.')
     } finally {
       setSaving(false)
     }
