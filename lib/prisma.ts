@@ -6,26 +6,26 @@ const globalForPrisma = globalThis as unknown as {
 
 // Get DATABASE_URL with fallback to Prisma Postgres variables
 function getDatabaseUrl(): string {
-  // First, try DATABASE_URL
-  let databaseUrl = process.env.DATABASE_URL
+  // Prioritize Prisma Postgres variables (Vercel Prisma Postgres)
+  // This ensures we use connection pooling if available, which is critical for serverless
 
-  // If DATABASE_URL is not set, try Prisma Postgres variables (Vercel Prisma Postgres)
-  if (!databaseUrl) {
-    // Try PRISMA_DATABASE_URL first (Prisma Accelerate with connection pooling)
-    databaseUrl = process.env.PRISMA_DATABASE_URL
-    
-    // If still not set, try POSTGRES_PRISMA_URL (Vercel Postgres with Prisma pooling)
-    if (!databaseUrl) {
-      databaseUrl = process.env.POSTGRES_PRISMA_URL
-    }
-    
-    // Last fallback: POSTGRES_URL (standard Vercel Postgres)
-    if (!databaseUrl) {
-      databaseUrl = process.env.POSTGRES_URL
-    }
+  // Try PRISMA_DATABASE_URL first (Prisma Accelerate with connection pooling)
+  if (process.env.PRISMA_DATABASE_URL) {
+    return process.env.PRISMA_DATABASE_URL
   }
 
-  return databaseUrl || ''
+  // Next, try POSTGRES_PRISMA_URL (Vercel Postgres with Prisma pooling)
+  if (process.env.POSTGRES_PRISMA_URL) {
+    return process.env.POSTGRES_PRISMA_URL
+  }
+
+  // Create a priority for POSTGRES_URL if others are missing
+  if (process.env.POSTGRES_URL) {
+    return process.env.POSTGRES_URL
+  }
+
+  // Fallback to standard DATABASE_URL
+  return process.env.DATABASE_URL || ''
 }
 
 // Validate DATABASE_URL before creating Prisma client
@@ -50,9 +50,9 @@ function validateDatabaseUrl(): void {
   }
 
   // Check if it's a PostgreSQL URL (production) or SQLite (development)
-  const isPostgres = databaseUrl.startsWith('postgresql://') || 
-                     databaseUrl.startsWith('postgres://') ||
-                     databaseUrl.startsWith('prisma+postgres://') // Prisma Accelerate format
+  const isPostgres = databaseUrl.startsWith('postgresql://') ||
+    databaseUrl.startsWith('postgres://') ||
+    databaseUrl.startsWith('prisma+postgres://') // Prisma Accelerate format
   const isSQLite = databaseUrl.startsWith('file:')
 
   if (process.env.NODE_ENV === 'production' && !isPostgres) {
@@ -79,6 +79,11 @@ export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+    datasources: {
+      db: {
+        url: getDatabaseUrl(),
+      },
+    },
   })
 
 // Reuse Prisma client in both development and production (important for serverless)
