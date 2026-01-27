@@ -1124,6 +1124,21 @@ export default function ProfilePage({ params }: PageProps) {
                     <CardContent className="space-y-3">
                       <div>
                         <p className="text-sm text-muted-foreground mb-2">Tokens</p>
+                        {/* Native AVAX Balance */}
+                        {walletData.nativeBalance && parseFloat(walletData.nativeBalance) > 0 && (
+                          <div className="flex justify-between items-center mb-2">
+                            <div>
+                              <p className="text-sm font-medium">AVAX</p>
+                              <p className="text-xs text-muted-foreground">Avalanche</p>
+                            </div>
+                            {showAmounts && (
+                              <p className="text-sm font-mono">
+                                {parseFloat(walletData.nativeBalance).toFixed(4)}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        {/* ERC-20 Tokens */}
                         {walletData.tokenBalances && walletData.tokenBalances.length > 0 ? (
                           walletData.tokenBalances.slice(0, maxItems).map((token, idx) => (
                             <div key={idx} className="flex justify-between items-center mb-2">
@@ -1139,7 +1154,9 @@ export default function ProfilePage({ params }: PageProps) {
                             </div>
                           ))
                         ) : (
-                          <p className="text-xs text-muted-foreground">—</p>
+                          !walletData.nativeBalance || parseFloat(walletData.nativeBalance) === 0 ? (
+                            <p className="text-xs text-muted-foreground">—</p>
+                          ) : null
                         )}
                       </div>
                       <div className="pt-4 border-t">
