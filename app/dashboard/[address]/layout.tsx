@@ -12,7 +12,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const params = useParams()
   const { address: connectedAddress, isConnected } = useAccount()
   const router = useRouter()
-  
+
   const targetAddress = params.address as string
   const normalizedTargetAddress = targetAddress?.toLowerCase()
 
@@ -22,7 +22,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!mounted) return
-    
+
     if (!isConnected || !connectedAddress) {
       toast.error('Connect your wallet to access dashboard')
       router.push('/')
@@ -30,13 +30,31 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     }
 
     const normalizedConnectedAddress = connectedAddress.toLowerCase()
-    
+
     // If user tries to access a different address's dashboard, redirect to their own
     if (normalizedTargetAddress && normalizedTargetAddress !== normalizedConnectedAddress) {
       toast.error('You can only access your own dashboard')
       router.push(`/dashboard/${normalizedConnectedAddress}`)
       return
     }
+
+    // Check if user is banned
+    const checkBanStatus = async () => {
+      try {
+        const response = await fetch(`/api/wallet?address=${normalizedConnectedAddress}`)
+        if (response.ok) {
+          const data = await response.json()
+          if (data.profile?.isBanned) {
+            toast.error('Your account has been banned due to violation of our terms.')
+            router.push('/')
+          }
+        }
+      } catch (error) {
+        console.error('Failed to check ban status:', error)
+      }
+    }
+
+    checkBanStatus()
   }, [mounted, isConnected, connectedAddress, normalizedTargetAddress, router])
 
   // Prevent hydration mismatch

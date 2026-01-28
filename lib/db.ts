@@ -11,6 +11,7 @@ export interface ProfileData {
   ownerAddress: string | null
   status: ProfileStatus
   visibility: ProfileVisibility
+  isBanned: boolean
   claimedAt: Date | null
   createdAt: Date
   updatedAt: Date
@@ -25,7 +26,7 @@ export interface ProfileData {
  */
 export async function getProfileByAddress(address: string): Promise<ProfileData | null> {
   const normalizedAddress = address.toLowerCase()
-  
+
   const profile = await prisma.profile.findUnique({
     where: { address: normalizedAddress },
   })
@@ -42,6 +43,7 @@ export async function getProfileByAddress(address: string): Promise<ProfileData 
     ownerAddress: profile.ownerAddress,
     status: (profile.status as ProfileStatus) || (profile.ownerAddress || profile.owner ? 'CLAIMED' : 'UNCLAIMED'),
     visibility: (profile.visibility as ProfileVisibility) || (profile.isPublic ? 'PUBLIC' : 'PRIVATE'),
+    isBanned: profile.isBanned || false,
     claimedAt: profile.claimedAt,
     createdAt: profile.createdAt,
     updatedAt: profile.updatedAt,
@@ -56,11 +58,11 @@ export async function getProfileByAddress(address: string): Promise<ProfileData 
  */
 export async function getFollowersCount(address: string): Promise<number> {
   const normalizedAddress = address.toLowerCase()
-  
+
   const count = await prisma.follow.count({
     where: { followingAddress: normalizedAddress },
   })
-  
+
   return count
 }
 
@@ -69,7 +71,7 @@ export async function getFollowersCount(address: string): Promise<number> {
  */
 export async function getProfileLinks(address: string): Promise<Array<{ id: string; title: string; url: string }>> {
   const normalizedAddress = address.toLowerCase()
-  
+
   const profile = await prisma.profile.findUnique({
     where: { address: normalizedAddress },
     include: {
@@ -79,9 +81,9 @@ export async function getProfileLinks(address: string): Promise<Array<{ id: stri
       },
     },
   })
-  
+
   if (!profile) return []
-  
+
   return profile.links.map(link => ({
     id: link.id,
     title: link.title,
@@ -95,14 +97,14 @@ export async function getProfileLinks(address: string): Promise<Array<{ id: stri
  */
 export async function getSocialLinks(address: string): Promise<Array<{ platform: string; url: string }>> {
   const normalizedAddress = address.toLowerCase()
-  
+
   const profile = await prisma.profile.findUnique({
     where: { address: normalizedAddress },
     select: { socialLinks: true },
   })
-  
+
   if (!profile?.socialLinks) return []
-  
+
   try {
     const parsed = JSON.parse(profile.socialLinks)
     if (Array.isArray(parsed)) {
@@ -120,7 +122,7 @@ export async function getSocialLinks(address: string): Promise<Array<{ platform:
  */
 export async function getProfileBySlug(slug: string): Promise<ProfileData | null> {
   const normalizedSlug = slug.toLowerCase().trim()
-  
+
   const profile = await prisma.profile.findUnique({
     where: { slug: normalizedSlug },
   })
@@ -137,6 +139,7 @@ export async function getProfileBySlug(slug: string): Promise<ProfileData | null
     ownerAddress: profile.ownerAddress,
     status: (profile.status as ProfileStatus) || (profile.ownerAddress || profile.owner ? 'CLAIMED' : 'UNCLAIMED'),
     visibility: (profile.visibility as ProfileVisibility) || (profile.isPublic ? 'PUBLIC' : 'PRIVATE'),
+    isBanned: profile.isBanned || false,
     claimedAt: profile.claimedAt,
     createdAt: profile.createdAt,
     updatedAt: profile.updatedAt,

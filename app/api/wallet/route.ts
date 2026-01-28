@@ -79,12 +79,12 @@ export async function GET(request: NextRequest) {
     } catch (walletError) {
       console.error('[Wallet API] Error fetching wallet data:', walletError)
       // Return a more descriptive error
-      const walletErrorMessage = walletError instanceof Error 
-        ? walletError.message 
+      const walletErrorMessage = walletError instanceof Error
+        ? walletError.message
         : 'Failed to fetch wallet data from blockchain'
       return NextResponse.json(
-        { 
-          error: 'An error occurred while fetching wallet data', 
+        {
+          error: 'An error occurred while fetching wallet data',
           details: walletErrorMessage,
           type: 'WALLET_FETCH_ERROR'
         },
@@ -102,16 +102,16 @@ export async function GET(request: NextRequest) {
       createdAt: string
       updatedAt: string
     }> = []
-    
+
     // Load categories (only visible ones for public profile)
     let categories: Array<{ id: string; name: string; slug: string; description: string | null; order: number }> = []
-    
+
     // Get layout config
     let layoutConfig: ProfileLayoutConfig = getDefaultProfileLayout()
-    
+
     if (fullProfile || profile) {
       const profileId = fullProfile?.id || profile?.id
-      
+
       if (profileId) {
         try {
           const links = await prisma.profileLink.findMany({
@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
               { createdAt: 'asc' }, // Fallback: creation time for stability
             ],
           })
-          
+
           profileLinks = links.map((link) => ({
             id: link.id,
             title: link.title,
@@ -218,6 +218,7 @@ export async function GET(request: NextRequest) {
         slug: profile.slug,
         status: profile.status,
         visibility: profile.visibility,
+        isBanned: profile.isBanned,
         owner: profile.owner,
         ownerAddress: profile.ownerAddress,
         claimedAt: profile.claimedAt,
@@ -236,10 +237,10 @@ export async function GET(request: NextRequest) {
       layout: layoutConfig,
       appearance: appearanceConfig,
     }
-    
+
     console.log('[Wallet API] Returning response with layout:', layoutConfig)
     console.log('[Wallet API] Returning response with appearance:', appearanceConfig)
-    
+
     return NextResponse.json(responseData)
   } catch (error) {
     console.error('Error fetching wallet data:', error)

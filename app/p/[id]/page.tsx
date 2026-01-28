@@ -91,6 +91,7 @@ export default function ProfilePage({ params }: PageProps) {
     slug: string | null
     displayName?: string | null
     bio?: string | null
+    isBanned?: boolean
     socialLinks?: Array<{ id?: string; platform?: string; type?: string; url: string; label?: string }> | null
   } | null>(null)
   const [loading, setLoading] = useState(true)
@@ -185,6 +186,7 @@ export default function ProfilePage({ params }: PageProps) {
               slug: data.profile.slug,
               displayName: data.profile.displayName,
               bio: data.profile.bio,
+              isBanned: data.profile.isBanned,
               socialLinks: data.profile.socialLinks,
             })
           }
@@ -636,8 +638,14 @@ export default function ProfilePage({ params }: PageProps) {
                         <h1 className={`${titleClasses} font-semibold truncate`}>
                           {primaryDisplayName}
                         </h1>
-                        {isClaimed && !isPrivate && getStatusBadge()}
-                        {!isClaimed && getStatusBadge()}
+                        {isClaimed && !isPrivate && !profile?.isBanned && getStatusBadge()}
+                        {!isClaimed && !profile?.isBanned && getStatusBadge()}
+                        {profile?.isBanned && (
+                          <Badge variant="destructive" className="text-[11px] px-2 py-0 font-normal flex items-center gap-1">
+                            <ShieldAlert className="h-3 w-3" />
+                            BANNED
+                          </Badge>
+                        )}
                       </div>
                       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                         <div className="flex items-center gap-1.5">
@@ -666,12 +674,12 @@ export default function ProfilePage({ params }: PageProps) {
                         <Badge variant="outline" className="text-[11px] px-2 py-0">
                           Avalanche
                         </Badge>
-                        {resolvedAddress && isValidAddress(resolvedAddress) && (
+                        {resolvedAddress && isValidAddress(resolvedAddress) && !profile?.isBanned && (
                           <span className="flex items-center gap-1">
                             <FollowStats address={resolvedAddress} />
                           </span>
                         )}
-                        {score && (
+                        {score && !profile?.isBanned && (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -704,7 +712,7 @@ export default function ProfilePage({ params }: PageProps) {
                             </Tooltip>
                           </TooltipProvider>
                         )}
-                        {resolvedAddress && isValidAddress(resolvedAddress) && (
+                        {resolvedAddress && isValidAddress(resolvedAddress) && !profile?.isBanned && (
                           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                             <Eye className="h-3.5 w-3.5" />
                             <span className="font-medium">Views</span>
@@ -720,10 +728,10 @@ export default function ProfilePage({ params }: PageProps) {
                   </div>
                   {/* Right: Actions (Follow, Share, Claim) */}
                   <div className="flex items-center gap-2 flex-shrink-0 flex-wrap sm:justify-end">
-                    {resolvedAddress && isValidAddress(resolvedAddress) && (
+                    {resolvedAddress && isValidAddress(resolvedAddress) && !profile?.isBanned && (
                       <FollowToggle address={resolvedAddress} />
                     )}
-                    {resolvedAddress && isValidAddress(resolvedAddress) && (
+                    {resolvedAddress && isValidAddress(resolvedAddress) && !profile?.isBanned && (
                       <DropdownMenu>
                         <TooltipProvider>
                           <Tooltip>
@@ -772,7 +780,7 @@ export default function ProfilePage({ params }: PageProps) {
                         </DropdownMenuContent>
                       </DropdownMenu>
                     )}
-                    {resolvedAddress && isValidAddress(resolvedAddress) && (
+                    {resolvedAddress && isValidAddress(resolvedAddress) && !profile?.isBanned && (
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -792,7 +800,7 @@ export default function ProfilePage({ params }: PageProps) {
                         </Tooltip>
                       </TooltipProvider>
                     )}
-                    {profileStatus === 'UNCLAIMED' && profile?.address && (
+                    {profileStatus === 'UNCLAIMED' && profile?.address && !profile?.isBanned && (
                       <ClaimProfileButton address={profile.address} onSuccess={handleClaimSuccess} />
                     )}
                   </div>
@@ -837,7 +845,7 @@ export default function ProfilePage({ params }: PageProps) {
 
           {/* Row-based layout - supports single and double rows */}
           {/* Configs are always initialized with defaults, so safe to render immediately */}
-          {useRowLayout ? (
+          {!profile?.isBanned && useRowLayout ? (
             // Row-based layout
             <div className="space-y-6 w-full">
               {layoutRows.map((row) => {
@@ -1287,28 +1295,30 @@ export default function ProfilePage({ params }: PageProps) {
             </div>
           ) : (
             // Fallback to grid-based layout
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full">
-              {blocksWithComputedSpan.map((block) => {
-                const variant = block.variant || 'compact'
-                const computedSpan = block.computedSpan || 'half'
-                const gridColSpan = computedSpan === 'full' ? 'md:col-span-12' : 'md:col-span-6'
+            !profile?.isBanned && (
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full">
+                {blocksWithComputedSpan.map((block) => {
+                  const variant = block.variant || 'compact'
+                  const computedSpan = block.computedSpan || 'half'
+                  const gridColSpan = computedSpan === 'full' ? 'md:col-span-12' : 'md:col-span-6'
 
-                if (block.key === 'links') {
-                  // Links block rendering - same as row-based
-                  return null // Will be implemented with full block rendering
-                }
+                  if (block.key === 'links') {
+                    // Links block rendering - same as row-based
+                    return null // Will be implemented with full block rendering
+                  }
 
-                if (block.key === 'activity') {
-                  return null // Will be implemented with full block rendering
-                }
+                  if (block.key === 'activity') {
+                    return null // Will be implemented with full block rendering
+                  }
 
-                if (block.key === 'assets') {
-                  return null // Will be implemented with full block rendering
-                }
+                  if (block.key === 'assets') {
+                    return null // Will be implemented with full block rendering
+                  }
 
-                return null
-              })}
-            </div>
+                  return null
+                })}
+              </div>
+            )
           )}
         </div>
       ) : null}
