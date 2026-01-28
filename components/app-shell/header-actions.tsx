@@ -208,6 +208,13 @@ export function HeaderActions() {
   const handleDisconnect = async () => {
     try {
       await disconnectAsync()
+
+      // Manually clear Wagmi storage to prevent auto-reconnect
+      if (typeof window !== 'undefined') {
+        window.localStorage.removeItem('wagmi.recentConnectorId')
+        window.localStorage.removeItem('wagmi.store')
+        window.localStorage.removeItem('wagmi.connected')
+      }
     } catch (error) {
       console.error('Disconnect failed:', error)
       disconnect() // Fallback to regular disconnect

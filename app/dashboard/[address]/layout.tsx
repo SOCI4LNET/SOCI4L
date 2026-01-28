@@ -24,7 +24,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     if (!mounted) return
 
     if (!isConnected || !connectedAddress) {
-      toast.error('Connect your wallet to access dashboard')
       router.push('/')
       return
     }
