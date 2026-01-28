@@ -32,7 +32,7 @@ export function HeaderActions() {
   // Wagmi hooks - will be safe once component mounts (client-side only)
   // These hooks internally check for browser APIs, but we guard usage with mounted state
   const { address: connectedAddress, isConnected } = useAccount()
-  const { disconnect } = useDisconnect()
+  const { disconnect, disconnectAsync } = useDisconnect()
   const router = useRouter()
   const params = useParams()
   const pathname = usePathname()
@@ -205,8 +205,13 @@ export function HeaderActions() {
     }
   }
 
-  const handleDisconnect = () => {
-    disconnect()
+  const handleDisconnect = async () => {
+    try {
+      await disconnectAsync()
+    } catch (error) {
+      console.error('Disconnect failed:', error)
+      disconnect() // Fallback to regular disconnect
+    }
     router.push('/')
   }
 
