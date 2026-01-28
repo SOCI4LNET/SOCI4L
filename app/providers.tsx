@@ -26,7 +26,7 @@ function createWagmiConfig(): Config {
   }
 
   // Injected connector for browser extension wallets (MetaMask, Core, Phantom, etc.)
-  const injectedConnector = injected()
+  const injectedConnector = injected({ shimDisconnect: true })
 
   // WalletConnect connector - ONLY for WalletConnect flows (QR/mobile/Ledger Live)
   const walletConnectConnector = walletConnectProjectId
