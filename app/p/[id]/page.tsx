@@ -1235,12 +1235,29 @@ export default function ProfilePage({ params }: PageProps) {
                             <p className="text-sm text-muted-foreground mb-2">NFTs</p>
                             {walletData.nfts && walletData.nfts.length > 0 ? (
                               walletData.nfts.slice(0, maxItems).map((nft, idx) => (
-                                <div key={idx} className="flex justify-between items-center mb-2">
-                                  <div>
-                                    <p className="text-sm font-medium">
+                                <div key={idx} className="flex items-center gap-3 mb-2">
+                                  {nft.image ? (
+                                    <div className="relative h-10 w-10 overflow-hidden rounded-md border bg-muted">
+                                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                                      <img
+                                        src={nft.image}
+                                        alt={nft.name || 'NFT'}
+                                        className="h-full w-full object-cover"
+                                        onError={(e) => {
+                                          (e.target as HTMLImageElement).style.display = 'none'
+                                        }}
+                                      />
+                                    </div>
+                                  ) : (
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-md border bg-muted">
+                                      <span className="text-xs text-muted-foreground">#</span>
+                                    </div>
+                                  )}
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-sm font-medium truncate">
                                       {nft.name || 'Unnamed NFT'}
                                     </p>
-                                    <p className="text-xs text-muted-foreground font-mono">
+                                    <p className="text-xs text-muted-foreground font-mono truncate">
                                       {formatAddress(nft.contractAddress)} #{nft.tokenId}
                                     </p>
                                   </div>

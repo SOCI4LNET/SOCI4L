@@ -94,11 +94,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // 1. Check query param tab (builder, links, insights, settings)
   // 2. Check pathname for /dashboard/[address] with profile routes
   const isProfileTabFromQuery = profileItems.some(item => item.value === currentTab)
-  const isProfileRouteFromPath = pathname.includes('/dashboard/') && 
-    (pathname.includes('/builder') || 
-     pathname.includes('/links') || 
-     pathname.includes('/insights') || 
-     pathname.includes('/settings'))
+  const isProfileRouteFromPath = pathname.includes('/dashboard/') &&
+    (pathname.includes('/builder') ||
+      pathname.includes('/links') ||
+      pathname.includes('/insights') ||
+      pathname.includes('/settings'))
   const isProfileRoute = isProfileTabFromQuery || isProfileRouteFromPath
 
   // Default state: Desktop = always open, Mobile = closed
@@ -124,11 +124,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     // This prevents cross-tab parameter pollution (e.g., subtab=following on Settings)
     const sanitized = sanitizeQueryParams(searchParams, value)
     sanitized.set('tab', value)
-    
+
     // If we're on a link detail page (/dashboard/[address]/links/[linkId]),
     // navigate to the main dashboard page instead of adding tab param to current path
     const isLinkDetailPage = pathname.includes('/links/') && pathname.split('/').length > 4
-    
+
     if (isLinkDetailPage) {
       // Extract address from pathname: /dashboard/[address]/links/[linkId]
       const pathParts = pathname.split('/')
@@ -143,7 +143,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     } else {
       router.replace(`${pathname}?${sanitized.toString()}`, { scroll: false })
     }
-    
+
     // Close sidebar on mobile after selection
     if (isMobile) {
       setOpenMobile(false)

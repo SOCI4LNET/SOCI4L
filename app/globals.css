@@ -35,6 +35,7 @@
     /* SOCI4L Accent System - Primary Cyan */
     --accent-primary: 188 92% 70%;
     --accent-primary-muted: 188 92% 70% / 0.15;
+    --logo-color: #111111;
   }
 
   .dark {
@@ -68,6 +69,7 @@
     /* SOCI4L Accent System - Primary Cyan (same for dark mode) */
     --accent-primary: 188 92% 70%;
     --accent-primary-muted: 188 92% 70% / 0.15;
+    --logo-color: #f9f9f9;
   }
 }
 

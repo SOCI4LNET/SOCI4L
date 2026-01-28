@@ -18,14 +18,14 @@ interface Soci4LLogoProps {
  * @param width - Logo width (defaults based on variant)
  * @param height - Logo height (defaults based on variant)
  */
-export function Soci4LLogo({ 
-  variant = 'combination', 
+export function Soci4LLogo({
+  variant = 'combination',
   className = '',
   width,
-  height 
+  height
 }: Soci4LLogoProps) {
-  const logoColor = '#f9f9f9'
-  
+  const logoColor = 'var(--logo-color, #f9f9f9)'
+
   if (variant === 'icon') {
     // Icon SVG - directly from file, exact paths
     return (

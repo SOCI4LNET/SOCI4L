@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 
+
 const adminNav = [
   { label: 'Overview', icon: LayoutDashboard, href: '/master-console' },
   { label: 'Users', icon: Users, href: '/master-console/users' },

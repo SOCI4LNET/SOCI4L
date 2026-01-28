@@ -12,6 +12,7 @@ import { PAGE_GUTTER, CONTENT_MAX_WIDTH } from '@/lib/layout-constants'
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 import { DiscordIcon } from '@/components/icons/discord-icon'
 import { XIcon } from '@/components/icons/x-icon'
+import { ModeToggle } from '@/components/mode-toggle'
 
 interface FooterLink {
   label: string
@@ -63,7 +64,7 @@ export default function Footer15({ className }: Footer15Props = {}) {
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!email.trim()) {
       toast.error('Please enter your email address')
       return
@@ -75,7 +76,7 @@ export default function Footer15({ className }: Footer15Props = {}) {
     }
 
     setIsSubmitting(true)
-    
+
     try {
       const response = await fetch('/api/newsletter/subscribe', {
         method: 'POST',
@@ -96,8 +97,8 @@ export default function Footer15({ className }: Footer15Props = {}) {
     } catch (error) {
       console.error('Email subscription error:', error)
       toast.error(
-        error instanceof Error 
-          ? error.message 
+        error instanceof Error
+          ? error.message
           : 'An error occurred while saving email'
       )
     } finally {
@@ -230,6 +231,9 @@ export default function Footer15({ className }: Footer15Props = {}) {
                   </a>
                 )
               })}
+              <div className="ml-2 pl-4 border-l border-border h-6 flex items-center">
+                <ModeToggle />
+              </div>
             </div>
           </div>
         </div>
