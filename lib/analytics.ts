@@ -141,10 +141,18 @@ function writeEventsToStorage(events: AnalyticsEvent[]): void {
   }
 }
 
+const ANALYTICS_UPDATE_EVENT = 'soci4l:analytics-update'
+
 function writeEvent(event: AnalyticsEvent): void {
   try {
     const existing = readEventsFromStorage()
     writeEventsToStorage([...existing, event])
+
+    // Dispatch event for real-time UI updates
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event(ANALYTICS_UPDATE_EVENT))
+      window.dispatchEvent(new Event('storage')) // Also trigger storage for good measure
+    }
   } catch (error) {
     console.error('[analytics] Failed to append analytics event', error)
   }

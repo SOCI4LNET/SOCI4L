@@ -311,7 +311,28 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
     }
   }, [address])
 
+  // State to force re-render when local analytics update
+  const [localUpdateTrigger, setLocalUpdateTrigger] = useState(0)
+
+  useEffect(() => {
+    const handleAnalyticsUpdate = () => {
+      setLocalUpdateTrigger(prev => prev + 1)
+    }
+
+    window.addEventListener('soci4l:analytics-update', handleAnalyticsUpdate)
+    window.addEventListener('storage', handleAnalyticsUpdate)
+
+    return () => {
+      window.removeEventListener('soci4l:analytics-update', handleAnalyticsUpdate)
+      window.removeEventListener('storage', handleAnalyticsUpdate)
+    }
+  }, [])
+
   const analytics: GlobalAnalytics = useMemo(() => {
+    // Add localUpdateTrigger as dependency to force recalculation
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _trigger = localUpdateTrigger
+
     if (!address) {
       return {
         totalProfileViews: 0,
