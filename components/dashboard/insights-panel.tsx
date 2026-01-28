@@ -224,7 +224,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
         setCategories(loadCategoriesFromStorage())
       }
     }
-    
+
     // Load links from API
     const loadLinks = async () => {
       try {
@@ -257,7 +257,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
     if (address) {
       loadCategories()
       loadLinks()
-      
+
       // Load layout config for suggestions
       const loadLayout = async () => {
         try {
@@ -329,14 +329,44 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
     // Normalize address to lowercase for consistent lookup
     const normalizedAddress = address.toLowerCase()
 
-    // Prefer server-side analytics if available, otherwise fall back to localStorage
-    const allEvents =
-      serverEvents && serverEvents.length > 0
-        ? serverEvents
-        : getEventsForProfile(normalizedAddress)
+    // Merge server events with local events to prevent data loss (flicker)
+    // Server events might be incomplete or delayed, so we combine them
+    const localEvents = getEventsForProfile(normalizedAddress)
+
+    // Create a Map to deduplicate events based on a unique signature
+    // Signature: type-ts-source-(linkId|profileId)
+    const eventMap = new Map<string, AnalyticsEvent>()
+
+    const addToMap = (events: AnalyticsEvent[]) => {
+      events.forEach(e => {
+        // Create a unique key for deduplication
+        // We use timestamp with some tolerance or exact match? 
+        // For now, exact match on timestamp + type + id is robust enough for simple storage
+        const r = e as any
+        const key = `${e.type}-${e.ts}-${e.source}-${r.linkId || r.profileId}`
+        eventMap.set(key, e)
+      })
+    }
+
+    // Add server events first
+    if (serverEvents) {
+      addToMap(serverEvents)
+    }
+
+    // Add local events (they might overlap, map handles overwrite, or we can prioritize specific source)
+    // We prioritize local events for immediate feedback (recent actions) if timestamps match, 
+    // but usually keys won't match exactly if they are different instances.
+    // However, if we simply want to show EVERYTHING known, we just add both.
+    // To be safe against duplicates if the server returns exact same event as local:
+    addToMap(localEvents)
+
+    const allEvents = Array.from(eventMap.values())
+
     console.log('[InsightsPanel] Analytics data', {
       address: normalizedAddress,
       totalEvents: allEvents.length,
+      serverEventsCount: serverEvents?.length || 0,
+      localEventsCount: localEvents.length,
       linkClickEvents: allEvents.filter(e => e.type === 'link_click').length,
       profileViewEvents: allEvents.filter(e => e.type === 'profile_view').length,
       range,
@@ -352,10 +382,10 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
       range === 'all'
         ? 0
         : range === '24h'
-        ? now - 24 * 60 * 60 * 1000
-        : range === '7d'
-        ? now - 7 * 24 * 60 * 60 * 1000
-        : now - 30 * 24 * 60 * 60 * 1000
+          ? now - 24 * 60 * 60 * 1000
+          : range === '7d'
+            ? now - 7 * 24 * 60 * 60 * 1000
+            : now - 30 * 24 * 60 * 60 * 1000
 
     const allLinkClickEvents = allEvents.filter(
       (e): e is Extract<AnalyticsEvent, { type: 'link_click' }> => e.type === 'link_click'
@@ -423,7 +453,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
       .map(([linkId, clicks]) => {
         const link = linkById.get(linkId)
         const eventInfo = linkInfoFromEvents.get(linkId)
-        
+
         // Use current link data if available, otherwise fall back to event data
         const title = link?.title || eventInfo?.title || link?.url || eventInfo?.url || 'Untitled link'
         const url = link?.url || eventInfo?.url || ''
@@ -735,10 +765,10 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
     const sourceData = Object.entries(analytics.sourceBreakdown)
       .filter(([_, count]) => count > 0)
       .map(([source, count]) => ({
-        name: source === 'profile' ? 'Profile' 
+        name: source === 'profile' ? 'Profile'
           : source === 'qr' ? 'QR Code'
-          : source === 'copy' ? 'Copy Link'
-          : 'Unknown',
+            : source === 'copy' ? 'Copy Link'
+              : 'Unknown',
         value: count,
       }))
 
@@ -753,7 +783,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
 
     // Check if source data should show empty state
     // Show empty state if: no views, no source data, or only Unknown with 100%
-    const shouldShowSourceEmptyState = 
+    const shouldShowSourceEmptyState =
       analytics.totalProfileViews === 0 ||
       sourceData.length === 0 ||
       (sourceData.length === 1 && sourceData[0].name === 'Unknown')
@@ -952,11 +982,11 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                     <ResponsiveContainer width="100%" height={260}>
                       <BarChart data={chartData.categoryChartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                         <CartesianGrid {...chartGridProps} />
-                        <XAxis 
-                          dataKey="name" 
+                        <XAxis
+                          dataKey="name"
                           {...chartAxisProps}
                         />
-                        <YAxis 
+                        <YAxis
                           {...chartAxisProps}
                         />
                         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--foreground))', fillOpacity: 0.04 }} />
@@ -1017,7 +1047,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                         <Badge variant="secondary" className="w-6 h-6 flex items-center justify-center p-0 text-xs font-medium shrink-0">
                           {index + 1}
                         </Badge>
-                        
+
                         {/* B) Middle: Link name + URL (primary content) */}
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-medium truncate mb-0.5">{link.title}</p>
@@ -1030,7 +1060,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                             </Badge>
                           )}
                         </div>
-                        
+
                         {/* C) Right: Metric + View button (right actions) */}
                         <div className="flex items-center gap-3 shrink-0">
                           <span className="text-xs font-semibold whitespace-nowrap">
@@ -1184,7 +1214,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                 <div className="relative">
                   {/* Vertical timeline line */}
                   <div className="absolute left-[11px] top-0 bottom-0 w-0.5 bg-border/40" />
-                  
+
                   {/* Activity items */}
                   <div className="space-y-3">
                     {analytics.recentActivity.map((activity, idx) => {
@@ -1201,7 +1231,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                           <div className="relative z-10 flex items-center justify-center w-6 shrink-0">
                             <div className="w-2 h-2 rounded-full bg-muted-foreground/60 border-2 border-background" />
                           </div>
-                          
+
                           {/* Activity card */}
                           <div className="flex-1 flex items-center gap-3 rounded-md border border-border/40 bg-background/60 px-3 py-2.5 min-w-0">
                             <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -1264,13 +1294,13 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                           variant="outline"
                           size="sm"
                           className="h-7 px-2 text-[11px] shrink-0"
-                        onClick={() => {
-                          if (suggestion.action?.preset) {
-                            router.push(`${suggestion.action.href}`)
-                          } else if (suggestion.action) {
-                            router.push(suggestion.action.href)
-                          }
-                        }}
+                          onClick={() => {
+                            if (suggestion.action?.preset) {
+                              router.push(`${suggestion.action.href}`)
+                            } else if (suggestion.action) {
+                              router.push(suggestion.action.href)
+                            }
+                          }}
                         >
                           {suggestion.action.label}
                           <ArrowRight className="ml-1 h-3 w-3" />
@@ -1344,10 +1374,10 @@ function CategoryDetailSheet({
       range === 'all'
         ? 0
         : range === '24h'
-        ? now - 24 * 60 * 60 * 1000
-        : range === '7d'
-        ? now - 7 * 24 * 60 * 60 * 1000
-        : now - 30 * 24 * 60 * 60 * 1000
+          ? now - 24 * 60 * 60 * 1000
+          : range === '7d'
+            ? now - 7 * 24 * 60 * 60 * 1000
+            : now - 30 * 24 * 60 * 60 * 1000
 
     const linkClickEventsInRange = allEvents.filter(
       (e): e is Extract<AnalyticsEvent, { type: 'link_click' }> =>
