@@ -1047,9 +1047,11 @@ export default function ProfilePage({ params }: PageProps) {
                                     )}
                                     <div className="space-y-2">
                                       {categoryLinks.map((link) => {
-                                        // Use redirect endpoint for tracking
-                                        // This ensures clicks are tracked even if user right-clicks or opens in new tab
-                                        const redirectUrl = `/r/${link.id}?source=profile`
+                                        // Use redirect endpoint for tracking custom links (DB records)
+                                        // Use direct URL for social links (JSON records, no DB ID for redirector)
+                                        const redirectUrl = link.type === 'social'
+                                          ? link.url
+                                          : `/r/${link.id}?source=profile`
 
                                         return (
                                           <a
