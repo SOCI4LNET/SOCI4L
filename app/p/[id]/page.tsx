@@ -24,7 +24,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
-import { trackProfileView, getSourceFromUrl, getProfileViewCount } from '@/lib/analytics'
+import { trackProfileView, trackLinkClick, getSourceFromUrl, getProfileViewCount } from '@/lib/analytics'
 import { type ProfileLink } from '@/lib/profile-links'
 import {
   type ProfileLayoutConfig,
@@ -1057,6 +1057,18 @@ export default function ProfilePage({ params }: PageProps) {
                                             href={redirectUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
+                                            onClick={() => {
+                                              if (stableProfileId) {
+                                                trackLinkClick(
+                                                  stableProfileId,
+                                                  link.id,
+                                                  getSourceFromUrl(searchParams),
+                                                  link.categoryId || null,
+                                                  link.title,
+                                                  link.url
+                                                )
+                                              }
+                                            }}
                                             className="group flex items-center justify-between rounded-md border border-border/60 bg-background/60 px-3 py-2 text-xs transition-colors hover:border-primary/50 hover:bg-primary/5"
                                           >
                                             <div className="flex min-w-0 items-center gap-2">

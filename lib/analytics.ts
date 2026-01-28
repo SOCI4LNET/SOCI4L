@@ -19,21 +19,21 @@ export type LinkClickSource = AnalyticsSource
 
 export type AnalyticsEvent =
   | {
-      type: 'profile_view'
-      profileId: string
-      ts: number
-      source: AnalyticsSource
-    }
+    type: 'profile_view'
+    profileId: string
+    ts: number
+    source: AnalyticsSource
+  }
   | {
-      type: 'link_click'
-      profileId: string
-      linkId: string
-      linkTitle?: string // Stored at event time for persistence
-      linkUrl?: string   // Stored at event time for persistence
-      categoryId?: string | null
-      ts: number
-      source: AnalyticsSource
-    }
+    type: 'link_click'
+    profileId: string
+    linkId: string
+    linkTitle?: string // Stored at event time for persistence
+    linkUrl?: string   // Stored at event time for persistence
+    categoryId?: string | null
+    ts: number
+    source: AnalyticsSource
+  }
 
 type StoredEventsV1 = {
   version: 1
@@ -63,8 +63,8 @@ function shouldLogProfileView(profileId: string): boolean {
       return false
     }
 
-    // Dedupe window: 30 minutes per profile per sessionKey
-    const DEDUPE_WINDOW_MS = 30 * 60 * 1000 // 30 minutes
+    // Dedupe window: 1 minute per profile per sessionKey
+    const DEDUPE_WINDOW_MS = 60 * 1000 // 1 minute
     if (lastTs && now - lastTs < DEDUPE_WINDOW_MS) {
       return false
     }
@@ -269,7 +269,7 @@ export function getProfileViewCount(profileId: string, days: number = 7): number
   const events = getEventsForProfile(profileId)
   const now = Date.now()
   const fromTs = now - days * 24 * 60 * 60 * 1000
-  
+
   return events.filter(
     (e): e is Extract<AnalyticsEvent, { type: 'profile_view' }> =>
       e.type === 'profile_view' && e.ts >= fromTs
@@ -289,27 +289,27 @@ export function getProfileViewCountBySource(
   if (!profileId) {
     return { profile: 0, qr: 0, copy: 0, unknown: 0 }
   }
-  
+
   const events = getEventsForProfile(profileId)
   const now = Date.now()
   const fromTs = now - days * 24 * 60 * 60 * 1000
-  
+
   const views = events.filter(
     (e): e is Extract<AnalyticsEvent, { type: 'profile_view' }> =>
       e.type === 'profile_view' && e.ts >= fromTs
   )
-  
+
   const breakdown: Record<AnalyticsSource, number> = {
     profile: 0,
     qr: 0,
     copy: 0,
     unknown: 0,
   }
-  
+
   for (const view of views) {
     breakdown[view.source] = (breakdown[view.source] || 0) + 1
   }
-  
+
   return breakdown
 }
 
@@ -324,7 +324,7 @@ export function getTotalLinkClicks(profileId: string, days: number = 7): number 
   const events = getEventsForProfile(profileId)
   const now = Date.now()
   const fromTs = now - days * 24 * 60 * 60 * 1000
-  
+
   return events.filter(
     (e): e is Extract<AnalyticsEvent, { type: 'link_click' }> =>
       e.type === 'link_click' && e.ts >= fromTs
@@ -337,16 +337,16 @@ export function getTotalLinkClicks(profileId: string, days: number = 7): number 
  * Falls back to 'unknown' if not present or invalid
  */
 export function getSourceFromUrl(searchParams: URLSearchParams | string): AnalyticsSource {
-  const params = typeof searchParams === 'string' 
-    ? new URLSearchParams(searchParams) 
+  const params = typeof searchParams === 'string'
+    ? new URLSearchParams(searchParams)
     : searchParams
-  
+
   const source = params.get('source')
-  
+
   if (source === 'profile' || source === 'qr' || source === 'copy') {
     return source
   }
-  
+
   return 'unknown'
 }
 
