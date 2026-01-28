@@ -244,8 +244,8 @@ export function HeaderActions() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
 
-            {/* My Account Section - Hide in Admin Console */}
-            {!pathname?.startsWith('/master-console') && (
+            {/* My Account & Actions Sections */}
+            {!pathname?.startsWith('/master-console') ? (
               <>
                 <DropdownMenuGroup>
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
@@ -275,25 +275,30 @@ export function HeaderActions() {
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={handleCopyAddress}>
+                    <Copy className="mr-2 h-4 w-4" />
+                    <span>Copy Address</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleShare} disabled={!publicProfileHref}>
+                    <Share2 className="mr-2 h-4 w-4" />
+                    <span>Share</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setQrModalOpen(true)}>
+                    <QrCode className="mr-2 h-4 w-4" />
+                    <span>QR Code</span>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
               </>
+            ) : (
+              <DropdownMenuGroup>
+                <DropdownMenuItem onClick={handleCopyAddress}>
+                  <Copy className="mr-2 h-4 w-4" />
+                  <span>Copy Address</span>
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
             )}
-
-            {/* Actions Section */}
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem onClick={handleCopyAddress}>
-                <Copy className="mr-2 h-4 w-4" />
-                <span>Copy Address</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleShare} disabled={!publicProfileHref}>
-                <Share2 className="mr-2 h-4 w-4" />
-                <span>Share</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setQrModalOpen(true)}>
-                <QrCode className="mr-2 h-4 w-4" />
-                <span>QR Code</span>
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
 
             <DropdownMenuSeparator />
 
