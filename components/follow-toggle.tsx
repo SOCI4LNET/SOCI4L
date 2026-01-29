@@ -258,10 +258,17 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
         })
       )
 
-      // Invalidate and refetch after short delay so server truth is visible (avoids replica lag / cache)
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['follow-stats', normalizedAddress] })
-      }, 500)
+      // Immediately invalidate and refetch to ensure all components get fresh data
+      // This fixes the issue where stale data was shown on page refresh
+      await queryClient.invalidateQueries({
+        queryKey: ['follow-stats', normalizedAddress],
+        refetchType: 'all' // Refetch all queries with this key (active and inactive)
+      })
+
+      // Also refetch to ensure we have the latest data from server
+      await queryClient.refetchQueries({
+        queryKey: ['follow-stats', normalizedAddress]
+      })
 
     } catch (error: any) {
       // Rollback on error
@@ -369,7 +376,10 @@ export function FollowStats({ address }: { address: string }) {
       return response.json()
     },
     enabled: isValidAddress(address),
-    staleTime: 1000 * 60, // 1 minute (since we invalidate manually on change)
+    staleTime: 0, // Always consider data stale (fetch on mount)
+    gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
+    refetchOnMount: 'always', // Always refetch when component mounts
+    refetchOnWindowFocus: true, // Refetch when window gains focus
   })
 
   useEffect(() => {

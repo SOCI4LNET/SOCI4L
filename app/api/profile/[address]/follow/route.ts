@@ -91,6 +91,11 @@ export async function POST(
           return NextResponse.json({
             followersCount,
             isFollowing: false,
+          }, {
+            headers: {
+              'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+              'Pragma': 'no-cache',
+            },
           })
         }
 
@@ -206,6 +211,11 @@ export async function POST(
     return NextResponse.json({
       followersCount,
       isFollowing: true,
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+      },
     })
   } catch (error) {
     console.error('Error creating follow:', error)
@@ -296,6 +306,11 @@ export async function DELETE(
     return NextResponse.json({
       followersCount,
       isFollowing: false,
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+      },
     })
   } catch (error) {
     console.error('Error deleting follow:', error)

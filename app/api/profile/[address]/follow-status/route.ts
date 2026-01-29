@@ -41,18 +41,23 @@ export async function GET(
     // This is used to verify that the session matches the connected wallet
     const searchParams = request.nextUrl.searchParams
     const connectedWalletAddress = searchParams.get('connectedAddress')
-    
+
     // If connected wallet address is provided, verify it matches session
     // This prevents showing wrong follow status when user switches wallets
     if (connectedWalletAddress && isValidAddress(connectedWalletAddress)) {
       const normalizedConnected = connectedWalletAddress.toLowerCase()
       const normalizedSession = sessionAddress.toLowerCase()
-      
+
       // If connected wallet doesn't match session, return false
       // This means user switched wallets but session wasn't updated
       if (normalizedConnected !== normalizedSession) {
         return NextResponse.json({
           isFollowing: false,
+        }, {
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma': 'no-cache',
+          },
         })
       }
     }
@@ -72,6 +77,11 @@ export async function GET(
 
     return NextResponse.json({
       isFollowing: !!follow,
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+      },
     })
   } catch (error) {
     console.error('Error checking follow status:', error)
