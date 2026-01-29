@@ -438,6 +438,9 @@ export default function ProfilePage({ params }: PageProps) {
   const isPrivate = profileStatus === 'CLAIMED+PRIVATE'
   const isClaimed = profileStatus === 'CLAIMED+PUBLIC' || profileStatus === 'CLAIMED+PRIVATE'
   const resolvedAddress = profile?.address || (params.id.startsWith('0x') ? params.id : null)
+  // Normalize once for follow/stats so cache key and API always use same address (fixes followers count persistence)
+  const profileAddressForFollow =
+    resolvedAddress && isValidAddress(resolvedAddress) ? resolvedAddress.toLowerCase() : null
   const shortAddress = resolvedAddress
     ? formatAddress(resolvedAddress)
     : params.id.startsWith('0x')
@@ -674,9 +677,9 @@ export default function ProfilePage({ params }: PageProps) {
                         <Badge variant="outline" className="text-[11px] px-2 py-0">
                           Avalanche
                         </Badge>
-                        {resolvedAddress && isValidAddress(resolvedAddress) && !profile?.isBanned && (
+                        {profileAddressForFollow && !profile?.isBanned && (
                           <span className="flex items-center gap-1">
-                            <FollowStats address={resolvedAddress} />
+                            <FollowStats address={profileAddressForFollow} />
                           </span>
                         )}
                         {score && !profile?.isBanned && (
@@ -728,8 +731,8 @@ export default function ProfilePage({ params }: PageProps) {
                   </div>
                   {/* Right: Actions (Follow, Share, Claim) */}
                   <div className="flex items-center gap-2 flex-shrink-0 flex-wrap sm:justify-end">
-                    {resolvedAddress && isValidAddress(resolvedAddress) && !profile?.isBanned && (
-                      <FollowToggle address={resolvedAddress} />
+                    {profileAddressForFollow && !profile?.isBanned && (
+                      <FollowToggle address={profileAddressForFollow} />
                     )}
                     {resolvedAddress && isValidAddress(resolvedAddress) && !profile?.isBanned && (
                       <DropdownMenu>

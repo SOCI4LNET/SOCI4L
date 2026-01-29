@@ -247,16 +247,21 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
       onFollowChange?.(data.isFollowing ?? pressed)
 
       // Update FollowStats cache immediately so follower count updates on public profile.
-      // Do NOT invalidateQueries here — refetch can return cached/0 and overwrite this.
+      const serverFollowersCount = data.followersCount ?? 0
       queryClient.setQueryData(
         ['follow-stats', normalizedAddress],
         (prev: { followersCount?: number; followingCount?: number; isFollowing?: boolean } | undefined) => ({
           ...prev,
-          followersCount: data.followersCount ?? prev?.followersCount ?? 0,
+          followersCount: serverFollowersCount,
           followingCount: prev?.followingCount ?? 0,
           isFollowing: data.isFollowing ?? pressed,
         })
       )
+
+      // Invalidate and refetch after short delay so server truth is visible (avoids replica lag / cache)
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['follow-stats', normalizedAddress] })
+      }, 500)
 
     } catch (error: any) {
       // Rollback on error

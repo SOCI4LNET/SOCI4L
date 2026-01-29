@@ -62,13 +62,14 @@ export async function GET(
         isFollowing = !!follow
       }
     } else {
-      // Production: use session if available
+      // Production: use session if available (normalize for DB lookup)
       const sessionAddress = await getSessionAddress()
       if (sessionAddress) {
+        const normalizedSession = sessionAddress.toLowerCase()
         const follow = await prisma.follow.findUnique({
           where: {
             followerAddress_followingAddress: {
-              followerAddress: sessionAddress,
+              followerAddress: normalizedSession,
               followingAddress: normalizedAddress,
             },
           },

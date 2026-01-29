@@ -6,12 +6,17 @@ import { isValidAddress } from '@/lib/utils'
 // Test mode: allow body-based follower address
 const TEST_MODE = process.env.NODE_ENV === 'test' || process.env.MCP_TEST_MODE === '1'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(
   request: NextRequest,
-  { params }: { params: { address: string } }
+  { params }: { params: Promise<{ address: string }> | { address: string } }
 ) {
   try {
-    const address = params.address
+    const resolvedParams = await Promise.resolve(params)
+    const address = typeof resolvedParams.address === 'string'
+      ? decodeURIComponent(resolvedParams.address)
+      : resolvedParams.address
 
     if (!address || !isValidAddress(address)) {
       return NextResponse.json(
@@ -213,10 +218,13 @@ export async function POST(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { address: string } }
+  { params }: { params: Promise<{ address: string }> | { address: string } }
 ) {
   try {
-    const address = params.address
+    const resolvedParams = await Promise.resolve(params)
+    const address = typeof resolvedParams.address === 'string'
+      ? decodeURIComponent(resolvedParams.address)
+      : resolvedParams.address
 
     if (!address || !isValidAddress(address)) {
       return NextResponse.json(
