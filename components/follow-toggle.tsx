@@ -241,6 +241,7 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
       }
 
       const data = await response.json()
+      console.log('[FollowToggle] API Response:', data)
 
       // Update local state with truth from server
       setIsFollowing(data.isFollowing ?? pressed)
@@ -248,27 +249,36 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
 
       // Update FollowStats cache immediately so follower count updates on public profile.
       const serverFollowersCount = data.followersCount ?? 0
+      console.log('[FollowToggle] Setting cache with followersCount:', serverFollowersCount)
+
       queryClient.setQueryData(
         ['follow-stats', normalizedAddress],
-        (prev: { followersCount?: number; followingCount?: number; isFollowing?: boolean } | undefined) => ({
-          ...prev,
-          followersCount: serverFollowersCount,
-          followingCount: prev?.followingCount ?? 0,
-          isFollowing: data.isFollowing ?? pressed,
-        })
+        (prev: { followersCount?: number; followingCount?: number; isFollowing?: boolean } | undefined) => {
+          const newData = {
+            ...prev,
+            followersCount: serverFollowersCount,
+            followingCount: prev?.followingCount ?? 0,
+            isFollowing: data.isFollowing ?? pressed,
+          }
+          console.log('[FollowToggle] Cache updated:', { prev, new: newData })
+          return newData
+        }
       )
 
       // Immediately invalidate and refetch to ensure all components get fresh data
       // This fixes the issue where stale data was shown on page refresh
+      console.log('[FollowToggle] Invalidating queries...')
       await queryClient.invalidateQueries({
         queryKey: ['follow-stats', normalizedAddress],
         refetchType: 'all' // Refetch all queries with this key (active and inactive)
       })
 
       // Also refetch to ensure we have the latest data from server
+      console.log('[FollowToggle] Refetching queries...')
       await queryClient.refetchQueries({
         queryKey: ['follow-stats', normalizedAddress]
       })
+      console.log('[FollowToggle] Follow action completed')
 
     } catch (error: any) {
       // Rollback on error
@@ -392,6 +402,8 @@ export function FollowStats({ address }: { address: string }) {
 
   const followersCount = stats?.followersCount || 0
   const followingCount = stats?.followingCount || 0
+
+  console.log('[FollowStats] Rendering:', { address, followersCount, followingCount, stats })
 
   return (
     <div className="flex items-center gap-5">
