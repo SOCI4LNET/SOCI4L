@@ -355,8 +355,8 @@ export function FollowStats({ address }: { address: string }) {
       if (!isValidAddress(address)) throw new Error('Invalid address')
       const normalizedAddress = address.toLowerCase()
       const response = await fetch(`/api/profile/${normalizedAddress}/follow-stats`, {
-        // Rely on cache-control headers we set earlier (force-dynamic), 
-        // but useQuery will handle client-side caching/dedupe
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' },
       })
       if (!response.ok) {
         throw new Error('Failed to fetch stats')

@@ -15,7 +15,9 @@ export async function GET(
   try {
     // Handle both sync and async params (Next.js 14+)
     const resolvedParams = await Promise.resolve(params)
-    const address = resolvedParams.address
+    const address = typeof resolvedParams.address === 'string'
+      ? decodeURIComponent(resolvedParams.address)
+      : resolvedParams.address
 
     if (!address || !isValidAddress(address)) {
       return NextResponse.json(
@@ -90,7 +92,12 @@ export async function GET(
       response.isFollowing = isFollowing
     }
 
-    return NextResponse.json(response)
+    return NextResponse.json(response, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+      },
+    })
   } catch (error) {
     console.error('[Follow Stats API] Error:', error)
     return NextResponse.json(
