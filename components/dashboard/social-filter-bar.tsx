@@ -81,9 +81,9 @@ export function SocialFilterBar({
                 </div>
 
                 {/* Sort dropdown */}
-                <Select value={sort} onValueChange={(value) => onSortChange(value as SortType)}>
-                    <SelectTrigger className="w-40 h-8">
-                        <SelectValue placeholder="Sort by..." />
+                <Select value={sort} onValueChange={(v) => onSortChange(v as SortType)}>
+                    <SelectTrigger className="w-[160px] h-9 text-xs">
+                        <SelectValue placeholder="Sort by" />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="recent">Recently followed</SelectItem>

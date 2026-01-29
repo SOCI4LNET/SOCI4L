@@ -34,6 +34,7 @@ export function ConnectionCard({
     avatarUrl,
     role,
     connectionReason,
+    connectionStrength,
     followedAt,
     showUnfollow = false,
     onUnfollow,
@@ -71,11 +72,25 @@ export function ConnectionCard({
                     </Badge>
                 )}
 
-                {/* Connection reason */}
-                {connectionReason && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                        {connectionReason}
-                    </p>
+                {/* Connection reason & Score */}
+                {(connectionReason || (connectionStrength !== undefined && connectionStrength > 0)) && (
+                    <div className="flex items-center gap-2 mt-1">
+                        {connectionReason && (
+                            <p className="text-xs text-muted-foreground">
+                                {connectionReason}
+                            </p>
+                        )}
+                        {connectionStrength !== undefined && connectionStrength > 0 && (
+                            <div className="flex items-center gap-1" title={`Connection Score: ${connectionStrength}`}>
+                                <div className="h-1.5 w-12 bg-secondary rounded-full overflow-hidden">
+                                    <div
+                                        className="h-full bg-primary/70 rounded-full"
+                                        style={{ width: `${connectionStrength}%` }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 )}
 
                 {/* Followed date (only when showing unfollow) */}

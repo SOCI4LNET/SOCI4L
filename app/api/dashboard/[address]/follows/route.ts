@@ -36,7 +36,7 @@ export async function GET(
     // Note: Follower/following lists are public information
     // No authentication required
 
-    let follows: Array<{ address: string; createdAt: Date; displayName?: string | null }> = []
+    let follows: Array<{ address: string; createdAt: Date; displayName?: string | null; score?: number; reason?: string }> = []
 
     // Calculate date thresholds for filters
     const now = new Date()
@@ -102,19 +102,65 @@ export async function GET(
             displayName: true,
             slug: true,
             updatedAt: true,
+            createdAt: true, // Needed for account age score
+            role: true,
           },
         })
 
         const profileMap = new Map(profiles.map((p) => [p.address.toLowerCase(), p]))
 
+        // Fetch mutual status for score calculation
+        const mutualAddresses = await prisma.follow.findMany({
+          where: {
+            followerAddress: normalizedAddress,
+            followingAddress: {
+              in: followRecords.map(f => f.followerAddress),
+            },
+          },
+          select: {
+            followingAddress: true,
+          },
+        }).then(results => new Set(results.map(r => r.followingAddress)))
+
         let followsWithProfile = followRecords.map((f) => {
           const profile = profileMap.get(f.followerAddress.toLowerCase())
+          let score = 0
+          let reasons: string[] = []
+
+          // Score Calculation
+          if (mutualAddresses.has(f.followerAddress)) {
+            score += 40
+            reasons.push('Mutual')
+          }
+          if (profile?.displayName || profile?.slug) {
+            score += 20
+          }
+          if (profile?.role === 'BUILDER' || profile?.role === 'ADMIN') {
+            score += 15
+            reasons.map(r => r !== 'Builder' && r !== 'Team' ? reasons.push(profile.role === 'ADMIN' ? 'Team' : 'Builder') : null)
+          }
+          // Account Age (> 1 year)
+          if (profile?.createdAt && (new Date().getTime() - new Date(profile.createdAt).getTime() > 365 * 24 * 60 * 60 * 1000)) {
+            score += 10
+          }
+          // Follow Duration (> 1 month)
+          if (new Date().getTime() - new Date(f.createdAt).getTime() > 30 * 24 * 60 * 60 * 1000) {
+            score += 10
+            reasons.push('Long-term')
+          }
+          // Activity (updated recently)
+          if (profile?.updatedAt && (new Date().getTime() - new Date(profile.updatedAt).getTime() < 30 * 24 * 60 * 60 * 1000)) {
+            score += 5
+          }
+
           return {
             address: f.followerAddress,
             createdAt: f.createdAt,
             displayName: profile?.displayName || null,
             slug: profile?.slug || null,
             updatedAt: profile?.updatedAt || null,
+            score: Math.min(score, 100),
+            reason: reasons.length > 0 ? reasons.join(' • ') : undefined
           }
         })
 
@@ -131,10 +177,12 @@ export async function GET(
           )
         }
 
-        follows = followsWithProfile.map(({ address, createdAt, displayName }) => ({
+        follows = followsWithProfile.map(({ address, createdAt, displayName, score, reason }) => ({
           address,
           createdAt,
           displayName,
+          score,
+          reason
         }))
       } else {
         // Build where clause based on filters

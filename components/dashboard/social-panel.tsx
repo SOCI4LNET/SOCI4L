@@ -36,6 +36,9 @@ interface FollowItem {
   address: string
   createdAt: string
   displayName?: string | null
+  score?: number
+  reason?: string
+  role?: 'Builder' | 'Trader' | 'Collector'
 }
 
 export function SocialPanel({ address }: SocialPanelProps) {
@@ -132,6 +135,18 @@ export function SocialPanel({ address }: SocialPanelProps) {
       return response.json()
     },
     enabled: mounted && isValidAddress(address),
+  })
+
+  // Fetch suggestions
+  const { data: suggestionsData } = useQuery({
+    queryKey: ['suggestions', address?.toLowerCase()],
+    queryFn: async () => {
+      if (!address || !isValidAddress(address)) throw new Error('Invalid address')
+      const response = await fetch(`/api/profile/suggestions?address=${address}`)
+      if (!response.ok) throw new Error('Failed to fetch suggestions')
+      return response.json()
+    },
+    enabled: mounted && isValidAddress(address) && isOwnProfile,
   })
 
   // Share functions
@@ -317,14 +332,19 @@ export function SocialPanel({ address }: SocialPanelProps) {
     items: FollowItem[],
     emptyTitle: string,
     emptyHelper: string,
-    showUnfollow: boolean = false
+    showUnfollow = false,
+    suggestions: any[] = []
   ) => {
     if (loading) {
       return (
-        <div className="space-y-0">
+        <div className="space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className={`${i < 3 ? 'border-b border-border/40' : ''}`}>
-              <Skeleton className="h-20 w-full" />
+            <div key={i} className="flex items-center gap-4">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-20" />
+              </div>
             </div>
           ))}
         </div>
@@ -333,14 +353,14 @@ export function SocialPanel({ address }: SocialPanelProps) {
 
     if (items.length === 0) {
       return (
-        <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
-          {emptyTitle === 'No followers yet' ? (
+        <div className="flex flex-col items-center justify-center py-12 px-4 text-center border border-dashed rounded-lg">
+          {emptyTitle.toLowerCase().includes('followers') ? (
             <Users className="h-10 w-10 text-muted-foreground" />
           ) : (
             <UserPlus className="h-10 w-10 text-muted-foreground" />
           )}
           <div>
-            <p className="text-sm font-medium mb-1">{emptyTitle}</p>
+            <p className="text-sm font-medium mb-1 mt-4">{emptyTitle}</p>
             <p className="text-xs text-muted-foreground mb-4">
               {emptyHelper}
             </p>
@@ -379,65 +399,49 @@ export function SocialPanel({ address }: SocialPanelProps) {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
+
+          {/* Suggestions in Empty State */}
+          {suggestions && suggestions.length > 0 && (
+            <div className="w-full mt-8 text-left border-t pt-6">
+              <h4 className="text-sm font-semibold mb-3 px-1 flex items-center gap-2">
+                <UserPlus className="h-4 w-4 text-primary" />
+                Suggested for you
+              </h4>
+              <div className="space-y-0 border rounded-md overflow-hidden">
+                {suggestions.map((s) => (
+                  <ConnectionCard
+                    key={s.address}
+                    address={s.address}
+                    displayName={s.displayName}
+                    avatarUrl={`https://effigy.im/a/${s.address.toLowerCase()}.svg`}
+                    role={s.role}
+                    connectionReason={s.reason}
+                    followedAt={new Date(s.createdAt)}
+                  // No showUnfollow since these are suggestions
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )
     }
 
     return (
       <div className="space-y-0">
-        {items.map((item, index) => {
-          const normalizedAddr = item.address.toLowerCase()
-          const avatarUrl = `https://effigy.im/a/${normalizedAddr}.svg`
-          const fallbackText = item.address.slice(2, 4).toUpperCase()
-          const shortAddress = formatAddress(item.address, 4)
-          const primaryLabel = (item.displayName || '').trim() || shortAddress
-
-          return (
-            <div
-              key={item.address}
-              className={`flex items-center gap-4 p-4 hover:bg-accent/50 transition-colors ${index < items.length - 1 ? 'border-b border-border/40' : ''
-                }`}
-            >
-              <Avatar className="h-11 w-11 flex-shrink-0">
-                <AvatarImage src={avatarUrl} alt={shortAddress} />
-                <AvatarFallback className="text-xs">{fallbackText}</AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{primaryLabel}</p>
-                <p className="text-xs font-mono text-muted-foreground truncate">
-                  {shortAddress}
-                </p>
-                {showUnfollow && (
-                  <p className="text-[11px] text-muted-foreground mt-0.5">
-                    Followed on {new Date(item.createdAt).toLocaleDateString('tr-TR')}
-                  </p>
-                )}
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  asChild
-                  className="h-8 text-xs"
-                >
-                  <Link href={`/p/${normalizedAddr}`}>
-                    View profile
-                  </Link>
-                </Button>
-                {showUnfollow && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleUnfollow(item.address)}
-                    className="h-8 text-xs"
-                  >
-                    Unfollow
-                  </Button>
-                )}
-              </div>
-            </div>
-          )
-        })}
+        {items.map((item) => (
+          <ConnectionCard
+            key={item.address}
+            address={item.address}
+            displayName={item.displayName}
+            avatarUrl={`https://effigy.im/a/${item.address.toLowerCase()}.svg`}
+            followedAt={new Date(item.createdAt)}
+            showUnfollow={showUnfollow}
+            onUnfollow={handleUnfollow}
+            connectionStrength={item.score}
+            connectionReason={item.reason}
+          />
+        ))}
       </div>
     )
   }
@@ -507,7 +511,9 @@ export function SocialPanel({ address }: SocialPanelProps) {
               {renderList(
                 filteredFollowers,
                 'No followers yet',
-                'Share your profile to get discovered.'
+                'Share your profile to get discovered.',
+                false,
+                suggestionsData?.suggestions // Pass suggestions
               )}
             </TabsContent>
             <TabsContent value="following" className="mt-4">

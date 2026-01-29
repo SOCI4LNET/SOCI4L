@@ -102,25 +102,25 @@ export function SocialKPICards({ stats, loading = false }: SocialKPICardsProps) 
                 label="Mutuals"
                 value={stats.mutuals}
                 icon={Users}
-                description="Karşılıklı takip"
+                description="Mutual connections"
             />
             <StatCard
                 label="New (7d)"
-                value={stats.new7d.followers}
+                value={stats.new7d.followers + stats.new7d.following}
                 icon={UserPlus}
-                description="Son 7 günde"
+                description={`${stats.new7d.followers} followers, ${stats.new7d.following} following`}
             />
             <StatCard
                 label="Active (30d)"
                 value={stats.active30d}
                 icon={Activity}
-                description="30 gün içinde aktif"
+                description="Active in last 30 days"
             />
             <StatCard
                 label="Top Interacted"
                 value={stats.topInteracted ?? '—'}
                 icon={Eye}
-                description="En çok etkileşim"
+                description="Most interactions"
                 privacyLocked={stats.topInteracted === null}
             />
         </div>

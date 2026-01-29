@@ -13,6 +13,13 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "SOCI4L - Web3 Profile & Link Hub",
   description: "SOCI4L turns your wallet into a measurable, privacy-first public profile. Create your Web3 profile with link analytics.",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/logos/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/logos/icon.svg",
+  },
 }
 
 export default function RootLayout({
