@@ -35,6 +35,8 @@ export async function GET(
       },
     })
 
+    console.log('[Follow Stats API] Followers count for', normalizedAddress, ':', followersCount)
+
     // Count following (how many wallets this address follows)
     const followingCount = await prisma.follow.count({
       where: {

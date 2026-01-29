@@ -160,12 +160,30 @@ export async function POST(
     // Only create if it doesn't exist
     if (!existingFollow) {
       try {
+        console.log('[Follow API] Creating follow record:', {
+          follower: normalizedFollower,
+          following: normalizedAddress,
+        })
+
         await prisma.follow.create({
           data: {
             followerAddress: normalizedFollower,
             followingAddress: normalizedAddress,
           },
         })
+
+        console.log('[Follow API] Follow record created successfully')
+
+        // Verify the record was actually written
+        const verifyRecord = await prisma.follow.findUnique({
+          where: {
+            followerAddress_followingAddress: {
+              followerAddress: normalizedFollower,
+              followingAddress: normalizedAddress,
+            },
+          },
+        })
+        console.log('[Follow API] Verification check - record exists:', !!verifyRecord)
 
         // Log follow activity for the follower
         const followerProfile = await prisma.profile.findUnique({ where: { address: normalizedFollower } })
@@ -180,6 +198,7 @@ export async function POST(
           })
         }
       } catch (error: any) {
+        console.error('[Follow API] Error creating follow record:', error)
         // If unique constraint violation, another request created it concurrently
         // That's fine, we'll return the current state
         if (error.code !== 'P2002') {
@@ -196,9 +215,13 @@ export async function POST(
         })
         if (!doubleCheck) {
           // Still doesn't exist after error, something went wrong
+          console.error('[Follow API] Double-check failed - record still not found after error')
           throw error
         }
+        console.log('[Follow API] Unique constraint violation, but record exists (concurrent request)')
       }
+    } else {
+      console.log('[Follow API] Follow record already exists, skipping creation')
     }
 
     // Get updated followers count (always return current state)
@@ -207,6 +230,8 @@ export async function POST(
         followingAddress: normalizedAddress,
       },
     })
+
+    console.log('[Follow API] Final followers count:', followersCount)
 
     return NextResponse.json({
       followersCount,
