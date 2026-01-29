@@ -1497,7 +1497,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
                         }}
                       >
                         {role}
-                        {isPrimary && <span className="ml-1.5 text-[9px] uppercase tracking-wider opacity-70">Pri</span>}
+
                       </Button>
                     )
                   })}

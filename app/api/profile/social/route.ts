@@ -16,7 +16,7 @@ interface SocialLink {
 
 export async function POST(request: NextRequest) {
   try {
-    const { address, displayName, bio, socialLinks, signature } = await request.json()
+    const { address, displayName, bio, socialLinks, primaryRole, secondaryRoles, statusMessage, signature } = await request.json()
 
     if (!address || !isValidAddress(address)) {
       return NextResponse.json(
@@ -49,6 +49,33 @@ export async function POST(request: NextRequest) {
       if (bioStr.length > 160) {
         return NextResponse.json(
           { error: 'Bio must be 160 characters or less' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Validate statusMessage
+    if (statusMessage !== null && statusMessage !== undefined && statusMessage !== '') {
+      const statusStr = String(statusMessage).trim()
+      if (statusStr.length > 60) {
+        return NextResponse.json(
+          { error: 'Status message must be 60 characters or less' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Validate roles
+    if (secondaryRoles !== null && secondaryRoles !== undefined) {
+      if (!Array.isArray(secondaryRoles)) {
+        return NextResponse.json(
+          { error: 'Secondary roles must be an array' },
+          { status: 400 }
+        )
+      }
+      if (secondaryRoles.length > 2) {
+        return NextResponse.json(
+          { error: 'Maximum 2 secondary roles allowed' },
           { status: 400 }
         )
       }
@@ -178,6 +205,9 @@ export async function POST(request: NextRequest) {
       displayName?: string | null
       bio?: string | null
       socialLinks?: string | null
+      primaryRole?: string | null
+      secondaryRoles?: string[]
+      statusMessage?: string | null
     } = {}
 
     if (displayName !== undefined) {
@@ -186,6 +216,18 @@ export async function POST(request: NextRequest) {
 
     if (bio !== undefined) {
       updateData.bio = bio && bio.trim() !== '' ? bio.trim() : null
+    }
+
+    if (primaryRole !== undefined) {
+      updateData.primaryRole = primaryRole && primaryRole.trim() !== '' ? primaryRole.trim() : null
+    }
+
+    if (statusMessage !== undefined) {
+      updateData.statusMessage = statusMessage && statusMessage.trim() !== '' ? statusMessage.trim() : null
+    }
+
+    if (secondaryRoles !== undefined) {
+      updateData.secondaryRoles = secondaryRoles
     }
 
     if (socialLinks !== undefined) {
