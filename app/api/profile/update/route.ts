@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     // Get nonce from cookie or store
     const cookieStore = await cookies()
     let nonce: string | null = null
-    
+
     // Test mode: check if signature is "signed-{nonce}" format
     if (TEST_MODE && signature.startsWith('signed-')) {
       const extractedNonce = signature.replace('signed-', '')
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
         nonce = extractedNonce
       }
     }
-    
+
     // Check cookie for nonce
     if (!nonce) {
       const cookieNonce = cookieStore.get('aph_nonce')?.value
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
         const parts = signature.replace('signed-', '').split('-')
         if (parts.length >= 2) {
           const sigAddress = parts[0].toLowerCase()
-          const sigNonce = '-'.join(parts.slice(1))
+          const sigNonce = parts.slice(1).join('-')
           if (sigNonce === nonce && sigAddress === normalizedAddress) {
             signer = normalizedAddress
           } else {
@@ -180,7 +180,7 @@ export async function POST(request: NextRequest) {
 
     // Update profile with transaction to ensure slug uniqueness
     const slugLower = slug ? slug.toLowerCase().trim() : null
-    
+
     const updated = await prisma.$transaction(async (tx) => {
       // Check slug uniqueness if provided (within transaction)
       if (slugLower) {
@@ -221,11 +221,27 @@ export async function POST(request: NextRequest) {
       }
 
       // Update profile with unique constraint error handling
+      let updatedProfile;
       try {
-        return await tx.profile.update({
+        updatedProfile = await tx.profile.update({
           where: { address: normalizedAddress },
           data: updateData,
         })
+
+        // Log activity
+        await tx.userActivityLog.create({
+          data: {
+            profileId: updatedProfile.id,
+            action: 'update_profile',
+            metadata: JSON.stringify({
+              fields: Object.keys(updateData),
+              hasShowcase: Array.isArray(showcase)
+            }),
+            ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
+          },
+        })
+
+        return updatedProfile;
       } catch (error: any) {
         // Handle unique constraint violation
         if (error.code === 'P2002' || error.message?.includes('UNIQUE constraint') || error.message?.includes('unique')) {
@@ -268,7 +284,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, profile: profileWithShowcase })
   } catch (error: any) {
     console.error('Error updating profile:', error)
-    
+
     // Handle specific error cases
     if (error.message === 'This slug is already in use') {
       return NextResponse.json(
@@ -276,7 +292,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-    
+
     // Handle Prisma unique constraint violation
     if (error.code === 'P2002' || error.message?.includes('UNIQUE constraint') || error.message?.includes('unique')) {
       return NextResponse.json(
@@ -284,7 +300,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-    
+
     return NextResponse.json(
       { error: 'An error occurred while updating profile' },
       { status: 500 }

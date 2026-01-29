@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { verifyMessage } from 'viem'
 import { isValidAddress } from '@/lib/utils'
+import { prisma } from '@/lib/prisma'
 
 // Test mode: allow "signed-{nonce}" format for MCP tests
 const TEST_MODE = process.env.NODE_ENV === 'test' || process.env.MCP_TEST_MODE === '1'
@@ -95,9 +96,26 @@ export async function POST(request: NextRequest) {
     // Clear nonce after successful verification
     cookieStore.delete('aph_nonce')
 
-    return NextResponse.json({ 
+    // Find profile to log activity
+    const profile = await prisma.profile.findUnique({
+      where: { address: normalizedAddress },
+    })
+
+    if (profile) {
+      // Log login activity
+      await prisma.userActivityLog.create({
+        data: {
+          profileId: profile.id,
+          action: 'login',
+          metadata: JSON.stringify({ method: 'signature' }),
+          ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
+        },
+      })
+    }
+
+    return NextResponse.json({
       success: true,
-      address: normalizedAddress 
+      address: normalizedAddress
     })
   } catch (error) {
     console.error('Error verifying auth:', error)

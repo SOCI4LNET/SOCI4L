@@ -63,6 +63,19 @@ export async function POST(
             },
           })
 
+          // Log unfollow activity
+          const followerProfile = await prisma.profile.findUnique({ where: { address: normalizedFollower } })
+          if (followerProfile) {
+            await prisma.userActivityLog.create({
+              data: {
+                profileId: followerProfile.id,
+                action: 'unfollow',
+                metadata: JSON.stringify({ target: normalizedAddress }),
+                ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
+              },
+            })
+          }
+
           // Get updated followers count
           const followersCount = await prisma.follow.count({
             where: {
@@ -143,6 +156,19 @@ export async function POST(
             followingAddress: normalizedAddress,
           },
         })
+
+        // Log follow activity for the follower
+        const followerProfile = await prisma.profile.findUnique({ where: { address: normalizedFollower } })
+        if (followerProfile) {
+          await prisma.userActivityLog.create({
+            data: {
+              profileId: followerProfile.id,
+              action: 'follow',
+              metadata: JSON.stringify({ target: normalizedAddress }),
+              ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
+            }
+          })
+        }
       } catch (error: any) {
         // If unique constraint violation, another request created it concurrently
         // That's fine, we'll return the current state
