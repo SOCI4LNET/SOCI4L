@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ExternalLink, Users, UserPlus, Share2, Copy, Twitter, QrCode } from 'lucide-react'
+import { Users, UserPlus, Share2, Copy, Twitter, QrCode } from 'lucide-react'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import { toast } from 'sonner'
 import Link from 'next/link'
@@ -24,6 +24,9 @@ import { QRCodeModal } from '@/components/qr/qr-code-modal'
 import { getPublicProfileHref } from '@/lib/routing'
 import { useQuery } from '@tanstack/react-query'
 import { useAccount } from 'wagmi'
+import { SocialKPICards } from '@/components/dashboard/social-kpi-cards'
+import { ConnectionCard } from '@/components/dashboard/connection-card'
+import { SocialFilterBar, FilterType, SortType } from '@/components/dashboard/social-filter-bar'
 
 interface SocialPanelProps {
   address: string
@@ -46,23 +49,25 @@ export function SocialPanel({ address }: SocialPanelProps) {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [qrModalOpen, setQrModalOpen] = useState(false)
-  
+  const [filter, setFilter] = useState<FilterType>('all')
+  const [sort, setSort] = useState<SortType>('recent')
+
   // Check if the profile belongs to the connected wallet
   const isOwnProfile = connectedAddress && address.toLowerCase() === connectedAddress.toLowerCase()
-  
+
   // Get active tab from URL query param 'subtab' (to avoid conflict with dashboard's 'tab' param)
   // Default to 'following'
   const subtabParam = searchParams.get('subtab')
-  const [activeTab, setActiveTab] = useState<'followers' | 'following'>(
-    (subtabParam === 'followers' || subtabParam === 'following') 
-      ? subtabParam 
+  const [activeTab, setActiveTab] = useState<'followers' | 'following' | 'mutuals'>(
+    (subtabParam === 'followers' || subtabParam === 'following' || subtabParam === 'mutuals')
+      ? subtabParam
       : 'following'
   )
-  
+
   // Sync with URL on mount and when subtab param changes
   useEffect(() => {
     const subtab = searchParams.get('subtab')
-    if (subtab === 'followers' || subtab === 'following') {
+    if (subtab === 'followers' || subtab === 'following' || subtab === 'mutuals') {
       setActiveTab(subtab)
     } else {
       // If subtab param is missing, set default to 'following' and update URL
@@ -98,6 +103,32 @@ export function SocialPanel({ address }: SocialPanelProps) {
       const normalizedAddress = address.toLowerCase()
       const response = await fetch(`/api/wallet/${normalizedAddress}/summary`)
       if (!response.ok) throw new Error('Failed to fetch profile')
+      return response.json()
+    },
+    enabled: mounted && isValidAddress(address),
+  })
+
+  // Fetch social stats (KPIs)
+  const { data: socialStats, isLoading: statsLoading } = useQuery({
+    queryKey: ['social-stats', address?.toLowerCase()],
+    queryFn: async () => {
+      if (!address || !isValidAddress(address)) throw new Error('Invalid address')
+      const normalizedAddress = address.toLowerCase()
+      const response = await fetch(`/api/profile/${normalizedAddress}/social-stats`)
+      if (!response.ok) throw new Error('Failed to fetch social stats')
+      return response.json()
+    },
+    enabled: mounted && isValidAddress(address),
+  })
+
+  // Fetch mutuals list
+  const { data: mutualsData, isLoading: mutualsLoading } = useQuery({
+    queryKey: ['mutuals', address?.toLowerCase()],
+    queryFn: async () => {
+      if (!address || !isValidAddress(address)) throw new Error('Invalid address')
+      const normalizedAddress = address.toLowerCase()
+      const response = await fetch(`/api/profile/${normalizedAddress}/mutuals`)
+      if (!response.ok) throw new Error('Failed to fetch mutuals')
       return response.json()
     },
     enabled: mounted && isValidAddress(address),
@@ -178,14 +209,19 @@ export function SocialPanel({ address }: SocialPanelProps) {
       try {
         const normalizedAddress = address.toLowerCase()
 
+        // Build query params with filter and sort
+        const params = new URLSearchParams()
+        if (filter !== 'all') params.append('filter', filter)
+        if (sort !== 'recent') params.append('sort', sort)
+        const queryString = params.toString()
+        const queryParam = queryString ? `&${queryString}` : ''
+
         // Fetch both followers and following
         const [followersRes, followingRes] = await Promise.all([
-          fetch(`/api/dashboard/${normalizedAddress}/follows?type=followers`, {
-            cache: 'no-store',
+          fetch(`/api/dashboard/${normalizedAddress}/follows?type=followers${queryParam}`, {
             credentials: 'include',
           }),
-          fetch(`/api/dashboard/${normalizedAddress}/follows?type=following`, {
-            cache: 'no-store',
+          fetch(`/api/dashboard/${normalizedAddress}/follows?type=following${queryParam}`, {
             credentials: 'include',
           }),
         ])
@@ -212,25 +248,25 @@ export function SocialPanel({ address }: SocialPanelProps) {
     }
 
     fetchFollows()
-  }, [mounted, address])
+  }, [mounted, address, filter, sort]) // Re-fetch when filter or sort changes
 
 
   const handleTabChange = (value: string) => {
     const newTab = value as 'followers' | 'following'
-    
+
     // Update local state immediately - no navigation, just state change
     setActiveTab(newTab)
-    
+
     // Update URL with 'subtab' param (not 'tab' to avoid conflict with dashboard routing)
     // Preserve 'tab=social' and other query params
     const params = new URLSearchParams(searchParams.toString())
     params.set('subtab', newTab)
-    
+
     // Ensure 'tab=social' is set
     if (!params.has('tab') || params.get('tab') !== 'social') {
       params.set('tab', 'social')
     }
-    
+
     // Only update query params, keep the same pathname - no navigation
     if (pathname) {
       router.replace(`${pathname}?${params.toString()}`, { scroll: false })
@@ -260,7 +296,7 @@ export function SocialPanel({ address }: SocialPanelProps) {
 
       // Remove from following list
       setFollowing((prev) => prev.filter((item) => item.address.toLowerCase() !== normalizedTargetAddress))
-      
+
       toast.success('Unfollowed successfully')
     } catch (error: any) {
       console.error('Error unfollowing:', error)
@@ -329,7 +365,7 @@ export function SocialPanel({ address }: SocialPanelProps) {
                   <Twitter className="mr-2 h-4 w-4" />
                   Share on X
                 </DropdownMenuItem>
-                {typeof navigator !== 'undefined' && navigator.share && (
+                {typeof navigator !== 'undefined' && typeof navigator.share === 'function' && (
                   <DropdownMenuItem onClick={handleShareNative}>
                     <Share2 className="mr-2 h-4 w-4" />
                     Share via...
@@ -342,16 +378,6 @@ export function SocialPanel({ address }: SocialPanelProps) {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          )}
-          {emptyTitle === "You're not following anyone yet" && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.push('/')}
-            >
-              <ExternalLink className="mr-2 h-3.5 w-3.5" />
-              Explore profiles
-            </Button>
           )}
         </div>
       )
@@ -369,9 +395,8 @@ export function SocialPanel({ address }: SocialPanelProps) {
           return (
             <div
               key={item.address}
-              className={`flex items-center gap-4 p-4 hover:bg-accent/50 transition-colors ${
-                index < items.length - 1 ? 'border-b border-border/40' : ''
-              }`}
+              className={`flex items-center gap-4 p-4 hover:bg-accent/50 transition-colors ${index < items.length - 1 ? 'border-b border-border/40' : ''
+                }`}
             >
               <Avatar className="h-11 w-11 flex-shrink-0">
                 <AvatarImage src={avatarUrl} alt={shortAddress} />
@@ -430,6 +455,9 @@ export function SocialPanel({ address }: SocialPanelProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* KPI Cards */}
+          <SocialKPICards stats={socialStats} loading={statsLoading} />
+
           <Tabs value={activeTab} onValueChange={handleTabChange}>
             <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
               <TabsList className="bg-muted/40 p-1 rounded-lg">
@@ -453,14 +481,28 @@ export function SocialPanel({ address }: SocialPanelProps) {
                     {following.length}
                   </span>
                 </TabsTrigger>
+                <TabsTrigger
+                  value="mutuals"
+                  className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground rounded-md px-3 py-1.5"
+                >
+                  <Users className="h-4 w-4" />
+                  <span className="text-sm">Mutuals</span>
+                  <span className="text-[11px] rounded-full bg-accent/60 px-1.5 py-0.5">
+                    {mutualsData?.count || 0}
+                  </span>
+                </TabsTrigger>
               </TabsList>
-              <Input
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-48 h-8"
+              {/* Replace Input with SocialFilterBar */}
+              <SocialFilterBar
+                filter={filter}
+                onFilterChange={setFilter}
+                sort={sort}
+                onSortChange={setSort}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
               />
             </div>
+
             <TabsContent value="followers" className="mt-4">
               {renderList(
                 filteredFollowers,
@@ -474,6 +516,14 @@ export function SocialPanel({ address }: SocialPanelProps) {
                 "You're not following anyone yet",
                 'Explore profiles and follow creators.',
                 true // showUnfollow
+              )}
+            </TabsContent>
+
+            <TabsContent value="mutuals" className="mt-4">
+              {mutualsData && renderList(
+                mutualsData.mutuals || [],
+                'No mutual connections',
+                'Mutual connections appear when you follow each other.'
               )}
             </TabsContent>
           </Tabs>

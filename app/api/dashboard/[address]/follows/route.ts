@@ -14,6 +14,8 @@ export async function GET(
     const type = searchParams.get('type') || 'followers' // 'followers' or 'following'
     const limit = parseInt(searchParams.get('limit') || '100')
     const offset = parseInt(searchParams.get('offset') || '0')
+    const filter = searchParams.get('filter') // 'mutuals' | 'new7d' | 'active30d' | 'withIdentity'
+    const sort = searchParams.get('sort') || 'recent' // 'recent' | 'relevant' | 'active'
 
     if (!address || !isValidAddress(address)) {
       return NextResponse.json(
@@ -36,60 +38,147 @@ export async function GET(
 
     let follows: Array<{ address: string; createdAt: Date; displayName?: string | null }> = []
 
+    // Calculate date thresholds for filters
+    const now = new Date()
+    const sevenDaysAgo = new Date(now)
+    sevenDaysAgo.setDate(now.getDate() - 7)
+    const thirtyDaysAgo = new Date(now)
+    thirtyDaysAgo.setDate(now.getDate() - 30)
+
     try {
       if (type === 'followers') {
-        // Get wallets following this address
-        const followRecords = await prisma.follow.findMany({
-        where: {
+        // Build where clause based on filters
+        const whereClause: any = {
           followingAddress: normalizedAddress,
-        },
-        select: {
-          followerAddress: true,
-          createdAt: true,
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        take: limit,
-        skip: offset,
-      })
+        }
 
-      // Fetch profile data for each follower to get displayName
-      const profiles = await prisma.profile.findMany({
-        where: {
-          address: {
-            in: followRecords.map((f) => f.followerAddress),
+        // Apply date filter if requested
+        if (filter === 'new7d') {
+          whereClause.createdAt = { gte: sevenDaysAgo }
+        }
+
+        // Get wallets following this address
+        let followRecords = await prisma.follow.findMany({
+          where: whereClause,
+          select: {
+            followerAddress: true,
+            createdAt: true,
           },
-        },
-        select: {
-          address: true,
-          displayName: true,
-        },
-      })
+          orderBy: sort === 'recent'
+            ? { createdAt: 'desc' }
+            : { createdAt: 'desc' }, // Default to recent, other sorts applied post-query
+          take: limit,
+          skip: offset,
+        })
 
-      const profileMap = new Map(profiles.map((p) => [p.address.toLowerCase(), p.displayName]))
+        // Apply mutuals filter (requires additional query)
+        if (filter === 'mutuals') {
+          const mutualAddresses = await prisma.follow.findMany({
+            where: {
+              followerAddress: normalizedAddress,
+              followingAddress: {
+                in: followRecords.map(f => f.followerAddress),
+              },
+            },
+            select: {
+              followingAddress: true,
+            },
+          }).then(results => new Set(results.map(r => r.followingAddress)))
 
-      follows = followRecords.map((f) => ({
-        address: f.followerAddress,
-        createdAt: f.createdAt,
-        displayName: profileMap.get(f.followerAddress.toLowerCase()) || null,
-      }))
-      } else {
-        // Get wallets this address follows
-        const followRecords = await prisma.follow.findMany({
+          followRecords = followRecords.filter(f =>
+            mutualAddresses.has(f.followerAddress)
+          )
+        }
+
+        // Fetch profile data for each follower to get displayName
+        const profiles = await prisma.profile.findMany({
           where: {
-            followerAddress: normalizedAddress,
+            address: {
+              in: followRecords.map((f) => f.followerAddress),
+            },
           },
+          select: {
+            address: true,
+            displayName: true,
+            slug: true,
+            updatedAt: true,
+          },
+        })
+
+        const profileMap = new Map(profiles.map((p) => [p.address.toLowerCase(), p]))
+
+        let followsWithProfile = followRecords.map((f) => {
+          const profile = profileMap.get(f.followerAddress.toLowerCase())
+          return {
+            address: f.followerAddress,
+            createdAt: f.createdAt,
+            displayName: profile?.displayName || null,
+            slug: profile?.slug || null,
+            updatedAt: profile?.updatedAt || null,
+          }
+        })
+
+        // Apply post-query filters
+        if (filter === 'active30d') {
+          followsWithProfile = followsWithProfile.filter(f =>
+            f.updatedAt && f.updatedAt >= thirtyDaysAgo
+          )
+        }
+
+        if (filter === 'withIdentity') {
+          followsWithProfile = followsWithProfile.filter(f =>
+            f.displayName || f.slug
+          )
+        }
+
+        follows = followsWithProfile.map(({ address, createdAt, displayName }) => ({
+          address,
+          createdAt,
+          displayName,
+        }))
+      } else {
+        // Build where clause based on filters
+        const whereClause: any = {
+          followerAddress: normalizedAddress,
+        }
+
+        // Apply date filter if requested
+        if (filter === 'new7d') {
+          whereClause.createdAt = { gte: sevenDaysAgo }
+        }
+
+        // Get wallets this address follows
+        let followRecords = await prisma.follow.findMany({
+          where: whereClause,
           select: {
             followingAddress: true,
             createdAt: true,
           },
-          orderBy: {
-            createdAt: 'desc',
-          },
+          orderBy: sort === 'recent'
+            ? { createdAt: 'desc' }
+            : { createdAt: 'desc' },
           take: limit,
           skip: offset,
         })
+
+        // Apply mutuals filter (requires additional query)
+        if (filter === 'mutuals') {
+          const mutualAddresses = await prisma.follow.findMany({
+            where: {
+              followingAddress: normalizedAddress,
+              followerAddress: {
+                in: followRecords.map(f => f.followingAddress),
+              },
+            },
+            select: {
+              followerAddress: true,
+            },
+          }).then(results => new Set(results.map(r => r.followerAddress)))
+
+          followRecords = followRecords.filter(f =>
+            mutualAddresses.has(f.followingAddress)
+          )
+        }
 
         // Fetch profile data for each following to get displayName
         const profiles = await prisma.profile.findMany({
@@ -101,15 +190,41 @@ export async function GET(
           select: {
             address: true,
             displayName: true,
+            slug: true,
+            updatedAt: true,
           },
         })
 
-        const profileMap = new Map(profiles.map((p) => [p.address.toLowerCase(), p.displayName]))
+        const profileMap = new Map(profiles.map((p) => [p.address.toLowerCase(), p]))
 
-        follows = followRecords.map((f) => ({
-          address: f.followingAddress,
-          createdAt: f.createdAt,
-          displayName: profileMap.get(f.followingAddress.toLowerCase()) || null,
+        let followsWithProfile = followRecords.map((f) => {
+          const profile = profileMap.get(f.followingAddress.toLowerCase())
+          return {
+            address: f.followingAddress,
+            createdAt: f.createdAt,
+            displayName: profile?.displayName || null,
+            slug: profile?.slug || null,
+            updatedAt: profile?.updatedAt || null,
+          }
+        })
+
+        // Apply post-query filters
+        if (filter === 'active30d') {
+          followsWithProfile = followsWithProfile.filter(f =>
+            f.updatedAt && f.updatedAt >= thirtyDaysAgo
+          )
+        }
+
+        if (filter === 'withIdentity') {
+          followsWithProfile = followsWithProfile.filter(f =>
+            f.displayName || f.slug
+          )
+        }
+
+        follows = followsWithProfile.map(({ address, createdAt, displayName }) => ({
+          address,
+          createdAt,
+          displayName,
         }))
       }
     } catch (dbError) {
