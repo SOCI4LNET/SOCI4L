@@ -265,18 +265,13 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
         }
       )
 
-      // Immediately invalidate and refetch to ensure all components get fresh data
-      // This fixes the issue where stale data was shown on page refresh
+      // Mark cache as stale so it will refetch on next mount/focus
+      // Don't refetch immediately because of database transaction timing issues
+      // (the write might not be visible to read replicas yet)
       console.log('[FollowToggle] Invalidating queries...')
-      await queryClient.invalidateQueries({
+      queryClient.invalidateQueries({
         queryKey: ['follow-stats', normalizedAddress],
-        refetchType: 'all' // Refetch all queries with this key (active and inactive)
-      })
-
-      // Also refetch to ensure we have the latest data from server
-      console.log('[FollowToggle] Refetching queries...')
-      await queryClient.refetchQueries({
-        queryKey: ['follow-stats', normalizedAddress]
+        refetchType: 'none' // Mark as stale but don't refetch immediately
       })
       console.log('[FollowToggle] Follow action completed')
 
