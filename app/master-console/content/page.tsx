@@ -93,9 +93,12 @@ export default async function AdminContentPage() {
                       >
                         {link.profile.displayName || link.profile.address.slice(0, 10) + '...'}
                       </Link>
-                      <span className="text-xs text-muted-foreground font-mono">
+                      <Link
+                        href={`/p/${link.profile.slug || link.profile.address}`}
+                        className="text-xs text-muted-foreground font-mono hover:underline hover:text-primary transition-colors"
+                      >
                         {link.profile.address.slice(0, 10)}...{link.profile.address.slice(-6)}
-                      </span>
+                      </Link>
                       <div className="sm:hidden mt-1">
                         {link.title && (
                           <div className="text-xs text-muted-foreground truncate">
