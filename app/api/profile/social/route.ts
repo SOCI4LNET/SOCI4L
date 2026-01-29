@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       }
 
       const validPlatforms: SocialLinkPlatform[] = ['x', 'instagram', 'youtube', 'github', 'linkedin', 'website']
-      
+
       for (const link of socialLinks) {
         const platform = link.platform || link.type
         if (!platform || !validPlatforms.includes(platform as SocialLinkPlatform)) {
@@ -213,13 +213,13 @@ export async function POST(request: NextRequest) {
     if (updatedProfile.socialLinks) {
       try {
         const parsed = JSON.parse(updatedProfile.socialLinks)
-        parsedSocialLinks = Array.isArray(parsed) 
+        parsedSocialLinks = Array.isArray(parsed)
           ? parsed.map((link: any) => ({
-              id: link.id || crypto.randomUUID(),
-              platform: link.platform || link.type || 'website',
-              url: link.url,
-              label: link.label,
-            }))
+            id: link.id || crypto.randomUUID(),
+            platform: link.platform || link.type || 'website',
+            url: link.url,
+            label: link.label,
+          }))
           : null
       } catch {
         parsedSocialLinks = null
@@ -238,6 +238,9 @@ export async function POST(request: NextRequest) {
         claimedAt: updatedProfile.claimedAt,
         displayName: updatedProfile.displayName,
         bio: updatedProfile.bio,
+        primaryRole: updatedProfile.primaryRole,
+        secondaryRoles: updatedProfile.secondaryRoles,
+        statusMessage: updatedProfile.statusMessage,
         socialLinks: parsedSocialLinks,
       },
     })

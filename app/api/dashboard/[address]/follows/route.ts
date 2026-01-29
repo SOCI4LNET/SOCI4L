@@ -104,6 +104,8 @@ export async function GET(
             updatedAt: true,
             createdAt: true, // Needed for account age score
             role: true,
+            primaryRole: true,
+            statusMessage: true,
           },
         })
 
@@ -159,6 +161,7 @@ export async function GET(
             displayName: profile?.displayName || null,
             slug: profile?.slug || null,
             updatedAt: profile?.updatedAt || null,
+            primaryRole: profile?.primaryRole || null,
             score: Math.min(score, 100),
             reason: reasons.length > 0 ? reasons.join(' • ') : undefined
           }
@@ -177,10 +180,12 @@ export async function GET(
           )
         }
 
-        follows = followsWithProfile.map(({ address, createdAt, displayName, score, reason }) => ({
+        follows = followsWithProfile.map(({ address, createdAt, displayName, primaryRole, statusMessage, score, reason }) => ({
           address,
           createdAt,
           displayName,
+          primaryRole,
+          statusMessage,
           score,
           reason
         }))
@@ -240,6 +245,8 @@ export async function GET(
             displayName: true,
             slug: true,
             updatedAt: true,
+            primaryRole: true,
+            statusMessage: true,
           },
         })
 
@@ -253,6 +260,8 @@ export async function GET(
             displayName: profile?.displayName || null,
             slug: profile?.slug || null,
             updatedAt: profile?.updatedAt || null,
+            primaryRole: profile?.primaryRole || null,
+            statusMessage: profile?.statusMessage || null,
           }
         })
 
@@ -269,10 +278,12 @@ export async function GET(
           )
         }
 
-        follows = followsWithProfile.map(({ address, createdAt, displayName }) => ({
+        follows = followsWithProfile.map(({ address, createdAt, displayName, primaryRole, statusMessage }) => ({
           address,
           createdAt,
           displayName,
+          primaryRole,
+          statusMessage,
         }))
       }
     } catch (dbError) {

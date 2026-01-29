@@ -38,7 +38,8 @@ interface FollowItem {
   displayName?: string | null
   score?: number
   reason?: string
-  role?: 'Builder' | 'Trader' | 'Collector'
+  primaryRole?: string | null
+  statusMessage?: string | null
 }
 
 export function SocialPanel({ address }: SocialPanelProps) {
@@ -414,7 +415,8 @@ export function SocialPanel({ address }: SocialPanelProps) {
                     address={s.address}
                     displayName={s.displayName}
                     avatarUrl={`https://effigy.im/a/${s.address.toLowerCase()}.svg`}
-                    role={s.role}
+                    primaryRole={s.primaryRole}
+                    statusMessage={s.statusMessage}
                     connectionReason={s.reason}
                     followedAt={new Date(s.createdAt)}
                   // No showUnfollow since these are suggestions
@@ -440,6 +442,8 @@ export function SocialPanel({ address }: SocialPanelProps) {
             onUnfollow={handleUnfollow}
             connectionStrength={item.score}
             connectionReason={item.reason}
+            primaryRole={item.primaryRole}
+            statusMessage={item.statusMessage}
           />
         ))}
       </div>

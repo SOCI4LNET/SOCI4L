@@ -17,6 +17,9 @@ export interface ProfileData {
   updatedAt: Date
   displayName?: string | null
   bio?: string | null
+  primaryRole?: string | null
+  secondaryRoles?: string[]
+  statusMessage?: string | null
   socialLinks?: string | null
 }
 
@@ -49,6 +52,9 @@ export async function getProfileByAddress(address: string): Promise<ProfileData 
     updatedAt: profile.updatedAt,
     displayName: profile.displayName,
     bio: profile.bio,
+    primaryRole: profile.primaryRole,
+    secondaryRoles: profile.secondaryRoles,
+    statusMessage: profile.statusMessage,
     socialLinks: profile.socialLinks,
   }
 }
@@ -145,6 +151,9 @@ export async function getProfileBySlug(slug: string): Promise<ProfileData | null
     updatedAt: profile.updatedAt,
     displayName: profile.displayName,
     bio: profile.bio,
+    primaryRole: profile.primaryRole,
+    secondaryRoles: profile.secondaryRoles,
+    statusMessage: profile.statusMessage,
     socialLinks: profile.socialLinks,
   }
 }

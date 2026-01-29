@@ -91,6 +91,9 @@ export default function ProfilePage({ params }: PageProps) {
     slug: string | null
     displayName?: string | null
     bio?: string | null
+    primaryRole?: string | null
+    secondaryRoles?: string[]
+    statusMessage?: string | null
     isBanned?: boolean
     socialLinks?: Array<{ id?: string; platform?: string; type?: string; url: string; label?: string }> | null
   } | null>(null)
@@ -186,6 +189,9 @@ export default function ProfilePage({ params }: PageProps) {
               slug: data.profile.slug,
               displayName: data.profile.displayName,
               bio: data.profile.bio,
+              primaryRole: data.profile.primaryRole,
+              secondaryRoles: data.profile.secondaryRoles,
+              statusMessage: data.profile.statusMessage,
               isBanned: data.profile.isBanned,
               socialLinks: data.profile.socialLinks,
             })
@@ -397,6 +403,9 @@ export default function ProfilePage({ params }: PageProps) {
           slug: data.profile.slug,
           displayName: data.profile.displayName,
           bio: data.profile.bio,
+          primaryRole: data.profile.primaryRole,
+          secondaryRoles: data.profile.secondaryRoles,
+          statusMessage: data.profile.statusMessage,
           socialLinks: data.profile.socialLinks,
         })
         // Update status based on fresh data
@@ -641,6 +650,17 @@ export default function ProfilePage({ params }: PageProps) {
                         <h1 className={`${titleClasses} font-semibold truncate`}>
                           {primaryDisplayName}
                         </h1>
+                        {/* Identity Roles */}
+                        {profile?.primaryRole && (
+                          <Badge variant="secondary" className="text-[11px] px-2 py-0 border-primary/20 bg-primary/5 text-primary">
+                            {profile.primaryRole}
+                          </Badge>
+                        )}
+                        {profile?.secondaryRoles?.map(role => (
+                          <Badge key={role} variant="outline" className="text-[10px] px-1.5 py-0 text-muted-foreground/80">
+                            {role}
+                          </Badge>
+                        ))}
                         {isClaimed && !isPrivate && !profile?.isBanned && getStatusBadge()}
                         {!isClaimed && !profile?.isBanned && getStatusBadge()}
                         {profile?.isBanned && (
@@ -650,6 +670,15 @@ export default function ProfilePage({ params }: PageProps) {
                           </Badge>
                         )}
                       </div>
+
+                      {/* Status Message */}
+                      {profile?.statusMessage && (
+                        <p className="text-sm text-muted-foreground flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-500/80 inline-block shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
+                          <span className="italic">{profile.statusMessage}</span>
+                        </p>
+                      )}
+
                       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                         <div className="flex items-center gap-1.5">
                           <span className="font-mono">{shortAddress}</span>

@@ -23,7 +23,11 @@ model Profile {
   role         String   @default("USER")      // USER | ADMIN
   claimedAt    DateTime?
   displayName      String?  // max 32 characters
+
   bio              String?  // max 160 characters
+  primaryRole      String?  // e.g. "Builder", "Trader"
+  secondaryRoles   String[] @default([]) // e.g. ["Designer", "Collector"]
+  statusMessage    String?  // e.g. "Open to collabs"
   socialLinks      String?  // JSON array of social links
   layoutConfig     String?  // JSON ProfileLayoutConfig
   appearanceConfig String?  // JSON ProfileAppearanceConfig

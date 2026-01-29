@@ -14,13 +14,14 @@ import { MoreVertical } from 'lucide-react'
 import Link from 'next/link'
 import { formatAddress } from '@/lib/utils'
 
-export type RoleTag = 'Builder' | 'Trader' | 'Collector'
+export type RoleTag = string
 
 interface ConnectionCardProps {
     address: string
     displayName?: string | null
     avatarUrl: string
-    role?: RoleTag | null
+    primaryRole?: string | null
+    statusMessage?: string | null
     connectionReason?: string | null
     connectionStrength?: number // 0-100 score (V2)
     followedAt: Date
@@ -32,7 +33,8 @@ export function ConnectionCard({
     address,
     displayName,
     avatarUrl,
-    role,
+    primaryRole,
+    statusMessage,
     connectionReason,
     connectionStrength,
     followedAt,
@@ -65,10 +67,17 @@ export function ConnectionCard({
                     {shortAddress}
                 </p>
 
+                {/* Status Message */}
+                {statusMessage && (
+                    <p className="text-xs text-foreground/80 italic truncate mt-0.5">
+                        {statusMessage}
+                    </p>
+                )}
+
                 {/* Role tag */}
-                {role && (
+                {primaryRole && (
                     <Badge variant="secondary" className="mt-1 text-xs">
-                        {role}
+                        {primaryRole}
                     </Badge>
                 )}
 

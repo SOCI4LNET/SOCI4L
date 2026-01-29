@@ -32,6 +32,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -528,6 +529,15 @@ function SortableSectionRow({ section, onToggle, onVariantChange, rowId, slotInd
   )
 }
 
+const ROLES = ['Builder', 'Designer', 'Trader', 'Founder', 'Collector', 'Researcher', 'Operator']
+
+const BIO_PATTERNS = [
+  "Building [Project] @ [Ecosystm]",
+  "Contributor to [DAO]",
+  "Collecting [Collection] on Avalanche",
+  "Trader • Researcher • [Role]"
+]
+
 type BuilderPanelProps = {
   address: string
 }
@@ -559,6 +569,9 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
   // Profile Info state
   const [displayName, setDisplayName] = useState<string>('')
   const [bio, setBio] = useState<string>('')
+  const [primaryRole, setPrimaryRole] = useState<string>('')
+  const [secondaryRoles, setSecondaryRoles] = useState<string[]>([])
+  const [statusMessage, setStatusMessage] = useState<string>('')
 
   // Load layout from API on mount
   useEffect(() => {
@@ -603,6 +616,9 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
           if (profileData.profile) {
             setDisplayName(profileData.profile.displayName || '')
             setBio(profileData.profile.bio || '')
+            setPrimaryRole(profileData.profile.primaryRole || '')
+            setSecondaryRoles(profileData.profile.secondaryRoles || [])
+            setStatusMessage(profileData.profile.statusMessage || '')
           }
         }
 
@@ -828,6 +844,9 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
             address,
             displayName: displayName.trim() || null,
             bio: bio.trim() || null,
+            primaryRole: primaryRole.trim() || null,
+            secondaryRoles: secondaryRoles,
+            statusMessage: statusMessage.trim() || null,
             signature,
           }),
         })
@@ -1386,6 +1405,97 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
                 <p className="text-xs text-muted-foreground">
                   {bio.length}/160 characters
                 </p>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {BIO_PATTERNS.map((pattern) => (
+                    <Badge
+                      key={pattern}
+                      variant="outline"
+                      className="cursor-pointer hover:bg-accent hover:text-accent-foreground text-[10px] font-normal py-0.5 px-2 transition-colors border-dashed"
+                      onClick={() => {
+                        setBio(pattern)
+                        setHasUnsavedChanges(true)
+                      }}
+                    >
+                      {pattern}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Primary Role</Label>
+                  <Select
+                    value={primaryRole}
+                    onValueChange={(value) => {
+                      setPrimaryRole(value)
+                      setHasUnsavedChanges(true)
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ROLES.map((role) => (
+                        <SelectItem key={role} value={role}>
+                          {role}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Status</Label>
+                  <Input
+                    value={statusMessage}
+                    onChange={(e) => {
+                      setStatusMessage(e.target.value)
+                      setHasUnsavedChanges(true)
+                    }}
+                    placeholder="What are you up to?"
+                    maxLength={60}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {statusMessage.length}/60 characters
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Secondary Roles (Max 2)</Label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                  {ROLES.map((role) => {
+                    const isSelected = secondaryRoles.includes(role);
+                    const isPrimary = primaryRole === role;
+                    return (
+                      <div key={role} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`role-${role}`}
+                          checked={isSelected}
+                          disabled={isPrimary || (!isSelected && secondaryRoles.length >= 2)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              if (secondaryRoles.length < 2) {
+                                setSecondaryRoles([...secondaryRoles, role])
+                                setHasUnsavedChanges(true)
+                              }
+                            } else {
+                              setSecondaryRoles(secondaryRoles.filter(r => r !== role))
+                              setHasUnsavedChanges(true)
+                            }
+                          }}
+                        />
+                        <label
+                          htmlFor={`role-${role}`}
+                          className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${isPrimary ? 'opacity-50' : ''}`}
+                        >
+                          {role} {isPrimary && '(Primary)'}
+                        </label>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             </div>
           </CardContent>
