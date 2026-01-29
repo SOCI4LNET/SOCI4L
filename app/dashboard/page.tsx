@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2 } from 'lucide-react'
 import { PageShell } from '@/components/app-shell/page-shell'
@@ -13,6 +13,7 @@ export default function DashboardPage() {
   const [mounted, setMounted] = useState(false)
   const { address: connectedAddress, isConnected } = useAccount()
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     setMounted(true)
@@ -20,7 +21,17 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!mounted) return
-    
+
+    // Check if there's an address query parameter (admin accessing another user's dashboard)
+    const addressParam = searchParams.get('address')
+    if (addressParam) {
+      // Admin is trying to access someone else's dashboard
+      // Redirect to /dashboard/[address] with tab param preserved
+      const tab = searchParams.get('tab') || 'overview'
+      router.replace(`/dashboard/${addressParam.toLowerCase()}?tab=${tab}`)
+      return
+    }
+
     // If wallet is connected, redirect to dashboard/[address] format
     if (isConnected && connectedAddress) {
       const dashboardHref = getConnectedDashboardHref(connectedAddress)
@@ -29,7 +40,7 @@ export default function DashboardPage() {
         return
       }
     }
-  }, [mounted, isConnected, connectedAddress, router])
+  }, [mounted, isConnected, connectedAddress, router, searchParams])
 
   // Mounted check to prevent hydration mismatch
   if (!mounted) {
@@ -56,9 +67,9 @@ export default function DashboardPage() {
             <CardDescription className="text-xs">Please connect your wallet to access the dashboard</CardDescription>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <WalletConnectButtons 
-              variant="default" 
-              size="sm" 
+            <WalletConnectButtons
+              variant="default"
+              size="sm"
               className="w-full bg-accent-primary text-black hover:bg-accent-primary/90"
             />
           </CardContent>
