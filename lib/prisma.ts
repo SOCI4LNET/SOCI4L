@@ -6,26 +6,43 @@ const globalForPrisma = globalThis as unknown as {
 
 // Get DATABASE_URL with fallback to Prisma Postgres variables
 function getDatabaseUrl(): string {
-  // Prioritize Prisma Postgres variables (Vercel Prisma Postgres)
-  // This ensures we use connection pooling if available, which is critical for serverless
+  // IMPORTANT: Prioritize DIRECT connections over Prisma Accelerate
+  // Prisma Accelerate (PRISMA_DATABASE_URL) has caching issues that cause
+  // stale data reads for real-time features like Follow counts.
+  // 
+  // Issue: Follow writes go to DB but reads come from stale cache,
+  // causing follower count to show 0 even after successful follow.
+  //
+  // Solution: Use direct database connection for consistent reads/writes.
 
-  // Try PRISMA_DATABASE_URL first (Prisma Accelerate with connection pooling)
-  if (process.env.PRISMA_DATABASE_URL) {
-    return process.env.PRISMA_DATABASE_URL
-  }
-
-  // Next, try POSTGRES_PRISMA_URL (Vercel Postgres with Prisma pooling)
-  if (process.env.POSTGRES_PRISMA_URL) {
-    return process.env.POSTGRES_PRISMA_URL
-  }
-
-  // Create a priority for POSTGRES_URL if others are missing
+  // 1st Priority: Direct Postgres connection (POSTGRES_URL)
+  // This ensures real-time consistency for writes and reads
   if (process.env.POSTGRES_URL) {
+    console.log('[Prisma] Using POSTGRES_URL (direct connection)')
     return process.env.POSTGRES_URL
   }
 
-  // Fallback to standard DATABASE_URL
-  return process.env.DATABASE_URL || ''
+  // 2nd Priority: Standard DATABASE_URL (direct connection)
+  if (process.env.DATABASE_URL) {
+    console.log('[Prisma] Using DATABASE_URL (direct connection)')
+    return process.env.DATABASE_URL
+  }
+
+  // 3rd Priority: Vercel Postgres with Prisma pooling
+  if (process.env.POSTGRES_PRISMA_URL) {
+    console.log('[Prisma] Using POSTGRES_PRISMA_URL (pooled connection)')
+    return process.env.POSTGRES_PRISMA_URL
+  }
+
+  // LAST RESORT: Prisma Accelerate (caching layer)
+  // Only use if no other option available
+  // WARNING: May cause cache inconsistency for real-time features
+  if (process.env.PRISMA_DATABASE_URL) {
+    console.warn('[Prisma] ⚠️ Using PRISMA_DATABASE_URL (Accelerate with cache) - may cause stale data')
+    return process.env.PRISMA_DATABASE_URL
+  }
+
+  return ''
 }
 
 // Validate DATABASE_URL before creating Prisma client
