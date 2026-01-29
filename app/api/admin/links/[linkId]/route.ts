@@ -4,7 +4,7 @@ import { getSessionAddress } from '@/lib/auth'
 
 /**
  * PATCH /api/admin/links/[linkId]
- * Toggle link enabled/disabled status
+ * Update link (enabled status, title, or URL)
  * Requires admin authorization
  */
 export async function PATCH(
@@ -34,10 +34,33 @@ export async function PATCH(
 
         // Parse request body
         const body = await request.json()
-        const { enabled } = body
+        const { enabled, title, url } = body
 
-        if (typeof enabled !== 'boolean') {
-            return NextResponse.json({ error: 'enabled field must be boolean' }, { status: 400 })
+        // Build update data object dynamically
+        const updateData: any = {}
+
+        if (typeof enabled === 'boolean') {
+            updateData.enabled = enabled
+        }
+
+        if (typeof title === 'string') {
+            updateData.title = title.trim()
+        }
+
+        if (typeof url === 'string') {
+            const trimmedUrl = url.trim()
+            if (!trimmedUrl) {
+                return NextResponse.json({ error: 'URL cannot be empty' }, { status: 400 })
+            }
+            updateData.url = trimmedUrl
+        }
+
+        // At least one field must be provided
+        if (Object.keys(updateData).length === 0) {
+            return NextResponse.json(
+                { error: 'At least one field (enabled, title, url) must be provided' },
+                { status: 400 }
+            )
         }
 
         // Check if link exists
@@ -53,21 +76,28 @@ export async function PATCH(
         // Update link
         const link = await prisma.profileLink.update({
             where: { id: params.linkId },
-            data: { enabled },
+            data: updateData,
         })
 
         // Log admin action
         try {
+            // Determine what was changed for audit log
+            const changes = []
+            if ('enabled' in updateData) changes.push(updateData.enabled ? 'enabled' : 'disabled')
+            if ('title' in updateData) changes.push('title')
+            if ('url' in updateData) changes.push('url')
+
             await prisma.adminAuditLog.create({
                 data: {
                     adminAddress: sessionAddress.toLowerCase(),
-                    action: enabled ? 'enable_link' : 'disable_link',
+                    action: changes.length > 0 ? `update_link_${changes.join('_')}` : 'update_link',
                     targetType: 'link',
                     targetId: link.id,
                     metadata: JSON.stringify({
                         linkTitle: link.title,
                         linkUrl: link.url,
                         profileAddress: existingLink.profile.address,
+                        changes: updateData,
                     }),
                 },
             })

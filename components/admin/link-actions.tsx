@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Edit, Trash2, Power } from 'lucide-react'
 import { toast } from 'sonner'
-import Link from 'next/link'
 import {
     AlertDialog,
     AlertDialogAction,
@@ -17,6 +16,7 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { useRouter } from 'next/navigation'
+import { EditLinkDialog } from '@/components/admin/edit-link-dialog'
 
 interface LinkActionsProps {
     linkId: string
@@ -36,6 +36,7 @@ export function LinkActions({
     const router = useRouter()
     const [isToggling, setIsToggling] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
+    const [showEditDialog, setShowEditDialog] = useState(false)
 
     async function handleToggleEnabled() {
         setIsToggling(true)
@@ -97,18 +98,25 @@ export function LinkActions({
                 {isToggling ? '...' : enabled ? 'Disable' : 'Enable'}
             </Button>
 
-            {/* Edit - Navigate to user's dashboard */}
+            {/* Edit - Open dialog */}
             <Button
                 variant="ghost"
                 size="sm"
                 className="h-7 text-xs gap-1.5"
-                asChild
+                onClick={() => setShowEditDialog(true)}
             >
-                <Link href={`/dashboard?tab=links&address=${profileAddress}`}>
-                    <Edit className="h-3 w-3" />
-                    Edit
-                </Link>
+                <Edit className="h-3 w-3" />
+                Edit
             </Button>
+
+            {/* Edit Dialog */}
+            <EditLinkDialog
+                linkId={linkId}
+                linkTitle={linkTitle}
+                linkUrl={linkUrl}
+                open={showEditDialog}
+                onOpenChange={setShowEditDialog}
+            />
 
             {/* Delete with confirmation */}
             <AlertDialog>
