@@ -113,6 +113,7 @@ model ProfileLink {
   @@index([profileId])
   @@index([profileId, enabled])
   @@index([categoryId])
+  @@index([createdAt])
 }
 
 model EmailSubscription {
