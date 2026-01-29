@@ -18,21 +18,43 @@ import { LinkActions } from '@/components/admin/link-actions'
 // Force dynamic rendering since this page uses Prisma queries
 export const dynamic = 'force-dynamic'
 
-async function getRecentLinks() {
-  const links = await prisma.profileLink.findMany({
-    orderBy: { createdAt: 'desc' },
-    take: 200,
-    include: {
-      profile: true,
-      category: true,
-    },
-  })
-
-  return links
+interface SearchParams {
+  page?: string
 }
 
-export default async function AdminContentPage() {
-  const links = await getRecentLinks()
+async function getRecentLinks(searchParams: SearchParams) {
+  const pageSize = 50 // Reduced from 200 for better performance
+  const page = Math.max(parseInt(searchParams.page || '1', 10), 1)
+  const skip = (page - 1) * pageSize
+
+  const [links, totalCount] = await Promise.all([
+    prisma.profileLink.findMany({
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: pageSize,
+      include: {
+        profile: true,
+        category: true,
+      },
+    }),
+    prisma.profileLink.count(),
+  ])
+
+  return {
+    links,
+    totalCount,
+    page,
+    pageSize,
+    totalPages: Math.max(1, Math.ceil(totalCount / pageSize)),
+  }
+}
+
+export default async function AdminContentPage({
+  searchParams,
+}: {
+  searchParams: SearchParams
+}) {
+  const { links, totalCount, page, totalPages } = await getRecentLinks(searchParams)
 
   return (
     <PageShell
@@ -156,9 +178,30 @@ export default async function AdminContentPage() {
               ))
             )}
           </TableBody>
-          <TableCaption className="pt-4 pb-4 border-t border-border/60 mt-4">
-            Showing the 200 most recently created links. Moderation and flagging tools will be added
-            here later.
+          <TableCaption className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-4 pb-4 border-t border-border/60 mt-4">
+            <span className="text-xs text-muted-foreground">
+              Showing page {page} of {totalPages} • {totalCount.toLocaleString('en-US')} links total
+            </span>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-3">
+                {page > 1 && (
+                  <Link
+                    href={`/master-console/content?page=${page - 1}`}
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    Previous
+                  </Link>
+                )}
+                {page < totalPages && (
+                  <Link
+                    href={`/master-console/content?page=${page + 1}`}
+                    className="text-xs font-medium text-primary hover:underline"
+                  >
+                    Next
+                  </Link>
+                )}
+              </div>
+            )}
           </TableCaption>
         </Table>
       </div>
