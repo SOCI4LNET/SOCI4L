@@ -9,6 +9,7 @@ import { toast } from 'sonner'
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   const params = useParams()
   const { address: connectedAddress, isConnected, isReconnecting, isConnecting } = useAccount()
   const router = useRouter()
@@ -19,6 +20,25 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Check if current user is admin
+  useEffect(() => {
+    if (!mounted || !isConnected || !connectedAddress) return
+
+    async function checkAdmin() {
+      try {
+        const response = await fetch(`/api/profile/${connectedAddress}`)
+        if (response.ok) {
+          const data = await response.json()
+          setIsAdmin(data.profile?.role === 'ADMIN')
+        }
+      } catch (error) {
+        console.error('[Layout] Failed to check admin status:', error)
+      }
+    }
+
+    checkAdmin()
+  }, [mounted, isConnected, connectedAddress])
 
   useEffect(() => {
     if (!mounted) return
@@ -34,7 +54,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     const normalizedConnectedAddress = connectedAddress.toLowerCase()
 
     // If user tries to access a different address's dashboard, redirect to their own
-    if (normalizedTargetAddress && normalizedTargetAddress !== normalizedConnectedAddress) {
+    // UNLESS they are an admin (admins can view any dashboard)
+    if (normalizedTargetAddress && normalizedTargetAddress !== normalizedConnectedAddress && !isAdmin) {
       toast.error('You can only access your own dashboard')
       router.push(`/dashboard/${normalizedConnectedAddress}`)
       return
