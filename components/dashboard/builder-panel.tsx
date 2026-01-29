@@ -1422,80 +1422,89 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Primary Role</Label>
-                  <Select
-                    value={primaryRole}
-                    onValueChange={(value) => {
-                      setPrimaryRole(value)
-                      setHasUnsavedChanges(true)
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ROLES.map((role) => (
-                        <SelectItem key={role} value={role}>
-                          {role}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Status</Label>
-                  <Input
-                    value={statusMessage}
-                    onChange={(e) => {
-                      setStatusMessage(e.target.value)
-                      setHasUnsavedChanges(true)
-                    }}
-                    placeholder="What are you up to?"
-                    maxLength={60}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {statusMessage.length}/60 characters
-                  </p>
-                </div>
+              {/* Status Field - Moved below Bio */}
+              <div className="space-y-1">
+                <Input
+                  value={statusMessage}
+                  onChange={(e) => {
+                    setStatusMessage(e.target.value)
+                    setHasUnsavedChanges(true)
+                  }}
+                  placeholder="What are you building? (Status)"
+                  maxLength={60}
+                  className="border-0 border-b border-border/40 rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary placeholder:text-muted-foreground/50 text-base"
+                />
+                <p className="text-xs text-muted-foreground text-right">
+                  {statusMessage.length}/60
+                </p>
               </div>
 
-              <div className="space-y-2">
-                <Label>Secondary Roles (Max 2)</Label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+              {/* Unified Role Picker */}
+              <div className="space-y-3 pt-2">
+                <Label>Roles (Select up to 3)</Label>
+                <div className="flex flex-wrap gap-2">
                   {ROLES.map((role) => {
-                    const isSelected = secondaryRoles.includes(role);
-                    const isPrimary = primaryRole === role;
+                    const isPrimary = primaryRole === role
+                    const isSecondary = secondaryRoles.includes(role)
+                    const isSelected = isPrimary || isSecondary
+
                     return (
-                      <div key={role} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`role-${role}`}
-                          checked={isSelected}
-                          disabled={isPrimary || (!isSelected && secondaryRoles.length >= 2)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              if (secondaryRoles.length < 2) {
-                                setSecondaryRoles([...secondaryRoles, role])
-                                setHasUnsavedChanges(true)
-                              }
-                            } else {
-                              setSecondaryRoles(secondaryRoles.filter(r => r !== role))
-                              setHasUnsavedChanges(true)
+                      <Button
+                        key={role}
+                        variant={isPrimary ? 'default' : isSecondary ? 'outline' : 'ghost'}
+                        size="sm"
+                        className={`
+                          h-8 text-sm font-normal transition-all
+                          ${isPrimary ? 'shadow-sm' : ''}
+                          ${isSecondary ? 'opacity-90 border-primary/20 text-foreground/80' : ''}
+                          ${!isSelected ? 'text-muted-foreground bg-muted/30 hover:bg-muted/60' : ''}
+                        `}
+                        onClick={() => {
+                          setHasUnsavedChanges(true)
+
+                          // Case 1: Already Primary -> Deselect 
+                          if (isPrimary) {
+                            setPrimaryRole('')
+                            // Promote first secondary to primary
+                            if (secondaryRoles.length > 0) {
+                              const [newPrimary, ...remaining] = secondaryRoles
+                              setPrimaryRole(newPrimary)
+                              setSecondaryRoles(remaining)
                             }
-                          }}
-                        />
-                        <label
-                          htmlFor={`role-${role}`}
-                          className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${isPrimary ? 'opacity-50' : ''}`}
-                        >
-                          {role} {isPrimary && '(Primary)'}
-                        </label>
-                      </div>
+                            return
+                          }
+
+                          // Case 2: Already Secondary -> Deselect
+                          if (isSecondary) {
+                            setSecondaryRoles(secondaryRoles.filter(r => r !== role))
+                            return
+                          }
+
+                          // Case 3: New Selection
+                          // If no primary, set as primary
+                          if (!primaryRole) {
+                            setPrimaryRole(role)
+                            return
+                          }
+
+                          // If we have room in secondary (max 2), add there
+                          if (secondaryRoles.length < 2) {
+                            setSecondaryRoles([...secondaryRoles, role])
+                          } else {
+                            // Max reached. Replace the last added secondary.
+                            setSecondaryRoles([secondaryRoles[0], role])
+                          }
+                        }}
+                      >
+                        {role}
+                        {isPrimary && <span className="ml-1.5 text-[9px] uppercase tracking-wider opacity-70">Pri</span>}
+                      </Button>
                     )
                   })}
                 </div>
+                <p className="text-[10px] text-muted-foreground">
+                  First selection is your <strong>Primary Role</strong>. Next two become secondary.
+                </p>
               </div>
             </div>
           </CardContent>
