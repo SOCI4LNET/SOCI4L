@@ -9,6 +9,9 @@ import { PageShell } from '@/components/app-shell/page-shell'
 import { getConnectedDashboardHref } from '@/lib/routing'
 import { WalletConnectButtons } from '@/components/wallet-connect-buttons'
 
+// Force dynamic rendering (required for useSearchParams)
+export const dynamic = 'force-dynamic'
+
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false)
   const { address: connectedAddress, isConnected } = useAccount()
