@@ -78,10 +78,11 @@ export default function DashboardAddressPage() {
   const [walletData, setWalletData] = useState<WalletData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
-  
+  const [isAdmin, setIsAdmin] = useState(false)
+
   const targetAddress = params.address as string
   const currentTab = searchParams.get('tab') || 'overview'
-  
+
   // Validate tab value
   const validTabs = ['overview', 'assets', 'activity', 'social', 'settings', 'builder', 'links', 'insights']
   const activeTab = validTabs.includes(currentTab) ? currentTab : 'overview'
@@ -119,6 +120,25 @@ export default function DashboardAddressPage() {
     }
   }, [mounted, isConnected, connectedAddress, profile?.ownerAddress, targetAddress, router])
 
+  // Check if current user is admin
+  useEffect(() => {
+    if (!mounted || !isConnected || !connectedAddress) return
+
+    async function checkAdmin() {
+      try {
+        const response = await fetch(`/api/profile/${connectedAddress}`)
+        if (response.ok) {
+          const data = await response.json()
+          setIsAdmin(data.profile?.role === 'ADMIN')
+        }
+      } catch (error) {
+        console.error('[Dashboard] Failed to check admin status:', error)
+      }
+    }
+
+    checkAdmin()
+  }, [mounted, isConnected, connectedAddress])
+
   useEffect(() => {
     if (!mounted) return
 
@@ -141,10 +161,10 @@ export default function DashboardAddressPage() {
 
     const normalizedAddress = targetAddress.toLowerCase()
     console.log('[Overview] Starting data fetch for address:', normalizedAddress)
-    
+
     setLoading(true)
     setError(null)
-    
+
     // Timeout safeguard: 12 seconds
     const timeoutId = setTimeout(() => {
       const timeoutError = new Error('Request timed out')
@@ -172,9 +192,9 @@ export default function DashboardAddressPage() {
       }
 
       const data = await response.json()
-      console.log('[Overview] Data fetch successful:', { 
-        hasProfile: !!data.profile, 
-        hasWalletData: !!data.walletData 
+      console.log('[Overview] Data fetch successful:', {
+        hasProfile: !!data.profile,
+        hasWalletData: !!data.walletData
       })
 
       // Always set profile state (null if not found)
@@ -188,29 +208,29 @@ export default function DashboardAddressPage() {
             parsedSocialLinks = null
           }
         }
-        
+
         // Ensure all links have id and platform field
         const normalizedLinks = parsedSocialLinks && Array.isArray(parsedSocialLinks)
           ? parsedSocialLinks.map((link: any) => ({
-              id: link.id || crypto.randomUUID(),
-              platform: link.platform || link.type || 'website',
-              url: link.url || '',
-              label: link.label || '',
-            }))
+            id: link.id || crypto.randomUUID(),
+            platform: link.platform || link.type || 'website',
+            url: link.url || '',
+            label: link.label || '',
+          }))
           : null
-        
+
         // Check if current state is claimed - if so, preserve claim status even if API returns stale data
         setProfile((prev) => {
           const currentIsClaimed = isProfileClaimed(prev)
           const newIsClaimed = isProfileClaimed(data.profile)
-          
+
           // If current state is claimed but new data says unclaimed, preserve current state
           // This prevents claim state from being lost due to cache/stale data
           if (currentIsClaimed && !newIsClaimed) {
             console.log('[Overview] Preserving claimed state - API returned stale data')
             return prev // Keep current claimed state
           }
-          
+
           // Otherwise, update with new data
           return {
             ...data.profile,
@@ -270,7 +290,7 @@ export default function DashboardAddressPage() {
     // Normalize address
     const normalizedAddress = targetAddress.toLowerCase()
     console.log('[Claim Success] Updating profile state after claim...', claimResponseProfile)
-    
+
     // If we have profile data from claim response, update state immediately
     // This ensures UI updates instantly without waiting for API call
     if (claimResponseProfile) {
@@ -284,8 +304,8 @@ export default function DashboardAddressPage() {
           ownerAddress: normalizedAddress, // Claim response doesn't include this, but we know it's the current address
           status: claimResponseProfile.status,
           visibility: 'PUBLIC' as const, // Default for claimed profiles
-          claimedAt: typeof claimResponseProfile.claimedAt === 'string' 
-            ? claimResponseProfile.claimedAt 
+          claimedAt: typeof claimResponseProfile.claimedAt === 'string'
+            ? claimResponseProfile.claimedAt
             : claimResponseProfile.claimedAt?.toISOString() || new Date().toISOString(),
           displayName: claimResponseProfile.displayName,
           bio: null,
@@ -294,13 +314,13 @@ export default function DashboardAddressPage() {
           // Update existing profile with claim data
           ...prev,
           status: claimResponseProfile.status,
-          claimedAt: typeof claimResponseProfile.claimedAt === 'string' 
-            ? claimResponseProfile.claimedAt 
+          claimedAt: typeof claimResponseProfile.claimedAt === 'string'
+            ? claimResponseProfile.claimedAt
             : claimResponseProfile.claimedAt?.toISOString() || prev.claimedAt || new Date().toISOString(),
           slug: claimResponseProfile.slug || prev.slug,
           displayName: claimResponseProfile.displayName || prev.displayName,
         }
-        
+
         console.log('[Claim Success] Profile state updated immediately:', {
           status: updatedProfile.status,
           claimedAt: updatedProfile.claimedAt,
@@ -308,24 +328,24 @@ export default function DashboardAddressPage() {
           displayName: updatedProfile.displayName,
           isClaimed: isProfileClaimed(updatedProfile)
         })
-        
+
         return updatedProfile
       })
     }
-    
+
     // Don't call loadData() immediately - it might fetch stale data from cache
     // Instead, rely on the state update above and let the user refresh manually if needed
     // Or call loadData() after a longer delay to ensure DB write is fully propagated
-    
+
     // Refresh router cache to ensure all components see updated data
     router.refresh()
-    
+
     // Optionally reload data after a delay (but preserve claimed state if already set)
     setTimeout(async () => {
       console.log('[Claim Success] Reloading profile data after delay to get complete data...')
       await loadData()
     }, 2000) // 2 second delay to ensure DB write is fully propagated
-    
+
     console.log('[Claim Success] Profile state updated immediately, UI should reflect claimed status')
   }
 
@@ -438,13 +458,14 @@ export default function DashboardAddressPage() {
   const addressMatches = isConnected && normalizedConnectedAddress === normalizedAddress
 
   // If wallet is not connected or address doesn't match, show connection/access message
-  if (!isConnected || !addressMatches) {
+  // UNLESS user is admin (admins can view any dashboard)
+  if (!isConnected || (!addressMatches && !isAdmin)) {
     if (!isConnected) {
       // Already handled above, but keep for safety
       return null
     }
 
-    // Address mismatch - show access message
+    // Address mismatch - show access message (unless admin)
     return (
       <div className="space-y-6">
         <div>
@@ -498,16 +519,16 @@ export default function DashboardAddressPage() {
     switch (activeTab) {
       case 'overview':
         // Constrained layout: Overview page uses PageShell with constrained mode (max-width ~1200px, centered)
-        return <OverviewPanel 
-          walletData={walletData} 
-          profile={profile ? { 
-            displayName: profile.displayName, 
-            bio: profile.bio, 
+        return <OverviewPanel
+          walletData={walletData}
+          profile={profile ? {
+            displayName: profile.displayName,
+            bio: profile.bio,
             slug: profile.slug,
             status: profile.status,
             claimedAt: profile.claimedAt,
-            socialLinks: profile.socialLinks 
-          } : null} 
+            socialLinks: profile.socialLinks
+          } : null}
           address={normalizedAddress}
           loading={loading}
           error={error}
@@ -547,16 +568,16 @@ export default function DashboardAddressPage() {
         )
       default:
         // Constrained layout: Default to Overview with PageShell constrained mode
-        return <OverviewPanel 
-          walletData={walletData} 
-          profile={profile ? { 
-            displayName: profile.displayName, 
-            bio: profile.bio, 
+        return <OverviewPanel
+          walletData={walletData}
+          profile={profile ? {
+            displayName: profile.displayName,
+            bio: profile.bio,
             slug: profile.slug,
             status: profile.status,
             claimedAt: profile.claimedAt,
-            socialLinks: profile.socialLinks 
-          } : null} 
+            socialLinks: profile.socialLinks
+          } : null}
           address={normalizedAddress}
           loading={loading}
           error={error}
