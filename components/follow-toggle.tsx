@@ -246,7 +246,16 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
       setIsFollowing(data.isFollowing ?? pressed)
       onFollowChange?.(data.isFollowing ?? pressed)
 
-      // Invalidate queries to update FollowStats and other components
+      // Update FollowStats cache immediately so follower count updates on public profile
+      queryClient.setQueryData(
+        ['follow-stats', normalizedAddress],
+        (prev: { followersCount?: number; followingCount?: number; isFollowing?: boolean } | undefined) => ({
+          ...prev,
+          followersCount: data.followersCount ?? prev?.followersCount ?? 0,
+          followingCount: prev?.followingCount ?? 0,
+          isFollowing: data.isFollowing ?? pressed,
+        })
+      )
       queryClient.invalidateQueries({ queryKey: ['follow-stats', normalizedAddress] })
 
     } catch (error: any) {
