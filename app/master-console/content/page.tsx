@@ -130,8 +130,8 @@ export default async function AdminContentPage() {
                     <Badge
                       variant={link.enabled ? 'default' : 'outline'}
                       className={`text-xs font-semibold ${link.enabled
-                          ? 'bg-green-600/10 text-green-700 dark:text-green-400 border-green-600/20 dark:border-green-400/30'
-                          : 'bg-muted/50 text-muted-foreground border-border'
+                        ? 'bg-green-600/10 text-green-700 dark:text-green-400 border-green-600/20 dark:border-green-400/30'
+                        : 'bg-muted/50 text-muted-foreground border-border'
                         }`}
                     >
                       {link.enabled ? 'Yes' : 'No'}
