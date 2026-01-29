@@ -30,6 +30,7 @@ export function getConfig() {
     ssr: true,
     storage: createStorage({
       storage: cookieStorage,
+      key: 'soci4l-wagmi',
     }),
     connectors,
     transports: {
