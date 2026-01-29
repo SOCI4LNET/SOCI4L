@@ -260,22 +260,27 @@ export function HeaderActions() {
             {!pathname?.startsWith('/master-console') ? (
               <>
                 <DropdownMenuGroup>
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuItem onClick={handleDashboard}>
                     <LayoutDashboard className="mr-2 h-4 w-4" />
                     <span>Dashboard</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handlePublicProfile} disabled={!publicProfileHref}>
                     <User className="mr-2 h-4 w-4" />
-                    <span>Public Profile</span>
+                    <span>View Profile</span>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Studio</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={handleLinks}>
+                    <Link2 className="mr-2 h-4 w-4" />
+                    <span>Links</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleBuilder}>
                     <Sparkles className="mr-2 h-4 w-4" />
                     <span>Builder</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleLinks}>
-                    <Link2 className="mr-2 h-4 w-4" />
-                    <span>Links</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleInsights}>
                     <BarChart2 className="mr-2 h-4 w-4" />
@@ -286,9 +291,11 @@ export function HeaderActions() {
                     <span>Settings</span>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
+
                 <DropdownMenuSeparator />
+
                 <DropdownMenuGroup>
-                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Actions</DropdownMenuLabel>
                   <DropdownMenuItem onClick={handleCopyAddress}>
                     <Copy className="mr-2 h-4 w-4" />
                     <span>Copy Address</span>
