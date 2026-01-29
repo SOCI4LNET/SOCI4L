@@ -23,6 +23,7 @@ interface SearchParams {
   page?: string
   status?: string
   visibility?: string
+  sortBy?: string
 }
 
 async function getUsers(searchParams: SearchParams) {
@@ -32,6 +33,7 @@ async function getUsers(searchParams: SearchParams) {
   const search = (searchParams.search || '').trim()
   const statusFilter = (searchParams.status || '').toLowerCase()
   const visibilityFilter = (searchParams.visibility || '').toLowerCase()
+  const sortBy = (searchParams.sortBy || 'newest').toLowerCase()
 
   const where: any = {}
 
@@ -83,11 +85,40 @@ async function getUsers(searchParams: SearchParams) {
     ]
   }
 
+  // Determine sorting order based on sortBy parameter
+  let orderBy: any = { createdAt: 'desc' } // default: newest first
+
+  switch (sortBy) {
+    case 'oldest':
+      orderBy = { createdAt: 'asc' }
+      break
+    case 'newest':
+      orderBy = { createdAt: 'desc' }
+      break
+    case 'name-asc':
+      orderBy = [
+        { displayName: { sort: 'asc', nulls: 'last' } },
+        { createdAt: 'desc' }
+      ]
+      break
+    case 'name-desc':
+      orderBy = [
+        { displayName: { sort: 'desc', nulls: 'first' } },
+        { createdAt: 'desc' }
+      ]
+      break
+    // For follower sorting, we'll sort in-memory after fetching
+    case 'followers-asc':
+    case 'followers-desc':
+      orderBy = { createdAt: 'desc' } // fallback, we'll sort after
+      break
+  }
+
   // Load profiles and total count first
   const [profiles, totalCount] = await Promise.all([
     prisma.profile.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy,
       skip,
       take: pageSize,
     }),
@@ -127,8 +158,23 @@ async function getUsers(searchParams: SearchParams) {
     )
   }
 
+  // Handle follower count sorting (in-memory)
+  let sortedProfiles = profiles
+  if (sortBy === 'followers-asc' || sortBy === 'followers-desc') {
+    sortedProfiles = [...profiles].sort((a, b) => {
+      const aCount = followerCountMap.get(a.address.toLowerCase()) ?? 0
+      const bCount = followerCountMap.get(b.address.toLowerCase()) ?? 0
+
+      if (sortBy === 'followers-desc') {
+        return bCount - aCount // descending
+      } else {
+        return aCount - bCount // ascending
+      }
+    })
+  }
+
   return {
-    profiles,
+    profiles: sortedProfiles,
     totalCount,
     page,
     pageSize,
@@ -136,6 +182,7 @@ async function getUsers(searchParams: SearchParams) {
     search,
     status: statusFilter,
     visibility: visibilityFilter,
+    sortBy,
     followerCountMap,
   }
 }
@@ -152,6 +199,7 @@ export default async function AdminUsersPage({
   let search = ''
   let status = ''
   let visibility = ''
+  let sortBy = 'newest'
   let followerCountMap = new Map<string, number>()
 
   try {
@@ -163,6 +211,7 @@ export default async function AdminUsersPage({
     search = result.search
     status = result.status
     visibility = result.visibility
+    sortBy = result.sortBy
     followerCountMap = result.followerCountMap
   } catch (error: any) {
     console.error('[Admin Users] Failed to load users:', error)
@@ -202,6 +251,18 @@ export default async function AdminUsersPage({
               <option value="">All visibilities</option>
               <option value="public">Public</option>
               <option value="private">Private</option>
+            </select>
+            <select
+              name="sortBy"
+              defaultValue={sortBy || 'newest'}
+              className="h-9 rounded-md border border-input bg-background px-3 text-xs transition-all duration-150 ease-out hover:bg-accent hover:border-border/80 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0 focus:border-ring/50 active:scale-[0.98]"
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="followers-desc">Most Followers</option>
+              <option value="followers-asc">Least Followers</option>
+              <option value="name-asc">Name A-Z</option>
+              <option value="name-desc">Name Z-A</option>
             </select>
           </div>
           <button
@@ -383,7 +444,7 @@ export default async function AdminUsersPage({
               <div className="flex items-center gap-3">
                 {page > 1 && (
                   <Link
-                    href={`/master-console/users?search=${encodeURIComponent(search)}&page=${page - 1}`}
+                    href={`/master-console/users?search=${encodeURIComponent(search)}&page=${page - 1}&sortBy=${sortBy}&status=${status}&visibility=${visibility}`}
                     className="text-xs text-primary hover:underline whitespace-nowrap transition-colors duration-150"
                   >
                     Previous
@@ -391,7 +452,7 @@ export default async function AdminUsersPage({
                 )}
                 {page < totalPages && (
                   <Link
-                    href={`/master-console/users?search=${encodeURIComponent(search)}&page=${page + 1}`}
+                    href={`/master-console/users?search=${encodeURIComponent(search)}&page=${page + 1}&sortBy=${sortBy}&status=${status}&visibility=${visibility}`}
                     className="text-xs text-primary hover:underline whitespace-nowrap transition-colors duration-150"
                   >
                     Next
