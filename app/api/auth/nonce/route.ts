@@ -3,6 +3,9 @@ import { cookies } from 'next/headers'
 import crypto from 'crypto'
 import { storeNonce } from '@/lib/nonce-store'
 
+// Force dynamic rendering since this route uses cookies
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     // Generate a random nonce (32 bytes = 64 hex characters)

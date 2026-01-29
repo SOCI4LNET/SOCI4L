@@ -11,7 +11,15 @@ import { injected } from 'wagmi/connectors'
 // WalletConnect v2 Project ID
 const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
 
+// Singleton config to prevent WalletConnect from being initialized multiple times
+let wagmiConfig: ReturnType<typeof createConfig> | null = null
+
 export function getConfig() {
+  // Return cached config if it exists (prevents WalletConnect re-initialization)
+  if (wagmiConfig) {
+    return wagmiConfig
+  }
+
   const connectors = [
     injected({ shimDisconnect: true }),
     ...(walletConnectProjectId ? [walletConnect({
@@ -25,7 +33,7 @@ export function getConfig() {
     })] : []),
   ]
 
-  return createConfig({
+  wagmiConfig = createConfig({
     chains: [avalanche],
     ssr: true,
     storage: createStorage({
@@ -37,6 +45,8 @@ export function getConfig() {
       [avalanche.id]: http(),
     },
   })
+
+  return wagmiConfig
 }
 
 export function Providers({ children }: { children: ReactNode }) {

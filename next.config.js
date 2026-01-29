@@ -19,6 +19,15 @@ const nextConfig = {
       // WalletConnect logger optional dependency (not needed for production)
       'pino-pretty': false,
     }
+
+    // Prevent indexedDB from being used in SSR
+    if (isServer) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        'idb': false,
+        'idb-keyval': false,
+      }
+    }
     
     return config
   },
