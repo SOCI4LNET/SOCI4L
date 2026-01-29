@@ -69,7 +69,7 @@ async function getUserData(rawAddress: string) {
     bio: profile?.bio || null,
     socialLinksCount,
     profileLinksCount,
-    followersCount,
+    followersCount: followersCount, // Use the actual followersCount from database
   }
 
   const breakdown = calculateScore(scoreInput)
@@ -400,16 +400,14 @@ export default async function AdminUserDetailPage({ params }: AdminUserPageProps
           scoreHistory={data.scoreHistory}
         />
 
-        {data.profile?.activityLogs && (
-          <AdminUserLogs
-            logs={data.profile.activityLogs.map(log => ({
-              id: log.id,
-              action: log.action,
-              metadata: log.metadata,
-              createdAt: log.createdAt
-            }))}
-          />
-        )}
+        <AdminUserLogs
+          logs={(data.profile?.activityLogs || []).map(log => ({
+            id: log.id,
+            action: log.action,
+            metadata: log.metadata,
+            createdAt: log.createdAt
+          }))}
+        />
       </div>
     </PageShell>
   )

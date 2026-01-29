@@ -128,41 +128,39 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
     setMounted(true)
   }, [])
 
+  // Fetch follow stats using React Query for automatic invalidation
+  const { data: followStats } = useQuery({
+    queryKey: ['follow-stats', normalizedAddress],
+    queryFn: async () => {
+      const followStatsRes = await fetch(`/api/profile/${normalizedAddress}/follow-stats`, {
+        cache: 'no-store',
+      })
+      if (!followStatsRes.ok) {
+        throw new Error('Failed to fetch follow stats')
+      }
+      return followStatsRes.json()
+    },
+    enabled: mounted && !!normalizedAddress,
+    retry: 1,
+  })
+
+  // Update quick stats when follow stats change
+  useEffect(() => {
+    if (followStats) {
+      setQuickStats((prev) => ({
+        ...prev,
+        followers: followStats.followersCount ?? 0,
+        following: followStats.followingCount ?? 0,
+      }))
+    }
+  }, [followStats])
+
   // Fetch quick stats
   useEffect(() => {
     if (!mounted || !normalizedAddress) return
 
     const fetchQuickStats = async () => {
       try {
-        // Fetch follow stats
-        try {
-          const followStatsRes = await fetch(`/api/profile/${normalizedAddress}/follow-stats`, {
-            cache: 'no-store',
-          })
-          if (followStatsRes.ok) {
-            const followStats = await followStatsRes.json()
-            setQuickStats((prev) => ({
-              ...prev,
-              followers: followStats.followersCount ?? 0,
-              following: followStats.followingCount ?? 0,
-            }))
-          } else {
-            // API request failed, set to 0
-            setQuickStats((prev) => ({
-              ...prev,
-              followers: 0,
-              following: 0,
-            }))
-          }
-        } catch (followError) {
-          // Network error or parse error, set to 0
-          console.error('[Overview] Error fetching follow stats:', followError)
-          setQuickStats((prev) => ({
-            ...prev,
-            followers: 0,
-            following: 0,
-          }))
-        }
 
         // Fetch view count (7d) from analytics
         const views7d = getProfileViewCount(normalizedAddress, 7)
