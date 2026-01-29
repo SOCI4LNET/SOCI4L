@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useAccount } from 'wagmi'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,7 +12,7 @@ import { WalletConnectButtons } from '@/components/wallet-connect-buttons'
 // Force dynamic rendering (required for useSearchParams)
 export const dynamic = 'force-dynamic'
 
-export default function DashboardPage() {
+function DashboardRedirectHandler() {
   const [mounted, setMounted] = useState(false)
   const { address: connectedAddress, isConnected } = useAccount()
   const router = useRouter()
@@ -93,5 +93,23 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
     </PageShell>
+  )
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={
+      <PageShell title="Dashboard" subtitle="Overview">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+      </PageShell>
+    }>
+      <DashboardRedirectHandler />
+    </Suspense>
   )
 }
