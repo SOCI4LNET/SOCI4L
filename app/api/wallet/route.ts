@@ -14,6 +14,8 @@ import {
   type ProfileAppearanceConfig,
 } from '@/lib/profile-appearance'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
   const address = searchParams.get('address')

@@ -6,6 +6,8 @@ import { getSessionAddress } from '@/lib/auth'
 // Test mode: allow query param-based follower address for isFollowing
 const TEST_MODE = process.env.NODE_ENV === 'test' || process.env.MCP_TEST_MODE === '1'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ address: string }> | { address: string } }
@@ -44,7 +46,7 @@ export async function GET(
     if (TEST_MODE) {
       const searchParams = request.nextUrl.searchParams
       const followerAddress = searchParams.get('followerAddress')
-      
+
       if (followerAddress && isValidAddress(followerAddress)) {
         const normalizedFollower = followerAddress.toLowerCase()
         const follow = await prisma.follow.findUnique({
@@ -74,7 +76,7 @@ export async function GET(
     }
 
     console.log('[Follow Stats API] Success:', { address: normalizedAddress, followersCount, followingCount, isFollowing })
-    
+
     const response: {
       followersCount: number
       followingCount: number
@@ -87,7 +89,7 @@ export async function GET(
     if (isFollowing !== undefined) {
       response.isFollowing = isFollowing
     }
-    
+
     return NextResponse.json(response)
   } catch (error) {
     console.error('[Follow Stats API] Error:', error)

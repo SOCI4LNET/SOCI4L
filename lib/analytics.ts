@@ -59,12 +59,12 @@ function shouldLogProfileView(profileId: string): boolean {
     const lastTs = lastTsRaw ? Number(lastTsRaw) || 0 : 0
 
     // Per-tab session dedupe
-    if (seen) {
-      return false
-    }
+    // if (seen) {
+    //   return false
+    // }
 
-    // Dedupe window: 1 minute per profile per sessionKey
-    const DEDUPE_WINDOW_MS = 60 * 1000 // 1 minute
+    // Dedupe window: 5 seconds per profile per sessionKey
+    const DEDUPE_WINDOW_MS = 5 * 1000 // 5 seconds
     if (lastTs && now - lastTs < DEDUPE_WINDOW_MS) {
       return false
     }
@@ -80,8 +80,8 @@ function shouldLogProfileView(profileId: string): boolean {
       const raw = window.localStorage.getItem(tsKey)
       const lastTs = raw ? Number(raw) || 0 : 0
 
-      // Dedupe window: 30 minutes per profile per sessionKey
-      const DEDUPE_WINDOW_MS = 30 * 60 * 1000 // 30 minutes
+      // Dedupe window: 5 seconds per profile per sessionKey (for testing/real-time updates)
+      const DEDUPE_WINDOW_MS = 5 * 1000 // 5 seconds
       if (lastTs && now - lastTs < DEDUPE_WINDOW_MS) {
         return false
       }
