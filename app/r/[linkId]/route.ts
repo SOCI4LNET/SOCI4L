@@ -76,6 +76,25 @@ export async function GET(
     const searchParams = request.nextUrl.searchParams
     const source = getSourceFromUrl(searchParams)
 
+    // Record link_click server-side so master console total link clicks always increase
+    // (client-side fetch often aborts when user is redirected)
+    try {
+      await prisma.analyticsEvent.create({
+        data: {
+          type: 'link_click',
+          profileId: profileAddress,
+          linkId: link.id,
+          linkTitle: link.title || null,
+          linkUrl: link.url,
+          categoryId,
+          source,
+        },
+      })
+    } catch (err) {
+      console.error('[Redirect] Analytics event create failed', err)
+      // Continue redirect even if analytics fails
+    }
+
     // Build absolute URL for redirect (required by Next.js)
     const baseUrl = request.nextUrl.origin
     const trackingUrl = new URL(`/r/${linkId}/track`, baseUrl)

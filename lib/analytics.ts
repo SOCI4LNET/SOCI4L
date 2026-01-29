@@ -181,23 +181,26 @@ export function trackProfileView(
   console.log('[analytics] trackProfileView', { profileId: normalizedProfileId, source, ts: event.ts })
   writeEvent(event)
 
-  // Best-effort server-side analytics
+  // Best-effort server-side analytics (sendBeacon survives page unload; fetch is often aborted)
   try {
     if (typeof window !== 'undefined') {
-      fetch('/api/analytics/event', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: 'profile_view',
-          profileId: normalizedProfileId,
-          source,
-          referrer: window.document.referrer || null,
-        }),
-      }).catch(() => {
-        // ignore network errors for analytics
+      const payload = JSON.stringify({
+        type: 'profile_view',
+        profileId: normalizedProfileId,
+        source,
+        referrer: window.document.referrer || null,
       })
+      const url = '/api/analytics/event'
+      if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+        const blob = new Blob([payload], { type: 'application/json' })
+        navigator.sendBeacon(url, blob)
+      } else {
+        fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+        }).catch(() => {})
+      }
     }
   } catch {
     // ignore
@@ -210,7 +213,8 @@ export function trackLinkClick(
   source: AnalyticsSource = 'unknown',
   categoryId?: string | null,
   linkTitle?: string,
-  linkUrl?: string
+  linkUrl?: string,
+  options?: { skipServer?: boolean }
 ): void {
   if (!profileId || !linkId) return
 
@@ -231,27 +235,33 @@ export function trackLinkClick(
   console.log('[analytics] trackLinkClick', { profileId: normalizedProfileId, linkId, linkTitle, source, categoryId, ts: event.ts })
   writeEvent(event)
 
-  // Best-effort server-side analytics
+  // Skip API when click already recorded server-side (e.g. /r/[linkId] redirect) to avoid double count
+  if (options?.skipServer) return
+
+  // Best-effort server-side analytics (sendBeacon survives redirect; fetch is often aborted)
   try {
     if (typeof window !== 'undefined') {
-      fetch('/api/analytics/event', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: 'link_click',
-          profileId: normalizedProfileId,
-          linkId,
-          linkTitle: linkTitle || undefined,
-          linkUrl: linkUrl || undefined,
-          categoryId: categoryId || undefined,
-          source,
-          referrer: window.document.referrer || null,
-        }),
-      }).catch(() => {
-        // ignore network errors
+      const payload = JSON.stringify({
+        type: 'link_click',
+        profileId: normalizedProfileId,
+        linkId,
+        linkTitle: linkTitle || undefined,
+        linkUrl: linkUrl || undefined,
+        categoryId: categoryId || undefined,
+        source,
+        referrer: window.document.referrer || null,
       })
+      const url = '/api/analytics/event'
+      if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+        const blob = new Blob([payload], { type: 'application/json' })
+        navigator.sendBeacon(url, blob)
+      } else {
+        fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+        }).catch(() => {})
+      }
     }
   } catch {
     // ignore

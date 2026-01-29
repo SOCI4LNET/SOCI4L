@@ -1,3 +1,4 @@
+import { unstable_noStore } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { PageShell } from '@/components/app-shell/page-shell'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -7,8 +8,10 @@ import { TrendingUp, TrendingDown, Minus, Eye, MousePointerClick, Users, UserPlu
 
 // Force dynamic rendering since this page uses Prisma queries
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 async function getOverviewStats() {
+  unstable_noStore()
   const now = new Date()
   const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000)
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)

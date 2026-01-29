@@ -66,13 +66,15 @@ export default function LinkTrackPage() {
       url,
     })
 
+    // skipServer: true — click already recorded server-side in /r/[linkId] to avoid double count
     trackLinkClick(
       profileId,
       linkId,
       source,
       categoryId || null,
       linkTitle || undefined,
-      url
+      url,
+      { skipServer: true }
     )
 
     // Immediately redirect to the actual URL
