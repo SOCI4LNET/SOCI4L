@@ -5,7 +5,7 @@ import { PageContent } from './page-content'
 
 interface PageShellProps {
   title: string
-  subtitle?: string
+  subtitle?: ReactNode | string
   children: ReactNode
   /**
    * Layout mode:

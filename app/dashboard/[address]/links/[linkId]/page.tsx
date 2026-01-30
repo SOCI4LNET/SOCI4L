@@ -249,10 +249,10 @@ export default function LinkInsightsPage({ params }: PageProps) {
       range === 'all'
         ? 0
         : range === '24h'
-        ? now - 24 * 60 * 60 * 1000
-        : range === '7d'
-        ? now - 7 * 24 * 60 * 60 * 1000
-        : now - 30 * 24 * 60 * 60 * 1000
+          ? now - 24 * 60 * 60 * 1000
+          : range === '7d'
+            ? now - 7 * 24 * 60 * 60 * 1000
+            : now - 30 * 24 * 60 * 60 * 1000
 
     // All link click events for this link (lifetime)
     const linkEventsAll = allEvents.filter(
@@ -269,7 +269,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
 
     // Lifetime clicks (all time)
     const lifetimeClicks = linkEventsAll.length
-    
+
     // Clicks in selected range
     const totalClicks = linkEvents.length
     const lastClickedTs =
@@ -288,7 +288,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
       if (event.type === 'link_click') {
         const source = event.source ?? 'unknown'
         // Map legacy 'share' to 'copy' for backward compatibility
-        const normalizedSource = source === 'share' ? 'copy' : source
+        const normalizedSource = (source as string) === 'share' ? 'copy' : source
         if (normalizedSource === 'profile' || normalizedSource === 'copy' || normalizedSource === 'qr' || normalizedSource === 'unknown') {
           sourceCounts[normalizedSource] += 1
         } else {
@@ -447,14 +447,18 @@ export default function LinkInsightsPage({ params }: PageProps) {
     analytics.ctr != null ? `${(analytics.ctr * 100).toFixed(1)}%` : '—'
 
   return (
-    <PageShell title={displayTitle} subtitle={displayUrl}>
+    <PageShell
+      title={displayTitle}
+      subtitle={
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Link2 className="h-3.5 w-3.5" />
+          <span className="truncate">{link.url}</span>
+        </div>
+      }
+    >
       <div className="space-y-6">
         {/* Header actions */}
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Link2 className="h-3.5 w-3.5" />
-            <span className="truncate">{link.url}</span>
-          </div>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
           <TooltipProvider>
             <div className="flex items-center gap-2">
               <Tooltip>
@@ -552,7 +556,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card className="bg-card border border-border/60 shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-medium text-muted-foreground">
@@ -565,7 +569,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card className="bg-card border border-border/60 shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-medium text-muted-foreground">
@@ -578,7 +582,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card className="bg-card border border-border/60 shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-medium text-muted-foreground">
@@ -694,10 +698,10 @@ export default function LinkInsightsPage({ params }: PageProps) {
                         source === 'profile'
                           ? 'Profile'
                           : source === 'copy'
-                          ? 'Copy'
-                          : source === 'qr'
-                          ? 'QR code'
-                          : 'Unknown'
+                            ? 'Copy'
+                            : source === 'qr'
+                              ? 'QR code'
+                              : 'Unknown'
                       return (
                         <tr key={source} className="border-b border-border/40 last:border-0">
                           <td className="py-2 text-left">{label}</td>
