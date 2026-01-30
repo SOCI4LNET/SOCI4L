@@ -180,10 +180,11 @@ export async function GET(
           )
         }
 
-        follows = followsWithProfile.map(({ address, createdAt, displayName, primaryRole, statusMessage, score, reason }) => ({
+        follows = followsWithProfile.map(({ address, createdAt, displayName, slug, primaryRole, statusMessage, score, reason }) => ({
           address,
           createdAt,
           displayName,
+          slug,
           primaryRole,
           statusMessage,
           score,
@@ -278,10 +279,11 @@ export async function GET(
           )
         }
 
-        follows = followsWithProfile.map(({ address, createdAt, displayName, primaryRole, statusMessage }) => ({
+        follows = followsWithProfile.map(({ address, createdAt, displayName, slug, primaryRole, statusMessage }) => ({
           address,
           createdAt,
           displayName,
+          slug,
           primaryRole,
           statusMessage,
         }))

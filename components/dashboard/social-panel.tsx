@@ -36,6 +36,7 @@ interface FollowItem {
   address: string
   createdAt: string
   displayName?: string | null
+  slug?: string | null
   score?: number
   reason?: string
   primaryRole?: string | null
@@ -290,11 +291,15 @@ export function SocialPanel({ address }: SocialPanelProps) {
   }
 
   const filteredFollowers = followers.filter((item) =>
-    item.address.toLowerCase().includes(searchQuery.toLowerCase())
+    item.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (item.displayName && item.displayName.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (item.slug && item.slug.toLowerCase().includes(searchQuery.toLowerCase()))
   )
 
   const filteredFollowing = following.filter((item) =>
-    item.address.toLowerCase().includes(searchQuery.toLowerCase())
+    item.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (item.displayName && item.displayName.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (item.slug && item.slug.toLowerCase().includes(searchQuery.toLowerCase()))
   )
 
   const handleUnfollow = async (targetAddress: string) => {
