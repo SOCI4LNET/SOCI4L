@@ -69,7 +69,7 @@ export function BlockedUsersList() {
                     Blocked Users
                 </CardTitle>
                 <CardDescription>
-                    Users you have blocked cannot follow you or see your profile.
+                    Users you have blocked cannot follow you or see your profile. Control your interactions here.
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -180,7 +180,7 @@ export function MutedUsersList() {
                     Muted Users
                 </CardTitle>
                 <CardDescription>
-                    Muted users' posts will not appear in your feed. They will not be notified.
+                    Muted users' posts will not appear in your feed. Control visibility here.
                 </CardDescription>
             </CardHeader>
             <CardContent>

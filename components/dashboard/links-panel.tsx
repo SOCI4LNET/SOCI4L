@@ -261,8 +261,8 @@ function LinkDropZone({
     <div
       ref={setNodeRef}
       className={`min-h-[40px] rounded-md border-2 border-dashed transition-colors mx-4 my-2 flex items-center justify-center ${isOver
-          ? 'border-primary bg-primary/10 text-primary'
-          : 'border-muted-foreground/30 text-muted-foreground'
+        ? 'border-primary bg-primary/10 text-primary'
+        : 'border-muted-foreground/30 text-muted-foreground'
         }`}
     >
       <span className="text-xs">
@@ -1667,23 +1667,21 @@ export function LinksPanel() {
               <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-6 text-center text-xs text-muted-foreground">
                 Loading links...
               </div>
-            ) : links.length === 0 && categories.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
-                <Link2 className="h-10 w-10 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium mb-1">No links yet</p>
-                  <p className="text-xs text-muted-foreground mb-4">
-                    Add your first link to start building your profile.
+            ) : links.length === 0 && categories.length <= 1 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center space-y-4 border-2 border-dashed rounded-lg border-muted">
+                <div className="p-4 bg-primary/5 rounded-full">
+                  <Link2 className="h-8 w-8 text-primary" />
+                </div>
+                <div className="space-y-2 max-w-sm">
+                  <h3 className="text-lg font-semibold">Build your profile</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Add your first link to start building your digital identity.
+                    Changes will appear on your public profile immediately.
                   </p>
                 </div>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="default"
-                  onClick={openAddDialog}
-                >
-                  <Plus className="mr-2 h-3.5 w-3.5" />
-                  Add your first link
+                <Button onClick={openAddDialog} className="mt-4">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Link
                 </Button>
               </div>
             ) : (
