@@ -44,6 +44,7 @@ import { toast } from 'sonner'
 import { QRCodeModal } from '@/components/qr/qr-code-modal'
 import { getPublicProfileHref } from '@/lib/routing'
 import { AssetsHeader } from '@/components/assets/AssetsHeader'
+import { AssetsHero } from '@/components/assets/AssetsHero'
 import { AssetsControlsBar } from '@/components/assets/AssetsControlsBar'
 import { Separator } from '@/components/ui/separator'
 import { PageContent } from '@/components/app-shell/page-content'
@@ -623,6 +624,14 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
           isLoading={isLoading}
           onRefresh={handleRefresh}
           explorerHref={explorerHref}
+        />
+
+        {/* Portfolio Hero */}
+        <AssetsHero
+          totalValueUsd={summary?.totalValueUsd}
+          tokenCount={summary?.tokenCount}
+          nftCount={summary?.nftCount}
+          isLoading={summaryLoading}
         />
 
         {/* Controls Bar: Tabs + Search + Sort */}

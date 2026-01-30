@@ -202,7 +202,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
     fetchQuickStats()
   }, [mounted, normalizedAddress])
 
-  const ACTIVITY_LIMIT = 7
+  const ACTIVITY_LIMIT = 10
   const ASSETS_LIMIT = 5
 
   // Fetch activity data
@@ -549,403 +549,400 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
           </CardContent>
         </Card>
 
-        {/* Quick Stats */}
+        {/* Status Hints (Mini Cards) */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="bg-card border border-border/60 shadow-sm">
-            <CardContent className="p-4">
+            <CardContent className="p-4 flex flex-col justify-center">
               <div className="flex items-center gap-2 mb-1">
                 <Users className="h-3.5 w-3.5 text-muted-foreground" />
                 <p className="text-xs text-muted-foreground">Followers</p>
               </div>
               {quickStats.followers !== null ? (
-                <p className="text-xl font-semibold tracking-tight">
+                <p className="text-lg font-semibold tracking-tight">
                   {quickStats.followers.toLocaleString('en-US')}
                 </p>
               ) : (
-                <Skeleton className="h-7 w-16" />
+                <Skeleton className="h-6 w-12" />
               )}
             </CardContent>
           </Card>
           <Card className="bg-card border border-border/60 shadow-sm">
-            <CardContent className="p-4">
+            <CardContent className="p-4 flex flex-col justify-center">
               <div className="flex items-center gap-2 mb-1">
                 <UserPlus className="h-3.5 w-3.5 text-muted-foreground" />
                 <p className="text-xs text-muted-foreground">Following</p>
               </div>
               {quickStats.following !== null ? (
-                <p className="text-xl font-semibold tracking-tight">
+                <p className="text-lg font-semibold tracking-tight">
                   {quickStats.following.toLocaleString('en-US')}
                 </p>
               ) : (
-                <Skeleton className="h-7 w-16" />
+                <Skeleton className="h-6 w-12" />
               )}
             </CardContent>
           </Card>
           <Card className="bg-card border border-border/60 shadow-sm">
-            <CardContent className="p-4">
+            <CardContent className="p-4 flex flex-col justify-center">
               <div className="flex items-center gap-2 mb-1">
                 <Eye className="h-3.5 w-3.5 text-muted-foreground" />
                 <p className="text-xs text-muted-foreground">Views (7d)</p>
               </div>
               {quickStats.views7d !== null ? (
-                <p className="text-xl font-semibold tracking-tight">
+                <p className="text-lg font-semibold tracking-tight">
                   {quickStats.views7d.toLocaleString('en-US')}
                 </p>
               ) : (
-                <Skeleton className="h-7 w-16" />
+                <Skeleton className="h-6 w-12" />
               )}
             </CardContent>
           </Card>
-          <Card className="bg-card border border-border/60 shadow-sm">
-            <CardContent className="p-4">
+          <Card className="bg-card border border-border/60 shadow-sm opacity-50">
+            <CardContent className="p-4 flex flex-col justify-center">
               <div className="flex items-center gap-2 mb-1">
                 <Link2 className="h-3.5 w-3.5 text-muted-foreground" />
                 <p className="text-xs text-muted-foreground">Total Links</p>
               </div>
               {quickStats.totalLinks !== null ? (
-                <p className="text-xl font-semibold tracking-tight">
+                <p className="text-lg font-semibold tracking-tight text-muted-foreground">
                   {quickStats.totalLinks.toLocaleString('en-US')}
                 </p>
               ) : (
-                <Skeleton className="h-7 w-16" />
+                <Skeleton className="h-6 w-12" />
               )}
             </CardContent>
-          </Card>
         </div>
 
 
-        {/* Recent Activity and Assets Section */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Recent Activity Card */}
-          <Card className="bg-card border border-border/60 shadow-sm relative">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <div>
-                <CardTitle className="text-base font-semibold">Recent Activity</CardTitle>
-                <CardDescription className="text-xs">Last {ACTIVITY_LIMIT} transactions</CardDescription>
-              </div>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => refetchActivity()}
-                      disabled={activityLoading}
-                      aria-label="Refresh activity"
-                    >
-                      <RefreshCw className={`h-3.5 w-3.5 ${activityLoading ? 'animate-spin' : ''}`} />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Refresh activity</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </CardHeader>
-            <CardContent className="relative">
-              {activityLoading ? (
-                <div className="space-y-3">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <Skeleton className="h-8 w-8 rounded-full" />
-                      <div className="flex-1 space-y-1">
-                        <Skeleton className="h-4 w-3/4" />
-                        <Skeleton className="h-3 w-1/2" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : activityError ? (
-                <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <p className="text-sm font-medium mb-1">Failed to load activity</p>
+        {/* Recent Activity Section (Full Width) */}
+        <Card className="bg-card border border-border/60 shadow-sm relative">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <div>
+              <CardTitle className="text-base font-semibold">Recent Activity</CardTitle>
+              <CardDescription className="text-xs">Last {ACTIVITY_LIMIT} transactions</CardDescription>
+            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
                   <Button
                     variant="outline"
-                    size="sm"
+                    size="icon"
+                    className="h-7 w-7"
                     onClick={() => refetchActivity()}
-                    className="mt-2"
+                    disabled={activityLoading}
+                    aria-label="Refresh activity"
                   >
-                    <RefreshCw className="mr-2 h-3 w-3" />
-                    Tekrar Dene
+                    <RefreshCw className={`h-3.5 w-3.5 ${activityLoading ? 'animate-spin' : ''}`} />
                   </Button>
-                </div>
-              ) : activityData?.items && activityData.items.length > 0 ? (
-                <div className="space-y-3 relative">
-                  {activityData.items.slice(0, 5).map((tx, idx) => {
-                    return (
-                      <div key={tx.hash || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
-                        <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                          {getDirectionIcon(tx.direction)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            {getStatusIcon(tx.status)}
-                            <Badge variant="secondary" className="text-xs">
-                              {tx.type === 'transfer' ? 'Transfer' : tx.type === 'contract' ? 'Kontrat' : 'Swap'}
-                            </Badge>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <button
-                                    onClick={() => handleCopyHash(tx.hash)}
-                                    className="text-xs font-mono truncate hover:text-primary"
-                                  >
-                                    {formatAddress(tx.hash, 4)}
-                                  </button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p className="font-mono text-xs">{tx.hash}</p>
-                                  <p className="text-xs mt-1">Click to copy</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                          <div className="flex items-center gap-2 mt-1">
-                            <p className="text-xs text-muted-foreground">
-                              {parseFloat(tx.nativeValueAvax) > 0
-                                ? `${parseFloat(tx.nativeValueAvax).toFixed(4)} AVAX`
-                                : tx.tokenTransfers.length > 0
-                                  ? `${parseFloat(tx.tokenTransfers[0].amount).toFixed(4)} ${tx.tokenTransfers[0].symbol}`
-                                  : '-'}
-                            </p>
-                            <span className="text-xs text-muted-foreground">•</span>
-                            <p className="text-xs text-muted-foreground">
-                              {formatDistanceToNow(new Date(tx.timestamp * 1000), { addSuffix: true })}
-                            </p>
-                          </div>
-                        </div>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 flex-shrink-0"
-                                asChild
-                                aria-label="View on Explorer"
-                              >
-                                <a
-                                  href={getExplorerLink(tx.hash)}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                >
-                                  <ExternalLink className="h-4 w-4" />
-                                </a>
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>View on Explorer</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                    )
-                  })}
-                  {activityData.items.length >= 5 && (
-                    <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent via-background/60 to-background pointer-events-none" />
-                  )}
-                  <div className="pt-2 relative z-10">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=activity`)}
-                    >
-                      View all
-                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>Refresh activity</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardHeader>
+          <CardContent className="relative">
+            {activityLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <div className="flex-1 space-y-1">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <Activity className="h-10 w-10 text-muted-foreground mb-3" />
-                  <p className="text-sm font-medium mb-1">No recent transactions detected</p>
-                  <p className="text-xs text-muted-foreground mb-4">
-                    Activity will appear as your wallet interacts on-chain.
-                  </p>
+                ))}
+              </div>
+            ) : activityError ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <p className="text-sm font-medium mb-1">Failed to load activity</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refetchActivity()}
+                  className="mt-2"
+                >
+                  <RefreshCw className="mr-2 h-3 w-3" />
+                  Tekrar Dene
+                </Button>
+              </div>
+            ) : activityData?.items && activityData.items.length > 0 ? (
+              <div className="space-y-3 relative">
+                {activityData.items.map((tx, idx) => {
+                  return (
+                    <div key={tx.hash || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
+                      <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                        {getDirectionIcon(tx.direction)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon(tx.status)}
+                          <Badge variant="secondary" className="text-xs">
+                            {tx.type === 'transfer' ? 'Transfer' : tx.type === 'contract' ? 'Kontrat' : 'Swap'}
+                          </Badge>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={() => handleCopyHash(tx.hash)}
+                                  className="text-xs font-mono truncate hover:text-primary"
+                                >
+                                  {formatAddress(tx.hash, 4)}
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="font-mono text-xs">{tx.hash}</p>
+                                <p className="text-xs mt-1">Click to copy</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-xs text-muted-foreground">
+                            {parseFloat(tx.nativeValueAvax) > 0
+                              ? `${parseFloat(tx.nativeValueAvax).toFixed(4)} AVAX`
+                              : tx.tokenTransfers.length > 0
+                                ? `${parseFloat(tx.tokenTransfers[0].amount).toFixed(4)} ${tx.tokenTransfers[0].symbol}`
+                                : '-'}
+                          </p>
+                          <span className="text-xs text-muted-foreground">•</span>
+                          <p className="text-xs text-muted-foreground">
+                            {formatDistanceToNow(new Date(tx.timestamp * 1000), { addSuffix: true })}
+                          </p>
+                        </div>
+                      </div>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 flex-shrink-0"
+                              asChild
+                              aria-label="View on Explorer"
+                            >
+                              <a
+                                href={getExplorerLink(tx.hash)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </a>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>View on Explorer</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  )
+                })}
+                {activityData.items.length >= 5 && (
+                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent via-background/60 to-background pointer-events-none" />
+                )}
+                <div className="pt-2 relative z-10">
                   <Button
                     variant="outline"
                     size="sm"
+                    className="w-full"
                     onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=activity`)}
                   >
-                    View all activity
+                    View all
                   </Button>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Assets Card */}
-          <Card className="bg-card border border-border/60 shadow-sm relative">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <div>
-                <CardTitle className="text-base font-semibold">Assets</CardTitle>
-                <CardDescription className="text-xs">Token ve NFT'ler</CardDescription>
               </div>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => refetchAssets()}
-                      disabled={assetsLoading}
-                      aria-label="Refresh assets"
-                    >
-                      <RefreshCw className={`h-3.5 w-3.5 ${assetsLoading ? 'animate-spin' : ''}`} />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Refresh assets</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </CardHeader>
-            <CardContent className="relative">
-              {assetsLoading ? (
-                <div className="space-y-3">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <Skeleton className="h-10 w-10 rounded-full" />
-                      <div className="flex-1 space-y-1">
-                        <Skeleton className="h-4 w-3/4" />
-                        <Skeleton className="h-3 w-1/2" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : assetsError ? (
-                <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <p className="text-sm font-medium mb-1">Failed to load assets</p>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <Activity className="h-10 w-10 text-muted-foreground mb-3" />
+                <p className="text-sm font-medium mb-1">No recent transactions detected</p>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Activity will appear as your wallet interacts on-chain.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=activity`)}
+                >
+                  View all activity
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Assets Card */}
+        <Card className="bg-card border border-border/60 shadow-sm relative">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <div>
+              <CardTitle className="text-base font-semibold">Assets</CardTitle>
+              <CardDescription className="text-xs">Token ve NFT'ler</CardDescription>
+            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
                   <Button
                     variant="outline"
-                    size="sm"
+                    size="icon"
+                    className="h-7 w-7"
                     onClick={() => refetchAssets()}
-                    className="mt-2"
+                    disabled={assetsLoading}
+                    aria-label="Refresh assets"
                   >
-                    <RefreshCw className="mr-2 h-3 w-3" />
-                    Try Again
+                    <RefreshCw className={`h-3.5 w-3.5 ${assetsLoading ? 'animate-spin' : ''}`} />
                   </Button>
-                </div>
-              ) : assetsData && ((assetsData.tokens && assetsData.tokens.length > 0) || (assetsData.nfts && assetsData.nfts.length > 0)) ? (
-                <div className="space-y-3 relative">
-                  {assetsData.tokens?.slice(0, ASSETS_LIMIT).map((token, idx) => {
-                    // Get logo URL with cache fallback
-                    const getLogoUrl = (): string | null => {
-                      // First check API response
-                      if (token.logoUrl) {
-                        return token.logoUrl
-                      }
-                      // If no logo in API response, check cache
-                      const cacheKey = getCacheKey(token.address, token.symbol)
-                      const cachedLogo = getCachedLogo(cacheKey)
-                      if (cachedLogo) {
-                        return cachedLogo
-                      }
-                      return null
+                </TooltipTrigger>
+                <TooltipContent>Refresh assets</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardHeader>
+          <CardContent className="relative">
+            {assetsLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="flex-1 space-y-1">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : assetsError ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <p className="text-sm font-medium mb-1">Failed to load assets</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refetchAssets()}
+                  className="mt-2"
+                >
+                  <RefreshCw className="mr-2 h-3 w-3" />
+                  Try Again
+                </Button>
+              </div>
+            ) : assetsData && ((assetsData.tokens && assetsData.tokens.length > 0) || (assetsData.nfts && assetsData.nfts.length > 0)) ? (
+              <div className="space-y-3 relative">
+                {assetsData.tokens?.slice(0, ASSETS_LIMIT).map((token, idx) => {
+                  // Get logo URL with cache fallback
+                  const getLogoUrl = (): string | null => {
+                    // First check API response
+                    if (token.logoUrl) {
+                      return token.logoUrl
                     }
+                    // If no logo in API response, check cache
+                    const cacheKey = getCacheKey(token.address, token.symbol)
+                    const cachedLogo = getCachedLogo(cacheKey)
+                    if (cachedLogo) {
+                      return cachedLogo
+                    }
+                    return null
+                  }
 
-                    const logoUrl = getLogoUrl()
+                  const logoUrl = getLogoUrl()
 
-                    return (
-                      <div key={token.address || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
-                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
-                          {logoUrl ? (
-                            <img
-                              src={logoUrl}
-                              alt={token.symbol}
-                              className="h-10 w-10 rounded-full object-cover"
-                              onLoad={() => {
-                                // Cache logo URL when successfully loaded
-                                const cacheKey = getCacheKey(token.address, token.symbol)
-                                setCachedLogo(cacheKey, logoUrl)
-                              }}
-                              onError={() => {
-                                // Mark as "no logo found" in cache to avoid retrying
-                                const cacheKey = getCacheKey(token.address, token.symbol)
-                                setCachedLogo(cacheKey, null)
-                              }}
-                            />
-                          ) : (
-                            <Coins className="h-5 w-5 text-muted-foreground" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{token.symbol}</p>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <p className="text-xs text-muted-foreground">
-                              {token.balanceFormatted} {token.symbol}
-                            </p>
-                            {token.valueUsd !== undefined && token.valueUsd > 0 && (
-                              <>
-                                <span className="text-xs text-muted-foreground">•</span>
-                                <p className="text-xs text-muted-foreground">
-                                  ${token.valueUsd.toFixed(2)}
-                                </p>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })}
-                  {assetsData.nfts?.slice(0, Math.max(0, ASSETS_LIMIT - (assetsData.tokens?.length || 0))).map((nft, idx) => (
-                    <div key={`${nft.contract}-${nft.tokenId}` || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
+                  return (
+                    <div key={token.address || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
                       <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
-                        {nft.imageUrl ? (
-                          <img src={nft.imageUrl} alt={nft.name} className="h-10 w-10 rounded-full object-cover" />
+                        {logoUrl ? (
+                          <img
+                            src={logoUrl}
+                            alt={token.symbol}
+                            className="h-10 w-10 rounded-full object-cover"
+                            onLoad={() => {
+                              // Cache logo URL when successfully loaded
+                              const cacheKey = getCacheKey(token.address, token.symbol)
+                              setCachedLogo(cacheKey, logoUrl)
+                            }}
+                            onError={() => {
+                              // Mark as "no logo found" in cache to avoid retrying
+                              const cacheKey = getCacheKey(token.address, token.symbol)
+                              setCachedLogo(cacheKey, null)
+                            }}
+                          />
                         ) : (
                           <Coins className="h-5 w-5 text-muted-foreground" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{nft.name || `NFT #${nft.tokenId}`}</p>
-                        <p className="text-xs text-muted-foreground">Token ID: {formatAddress(nft.tokenId, 4)}</p>
+                        <p className="text-sm font-medium truncate">{token.symbol}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <p className="text-xs text-muted-foreground">
+                            {token.balanceFormatted} {token.symbol}
+                          </p>
+                          {token.valueUsd !== undefined && token.valueUsd > 0 && (
+                            <>
+                              <span className="text-xs text-muted-foreground">•</span>
+                              <p className="text-xs text-muted-foreground">
+                                ${token.valueUsd.toFixed(2)}
+                              </p>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  ))}
-                  {((assetsData.tokens && assetsData.tokens.length >= ASSETS_LIMIT) || (assetsData.nfts && assetsData.nfts.length > 0)) && (
-                    <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-background/90 backdrop-blur-sm pointer-events-none" />
-                  )}
-                  <div className="pt-2 relative z-10">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=assets&assetTab=tokens`)}
-                    >
-                      View all
-                    </Button>
+                  )
+                })}
+                {assetsData.nfts?.slice(0, Math.max(0, ASSETS_LIMIT - (assetsData.tokens?.length || 0))).map((nft, idx) => (
+                  <div key={`${nft.contract}-${nft.tokenId}` || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
+                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {nft.imageUrl ? (
+                        <img src={nft.imageUrl} alt={nft.name} className="h-10 w-10 rounded-full object-cover" />
+                      ) : (
+                        <Coins className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{nft.name || `NFT #${nft.tokenId}`}</p>
+                      <p className="text-xs text-muted-foreground">Token ID: {formatAddress(nft.tokenId, 4)}</p>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <Coins className="h-10 w-10 text-muted-foreground mb-3" />
-                  <p className="text-sm font-medium mb-1">No assets detected</p>
-                  <p className="text-xs text-muted-foreground mb-4">
-                    Tokens and NFTs will appear here once this wallet holds assets.
-                  </p>
+                ))}
+                {((assetsData.tokens && assetsData.tokens.length >= ASSETS_LIMIT) || (assetsData.nfts && assetsData.nfts.length > 0)) && (
+                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-background/90 backdrop-blur-sm pointer-events-none" />
+                )}
+                <div className="pt-2 relative z-10">
                   <Button
                     variant="outline"
                     size="sm"
+                    className="w-full"
                     onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=assets&assetTab=tokens`)}
                   >
-                    View all assets
+                    View all
                   </Button>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* QR Code Modal */}
-        {normalizedAddress && publicProfileHref && (
-          <QRCodeModal
-            open={qrModalOpen}
-            onOpenChange={setQrModalOpen}
-            profile={{
-              address: normalizedAddress,
-              slug: profile?.slug || null,
-              displayName: profile?.displayName || null,
-              avatarUrl: `https://effigy.im/a/${normalizedAddress}.svg`,
-            }}
-          />
-        )}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <Coins className="h-10 w-10 text-muted-foreground mb-3" />
+                <p className="text-sm font-medium mb-1">No assets detected</p>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Tokens and NFTs will appear here once this wallet holds assets.
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=assets&assetTab=tokens`)}
+                >
+                  View all assets
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
-    </PageShell>
+
+      {/* QR Code Modal */}
+      {normalizedAddress && publicProfileHref && (
+        <QRCodeModal
+          open={qrModalOpen}
+          onOpenChange={setQrModalOpen}
+          profile={{
+            address: normalizedAddress,
+            slug: profile?.slug || null,
+            displayName: profile?.displayName || null,
+            avatarUrl: `https://effigy.im/a/${normalizedAddress}.svg`,
+          }}
+        />
+      )}
+    </div>
+    </PageShell >
   )
 }
