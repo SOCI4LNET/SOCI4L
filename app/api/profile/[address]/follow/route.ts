@@ -147,6 +147,40 @@ export async function POST(
       )
     }
 
+    // Check if target user has blocked the follower
+    const isBlocked = await prisma.block.findUnique({
+      where: {
+        blockerAddress_blockedAddress: {
+          blockerAddress: normalizedAddress, // The person being followed
+          blockedAddress: normalizedFollower, // The person trying to follow
+        },
+      },
+    })
+
+    if (isBlocked) {
+      return NextResponse.json(
+        { error: 'Bu kullanıcıyı takip edemezsiniz.' },
+        { status: 403 }
+      )
+    }
+
+    // Check if follower has blocked the target (unlikely to happen if they are clicking follow, but for consistency)
+    const hasBlockedTarget = await prisma.block.findUnique({
+      where: {
+        blockerAddress_blockedAddress: {
+          blockerAddress: normalizedFollower,
+          blockedAddress: normalizedAddress,
+        },
+      },
+    })
+
+    if (hasBlockedTarget) {
+      return NextResponse.json(
+        { error: 'Bu kullanıcıyı takip etmek için önce engelini kaldırmalısınız.' },
+        { status: 400 }
+      )
+    }
+
     // Check if follow relationship already exists (idempotent operation)
     const existingFollow = await prisma.follow.findUnique({
       where: {

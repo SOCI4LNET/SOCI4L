@@ -41,6 +41,7 @@ interface FollowItem {
   reason?: string
   primaryRole?: string | null
   statusMessage?: string | null
+  isBlocked?: boolean
 }
 
 export function SocialPanel({ address }: SocialPanelProps) {
@@ -325,6 +326,55 @@ export function SocialPanel({ address }: SocialPanelProps) {
     }
   }
 
+  const handleBlock = async (targetAddress: string) => {
+    try {
+      const normalizedTargetAddress = targetAddress.toLowerCase()
+      const response = await fetch(`/api/profile/${normalizedTargetAddress}/block`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        throw new Error('Block action failed')
+      }
+
+      const { blocked } = await response.json()
+
+      // Update local state: if blocked, remove from both lists
+      if (blocked) {
+        setFollowers(prev => prev.filter(f => f.address.toLowerCase() !== normalizedTargetAddress))
+        setFollowing(prev => prev.filter(f => f.address.toLowerCase() !== normalizedTargetAddress))
+        toast.success('User blocked successfully')
+      } else {
+        toast.success('User unblocked successfully')
+      }
+    } catch (error) {
+      console.error('Error blocking:', error)
+      toast.error('Failed to block user')
+    }
+  }
+
+  const handleRemoveFollower = async (targetAddress: string) => {
+    try {
+      const normalizedTargetAddress = targetAddress.toLowerCase()
+      const response = await fetch(`/api/profile/${normalizedTargetAddress}/remove-follower`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to remove follower')
+      }
+
+      // Remove from followers list
+      setFollowers(prev => prev.filter(f => f.address.toLowerCase() !== normalizedTargetAddress))
+      toast.success('Follower removed')
+    } catch (error) {
+      console.error('Error removing follower:', error)
+      toast.error('Failed to remove follower')
+    }
+  }
+
   if (!mounted) {
     return (
       <div className="space-y-4">
@@ -340,7 +390,8 @@ export function SocialPanel({ address }: SocialPanelProps) {
     emptyHelper: string,
     showUnfollow = false,
     suggestions: any[] = [],
-    dateLabel = 'Followed on'
+    dateLabel = 'Followed on',
+    showRemoveFollower = false
   ) => {
     if (loading) {
       return (
@@ -449,6 +500,10 @@ export function SocialPanel({ address }: SocialPanelProps) {
             followedAt={new Date(item.createdAt)}
             showUnfollow={showUnfollow}
             onUnfollow={handleUnfollow}
+            onBlock={handleBlock}
+            isBlocked={item.isBlocked}
+            showRemoveFollower={showRemoveFollower && isOwnProfile}
+            onRemoveFollower={handleRemoveFollower}
             connectionStrength={item.score}
             connectionReason={item.reason}
             primaryRole={item.primaryRole}
@@ -530,7 +585,8 @@ export function SocialPanel({ address }: SocialPanelProps) {
                 'Share your profile to get discovered.',
                 false,
                 suggestionsData?.suggestions, // Pass suggestions
-                'Followed you on'
+                'Followed you on',
+                true // showRemoveFollower
               )}
             </TabsContent>
             <TabsContent value="following" className="mt-4">

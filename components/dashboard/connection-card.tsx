@@ -35,6 +35,10 @@ interface ConnectionCardProps {
     dateLabel?: string
     showUnfollow?: boolean
     onUnfollow?: (address: string) => void
+    isBlocked?: boolean
+    onBlock?: (address: string) => void
+    showRemoveFollower?: boolean
+    onRemoveFollower?: (address: string) => void
 }
 
 export function ConnectionCard({
@@ -49,6 +53,10 @@ export function ConnectionCard({
     dateLabel,
     showUnfollow = false,
     onUnfollow,
+    isBlocked = false,
+    onBlock,
+    showRemoveFollower = false,
+    onRemoveFollower,
 }: ConnectionCardProps) {
     const normalizedAddr = address.toLowerCase()
     const fallbackText = address.slice(2, 4).toUpperCase()
@@ -155,6 +163,25 @@ export function ConnectionCard({
                     <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => toast.info('Bu özellik yapım aşamasında')}>Add to list</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => toast.info('Bu özellik yapım aşamasında')}>Mute</DropdownMenuItem>
+
+                        {showRemoveFollower && (
+                            <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onClick={() => onRemoveFollower?.(address)}
+                            >
+                                Remove follower
+                            </DropdownMenuItem>
+                        )}
+
+                        <DropdownMenuSeparator />
+
+                        <DropdownMenuItem
+                            className={isBlocked ? "text-foreground" : "text-destructive focus:text-destructive"}
+                            onClick={() => onBlock?.(address)}
+                        >
+                            {isBlocked ? "Unblock user" : "Block user"}
+                        </DropdownMenuItem>
+
                         {showUnfollow && (
                             <>
                                 <DropdownMenuSeparator />

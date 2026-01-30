@@ -81,6 +81,17 @@ model Follow {
   @@index([followingAddress])
 }
 
+model Block {
+  id              String   @id @default(cuid())
+  blockerAddress  String   // wallet address of the person who is blocking
+  blockedAddress  String   // wallet address of the person being blocked
+  createdAt       DateTime @default(now())
+
+  @@unique([blockerAddress, blockedAddress])
+  @@index([blockerAddress])
+  @@index([blockedAddress])
+}
+
 model LinkCategory {
   id          String   @id @default(cuid())
   profileId   String

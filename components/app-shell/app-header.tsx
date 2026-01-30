@@ -30,7 +30,7 @@ const EXAMPLE_PROFILE_ADDRESS = '0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1'
 
 const navigationItems = [
   { label: 'Overview', href: '/', exact: true },
-  { label: 'Example Profile', href: `/p/${EXAMPLE_PROFILE_ADDRESS}` },
+  { label: 'Try Demo', href: '/demo' },
   { label: 'Docs', href: 'https://docs.soci4l.com', external: true },
 ]
 
@@ -60,7 +60,7 @@ export function AppHeader({ showSidebarTrigger = false, sticky = true, showNavig
   }
 
   return (
-    <header 
+    <header
       className={cn(
         'flex h-16 min-h-[4rem] items-center gap-4 border-b border-border/60 bg-background/95',
         PAGE_GUTTER,
@@ -70,8 +70,8 @@ export function AppHeader({ showSidebarTrigger = false, sticky = true, showNavig
     >
       {/* Left: Logo */}
       <div className="flex items-center gap-2 shrink-0">
-        <Link 
-          href="/" 
+        <Link
+          href="/"
           className="flex items-center gap-2 hover:opacity-80 transition-opacity group"
         >
           <Soci4LLogo variant="combination" className="h-7 w-auto transition-transform group-hover:scale-105" />
@@ -83,7 +83,7 @@ export function AppHeader({ showSidebarTrigger = false, sticky = true, showNavig
         <nav className="hidden md:flex flex-1 items-center justify-center gap-1">
           {navigationItems.map((item) => {
             const active = !item.external && isActive(item.href, item.exact)
-            
+
             if (item.external) {
               return (
                 <Button

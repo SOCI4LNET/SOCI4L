@@ -23,7 +23,7 @@ interface FooterLink {
 const footerLinks = {
   product: [
     { label: 'Overview', href: '/' },
-    { label: 'Example Profile', href: '/p/0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1' },
+    { label: 'Try Demo', href: '/demo' },
     { label: 'Dashboard', href: '/dashboard' },
   ] as FooterLink[],
   resources: [
