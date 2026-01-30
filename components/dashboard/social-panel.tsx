@@ -357,6 +357,30 @@ export function SocialPanel({ address }: SocialPanelProps) {
       )
     }
 
+    const suggestionsBlock = suggestions && suggestions.length > 0 && (
+      <div className="w-full mt-8 text-left border-t pt-6">
+        <h4 className="text-sm font-semibold mb-3 px-1 flex items-center gap-2">
+          <UserPlus className="h-4 w-4 text-primary" />
+          Suggested for you
+        </h4>
+        <div className="space-y-0 border rounded-md overflow-hidden">
+          {suggestions.map((s) => (
+            <ConnectionCard
+              key={s.address}
+              address={s.address}
+              displayName={s.displayName}
+              avatarUrl={`https://effigy.im/a/${s.address.toLowerCase()}.svg`}
+              primaryRole={s.primaryRole}
+              statusMessage={s.statusMessage}
+              connectionReason={s.reason}
+              followedAt={new Date(s.createdAt)}
+            // No showUnfollow since these are suggestions
+            />
+          ))}
+        </div>
+      </div>
+    )
+
     if (items.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center py-12 px-4 text-center border border-dashed rounded-lg">
@@ -407,29 +431,7 @@ export function SocialPanel({ address }: SocialPanelProps) {
           )}
 
           {/* Suggestions in Empty State */}
-          {suggestions && suggestions.length > 0 && (
-            <div className="w-full mt-8 text-left border-t pt-6">
-              <h4 className="text-sm font-semibold mb-3 px-1 flex items-center gap-2">
-                <UserPlus className="h-4 w-4 text-primary" />
-                Suggested for you
-              </h4>
-              <div className="space-y-0 border rounded-md overflow-hidden">
-                {suggestions.map((s) => (
-                  <ConnectionCard
-                    key={s.address}
-                    address={s.address}
-                    displayName={s.displayName}
-                    avatarUrl={`https://effigy.im/a/${s.address.toLowerCase()}.svg`}
-                    primaryRole={s.primaryRole}
-                    statusMessage={s.statusMessage}
-                    connectionReason={s.reason}
-                    followedAt={new Date(s.createdAt)}
-                  // No showUnfollow since these are suggestions
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+          {suggestionsBlock}
         </div>
       )
     }
@@ -451,6 +453,8 @@ export function SocialPanel({ address }: SocialPanelProps) {
             statusMessage={item.statusMessage}
           />
         ))}
+        {/* Suggestions appended to list */}
+        {suggestionsBlock}
       </div>
     )
   }

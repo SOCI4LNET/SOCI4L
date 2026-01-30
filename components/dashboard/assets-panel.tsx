@@ -275,12 +275,12 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
       return data
     },
     enabled: mounted && !!targetAddress && activeTab === 'tokens',
-    // Cache tokens for 60 seconds (balances change less frequently)
-    staleTime: 60 * 1000, // 60 seconds
+    // Cache tokens for 30 seconds (balances change less frequently)
+    staleTime: 30 * 1000, // 30 seconds
     // Don't refetch on window focus if data is fresh
     refetchOnWindowFocus: false,
-    // Background refetch every 2 minutes to keep data fresh
-    refetchInterval: 2 * 60 * 1000, // 2 minutes
+    // Background refetch every 1 minute to keep data fresh
+    refetchInterval: 60 * 1000, // 1 minute
   })
 
   // Fetch NFTs
@@ -344,12 +344,12 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
       return data
     },
     enabled: mounted && !!targetAddress && activeTab === 'nfts',
-    // Cache NFTs for 2 minutes (NFTs change less frequently than tokens)
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    // Cache NFTs for 15 seconds (for better responsiveness after purchase)
+    staleTime: 15 * 1000, // 15 seconds
     // Don't refetch on window focus if data is fresh
     refetchOnWindowFocus: false,
-    // Background refetch every 5 minutes to keep data fresh
-    refetchInterval: 5 * 60 * 1000, // 5 minutes
+    // Background refetch every 1 minute to keep data fresh
+    refetchInterval: 60 * 1000, // 1 minute
   })
 
   // Fetch profile for share/QR
