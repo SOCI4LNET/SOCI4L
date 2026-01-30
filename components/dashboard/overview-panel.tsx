@@ -478,7 +478,8 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
                     <TooltipTrigger asChild>
                       <Button
                         variant="outline"
-                        size="icon-sm"
+                        size="icon"
+                        className="h-7 w-7"
                         onClick={handleCopyAddress}
                         aria-label="Copy address"
                       >
@@ -494,7 +495,8 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
                       <TooltipTrigger asChild>
                         <Button
                           variant="outline"
-                          size="icon-sm"
+                          size="icon"
+                          className="h-7 w-7"
                           asChild
                           aria-label="Open public profile"
                         >
@@ -779,7 +781,8 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
                   <TooltipTrigger asChild>
                     <Button
                       variant="outline"
-                      size="icon-sm"
+                      size="icon"
+                      className="h-7 w-7"
                       onClick={() => refetchAssets()}
                       disabled={assetsLoading}
                       aria-label="Refresh assets"
