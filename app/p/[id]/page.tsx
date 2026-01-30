@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import { getPublicProfileHref } from '@/lib/routing'
 import Link from 'next/link'
-import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Eye, Share2, Instagram, Youtube, Sparkles, ShieldAlert } from 'lucide-react'
+import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Eye, Share2, Instagram, Youtube, Sparkles, ShieldAlert, Layers } from 'lucide-react'
 import { XIcon } from '@/components/icons/x-icon'
 import { ClaimProfileButton } from '@/components/claim-profile-button'
 import { FollowToggle, FollowStats } from '@/components/follow-toggle'
@@ -1213,7 +1213,7 @@ export default function ProfilePage({ params }: PageProps) {
                             <p className="text-sm text-muted-foreground mb-2">NFTs</p>
                             {walletData.nfts && walletData.nfts.length > 0 ? (
                               walletData.nfts.slice(0, maxItems).map((nft, idx) => (
-                                <div key={idx} className="flex items-center gap-3 mb-2">
+                                <div key={idx} className="flex items-center gap-3 mb-2 group">
                                   {nft.image ? (
                                     <div className="relative h-10 w-10 overflow-hidden rounded-md border bg-muted">
                                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1238,6 +1238,60 @@ export default function ProfilePage({ params }: PageProps) {
                                     <p className="text-xs text-muted-foreground font-mono truncate">
                                       {formatAddress(nft.contractAddress)} #{nft.tokenId}
                                     </p>
+                                  </div>
+                                  <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                                            onClick={() => {
+                                              navigator.clipboard.writeText(nft.contractAddress)
+                                              toast.success('Address copied')
+                                            }}
+                                          >
+                                            <Copy className="h-3 w-3" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Copy contract</TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" asChild>
+                                            <a
+                                              href={`https://snowtrace.io/token/${nft.contractAddress}?a=${nft.tokenId}`}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                            >
+                                              <ExternalLink className="h-3 w-3" />
+                                            </a>
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>View on explorer</TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" asChild>
+                                            <a
+                                              href={`https://snowtrace.io/token/${nft.contractAddress}`}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                            >
+                                              <Layers className="h-3 w-3" />
+                                            </a>
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>View collection</TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
                                   </div>
                                 </div>
                               ))
