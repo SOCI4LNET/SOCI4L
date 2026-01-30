@@ -16,6 +16,8 @@ import {
 import { calculateScore, getScoreTier, type ScoreInput } from '@/lib/score'
 import { getFollowersCount } from '@/lib/db'
 
+import { getSessionAddress } from '@/lib/auth'
+
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
@@ -47,6 +49,28 @@ export async function GET(request: NextRequest) {
 
   if (!resolvedAddress) {
     return NextResponse.json({ error: 'Could not resolve address' }, { status: 400 })
+  }
+
+  // Check if viewing is allowed (blocking logic)
+  const sessionAddress = await getSessionAddress()
+  if (sessionAddress && resolvedAddress) {
+    const normalizedSession = sessionAddress.toLowerCase()
+    const normalizedTarget = resolvedAddress.toLowerCase()
+
+    if (normalizedSession !== normalizedTarget) {
+      const block = await prisma.block.findFirst({
+        where: {
+          OR: [
+            { blockerAddress: normalizedTarget, blockedAddress: normalizedSession }, // Viewer is blocked by Profile Owner
+            { blockerAddress: normalizedSession, blockedAddress: normalizedTarget }, // Viewer blocked Profile Owner
+          ],
+        },
+      })
+
+      if (block) {
+        return NextResponse.json({ error: 'Profile is not available' }, { status: 403 })
+      }
+    }
   }
 
   // Fetch full profile with layoutConfig and appearanceConfig from database

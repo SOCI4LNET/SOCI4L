@@ -28,6 +28,26 @@ export async function GET(
 
     const normalizedAddress = address.toLowerCase()
 
+    // Check for blocks
+    const sessionAddress = await getSessionAddress()
+    if (sessionAddress) {
+      const normalizedSession = sessionAddress.toLowerCase()
+      if (normalizedSession !== normalizedAddress) {
+        const block = await prisma.block.findFirst({
+          where: {
+            OR: [
+              { blockerAddress: normalizedAddress, blockedAddress: normalizedSession },
+              { blockerAddress: normalizedSession, blockedAddress: normalizedAddress },
+            ],
+          },
+        })
+
+        if (block) {
+          return NextResponse.json({ error: 'Profile is not available' }, { status: 403 })
+        }
+      }
+    }
+
     // Count followers (how many wallets follow this address)
     const followersCount = await prisma.follow.count({
       where: {

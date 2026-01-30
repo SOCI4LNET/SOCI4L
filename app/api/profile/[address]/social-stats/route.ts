@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { isValidAddress } from '@/lib/utils'
 
+import { getSessionAddress } from '@/lib/auth'
+
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ address: string }> | { address: string } }
@@ -18,6 +20,26 @@ export async function GET(
         }
 
         const normalizedAddress = address.toLowerCase()
+
+        // Check for blocks
+        const sessionAddress = await getSessionAddress()
+        if (sessionAddress) {
+            const normalizedSession = sessionAddress.toLowerCase()
+            if (normalizedSession !== normalizedAddress) {
+                const block = await prisma.block.findFirst({
+                    where: {
+                        OR: [
+                            { blockerAddress: normalizedAddress, blockedAddress: normalizedSession },
+                            { blockerAddress: normalizedSession, blockedAddress: normalizedAddress },
+                        ],
+                    },
+                })
+
+                if (block) {
+                    return NextResponse.json({ error: 'Profile is not available' }, { status: 403 })
+                }
+            }
+        }
 
         // Calculate date thresholds
         const now = new Date()

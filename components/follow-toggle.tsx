@@ -229,13 +229,12 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
 
       if (!response.ok) {
         // Handle auth retries if needed
-        if (response.status === 401 || response.status === 403) {
-          // ... simple retry logic or just fail
-          // For brevity, defaulting to failure message if simple session ensure failed
+        if (response.status === 401) {
           toast.error('Session expired. Please reconnect your wallet.')
           setIsFollowing(previousState)
           return
         }
+
         const error = await response.json()
         throw new Error(error.error || 'Action failed')
       }
