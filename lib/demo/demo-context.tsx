@@ -196,7 +196,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
                             value: (Math.random() * 5).toFixed(2),
                             timestamp: Math.floor(Date.now() / 1000),
                             blockNumber: 99999999,
-                            type: 'receive'
+                            type: 'receive' as const
                         }
                         const currentTxs = prev.walletOverrides?.transactions || getCanonicalData(prev.selectedDataset || 'builder').walletData.transactions
 

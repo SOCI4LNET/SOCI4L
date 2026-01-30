@@ -68,5 +68,6 @@ export interface DemoContextType {
     resetDemo: () => void
     updateProfile: (overrides: Partial<DemoProfile>) => void
     setDataset: (dataset: DemoSession['selectedDataset']) => void
+    simulateAction: (action: string) => void
     isDemo: boolean
 }

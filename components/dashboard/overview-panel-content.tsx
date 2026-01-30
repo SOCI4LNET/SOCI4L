@@ -63,6 +63,7 @@ export interface ProfileData {
     socialLinks?: Array<{ id?: string; platform?: string; type?: string; url: string; label?: string }> | null
     primaryRole?: string | null
     secondaryRoles?: string[] | null
+    statusMessage?: string | null
 }
 
 export interface QuickStats {
