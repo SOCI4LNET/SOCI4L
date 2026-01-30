@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import { Activity, BarChart2, Lock } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -49,6 +50,7 @@ interface PublicInsightsData {
       title: string
       url: string
       clicks: number
+      isDeleted?: boolean
     }>
     topCategories: Array<{
       id: string
@@ -344,7 +346,14 @@ export default function PublicInsightsPage({ params }: PageProps) {
                         className="flex items-center justify-between rounded-md border border-border/40 bg-background/60 px-3 py-2 text-xs"
                       >
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">{link.title || link.url}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium truncate">{link.title || link.url}</p>
+                            {link.isDeleted && (
+                              <Badge variant="destructive" className="h-4 px-1 rounded-[4px] text-[9px] font-semibold uppercase tracking-wider">
+                                Deleted
+                              </Badge>
+                            )}
+                          </div>
                           <p className="text-[11px] text-muted-foreground truncate">{link.url}</p>
                         </div>
                         <div className="ml-4 text-right">

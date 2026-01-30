@@ -117,15 +117,58 @@ export async function GET(request: NextRequest) {
       take: 5,
     })
 
-    // Resolve link titles
+    // Resolve link titles (including deleted ones)
     const linksMap = new Map(links.map(l => [l.id, l]))
+
+    // Find IDs that are NOT in current links map (deleted links)
+    const deletedLinkIds = linkStats
+      .map(s => s.linkId)
+      .filter((id): id is string => id !== null && !linksMap.has(id))
+
+    // Fetch details for deleted links from latest events
+    const deletedLinkDetails = new Map<string, { title: string, url: string }>()
+
+    if (deletedLinkIds.length > 0) {
+      // For each deleted link, find the most recent event to get its title/url
+      // We can't easily do a "distinct on" with prisma findMany for this specific case efficiently across many IDs without raw query,
+      // but since we only have max 5 top links, we can just query safely.
+      // Actually, we can just findFirst for each or findMany and process.
+      // Given max 5 items in total list, this loop is negligible.
+
+      await Promise.all(deletedLinkIds.map(async (id) => {
+        const lastEvent = await prisma.analyticsEvent.findFirst({
+          where: {
+            profileId: resolvedAddress,
+            linkId: id,
+            linkTitle: { not: null }
+          },
+          orderBy: { createdAt: 'desc' },
+          select: { linkTitle: true, linkUrl: true }
+        })
+
+        if (lastEvent) {
+          deletedLinkDetails.set(id, {
+            title: lastEvent.linkTitle || 'Unknown Link',
+            url: lastEvent.linkUrl || ''
+          })
+        }
+      }))
+    }
+
     const topLinks = linkStats.map(stat => {
       const link = stat.linkId ? linksMap.get(stat.linkId) : null
+      const deletedDetails = stat.linkId ? deletedLinkDetails.get(stat.linkId) : null
+
+      const title = link?.title || deletedDetails?.title || 'Unknown Link'
+      const url = link?.url || deletedDetails?.url || ''
+      const isDeleted = !link && !!stat.linkId // If ID exists but no link record, it's deleted
+
       return {
         id: stat.linkId || 'unknown',
-        title: link?.title || 'Unknown Link',
-        url: link?.url || '',
+        title,
+        url,
         clicks: stat._count._all,
+        isDeleted,
       }
     }).filter(l => l.id !== 'unknown')
 
