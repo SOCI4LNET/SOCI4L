@@ -27,6 +27,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { formatAddress } from "@/lib/utils"
 import { getPublicProfileHref } from "@/lib/routing"
+import { ProfileReadiness } from "@/components/dashboard/profile-readiness"
 
 interface Profile {
   id: string
@@ -259,6 +260,9 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
       mode="full-width"
     >
       <div className="space-y-6">
+        {/* Profile Readiness Helper */}
+        <ProfileReadiness profile={profile} />
+
         {/* Account Card */}
         <Card className="bg-card border border-border/60 shadow-sm">
           <CardHeader>
