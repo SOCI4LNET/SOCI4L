@@ -62,11 +62,11 @@ export function getThemeCardClasses(theme: ProfileTheme, blockType?: 'links' | '
 
   switch (theme) {
     case 'minimal':
-      // Editorial/Calm: No shadow, subtle border, clean background
-      return `${baseClasses} border-muted/40 shadow-none bg-background`
+      // Editorial/Calm: No card background, just subtle structure
+      return `${baseClasses} border-0 shadow-none bg-transparent`
     case 'dense':
-      // Tactical/Data: Stronger border, no shadow, compact feel
-      return `${baseClasses} border-border/80 shadow-none bg-card`
+      // Tactical/Data: Thicker borders, sharp feel
+      return `${baseClasses} border-2 border-primary/10 shadow-none bg-card/50 rounded-lg`
     case 'spotlight':
       // Expressive: Spotlight on links, others muted
       if (blockType === 'links') {
@@ -82,12 +82,35 @@ export function getThemeCardClasses(theme: ProfileTheme, blockType?: 'links' | '
 }
 
 /**
+ * Get theme-specific CSS classes for link items (buttons)
+ */
+export function getThemeLinkItemClasses(theme: ProfileTheme): string {
+  const baseClasses = 'group flex items-center justify-between transition-all duration-200'
+
+  switch (theme) {
+    case 'minimal':
+      // Minimal: List style, no borders except separator, clean
+      return `${baseClasses} px-0 py-3 border-b border-border/40 hover:pl-2 hover:border-primary/50 rounded-none bg-transparent`
+    case 'dense':
+      // Dense: Solid blocks, highly visible
+      return `${baseClasses} px-3 py-1.5 border border-border bg-muted/30 hover:bg-muted/50 hover:border-primary/30 rounded-md`
+    case 'spotlight':
+      // Spotlight: Glowy, clean surface
+      return `${baseClasses} px-4 py-3 border border-primary/10 bg-background/50 hover:bg-background/80 hover:border-primary/40 hover:shadow-[0_0_15px_-3px_rgba(var(--primary),0.2)] rounded-xl`
+    case 'default':
+    default:
+      // Default: Standard card-like link
+      return `${baseClasses} px-3 py-2 border border-border/60 bg-background/60 hover:bg-primary/5 hover:border-primary/50 rounded-md shadow-sm`
+  }
+}
+
+/**
  * Get theme-specific CSS classes for header/avatar
  */
 export function getThemeHeaderClasses(theme: ProfileTheme): string {
   switch (theme) {
     case 'minimal':
-      return 'mb-10' // More breath
+      return 'mb-12' // More breath
     case 'dense':
       return 'mb-4' // Compact
     case 'spotlight':
@@ -104,20 +127,22 @@ export function getThemeHeaderClasses(theme: ProfileTheme): string {
 export function getThemeTextClasses(theme: ProfileTheme, size: 'title' | 'body' | 'small'): string {
   switch (theme) {
     case 'minimal':
-      if (size === 'title') return 'text-3xl font-light tracking-tight' // Editorial feel
-      if (size === 'body') return 'text-base leading-relaxed'
+      // Minimal: Serif-like headings, larger body
+      if (size === 'title') return 'text-3xl font-light tracking-tight'
+      if (size === 'body') return 'text-base leading-relaxed text-foreground/90'
       return 'text-sm text-muted-foreground'
     case 'dense':
-      if (size === 'title') return 'text-base font-semibold tracking-tight' // Tactical/Compact
-      if (size === 'body') return 'text-xs'
-      return 'text-[10px] text-muted-foreground'
+      // Dense: Technical, mono-like spacing
+      if (size === 'title') return 'text-lg font-bold tracking-tight uppercase'
+      if (size === 'body') return 'text-xs font-medium'
+      return 'text-[10px] text-muted-foreground uppercase tracking-wider'
     case 'spotlight':
-      if (size === 'title') return 'text-4xl font-bold tracking-tighter' // Loud/Expressive
-      if (size === 'body') return 'text-lg'
-      return 'text-sm font-medium'
+      if (size === 'title') return 'text-4xl font-black tracking-tighter'
+      if (size === 'body') return 'text-lg font-medium'
+      return 'text-sm font-medium opacity-80'
     case 'default':
     default:
-      if (size === 'title') return 'text-2xl font-semibold tracking-tight' // Standard
+      if (size === 'title') return 'text-2xl font-semibold tracking-tight'
       if (size === 'body') return 'text-sm'
       return 'text-xs text-muted-foreground'
   }

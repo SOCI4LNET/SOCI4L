@@ -43,6 +43,7 @@ import {
   getThemeCardClasses,
   getThemeHeaderClasses,
   getThemeTextClasses,
+  getThemeLinkItemClasses,
 } from '@/lib/profile-appearance'
 
 interface PageProps {
@@ -1103,7 +1104,7 @@ export default function ProfilePage({ params }: PageProps) {
                                                 )
                                               }
                                             }}
-                                            className="group flex items-center justify-between rounded-md border border-border/60 bg-background/60 px-3 py-2 text-xs transition-colors hover:border-primary/50 hover:bg-primary/5"
+                                            className={getThemeLinkItemClasses(effectiveAppearanceConfig.theme)}
                                           >
                                             <div className="flex min-w-0 items-center gap-2">
                                               <div className="flex h-7 w-7 items-center justify-center rounded-md bg-muted/60 text-muted-foreground shrink-0">
