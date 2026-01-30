@@ -48,7 +48,7 @@ const platformItems = [
   },
 ]
 
-const profileItems = [
+const studioItems = [
   {
     title: 'Builder',
     icon: Wand2,
@@ -64,6 +64,9 @@ const profileItems = [
     icon: BarChart3,
     value: 'insights',
   },
+]
+
+const accountItems = [
   {
     title: 'Safety',
     icon: Shield,
@@ -83,7 +86,11 @@ const navGroups = [
   },
   {
     label: 'Studio',
-    items: profileItems,
+    items: studioItems,
+  },
+  {
+    label: 'Account',
+    items: accountItems,
   },
 ]
 
@@ -101,10 +108,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const isCollapsed = state === 'collapsed'
 
-  // Check if current route is a profile route
-  // 1. Check query param tab (builder, links, insights, settings)
-  // 2. Check pathname for /dashboard/[address] with profile routes
-  const isProfileTabFromQuery = profileItems.some(item => item.value === currentTab)
+  // Check if current route is a Studio or Account route
+  // 1. Check query param tab
+  const allStudioAccountItems = [...studioItems, ...accountItems]
+  const isProfileTabFromQuery = allStudioAccountItems.some((item: any) => item.value === currentTab)
   const isProfileRouteFromPath = pathname.includes('/dashboard/') &&
     (pathname.includes('/builder') ||
       pathname.includes('/links') ||
@@ -113,23 +120,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       pathname.includes('/settings'))
   const isProfileRoute = isProfileTabFromQuery || isProfileRouteFromPath
 
-  // Default state: Desktop = always open, Mobile = closed
-  const getDefaultOpenState = () => {
-    if (isMobile) {
-      return false // Mobile: default closed
-    }
-    return true // Desktop: always open by default
+  // Determine which sections should be open based on the current tab
+  const isStudioTab = studioItems.some((item: any) => item.value === currentTab)
+  const isAccountTab = accountItems.some((item: any) => item.value === currentTab)
+
+  // Default state: Desktop = open if active, Mobile = closed
+  const getDefaultOpenState = (isOpen: boolean) => {
+    if (isMobile) return false
+    return isOpen
   }
 
-  // Profile collapsible state
-  const [isProfileOpen, setIsProfileOpen] = React.useState(getDefaultOpenState)
+  // Section open states
+  const [isStudioOpen, setIsStudioOpen] = React.useState(() => getDefaultOpenState(isStudioTab))
+  const [isAccountOpen, setIsAccountOpen] = React.useState(() => getDefaultOpenState(isAccountTab))
 
-  // Auto-expand when navigating to a profile route (for mobile or when manually closed)
+  // Auto-expand when navigating
   React.useEffect(() => {
-    if (isProfileRoute && !isMobile) {
-      setIsProfileOpen(true)
+    if (!isMobile) {
+      if (isStudioTab) setIsStudioOpen(true)
+      if (isAccountTab) setIsAccountOpen(true)
     }
-  }, [isProfileRoute, isMobile])
+  }, [isStudioTab, isAccountTab, isMobile])
 
   const handleTabChange = (value: string) => {
     // Sanitize query params: remove params not allowed for the target tab
@@ -196,10 +207,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 )
               })}
 
-              {/* Profile Collapsible */}
+              {/* Studio Collapsible */}
               <Collapsible
-                open={isCollapsed ? false : isProfileOpen}
-                onOpenChange={isCollapsed ? undefined : setIsProfileOpen}
+                open={isCollapsed ? false : isStudioOpen}
+                onOpenChange={isCollapsed ? undefined : setIsStudioOpen}
                 className="group/collapsible"
               >
                 <SidebarMenuItem>
@@ -216,7 +227,54 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <SidebarMenuSub>
-                      {profileItems.map((item) => {
+                      {studioItems.map((item: any) => {
+                        const Icon = item.icon
+                        const isActive = currentTab === item.value
+
+                        return (
+                          <SidebarMenuSubItem key={item.value}>
+                            <SidebarMenuSubButton
+                              asChild
+                              isActive={isActive}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => handleTabChange(item.value)}
+                                className="w-full"
+                              >
+                                <Icon />
+                                <span>{item.title}</span>
+                              </button>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        )
+                      })}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </Collapsible>
+
+              {/* Account Collapsible */}
+              <Collapsible
+                open={isCollapsed ? false : isAccountOpen}
+                onOpenChange={isCollapsed ? undefined : setIsAccountOpen}
+                className="group/collapsible"
+              >
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton tooltip={isCollapsed ? navGroups[2].label : undefined}>
+                      <Settings className="h-4 w-4" />
+                      {!isCollapsed && (
+                        <>
+                          <span>{navGroups[2].label}</span>
+                          <ChevronDown className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
+                        </>
+                      )}
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      {accountItems.map((item: any) => {
                         const Icon = item.icon
                         const isActive = currentTab === item.value
 

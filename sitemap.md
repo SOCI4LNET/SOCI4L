@@ -21,11 +21,13 @@ The main workspace for connected users, organized by the Sidebar groups:
 - **Activity** (`?tab=activity`): Full transaction history with status filtering.
 - **Social** (`?tab=social`): Follower/Following management and networking.
 
-#### **Group: Studio (Profile)**
+#### **Group: Studio**
 - **Builder** (`?tab=builder`): Core identity editor (Bio, Roles, Social Links).
 - **Links** (`?tab=links`): Link stack management (CRUD for custom links).
   - *Sub-route*: `/links/[linkId]` (Individual link detailed analytics/edit).
 - **Insights** (`?tab=insights`): Real-time metrics for profile views and link clicks.
+
+#### **Group: Account**
 - **Safety** (`?tab=safety`): Management for Blocked and Muted users.
 - **Settings** (`?tab=settings`): Account-level configuration (Display Name, custom URL claiming).
 
