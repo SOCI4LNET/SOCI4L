@@ -80,6 +80,7 @@ interface NFTData {
 
 interface AssetsResponse {
   tokens?: TokenData[]
+  native?: TokenData
   nfts?: NFTData[]
   nextCursor?: string
 }
@@ -494,9 +495,9 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
       const query = searchQuery.toLowerCase()
       filtered = filtered.filter(
         (token) =>
-          token.symbol.toLowerCase().includes(query) ||
-          token.name.toLowerCase().includes(query) ||
-          token.address.toLowerCase().includes(query)
+          (token.symbol && token.symbol.toLowerCase().includes(query)) ||
+          (token.name && token.name.toLowerCase().includes(query)) ||
+          (token.address && token.address.toLowerCase().includes(query))
       )
     }
 
@@ -531,10 +532,10 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
       const query = searchQuery.toLowerCase()
       filtered = filtered.filter(
         (nft) =>
-          (nft.name?.toLowerCase().includes(query)) ||
-          (nft.collectionName?.toLowerCase().includes(query)) ||
-          nft.tokenId.toLowerCase().includes(query) ||
-          nft.contract.toLowerCase().includes(query)
+          (nft.name && nft.name.toLowerCase().includes(query)) ||
+          (nft.collectionName && nft.collectionName.toLowerCase().includes(query)) ||
+          (nft.tokenId && nft.tokenId.toLowerCase().includes(query)) ||
+          (nft.contract && nft.contract.toLowerCase().includes(query))
       )
     }
 
