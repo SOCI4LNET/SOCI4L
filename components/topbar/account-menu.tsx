@@ -48,7 +48,7 @@ export function AccountMenu() {
           cache: 'no-store',
         })
         const data = await response.json()
-        
+
         if (data.profile) {
           setProfile({
             slug: data.profile.slug,
@@ -150,7 +150,8 @@ export function AccountMenu() {
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
-                  size="icon-sm"
+                  variant="ghost"
+                  size="icon"
                   onClick={handleCopyAddress}
                   className="h-6 w-6"
                 >
@@ -163,7 +164,8 @@ export function AccountMenu() {
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
-                  size="icon-sm"
+                  variant="ghost"
+                  size="icon"
                   onClick={handleShare}
                   className="h-6 w-6"
                 >
@@ -178,7 +180,7 @@ export function AccountMenu() {
         {/* Avatar dropdown */}
         <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon-sm" className="h-8 w-8 rounded-full">
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
               <Avatar className="h-8 w-8">
                 <AvatarImage src={avatarUrl} alt={formatAddress(connectedAddress)} />
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs">
