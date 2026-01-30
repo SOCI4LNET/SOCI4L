@@ -171,20 +171,20 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
         console.error('[Assets Panel] No target address for summary fetch')
         throw new Error('No address')
       }
-      
+
       console.log('[Assets Panel] Fetching summary:', {
         address: targetAddress,
         chainId: 43114,
       })
-      
+
       const response = await fetch(`/api/wallet/${targetAddress}/assets/summary`)
-      
+
       console.log('[Assets Panel] Summary API response:', {
         status: response.status,
         ok: response.ok,
         address: targetAddress,
       })
-      
+
       if (!response.ok) {
         const errorText = await response.text()
         console.error('[Assets Panel] Summary API error:', {
@@ -194,14 +194,14 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
         })
         throw new Error(`Failed to fetch summary: ${response.status} ${response.statusText}`)
       }
-      
+
       const data = await response.json()
       console.log('[Assets Panel] Summary data received:', {
         tokenCount: data.tokenCount,
         nftCount: data.nftCount,
         totalValueUsd: data.totalValueUsd,
       })
-      
+
       return data
     },
     enabled: mounted && !!targetAddress,
@@ -224,23 +224,23 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
         console.error('[Assets Panel] No target address for tokens fetch')
         throw new Error('No address')
       }
-      
+
       console.log('[Assets Panel] Fetching tokens:', {
         address: targetAddress,
         cursor: tokensCursor,
         chainId: 43114,
       })
-      
+
       const response = await fetch(
         `/api/wallet/${targetAddress}/assets?tab=tokens&limit=20&cursor=${tokensCursor}`
       )
-      
+
       console.log('[Assets Panel] Tokens API response:', {
         status: response.status,
         ok: response.ok,
         address: targetAddress,
       })
-      
+
       if (!response.ok) {
         const errorText = await response.text()
         console.error('[Assets Panel] Tokens API error:', {
@@ -250,7 +250,7 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
         })
         throw new Error(`Failed to fetch tokens: ${response.status} ${response.statusText}`)
       }
-      
+
       const data = await response.json()
       console.log('[Assets Panel] Tokens data received:', {
         tokenCount: data.tokens?.length || 0,
@@ -264,12 +264,12 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
         })) || [],
         debug: (data as any)._debug,
       })
-      
+
       // Log warning if no tokens but native balance exists
       if ((!data.tokens || data.tokens.length === 0) && data.native && parseFloat(data.native.balanceFormatted) > 0) {
         console.warn('[Assets Panel] No tokens found but native balance exists:', data.native.balanceFormatted)
       }
-      
+
       return data
     },
     enabled: mounted && !!targetAddress && activeTab === 'tokens',
@@ -295,23 +295,23 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
         console.error('[Assets Panel] No target address for NFTs fetch')
         throw new Error('No address')
       }
-      
+
       console.log('[Assets Panel] Fetching NFTs:', {
         address: targetAddress,
         cursor: nftsCursor,
         chainId: 43114,
       })
-      
+
       const response = await fetch(
         `/api/wallet/${targetAddress}/assets?tab=nfts&limit=20&cursor=${nftsCursor}`
       )
-      
+
       console.log('[Assets Panel] NFTs API response:', {
         status: response.status,
         ok: response.ok,
         address: targetAddress,
       })
-      
+
       if (!response.ok) {
         const errorText = await response.text()
         console.error('[Assets Panel] NFTs API error:', {
@@ -321,7 +321,7 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
         })
         throw new Error(`Failed to fetch NFTs: ${response.status} ${response.statusText}`)
       }
-      
+
       const data = await response.json()
       console.log('[Assets Panel] NFTs data received:', {
         nftCount: data.nfts?.length || 0,
@@ -330,7 +330,7 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
         nftsArray: data.nfts,
         fullResponse: data,
       })
-      
+
       // Log warning if API returned success but no NFTs
       if (data.nfts && Array.isArray(data.nfts) && data.nfts.length === 0) {
         console.warn('[Assets Panel] API returned empty NFT array. This could mean:')
@@ -338,7 +338,7 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
         console.warn('  2. OpenSea API failed silently (check server logs)')
         console.warn('  3. RPC fallback returned empty (RPC does not support NFT discovery)')
       }
-      
+
       return data
     },
     enabled: mounted && !!targetAddress && activeTab === 'nfts',
@@ -388,7 +388,7 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
 
     // Cache all logo URLs from API response
     const logosToCache: Record<string, string | null> = {}
-    
+
     for (const token of tokensData.tokens) {
       const cacheKey = getCacheKey(token.address, token.symbol)
       if (token.logoUrl) {
@@ -577,8 +577,8 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
     )
   }
 
-  const lastUpdatedText = lastUpdatedAt 
-    ? `Updated ${formatTimeAgo(lastUpdatedAt)}` 
+  const lastUpdatedText = lastUpdatedAt
+    ? `Updated ${formatTimeAgo(lastUpdatedAt)}`
     : 'Not updated yet'
 
   // Full-width layout: Assets page spans available width for wide tables
@@ -672,26 +672,26 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
               <Card className="w-full">
                 <CardContent className="p-6">
                   <Alert variant="destructive">
-                <AlertDescription className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between">
-                    <span>Failed to load tokens. Please try again.</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => refetchTokens()}
-                      className="ml-4"
-                    >
-                      <RefreshCw className="mr-2 h-3 w-3" />
-                      Retry
-                    </Button>
-                  </div>
-                  {process.env.NODE_ENV === 'development' && error instanceof Error && (
-                    <div className="text-xs font-mono bg-destructive/10 p-2 rounded">
-                      {error.message}
-                    </div>
-                  )}
-                </AlertDescription>
-              </Alert>
+                    <AlertDescription className="flex flex-col gap-3">
+                      <div className="flex items-center justify-between">
+                        <span>Failed to load tokens. Please try again.</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => refetchTokens()}
+                          className="ml-4"
+                        >
+                          <RefreshCw className="mr-2 h-3 w-3" />
+                          Retry
+                        </Button>
+                      </div>
+                      {process.env.NODE_ENV === 'development' && error instanceof Error && (
+                        <div className="text-xs font-mono bg-destructive/10 p-2 rounded">
+                          {error.message}
+                        </div>
+                      )}
+                    </AlertDescription>
+                  </Alert>
                 </CardContent>
               </Card>
             ) : filteredAndSortedTokens.length > 0 ? (
@@ -709,170 +709,166 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                    {filteredAndSortedTokens.map((token, index) => {
-                      const isNative = token.isNative || token.address === null
-                      const displayAddress = token.address || `native-${index}`
-                      
-                      // Format balance with sensible precision (5-6 sig figs)
-                      const formatBalance = (balance: string): string => {
-                        const num = parseFloat(balance)
-                        if (num === 0) return '0'
-                        if (num >= 1) {
-                          return num.toLocaleString('en-US', { maximumFractionDigits: 6, minimumFractionDigits: 0 })
-                        }
-                        // For small numbers, show up to 6 decimal places
-                        return num.toLocaleString('en-US', { maximumFractionDigits: 6, minimumFractionDigits: 0 })
-                      }
+                        {filteredAndSortedTokens.map((token, index) => {
+                          const isNative = token.isNative || token.address === null
+                          const displayAddress = token.address || `native-${index}`
 
-                      // Format USD value
-                      const formatUSDValue = (value?: number): string => {
-                        if (!value || value === 0) return '—'
-                        return new Intl.NumberFormat('en-US', {
-                          style: 'currency',
-                          currency: 'USD',
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        }).format(value)
-                      }
-
-                      // Get logo URL with cache fallback
-                      const getLogoUrl = (): string | null => {
-                        // First check API response
-                        if (token.logoUrl) {
-                          // If it's a relative path (starts with /), use as is
-                          if (token.logoUrl.startsWith('/')) {
-                            return token.logoUrl
+                          // Format balance with sensible precision (5-6 sig figs)
+                          const formatBalance = (balance: string): string => {
+                            const num = parseFloat(balance)
+                            if (num === 0) return '0'
+                            if (num >= 1) {
+                              return num.toLocaleString('en-US', { maximumFractionDigits: 6, minimumFractionDigits: 0 })
+                            }
+                            // For small numbers, show up to 6 decimal places
+                            return num.toLocaleString('en-US', { maximumFractionDigits: 6, minimumFractionDigits: 0 })
                           }
-                          // If it's an external URL, use it
-                          return token.logoUrl
-                        }
-                        
-                        // If no logo in API response, check cache
-                        const cacheKey = getCacheKey(token.address, token.symbol)
-                        const cachedLogo = getCachedLogo(cacheKey)
-                        if (cachedLogo) {
-                          return cachedLogo
-                        }
-                        
-                        return null
-                      }
 
-                      const logoUrl = getLogoUrl()
-                      const firstLetter = token.symbol.charAt(0).toUpperCase()
+                          // Format USD value
+                          const formatUSDValue = (value?: number): string => {
+                            if (!value || value === 0) return '—'
+                            return new Intl.NumberFormat('en-US', {
+                              style: 'currency',
+                              currency: 'USD',
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            }).format(value)
+                          }
 
-                      return (
-                        <TableRow key={displayAddress} className="hover:bg-accent/50">
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
-                                {logoUrl ? (
-                                  <img
-                                    src={logoUrl}
-                                    alt={token.symbol}
-                                    className="h-10 w-10 rounded-full object-cover"
-                                    onLoad={() => {
-                                      // Cache logo URL when successfully loaded
-                                      const cacheKey = getCacheKey(token.address, token.symbol)
-                                      setCachedLogo(cacheKey, logoUrl)
-                                    }}
-                                    onError={(e) => {
-                                      // Mark as "no logo found" in cache to avoid retrying
-                                      const cacheKey = getCacheKey(token.address, token.symbol)
-                                      setCachedLogo(cacheKey, null)
-                                      
-                                      // Fallback to first letter if image fails to load
-                                      const target = e.target as HTMLImageElement
-                                      target.style.display = 'none'
-                                      const parent = target.parentElement
-                                      if (parent) {
-                                        parent.innerHTML = `<span class="text-sm font-semibold">${firstLetter}</span>`
-                                      }
-                                    }}
-                                  />
+                          // Get logo URL with cache fallback
+                          const getLogoUrl = (): string | null => {
+                            // First check API response
+                            if (token.logoUrl) {
+                              // If it's a relative path (starts with /), use as is
+                              if (token.logoUrl.startsWith('/')) {
+                                return token.logoUrl
+                              }
+                              // If it's an external URL, use it
+                              return token.logoUrl
+                            }
+
+                            // If no logo in API response, check cache
+                            const cacheKey = getCacheKey(token.address, token.symbol)
+                            const cachedLogo = getCachedLogo(cacheKey)
+                            if (cachedLogo) {
+                              return cachedLogo
+                            }
+
+                            return null
+                          }
+
+                          const logoUrl = getLogoUrl()
+                          const firstLetter = token.symbol.charAt(0).toUpperCase()
+
+                          return (
+                            <TableRow key={displayAddress} className="hover:bg-accent/50">
+                              <TableCell>
+                                <div className="flex items-center gap-3">
+                                  <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+                                    {logoUrl ? (
+                                      <img
+                                        src={logoUrl}
+                                        alt={token.symbol}
+                                        className="h-10 w-10 rounded-full object-cover"
+                                        onLoad={() => {
+                                          // Cache logo URL when successfully loaded
+                                          const cacheKey = getCacheKey(token.address, token.symbol)
+                                          setCachedLogo(cacheKey, logoUrl)
+                                        }}
+                                        onError={(e) => {
+                                          // Mark as "no logo found" in cache to avoid retrying
+                                          const cacheKey = getCacheKey(token.address, token.symbol)
+                                          setCachedLogo(cacheKey, null)
+
+                                          // Fallback to first letter if image fails to load
+                                          const target = e.target as HTMLImageElement
+                                          target.style.display = 'none'
+                                          const parent = target.parentElement
+                                          if (parent) {
+                                            parent.innerHTML = `<span class="text-sm font-semibold">${firstLetter}</span>`
+                                          }
+                                        }}
+                                      />
+                                    ) : (
+                                      <span className="text-sm font-semibold text-muted-foreground">{firstLetter}</span>
+                                    )}
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <p className="font-medium truncate">{token.symbol}</p>
+                                    <p className="text-xs text-muted-foreground truncate">{token.name}</p>
+                                    {/* Mobile: Show contract address below */}
+                                    {!isNative && token.address && (
+                                      <p className="text-xs text-muted-foreground font-mono md:hidden mt-0.5">
+                                        {formatAddress(token.address, 4)}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-right font-mono text-sm">
+                                {formatBalance(token.balanceFormatted)}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {token.valueUsd !== undefined && token.valueUsd > 0 ? (
+                                  <span className="font-medium">{formatUSDValue(token.valueUsd)}</span>
                                 ) : (
-                                  <span className="text-sm font-semibold text-muted-foreground">{firstLetter}</span>
+                                  <span className="text-muted-foreground">—</span>
                                 )}
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <p className="font-medium truncate">{token.symbol}</p>
-                                <p className="text-xs text-muted-foreground truncate">{token.name}</p>
-                                {/* Mobile: Show contract address below */}
-                                {!isNative && token.address && (
-                                  <p className="text-xs text-muted-foreground font-mono md:hidden mt-0.5">
-                                    {formatAddress(token.address, 4)}
-                                  </p>
+                              </TableCell>
+                              <TableCell className="hidden md:table-cell">
+                                {isNative ? (
+                                  <Badge variant="secondary" className="text-xs">
+                                    Native
+                                  </Badge>
+                                ) : (
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-mono text-xs">{formatAddress(token.address!, 4)}</span>
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => handleCopyAddress(token.address!)}
+                                            className="h-6 w-6"
+                                            aria-label="Copy address"
+                                          >
+                                            <Copy className="h-3 w-3" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Copy address</TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  </div>
                                 )}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right font-mono text-sm">
-                            {formatBalance(token.balanceFormatted)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {token.valueUsd !== undefined && token.valueUsd > 0 ? (
-                              <span className="font-medium">{formatUSDValue(token.valueUsd)}</span>
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell">
-                            {isNative ? (
-                              <Badge variant="secondary" className="text-xs">
-                                Native
-                              </Badge>
-                            ) : (
-                              <div className="flex items-center gap-2">
-                                <span className="font-mono text-xs">{formatAddress(token.address!, 4)}</span>
+                              </TableCell>
+                              <TableCell>
                                 <TooltipProvider>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
                                       <Button
                                         variant="ghost"
                                         size="icon"
-                                        onClick={() => handleCopyAddress(token.address!)}
-                                        className="h-6 w-6"
-                                        aria-label="Copy address"
+                                        asChild
+                                        className="h-8 w-8"
+                                        aria-label="View on explorer"
                                       >
-                                        <Copy className="h-3 w-3" />
+                                        <a
+                                          href={isNative ? explorerHref : getExplorerLink('token', token.address!)}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                        >
+                                          <ExternalLink className="h-4 w-4" />
+                                        </a>
                                       </Button>
                                     </TooltipTrigger>
-                                    <TooltipContent>Copy address</TooltipContent>
+                                    <TooltipContent>View on explorer</TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {isNative ? (
-                              <span className="text-muted-foreground text-xs">—</span>
-                            ) : (
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      asChild
-                                      className="h-8 w-8"
-                                      aria-label="View on explorer"
-                                    >
-                                      <a
-                                        href={getExplorerLink('token', token.address!)}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                      >
-                                        <ExternalLink className="h-4 w-4" />
-                                      </a>
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>View on explorer</TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })}
+                              </TableCell>
+                            </TableRow>
+                          )
+                        })}
                       </TableBody>
                     </Table>
                   </div>
@@ -880,37 +876,37 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
               </Card>
             ) : (
               <Card>
-              <CardContent className="p-8">
-                <div className="flex flex-col items-center justify-center text-center space-y-3">
-                  <Coins className="h-10 w-10 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium mb-1">No tokens detected</p>
-                    <p className="text-xs text-muted-foreground">
-                      {searchQuery
-                        ? 'No tokens match your search'
-                        : tokensData?.tokens && tokensData.tokens.length === 0
-                        ? 'This wallet has no tokens to display'
-                        : 'Loading tokens...'}
-                    </p>
-                  </div>
-                  {!isLoading && (
-                    <div className="flex items-center gap-2 pt-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => refetchTokens()}
-                        disabled={isLoading}
-                      >
-                        <RefreshCw className={`mr-2 h-3 w-3 ${isLoading ? 'animate-spin' : ''}`} />
-                        Refresh
-                      </Button>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href={publicProfileHref}>View Public Profile</Link>
-                      </Button>
+                <CardContent className="p-8">
+                  <div className="flex flex-col items-center justify-center text-center space-y-3">
+                    <Coins className="h-10 w-10 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium mb-1">No tokens detected</p>
+                      <p className="text-xs text-muted-foreground">
+                        {searchQuery
+                          ? 'No tokens match your search'
+                          : tokensData?.tokens && tokensData.tokens.length === 0
+                            ? 'This wallet has no tokens to display'
+                            : 'Loading tokens...'}
+                      </p>
                     </div>
-                  )}
-                </div>
-              </CardContent>
+                    {!isLoading && (
+                      <div className="flex items-center gap-2 pt-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => refetchTokens()}
+                          disabled={isLoading}
+                        >
+                          <RefreshCw className={`mr-2 h-3 w-3 ${isLoading ? 'animate-spin' : ''}`} />
+                          Refresh
+                        </Button>
+                        <Button variant="outline" size="sm" asChild>
+                          <Link href={publicProfileHref}>View Public Profile</Link>
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
               </Card>
             )}
 
@@ -931,121 +927,121 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
           {/* NFTs Tab */}
           <TabsContent value="nfts" className="mt-0">
             {/* NFTs Grid */}
-          {isLoading ? (
-            <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                <Card key={i} className="w-full">
-                  <CardContent className="p-4 space-y-3">
-                    <Skeleton className="h-48 w-full rounded-lg" />
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-3 w-1/2" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : error ? (
-            <Card className="w-full">
-              <CardContent className="p-6">
-                <Alert variant="destructive">
-                  <AlertDescription className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                      <span>Failed to load NFTs. Please try again.</span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => refetchNFTs()}
-                        className="ml-4"
-                      >
-                        <RefreshCw className="mr-2 h-3 w-3" />
-                        Retry
-                      </Button>
-                    </div>
-                    {process.env.NODE_ENV === 'development' && error instanceof Error && (
-                      <div className="text-xs font-mono bg-destructive/10 p-2 rounded">
-                        {error.message}
+            {isLoading ? (
+              <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                  <Card key={i} className="w-full">
+                    <CardContent className="p-4 space-y-3">
+                      <Skeleton className="h-48 w-full rounded-lg" />
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : error ? (
+              <Card className="w-full">
+                <CardContent className="p-6">
+                  <Alert variant="destructive">
+                    <AlertDescription className="flex flex-col gap-3">
+                      <div className="flex items-center justify-between">
+                        <span>Failed to load NFTs. Please try again.</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => refetchNFTs()}
+                          className="ml-4"
+                        >
+                          <RefreshCw className="mr-2 h-3 w-3" />
+                          Retry
+                        </Button>
                       </div>
-                    )}
-                  </AlertDescription>
-                </Alert>
-              </CardContent>
-            </Card>
-          ) : filteredAndSortedNFTs.length > 0 ? (
-            <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {filteredAndSortedNFTs.map((nft) => (
-                <Card key={`${nft.contract}-${nft.tokenId}`} className="overflow-hidden">
-                  <div className="aspect-square relative bg-muted">
-                    {nft.imageUrl ? (
-                      <img
-                        src={nft.imageUrl}
-                        alt={nft.name || `NFT #${nft.tokenId}`}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <ImageIcon className="h-12 w-12 text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
-                  <CardContent className="p-4 space-y-2">
-                    <div>
-                      <p className="text-sm font-medium truncate">
-                        {nft.name || `NFT #${formatAddress(nft.tokenId, 4)}`}
-                      </p>
-                      {nft.collectionName && (
-                        <p className="text-xs text-muted-foreground truncate">
-                          {nft.collectionName}
-                        </p>
+                      {process.env.NODE_ENV === 'development' && error instanceof Error && (
+                        <div className="text-xs font-mono bg-destructive/10 p-2 rounded">
+                          {error.message}
+                        </div>
+                      )}
+                    </AlertDescription>
+                  </Alert>
+                </CardContent>
+              </Card>
+            ) : filteredAndSortedNFTs.length > 0 ? (
+              <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {filteredAndSortedNFTs.map((nft) => (
+                  <Card key={`${nft.contract}-${nft.tokenId}`} className="overflow-hidden">
+                    <div className="aspect-square relative bg-muted">
+                      {nft.imageUrl ? (
+                        <img
+                          src={nft.imageUrl}
+                          alt={nft.name || `NFT #${nft.tokenId}`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <ImageIcon className="h-12 w-12 text-muted-foreground" />
+                        </div>
                       )}
                     </div>
-                    <div className="flex items-center justify-between">
-                      <Badge variant="secondary" className="text-xs">
-                        #{formatAddress(nft.tokenId, 4)}
-                      </Badge>
-                      <div className="flex items-center gap-1">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleCopyAddress(nft.contract)}
-                                className="h-7 w-7"
-                                aria-label="Copy contract"
-                              >
-                                <Copy className="h-3 w-3" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Copy contract</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                asChild
-                                className="h-7 w-7"
-                                aria-label="View on explorer"
-                              >
-                                <a
-                                  href={getExplorerLink('nft', nft.contract, nft.tokenId)}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                >
-                                  <ExternalLink className="h-3 w-3" />
-                                </a>
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>View on explorer</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                    <CardContent className="p-4 space-y-2">
+                      <div>
+                        <p className="text-sm font-medium truncate">
+                          {nft.name || `NFT #${formatAddress(nft.tokenId, 4)}`}
+                        </p>
+                        {nft.collectionName && (
+                          <p className="text-xs text-muted-foreground truncate">
+                            {nft.collectionName}
+                          </p>
+                        )}
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      <div className="flex items-center justify-between">
+                        <Badge variant="secondary" className="text-xs">
+                          #{formatAddress(nft.tokenId, 4)}
+                        </Badge>
+                        <div className="flex items-center gap-1">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleCopyAddress(nft.contract)}
+                                  className="h-7 w-7"
+                                  aria-label="Copy contract"
+                                >
+                                  <Copy className="h-3 w-3" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Copy contract</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  asChild
+                                  className="h-7 w-7"
+                                  aria-label="View on explorer"
+                                >
+                                  <a
+                                    href={getExplorerLink('nft', nft.contract, nft.tokenId)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <ExternalLink className="h-3 w-3" />
+                                  </a>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>View on explorer</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             ) : (
               <Card className="w-full">
                 <CardContent className="p-8">
