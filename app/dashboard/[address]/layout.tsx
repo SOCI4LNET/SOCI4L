@@ -47,7 +47,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     if (isReconnecting || isConnecting) return
 
     if (!isConnected || !connectedAddress) {
-      router.push('/')
+      // Don't redirect to home - let page.tsx show the "Connect Wallet" screen
+      // This prevents premature redirects during page reload/reconnection
       return
     }
 
