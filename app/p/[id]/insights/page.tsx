@@ -72,7 +72,7 @@ export default function PublicInsightsPage({ params }: PageProps) {
 
       try {
         const isAddress = params.id.startsWith('0x') && isValidAddress(params.id)
-        
+
         let response: Response
         if (isAddress) {
           const normalizedAddress = params.id.toLowerCase()
@@ -184,7 +184,7 @@ export default function PublicInsightsPage({ params }: PageProps) {
         <div className="mb-6 flex items-center gap-3">
           {data.profile && (
             <Avatar className="h-10 w-10">
-              <AvatarImage src={undefined} />
+              <AvatarImage src={`https://effigy.im/a/${data.profile.address.toLowerCase()}.svg`} />
               <AvatarFallback>
                 {data.profile.displayName?.[0]?.toUpperCase() || profileIdentifier?.[0]?.toUpperCase() || '?'}
               </AvatarFallback>
@@ -223,13 +223,9 @@ export default function PublicInsightsPage({ params }: PageProps) {
           <Card className="bg-card border border-border/60 shadow-sm">
             <CardContent className="pt-6">
               <div className="text-center py-12">
-                <p className="text-sm text-muted-foreground mb-4">No public insights yet.</p>
-                <Link
-                  href={`/p/${params.id}`}
-                  className="text-sm text-primary hover:underline"
-                >
-                  View profile
-                </Link>
+                <Activity className="h-10 w-10 text-muted-foreground mx-auto mb-4 opacity-50" />
+                <p className="text-sm text-muted-foreground">No public insights yet for this time range.</p>
+                <p className="text-xs text-muted-foreground/60 mt-1">Profile views and link clicks will appear here once tracked.</p>
               </div>
             </CardContent>
           </Card>
