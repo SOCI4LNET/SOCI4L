@@ -88,17 +88,17 @@ async function fetchFromSnowTrace(
 
   // Build API URLs - API key is optional (free tier works without it)
   const apiKeyParam = SNOWTRACE_API_KEY ? `&apikey=${SNOWTRACE_API_KEY}` : ''
-  
+
   // Fetch normal transactions
   const txUrl = `${SNOWTRACE_API_URL}?module=account&action=txlist&address=${normalizedAddress}&startblock=${startBlock}&endblock=99999999&sort=desc${apiKeyParam}`
   const txResponse = await fetch(txUrl, {
     next: { revalidate: 30 }, // Cache for 30 seconds
   })
-  
+
   if (!txResponse.ok) {
     throw new Error(`SnowTrace API error: ${txResponse.status} ${txResponse.statusText}`)
   }
-  
+
   const txData = await txResponse.json()
 
   // Fetch token transfers
@@ -106,11 +106,11 @@ async function fetchFromSnowTrace(
   const tokenTxResponse = await fetch(tokenTxUrl, {
     next: { revalidate: 30 }, // Cache for 30 seconds
   })
-  
+
   if (!tokenTxResponse.ok) {
     throw new Error(`SnowTrace API error: ${tokenTxResponse.status} ${tokenTxResponse.statusText}`)
   }
-  
+
   const tokenTxData = await tokenTxResponse.json()
 
   const transactions: ActivityTransaction[] = []
@@ -120,11 +120,11 @@ async function fetchFromSnowTrace(
     for (const tx of txData.result.slice(0, limit)) {
       const isOutgoing = tx.from?.toLowerCase() === normalizedAddress
       const isContract = tx.to === '' || tx.input !== '0x' || (tx.input && tx.input.length > 10)
-      
+
       const nativeValue = formatEther(BigInt(tx.value || '0'))
       const gasUsed = tx.gasUsed ? BigInt(tx.gasUsed).toString() : undefined
       const gasPrice = tx.gasPrice ? formatEther(BigInt(tx.gasPrice)) : undefined
-      const fee = tx.gasUsed && tx.gasPrice 
+      const fee = tx.gasUsed && tx.gasPrice
         ? formatEther(BigInt(tx.gasUsed) * BigInt(tx.gasPrice))
         : '0'
 
@@ -175,7 +175,7 @@ async function fetchFromSnowTrace(
         } else {
           const isOutgoing = tx.from?.toLowerCase() === normalizedAddress
           const isDexRouter = tx.to && DEX_ROUTERS.includes(tx.to.toLowerCase())
-          
+
           activityTx = {
             hash: txHash,
             status: 'success',
@@ -199,7 +199,7 @@ async function fetchFromSnowTrace(
       // Add token transfer
       const decimals = parseInt(tx.tokenDecimal || '18')
       const amount = formatUnits(BigInt(tx.value || '0'), decimals)
-      
+
       activityTx.tokenTransfers.push({
         symbol: tx.tokenSymbol || 'UNKNOWN',
         name: tx.tokenName || 'Unknown Token',
@@ -207,14 +207,14 @@ async function fetchFromSnowTrace(
         amount,
         contract: tx.contractAddress,
       })
-      
+
       // Track token transfer direction for swap detection
       // Store in a temporary map (we'll use this info before cleaning up)
       if (!(activityTx as any)._tokenDirections) {
         (activityTx as any)._tokenDirections = []
       }
       const isTokenOutgoing = tx.from?.toLowerCase() === normalizedAddress
-      ;(activityTx as any)._tokenDirections.push(isTokenOutgoing ? 'outgoing' : 'incoming')
+        ; (activityTx as any)._tokenDirections.push(isTokenOutgoing ? 'outgoing' : 'incoming')
     }
   }
 
@@ -225,20 +225,20 @@ async function fetchFromSnowTrace(
   // 3. Native AVAX + token transfer (AVAX to token swap)
   for (const tx of transactions) {
     const isDexRouter = tx.to && DEX_ROUTERS.includes(tx.to.toLowerCase())
-    
+
     // If transaction goes to a DEX router, it's very likely a swap
     if (isDexRouter) {
       tx.type = 'swap'
       continue
     }
-    
+
     // Check if we have both outgoing and incoming token transfers (swap indicator)
     const tokenDirections = (tx as any)._tokenDirections as ('incoming' | 'outgoing')[] | undefined
     if (tokenDirections) {
       const hasOutgoingToken = tokenDirections.includes('outgoing')
       const hasIncomingToken = tokenDirections.includes('incoming')
       const hasBothDirections = hasOutgoingToken && hasIncomingToken
-      
+
       // If we have both directions of token transfers, it's a swap
       if (hasBothDirections && tx.tokenTransfers.length >= 2) {
         tx.type = 'swap'
@@ -247,20 +247,20 @@ async function fetchFromSnowTrace(
         continue
       }
     }
-    
+
     // If we have native AVAX transfer + token transfer, it's likely a swap
     if (parseFloat(tx.nativeValueAvax) > 0 && tx.tokenTransfers.length > 0) {
       tx.type = 'swap'
       delete (tx as any)._tokenDirections
       continue
     }
-    
+
     // If we have multiple token transfers in a contract call, it might be a swap
     if (tx.tokenTransfers.length >= 2 && tx.type === 'contract') {
       // Multiple token transfers in a contract call is often a swap
       tx.type = 'swap'
     }
-    
+
     // Clean up temporary property
     delete (tx as any)._tokenDirections
   }
@@ -275,7 +275,7 @@ async function fetchFromSnowTrace(
     if (options.dateRange === '24h') cutoff = now - 24 * 60 * 60
     else if (options.dateRange === '7d') cutoff = now - 7 * 24 * 60 * 60
     else if (options.dateRange === '30d') cutoff = now - 30 * 24 * 60 * 60
-    
+
     filtered = filtered.filter(tx => tx.timestamp >= cutoff)
   }
 
@@ -289,14 +289,15 @@ async function fetchFromSnowTrace(
 
   if (options.search) {
     const searchLower = options.search.toLowerCase()
-    filtered = filtered.filter(tx => 
+    filtered = filtered.filter(tx =>
       tx.hash.toLowerCase().includes(searchLower) ||
       tx.from.toLowerCase().includes(searchLower) ||
       tx.to.toLowerCase().includes(searchLower) ||
-      tx.tokenTransfers.some(tt => 
+      tx.tokenTransfers.some(tt =>
         tt.symbol.toLowerCase().includes(searchLower) ||
         tt.contract.toLowerCase().includes(searchLower)
-      )
+      ) ||
+      (searchLower.includes('avax') && parseFloat(tx.nativeValueAvax) > 0)
     )
   }
 
@@ -369,16 +370,16 @@ function generateMockTransactions(address: string, count: number = 10): Activity
  */
 function getStartBlock(dateRange: '24h' | '7d' | '30d' | 'all'): number {
   if (dateRange === 'all') return 0
-  
+
   // Approximate block times: ~2 seconds per block on Avalanche
   const blocksPerSecond = 0.5
   const now = Date.now() / 1000
-  
+
   let secondsAgo = 0
   if (dateRange === '24h') secondsAgo = 24 * 60 * 60
   else if (dateRange === '7d') secondsAgo = 7 * 24 * 60 * 60
   else if (dateRange === '30d') secondsAgo = 30 * 24 * 60 * 60
-  
+
   const blocksAgo = Math.floor(secondsAgo * blocksPerSecond)
   // Current block is around 30M+ on Avalanche, so we subtract
   return Math.max(0, 30000000 - blocksAgo)
@@ -401,31 +402,32 @@ export async function fetchActivity(options: FetchActivityOptions): Promise<Acti
     // On error, fallback to mock data so UI still works
     console.warn('[Activity] Falling back to mock data due to API error')
     const mock = generateMockTransactions(options.address, options.limit || 50)
-    
+
     // Apply filters to mock data
     let filtered = mock
-    
+
     if (options.type && options.type !== 'all') {
       filtered = filtered.filter(tx => tx.type === options.type)
     }
-    
+
     if (options.direction && options.direction !== 'all') {
       filtered = filtered.filter(tx => tx.direction === options.direction)
     }
-    
+
     if (options.search) {
       const searchLower = options.search.toLowerCase()
-      filtered = filtered.filter(tx => 
+      filtered = filtered.filter(tx =>
         tx.hash.toLowerCase().includes(searchLower) ||
         tx.from.toLowerCase().includes(searchLower) ||
         tx.to.toLowerCase().includes(searchLower) ||
-        tx.tokenTransfers.some(tt => 
+        tx.tokenTransfers.some(tt =>
           tt.symbol.toLowerCase().includes(searchLower) ||
           tt.contract.toLowerCase().includes(searchLower)
-        )
+        ) ||
+        (searchLower.includes('avax') && parseFloat(tx.nativeValueAvax) > 0)
       )
     }
-    
+
     // Apply date range filter (simplified for mock)
     if (options.dateRange && options.dateRange !== 'all') {
       const now = Math.floor(Date.now() / 1000)
@@ -433,10 +435,10 @@ export async function fetchActivity(options: FetchActivityOptions): Promise<Acti
       if (options.dateRange === '24h') cutoff = now - 24 * 60 * 60
       else if (options.dateRange === '7d') cutoff = now - 7 * 24 * 60 * 60
       else if (options.dateRange === '30d') cutoff = now - 30 * 24 * 60 * 60
-      
+
       filtered = filtered.filter(tx => tx.timestamp >= cutoff)
     }
-    
+
     const offset = options.offset || 0
     return filtered.slice(offset, offset + (options.limit || 50))
   }
