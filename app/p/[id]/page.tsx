@@ -759,7 +759,7 @@ export default function ProfilePage({ params }: PageProps) {
                                     </span>
                                   </TooltipTrigger>
                                   <TooltipContent>
-                                    <p>Son 7 gün görüntülenme</p>
+                                    <p>Views in last 7 days</p>
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>

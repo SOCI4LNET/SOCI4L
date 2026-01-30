@@ -114,16 +114,16 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
     totalLinks: null,
   })
   const [qrModalOpen, setQrModalOpen] = useState(false)
-  
+
   // Get address from route param (primary) or prop (fallback)
   const addressMatch = pathname?.match(/\/dashboard\/(0x[a-fA-F0-9]{40})/)
   const urlAddress = addressMatch ? addressMatch[1].toLowerCase() : null
   const targetAddress = urlAddress || address?.toLowerCase() || ''
   const normalizedAddress = targetAddress.toLowerCase()
-  
+
   // Check if the profile belongs to the connected wallet
   const isOwnProfile = connectedAddress && normalizedAddress === connectedAddress.toLowerCase()
-  
+
   useEffect(() => {
     setMounted(true)
   }, [])
@@ -206,11 +206,11 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
   const ASSETS_LIMIT = 5
 
   // Fetch activity data
-  const { 
-    data: activityData, 
-    isLoading: activityLoading, 
+  const {
+    data: activityData,
+    isLoading: activityLoading,
     error: activityError,
-    refetch: refetchActivity 
+    refetch: refetchActivity
   } = useQuery<{ items: ActivityTransaction[] }>({
     queryKey: ['wallet-activity-preview', targetAddress],
     queryFn: async () => {
@@ -241,11 +241,11 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
   })
 
   // Fetch assets data
-  const { 
-    data: assetsData, 
-    isLoading: assetsLoading, 
+  const {
+    data: assetsData,
+    isLoading: assetsLoading,
     error: assetsError,
-    refetch: refetchAssets 
+    refetch: refetchAssets
   } = useQuery<{
     tokens?: Array<{
       address: string | null
@@ -279,9 +279,9 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
           throw new Error(`Failed to fetch assets: ${response.status} ${response.statusText}`)
         }
         const data = await response.json()
-        console.log('[Overview Assets] Fetch successful:', { 
-          tokenCount: data.tokens?.length || 0, 
-          nftCount: data.nfts?.length || 0 
+        console.log('[Overview Assets] Fetch successful:', {
+          tokenCount: data.tokens?.length || 0,
+          nftCount: data.nfts?.length || 0
         })
         return data
       } catch (error) {
@@ -303,7 +303,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
 
     // Cache all logo URLs from API response
     const logosToCache: Record<string, string | null> = {}
-    
+
     for (const token of assetsData.tokens) {
       const cacheKey = getCacheKey(token.address, token.symbol)
       if (token.logoUrl) {
@@ -697,11 +697,11 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
                           </div>
                           <div className="flex items-center gap-2 mt-1">
                             <p className="text-xs text-muted-foreground">
-                              {parseFloat(tx.nativeValueAvax) > 0 
+                              {parseFloat(tx.nativeValueAvax) > 0
                                 ? `${parseFloat(tx.nativeValueAvax).toFixed(4)} AVAX`
                                 : tx.tokenTransfers.length > 0
-                                ? `${parseFloat(tx.tokenTransfers[0].amount).toFixed(4)} ${tx.tokenTransfers[0].symbol}`
-                                : '-'}
+                                  ? `${parseFloat(tx.tokenTransfers[0].amount).toFixed(4)} ${tx.tokenTransfers[0].symbol}`
+                                  : '-'}
                             </p>
                             <span className="text-xs text-muted-foreground">•</span>
                             <p className="text-xs text-muted-foreground">
@@ -814,7 +814,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
                     className="mt-2"
                   >
                     <RefreshCw className="mr-2 h-3 w-3" />
-                    Tekrar Dene
+                    Try Again
                   </Button>
                 </div>
               ) : assetsData && ((assetsData.tokens && assetsData.tokens.length > 0) || (assetsData.nfts && assetsData.nfts.length > 0)) ? (
@@ -836,14 +836,14 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
                     }
 
                     const logoUrl = getLogoUrl()
-                    
+
                     return (
                       <div key={token.address || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
                         <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
                           {logoUrl ? (
-                            <img 
-                              src={logoUrl} 
-                              alt={token.symbol} 
+                            <img
+                              src={logoUrl}
+                              alt={token.symbol}
                               className="h-10 w-10 rounded-full object-cover"
                               onLoad={() => {
                                 // Cache logo URL when successfully loaded

@@ -153,6 +153,10 @@ Custom components must wrap shadcn components, not replace them.
 
 ## 8. Typography
 
+### Font Family
+- **Primary:** Inter (via `next/font/google`)
+- **Monospace:** System default monospace (for addresses/hashes)
+
 ### Headings
 - Page titles: `text-3xl font-bold`
 - Section titles: `text-xl font-semibold`
