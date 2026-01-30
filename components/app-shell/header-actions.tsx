@@ -227,6 +227,40 @@ export function HeaderActions() {
       <TooltipProvider>
         {/* Avatar dropdown - all actions inside */}
         <DropdownMenu>
+          {/* Global Header Actions (Desktop) */}
+          {!pathname?.startsWith('/master-console') && (
+            <div className="hidden md:flex items-center gap-1 mr-1">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                    onClick={handleCopyAddress}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Copy Address</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                    onClick={handleShare}
+                    disabled={!publicProfileHref}
+                  >
+                    <Share2 className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Share Profile</TooltipContent>
+              </Tooltip>
+            </div>
+          )}
+
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8 min-h-8 min-w-8 rounded-full shrink-0">
               <Avatar className="h-8 w-8 min-h-8 min-w-8 shrink-0">
