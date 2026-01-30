@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import { getPublicProfileHref } from '@/lib/routing'
 import Link from 'next/link'
-import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Eye, Share2, Instagram, Youtube, Sparkles, ShieldAlert, Layers } from 'lucide-react'
+import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Eye, Share2, Instagram, Youtube, Sparkles, ShieldAlert, Layers, UserX } from 'lucide-react'
 import { XIcon } from '@/components/icons/x-icon'
 import { ClaimProfileButton } from '@/components/claim-profile-button'
 import { FollowToggle, FollowStats } from '@/components/follow-toggle'
@@ -114,6 +114,28 @@ export default function ProfilePage({ params }: PageProps) {
   const [appearanceConfig, setAppearanceConfig] = useState<ProfileAppearanceConfig>(() => getDefaultAppearanceConfig())
   const linksBlockRef = useRef<HTMLDivElement>(null)
   const [viewCount, setViewCount] = useState<number | null>(null)
+  const [isBlockedByViewer, setIsBlockedByViewer] = useState(false)
+
+  // ... (keep existing code)
+
+  const handleUnblock = async () => {
+    if (!profile?.address) return
+    try {
+      const response = await fetch(`/api/profile/${profile.address.toLowerCase()}/block`, {
+        method: 'DELETE',
+      })
+      if (response.ok) {
+        setIsBlockedByViewer(false)
+        toast.success('User unblocked')
+        // Refresh data to show content
+        router.refresh()
+      } else {
+        toast.error('Failed to unblock')
+      }
+    } catch (error) {
+      toast.error('Failed to unblock')
+    }
+  }
 
   const addressFromProfile = profile?.address && isValidAddress(profile.address)
     ? profile.address.toLowerCase()
@@ -202,6 +224,9 @@ export default function ProfilePage({ params }: PageProps) {
               isBanned: data.profile.isBanned,
               socialLinks: data.profile.socialLinks,
             })
+          }
+          if (data.isBlockedByViewer) {
+            setIsBlockedByViewer(true)
           }
           // Load links from API response (Option A - preferred)
           if (data.links && Array.isArray(data.links)) {
@@ -616,6 +641,24 @@ export default function ProfilePage({ params }: PageProps) {
             </CardContent>
           </Card>
         </div>
+      ) : isBlockedByViewer ? (
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardContent className="pt-6">
+            <div className="text-center py-12">
+              <UserX className="h-12 w-12 mx-auto text-destructive mb-4" />
+              <p className="text-lg font-semibold mb-2 text-destructive">You have blocked this user</p>
+              <p className="text-muted-foreground mb-6">
+                You cannot see their activity or assets while they are blocked.
+              </p>
+              <Button
+                variant="destructive"
+                onClick={handleUnblock}
+              >
+                Unblock User
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       ) : isPrivate ? (
         <Card>
           <CardContent className="pt-6">
@@ -773,7 +816,11 @@ export default function ProfilePage({ params }: PageProps) {
                   {/* 4. Actions (Top Right, Isolated) */}
                   <div className="flex items-center gap-2 flex-shrink-0 pt-1">
                     {profileAddressForFollow && !profile?.isBanned && (
-                      <FollowToggle address={profileAddressForFollow} />
+                      <FollowToggle
+                        address={profileAddressForFollow}
+                        isBlockedByViewer={isBlockedByViewer}
+                        onBlockChange={(blocked) => setIsBlockedByViewer(blocked)}
+                      />
                     )}
 
                     {resolvedAddress && isValidAddress(resolvedAddress) && !profile?.isBanned && (

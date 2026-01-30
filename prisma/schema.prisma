@@ -193,6 +193,40 @@ model AdminAuditLog {
   createdAt    DateTime @default(now())
   
   @@index([adminAddress])
-  @@index([action])
-  @@index([createdAt])
+}
+model Mute {
+  id            String   @id @default(cuid())
+  muterAddress  String   // wallet address of the person who is muting
+  mutedAddress  String   // wallet address of the person being muted
+  createdAt     DateTime @default(now())
+
+  @@unique([muterAddress, mutedAddress])
+  @@index([muterAddress])
+  @@index([mutedAddress])
+}
+
+model UserList {
+  id          String   @id @default(cuid())
+  creatorAddress String // wallet address of the list creator
+  name        String
+  description String?
+  isPrivate   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  members     UserListMember[]
+
+  @@index([creatorAddress])
+}
+
+model UserListMember {
+  id            String   @id @default(cuid())
+  listId        String
+  list          UserList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  memberAddress String   // wallet address of the user in the list
+  createdAt     DateTime @default(now())
+
+  @@unique([listId, memberAddress])
+  @@index([listId])
+  @@index([memberAddress])
 }

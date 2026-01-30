@@ -37,8 +37,8 @@ interface ConnectionCardProps {
     onUnfollow?: (address: string) => void
     isBlocked?: boolean
     onBlock?: (address: string) => void
-    showRemoveFollower?: boolean
-    onRemoveFollower?: (address: string) => void
+    onMute?: (address: string) => void
+    onAddToList?: (address: string) => void
 }
 
 export function ConnectionCard({
@@ -57,6 +57,8 @@ export function ConnectionCard({
     onBlock,
     showRemoveFollower = false,
     onRemoveFollower,
+    onMute,
+    onAddToList,
 }: ConnectionCardProps) {
     const normalizedAddr = address.toLowerCase()
     const fallbackText = address.slice(2, 4).toUpperCase()
@@ -68,6 +70,24 @@ export function ConnectionCard({
             onUnfollow(address)
         }
     }
+
+    const handleMute = async () => {
+        try {
+            const response = await fetch(`/api/profile/${address.toLowerCase()}/mute`, {
+                method: 'POST',
+            })
+            if (response.ok) {
+                toast.success('User muted')
+                onMute?.(address)
+            } else {
+                toast.error('Failed to mute user')
+            }
+        } catch (error) {
+            toast.error('Failed to mute user')
+        }
+    }
+
+    // ... (keep avatar and identity rendering)
 
     return (
         <div className="flex items-center gap-4 p-4 hover:bg-accent/50 transition-colors border-b border-border/40 last:border-b-0">
@@ -161,8 +181,15 @@ export function ConnectionCard({
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => toast.info('Bu özellik yapım aşamasında')}>Add to list</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => toast.info('Bu özellik yapım aşamasında')}>Mute</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => {
+                            toast.info('List feature coming soon')
+                            onAddToList?.(address)
+                        }}>
+                            Add to list
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleMute}>
+                            Mute
+                        </DropdownMenuItem>
 
                         {showRemoveFollower && (
                             <DropdownMenuItem

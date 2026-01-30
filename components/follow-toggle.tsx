@@ -14,20 +14,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Bookmark as BookmarkIcon, Users, UserPlus } from 'lucide-react'
+import { Bookmark as BookmarkIcon, Users, UserPlus, UserX } from 'lucide-react'
 import { toast } from 'sonner'
 import { isValidAddress } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import { useTransaction } from '@/components/providers/transaction-provider'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 interface FollowToggleProps {
   address: string
+  isBlockedByViewer?: boolean
   onFollowChange?: (isFollowing: boolean) => void
+  onBlockChange?: (isBlocked: boolean) => void
 }
 
-export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
+export function FollowToggle({ address, isBlockedByViewer: initialBlocked = false, onFollowChange, onBlockChange }: FollowToggleProps) {
   const [mounted, setMounted] = useState(false)
   const [isFollowing, setIsFollowing] = useState(false)
+  const [isBlocked, setIsBlocked] = useState(initialBlocked)
   const [isPending, setIsPending] = useState(false)
   const [showConnectDialog, setShowConnectDialog] = useState(false)
   const { address: connectedAddress, isConnected } = useAccount()
@@ -38,7 +42,8 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
 
   useEffect(() => {
     setMounted(true)
-  }, [])
+    setIsBlocked(initialBlocked)
+  }, [initialBlocked])
 
   // Fetch follow status
   useEffect(() => {
@@ -61,7 +66,10 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
             const status = await statusResponse.json()
             setIsFollowing(status.isFollowing || false)
           } else {
-            setIsFollowing(false)
+            // If 403, it might be blocked, but we rely on the prop for initial state or specific error handling
+            if (statusResponse.status !== 403) {
+              setIsFollowing(false)
+            }
           }
         } else {
           setIsFollowing(false)
@@ -76,6 +84,11 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
   }, [mounted, address, isConnected, connectedAddress])
 
   const ensureSession = async (): Promise<boolean> => {
+    // ... (keep existing implementation)
+    // For brevity, assuming ensureSession is unchanged or we can just reuse the existing one if we don't mute it completely.
+    // To avoid huge replacement, I will assume the recursive call or just copy it if needed.
+    // Since I am replacing the whole component body basically, I need to include ensureSession.
+    // Let's copy the ensureSession from original file.
     if (!isConnected || !connectedAddress) {
       if (connectors.length > 0) {
         connect({ connector: connectors[0] })
@@ -165,6 +178,35 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
       console.error('Error ensuring session:', error)
       toast.error('Session verification failed. Please try again.')
       return false
+    }
+  }
+
+  const handleUnblock = async () => {
+    if (!mounted || isPending) return
+
+    setIsPending(true)
+    const hasSession = await ensureSession()
+    if (!hasSession) {
+      setIsPending(false)
+      return
+    }
+
+    try {
+      showTransactionLoader("Unblocking...")
+      const response = await fetch(`/api/profile/${address.toLowerCase()}/block`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) throw new Error('Unblock failed')
+
+      setIsBlocked(false)
+      toast.success('User unblocked')
+      onBlockChange?.(false)
+    } catch (error) {
+      toast.error('Failed to unblock user')
+    } finally {
+      setIsPending(false)
+      hideTransactionLoader()
     }
   }
 
@@ -310,10 +352,28 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
     if (!isConnected) {
       return 'Connect your wallet to follow profiles'
     }
+    if (isBlocked) {
+      return 'Unblock to follow'
+    }
     if (isFollowing) {
       return 'Unfollow this profile'
     }
     return 'Follow this profile'
+  }
+
+  if (isBlocked) {
+    return (
+      <Button
+        variant="destructive"
+        size="sm"
+        className="w-full sm:w-auto"
+        onClick={handleUnblock}
+        disabled={isPending}
+      >
+        <UserX className="mr-2 h-4 w-4" />
+        Unblock
+      </Button>
+    )
   }
 
   return (
@@ -329,7 +389,7 @@ export function FollowToggle({ address, onFollowChange }: FollowToggleProps) {
                 pressed={isFollowing}
                 onPressedChange={handleToggle}
                 disabled={!isConnected || isPending || isSelfProfile}
-                className="gap-2"
+                className="gap-2 w-full sm:w-auto"
               >
                 <BookmarkIcon className="h-3.5 w-3.5 group-data-[state=on]/toggle:fill-foreground" />
                 {isFollowing ? 'Following' : 'Follow'}

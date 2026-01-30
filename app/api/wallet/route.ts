@@ -54,21 +54,42 @@ export async function GET(request: NextRequest) {
   // Check if viewing is allowed (blocking logic)
   const sessionAddress = await getSessionAddress()
 
+  let isBlockedByViewer = false
+  let isMutedByViewer = false
+
   if (sessionAddress && resolvedAddress) {
     const normalizedSession = sessionAddress.toLowerCase()
     const normalizedTarget = resolvedAddress.toLowerCase()
 
     if (normalizedSession !== normalizedTarget) {
+      // Check if Viewer BLOCKED Target
+      const block = await prisma.block.findFirst({
+        where: {
+          blockerAddress: normalizedSession,
+          blockedAddress: normalizedTarget,
+        },
+      })
+      isBlockedByViewer = !!block
+
+      // Check if Viewer MUTED Target
+      const mute = await prisma.mute.findFirst({
+        where: {
+          muterAddress: normalizedSession,
+          mutedAddress: normalizedTarget,
+        },
+      })
+      isMutedByViewer = !!mute
+
       // Only block if the Viewer (Session) is BLOCKED BY the Profile Owner (Target)
       // We allow the Blocker (Session) to view the Blocked User (Target) so they can unblock them
-      const block = await prisma.block.findFirst({
+      const blockedByTarget = await prisma.block.findFirst({
         where: {
           blockerAddress: normalizedTarget,
           blockedAddress: normalizedSession,
         },
       })
 
-      if (block) {
+      if (blockedByTarget) {
         return NextResponse.json({ error: 'Profile is not available' }, { status: 403 })
       }
     }
@@ -324,6 +345,8 @@ export async function GET(request: NextRequest) {
       appearance: appearanceConfig,
       views7d,
       score: scoreData,
+      isBlockedByViewer,
+      isMutedByViewer,
     }
 
     console.log('[Wallet API] Returning response with layout:', layoutConfig)
