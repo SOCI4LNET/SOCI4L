@@ -610,6 +610,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
                 <Skeleton className="h-6 w-12" />
               )}
             </CardContent>
+          </Card>
         </div>
 
 
