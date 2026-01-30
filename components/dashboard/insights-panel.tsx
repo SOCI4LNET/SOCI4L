@@ -1006,9 +1006,16 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
 
                   const sourceLabels: Record<AnalyticsSource, string> = {
                     profile: 'Direct',
-                    qr: 'QR',
-                    copy: 'Ref',
+                    qr: 'QR Code',
+                    copy: 'Referrer',
                     unknown: 'Unknown'
+                  }
+
+                  const sourceHints: Record<AnalyticsSource, string | null> = {
+                    profile: null,
+                    qr: 'Use on physical assets',
+                    copy: 'Best for social bios',
+                    unknown: null
                   }
 
                   if (count === 0 && src !== 'unknown') return null
@@ -1016,7 +1023,14 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                   return (
                     <div key={src} className="space-y-1.5">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="font-medium text-muted-foreground">{sourceLabels[src]}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-muted-foreground">{sourceLabels[src]}</span>
+                          {sourceHints[src] && (
+                            <Badge variant="outline" className="text-[9px] px-1 h-4 font-normal text-muted-foreground/70 border-border/40">
+                              {sourceHints[src]}
+                            </Badge>
+                          )}
+                        </div>
                         <span className="font-mono text-foreground/80">{percentage.toFixed(0)}%</span>
                       </div>
                       <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">

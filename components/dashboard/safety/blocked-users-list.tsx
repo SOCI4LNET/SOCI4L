@@ -74,8 +74,16 @@ export function BlockedUsersList() {
             </CardHeader>
             <CardContent>
                 {blockedUsers?.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                        No blocked users
+                    <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
+                        <div className="p-3 bg-muted rounded-full">
+                            <UserX className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                        <div className="space-y-1">
+                            <p className="font-medium">No blocked users</p>
+                            <p className="text-sm text-muted-foreground w-full max-w-[250px] mx-auto">
+                                You haven&apos;t blocked anyone yet. Control who can interact with you here.
+                            </p>
+                        </div>
                     </div>
                 ) : (
                     <div className="space-y-4">
@@ -177,8 +185,16 @@ export function MutedUsersList() {
             </CardHeader>
             <CardContent>
                 {mutedUsers?.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                        No muted users
+                    <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
+                        <div className="p-3 bg-muted rounded-full">
+                            <VolumeX className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                        <div className="space-y-1">
+                            <p className="font-medium">No muted users</p>
+                            <p className="text-sm text-muted-foreground w-full max-w-[250px] mx-auto">
+                                You haven&apos;t muted anyone yet. Muted users won&apos;t appear in your feed.
+                            </p>
+                        </div>
                     </div>
                 ) : (
                     <div className="space-y-4">

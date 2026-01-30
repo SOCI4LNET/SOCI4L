@@ -101,11 +101,28 @@ export default function DashboardAddressPage() {
     const sanitized = sanitizeQueryParams(params, 'settings')
     sanitized.set('tab', 'settings')
 
-    // Only update if params changed (avoid infinite loop)
     if (params.toString() !== sanitized.toString()) {
       router.replace(`${pathname}?${sanitized.toString()}`, { scroll: false })
     }
   }, [mounted, activeTab, searchParams, pathname, router])
+
+  // Update page title based on active tab and mental model
+  useEffect(() => {
+    if (!mounted) return
+
+    const dashboardTabs = ['overview', 'assets', 'activity', 'social']
+    const studioTabs = ['builder', 'links', 'insights']
+    const accountTabs = ['settings', 'safety']
+
+    let layer = 'Dashboard'
+    if (studioTabs.includes(activeTab)) layer = 'Studio'
+    else if (accountTabs.includes(activeTab)) layer = 'Account'
+
+    // Capitalize tab name
+    const tabName = activeTab.charAt(0).toUpperCase() + activeTab.slice(1)
+
+    document.title = `${layer} · ${tabName} | SOCI4L`
+  }, [mounted, activeTab])
 
   // Check for account switching after profile is loaded
   useEffect(() => {
