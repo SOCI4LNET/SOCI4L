@@ -121,14 +121,32 @@ export default function ProfilePage({ params }: PageProps) {
   const handleUnblock = async () => {
     if (!profile?.address) return
     try {
+      // API uses POST to toggle block status (if blocked, it unblocks)
       const response = await fetch(`/api/profile/${profile.address.toLowerCase()}/block`, {
-        method: 'DELETE',
+        method: 'POST',
       })
       if (response.ok) {
-        setIsBlockedByViewer(false)
-        toast.success('User unblocked')
-        // Refresh data to show content
-        router.refresh()
+        const data = await response.json()
+        // If unblocked, data.blocked will be false
+        if (data.blocked === false) {
+          setIsBlockedByViewer(false)
+          toast.success('User unblocked')
+          // Refresh data to show content
+          router.refresh()
+        } else {
+          // This presumably shouldn't happen if we strictly want to unblock, 
+          // but since it's a toggle, we might have accidentally blocked again? 
+          // Ideally the API should be idempotent for "unblock", but for now POST toggles.
+          // If we were blocked and call POST, we become unblocked.
+          // Let's assume the user was indeed blocked before clicking "Unblock".
+          setIsBlockedByViewer(data.blocked)
+          if (!data.blocked) {
+            toast.success('User unblocked')
+            router.refresh()
+          } else {
+            toast.error('Failed to unblock')
+          }
+        }
       } else {
         toast.error('Failed to unblock')
       }

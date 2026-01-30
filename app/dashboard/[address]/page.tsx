@@ -20,6 +20,7 @@ import { SocialPanel } from '@/components/dashboard/social-panel'
 import { BuilderPanel } from '@/components/dashboard/builder-panel'
 import { LinksPanel } from '@/components/dashboard/links-panel'
 import { InsightsPanel } from '@/components/dashboard/insights-panel'
+import { SafetyPanel } from '@/components/dashboard/safety-panel'
 import { PageShell } from '@/components/app-shell/page-shell'
 import { sanitizeQueryParams } from '@/lib/query-params'
 import { isProfileClaimed } from '@/lib/profile/isProfileClaimed'
@@ -84,7 +85,7 @@ export default function DashboardAddressPage() {
   const currentTab = searchParams.get('tab') || 'overview'
 
   // Validate tab value
-  const validTabs = ['overview', 'assets', 'activity', 'social', 'settings', 'builder', 'links', 'insights']
+  const validTabs = ['overview', 'assets', 'activity', 'social', 'settings', 'builder', 'links', 'insights', 'safety']
   const activeTab = validTabs.includes(currentTab) ? currentTab : 'overview'
 
   useEffect(() => {
@@ -566,6 +567,9 @@ export default function DashboardAddressPage() {
         return (
           <SettingsPanel profile={profile} targetAddress={targetAddress} onUpdate={handleSettingsUpdate} />
         )
+      case 'safety':
+        // Constrained layout: Safety settings
+        return <SafetyPanel />
       default:
         // Constrained layout: Default to Overview with PageShell constrained mode
         return <OverviewPanel

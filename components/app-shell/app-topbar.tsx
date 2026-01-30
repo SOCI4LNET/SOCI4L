@@ -38,11 +38,7 @@ export function AppTopbar() {
   // Determine current tab from query param OR pathname
   let currentTab = searchParams.get('tab')
   if (!currentTab) {
-    if (pathname === '/dashboard/safety') {
-      currentTab = 'safety'
-    } else {
-      currentTab = 'overview'
-    }
+    currentTab = 'overview'
   }
 
   // Check if we're on a link detail page

@@ -96,11 +96,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // Determine current tab from query param OR pathname
   let currentTab = searchParams.get('tab')
   if (!currentTab) {
-    if (pathname === '/dashboard/safety') {
-      currentTab = 'safety'
-    } else {
-      currentTab = 'overview'
-    }
+    currentTab = 'overview'
   }
 
   const isCollapsed = state === 'collapsed'
@@ -156,15 +152,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         // Fallback: use current pathname (shouldn't happen)
         router.replace(`${pathname}?${sanitized.toString()}`, { scroll: false })
       }
-    } else if (value === 'safety') {
-      // Safety is a standalone route
-      router.push('/dashboard/safety')
-      return
-    } else if (pathname === '/dashboard/safety') {
-      // If on Safety page and switching to a tab, go to main dashboard with tab param
-      // We rely on /dashboard/page.tsx to handle the redirect to [address]
-      router.push(`/dashboard?tab=${value}`)
-      return
     } else {
       router.replace(`${pathname}?${sanitized.toString()}`, { scroll: false })
     }
