@@ -162,6 +162,7 @@ export default function ProfilePage({ params }: PageProps) {
           hasAppearance: !!data.appearance,
           layout: data.layout,
           appearance: data.appearance,
+          profile: data.profile, // Explicitly log profile data
         })
 
         if (data.error) {
