@@ -258,6 +258,14 @@ export default function ProfilePage({ params }: PageProps) {
             setAppearanceConfig(getDefaultAppearanceConfig())
           }
 
+          // Set global view count from API (fallback to 0)
+          if (typeof data.views7d === 'number') {
+            setViewCount(data.views7d)
+          } else {
+            setViewCount(null)
+          }
+
+
           // Fetch score for this profile
           if (data.profile?.address || data.walletData?.address) {
             const scoreAddress = data.profile?.address || data.walletData?.address
@@ -328,17 +336,7 @@ export default function ProfilePage({ params }: PageProps) {
     trackedProfileIdRef.current = stableProfileId
   }, [stableProfileId, searchParams, connectedAddress])
 
-  // Load view count (7 days) for display
-  useEffect(() => {
-    if (!stableProfileId || typeof window === 'undefined') {
-      setViewCount(null)
-      return
-    }
 
-    // Get view count for last 7 days
-    const count = getProfileViewCount(stableProfileId, 7)
-    setViewCount(count)
-  }, [stableProfileId])
 
   const getStatusBadge = () => {
     const baseClass = 'text-[11px] px-2 py-0 font-normal'

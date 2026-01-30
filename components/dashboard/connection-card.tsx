@@ -10,9 +10,15 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { MoreVertical } from 'lucide-react'
+import { MoreVertical, Info } from 'lucide-react'
 import Link from 'next/link'
 import { formatAddress } from '@/lib/utils'
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 export type RoleTag = string
 
@@ -83,20 +89,33 @@ export function ConnectionCard({
 
                 {/* Connection reason & Score */}
                 {(connectionReason || (connectionStrength !== undefined && connectionStrength > 0)) && (
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-2 mt-2">
                         {connectionReason && (
                             <p className="text-xs text-muted-foreground">
                                 {connectionReason}
                             </p>
                         )}
                         {connectionStrength !== undefined && connectionStrength > 0 && (
-                            <div className="flex items-center gap-1" title={`Connection Score: ${connectionStrength}`}>
-                                <div className="h-1.5 w-12 bg-secondary rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full bg-primary/70 rounded-full"
-                                        style={{ width: `${connectionStrength}%` }}
-                                    />
-                                </div>
+                            <div className="flex items-center gap-1.5">
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div className="flex items-center gap-1.5 cursor-help">
+                                                <div className="h-1.5 w-12 bg-secondary rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full bg-primary/70 rounded-full"
+                                                        style={{ width: `${connectionStrength}%` }}
+                                                    />
+                                                </div>
+                                                <Info className="h-3 w-3 text-muted-foreground/70" />
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="max-w-[240px] text-xs">
+                                            <p className="font-semibold mb-1">Bağlantı Gücü ({connectionStrength}%)</p>
+                                            <p>Bu skor profilin güvenilirliğini; karşılıklı takip, hesap yaşı, profil doluluğu ve sistem rollerine göre belirler.</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
                             </div>
                         )}
                     </div>

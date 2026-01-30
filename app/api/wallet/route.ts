@@ -211,6 +211,25 @@ export async function GET(request: NextRequest) {
       console.warn('[Wallet API] No appearanceConfig in profile, using default')
     }
 
+    // Get profile views (last 7 days)
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+
+    let views7d = 0
+    try {
+      views7d = await prisma.analyticsEvent.count({
+        where: {
+          profileId: resolvedAddress.toLowerCase(),
+          type: 'profile_view',
+          createdAt: {
+            gte: sevenDaysAgo
+          }
+        }
+      })
+    } catch (error) {
+      console.error('[Wallet API] Error fetching view count:', error)
+    }
+
     const responseData = {
       walletData,
       profileStatus,
@@ -241,6 +260,7 @@ export async function GET(request: NextRequest) {
       categories: categories || [],
       layout: layoutConfig,
       appearance: appearanceConfig,
+      views7d,
     }
 
     console.log('[Wallet API] Returning response with layout:', layoutConfig)
