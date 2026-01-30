@@ -199,6 +199,10 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
   const [loading, setLoading] = useState(true)
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
   const [serverEvents, setServerEvents] = useState<AnalyticsEvent[] | null>(null)
+  const [paginatedActivity, setPaginatedActivity] = useState<RecentActivity[]>([])
+  const [activityOffset, setActivityOffset] = useState(10)
+  const [hasMoreActivity, setHasMoreActivity] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
 
   useEffect(() => {
     // Load categories from API (not localStorage)
@@ -288,21 +292,40 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
       }
       loadProfile()
 
-      // Load analytics events from server (with fallback to localStorage)
+      // Load analytics events from server (initial dump for charts)
       const loadAnalytics = async () => {
         try {
           const response = await fetch(
-            `/api/analytics/profile/${encodeURIComponent(address)}`,
+            `/api/analytics/profile/${encodeURIComponent(address)}?limit=1000`,
           )
           if (response.ok) {
             const data = await response.json()
             if (Array.isArray(data.events)) {
               setServerEvents(data.events as AnalyticsEvent[])
+              // Initial activity for the timeline (first 10)
+              const initialActivity: RecentActivity[] = (data.events as AnalyticsEvent[])
+                .sort((a, b) => b.ts - a.ts)
+                .slice(0, 10)
+                .map(event => {
+                  if (event.type === 'link_click') {
+                    return {
+                      type: 'link_click' as const,
+                      timestamp: event.ts,
+                      linkTitle: event.linkTitle || 'Untitled link',
+                      linkId: event.linkId,
+                    }
+                  } else {
+                    return {
+                      type: 'profile_view' as const,
+                      timestamp: event.ts,
+                    }
+                  }
+                })
+              setPaginatedActivity(initialActivity)
             }
           }
         } catch (error) {
           console.error('[InsightsPanel] Failed to load analytics from API', error)
-          // Fallback is handled in useMemo via getEventsForProfile
         }
       }
       loadAnalytics()
@@ -327,6 +350,53 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
       window.removeEventListener('storage', handleAnalyticsUpdate)
     }
   }, [])
+
+  const loadMoreActivity = async () => {
+    if (isLoadingMore || !hasMoreActivity) return
+    setIsLoadingMore(true)
+
+    try {
+      const limit = 10
+      const response = await fetch(
+        `/api/analytics/profile/${encodeURIComponent(address)}?limit=${limit}&offset=${activityOffset}`
+      )
+
+      if (response.ok) {
+        const data = await response.json()
+        const newEvents = data.events as AnalyticsEvent[]
+
+        if (newEvents.length < limit) {
+          setHasMoreActivity(false)
+        }
+
+        const mapped: RecentActivity[] = newEvents.map(event => {
+          if (event.type === 'link_click') {
+            return {
+              type: 'link_click' as const,
+              timestamp: event.ts,
+              linkTitle: event.linkTitle || 'Untitled link',
+              linkId: event.linkId,
+            }
+          } else {
+            return {
+              type: 'profile_view' as const,
+              timestamp: event.ts,
+            }
+          }
+        })
+
+        setPaginatedActivity(prev => [...prev, ...mapped])
+        setActivityOffset(prev => prev + limit)
+      } else {
+        setHasMoreActivity(false)
+      }
+    } catch (error) {
+      console.error('[InsightsPanel] Failed to load more activity', error)
+      toast.error('Failed to load more activity')
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }
 
   const analytics: GlobalAnalytics = useMemo(() => {
     // Add localUpdateTrigger as dependency to force recalculation
@@ -1208,58 +1278,74 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                   </Button>
                 </div>
               ) : (
-                <div className="relative">
-                  {/* Vertical timeline line */}
-                  <div className="absolute left-[11px] top-0 bottom-0 w-0.5 bg-border/40" />
+                <div className="space-y-6">
+                  <div className="relative">
+                    {/* Vertical timeline line */}
+                    <div className="absolute left-[11px] top-0 bottom-0 w-0.5 bg-border/40" />
 
-                  {/* Activity items */}
-                  <div className="space-y-3">
-                    {analytics.recentActivity.map((activity, idx) => {
-                      const timeAgo = formatDistanceToNow(new Date(activity.timestamp), {
-                        addSuffix: true,
-                      })
+                    {/* Activity items */}
+                    <div className="space-y-3">
+                      {paginatedActivity.map((activity, idx) => {
+                        const timeAgo = formatDistanceToNow(new Date(activity.timestamp), {
+                          addSuffix: true,
+                        })
 
-                      return (
-                        <div
-                          key={`${activity.type}-${activity.timestamp}-${idx}`}
-                          className="relative flex items-center gap-3"
-                        >
-                          {/* Timeline dot - centered with card */}
-                          <div className="relative z-10 flex items-center justify-center w-6 shrink-0">
-                            <div className="w-2 h-2 rounded-full bg-muted-foreground/60 border-2 border-background" />
-                          </div>
+                        return (
+                          <div
+                            key={`${activity.type}-${activity.timestamp}-${idx}`}
+                            className="relative flex items-center gap-3"
+                          >
+                            {/* Timeline dot - centered with card */}
+                            <div className="relative z-10 flex items-center justify-center w-6 shrink-0">
+                              <div className="w-2 h-2 rounded-full bg-muted-foreground/60 border-2 border-background" />
+                            </div>
 
-                          {/* Activity card */}
-                          <div className="flex-1 flex items-center gap-3 rounded-md border border-border/40 bg-background/60 px-3 py-2.5 min-w-0">
-                            <div className="flex items-center gap-2 flex-1 min-w-0">
-                              <div className="flex h-5 w-5 items-center justify-center rounded-md bg-muted/60 text-muted-foreground shrink-0">
-                                {activity.type === 'link_click' ? (
-                                  <BarChart2 className="h-3 w-3" />
-                                ) : (
-                                  <Activity className="h-3 w-3" />
-                                )}
+                            {/* Activity card */}
+                            <div className="flex-1 flex items-center gap-3 rounded-md border border-border/40 bg-background/60 px-3 py-2.5 min-w-0">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <div className="flex h-5 w-5 items-center justify-center rounded-md bg-muted/60 text-muted-foreground shrink-0">
+                                  {activity.type === 'link_click' ? (
+                                    <BarChart2 className="h-3 w-3" />
+                                  ) : (
+                                    <Activity className="h-3 w-3" />
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  {activity.type === 'link_click' ? (
+                                    <p className="text-xs truncate">
+                                      <span className="text-muted-foreground">Link clicked: </span>
+                                      <span className="font-medium">{activity.linkTitle}</span>
+                                    </p>
+                                  ) : (
+                                    <p className="text-xs">
+                                      <span className="font-medium">Profile viewed</span>
+                                    </p>
+                                  )}
+                                </div>
                               </div>
-                              <div className="flex-1 min-w-0">
-                                {activity.type === 'link_click' ? (
-                                  <p className="text-xs truncate">
-                                    <span className="text-muted-foreground">Link clicked: </span>
-                                    <span className="font-medium">{activity.linkTitle}</span>
-                                  </p>
-                                ) : (
-                                  <p className="text-xs">
-                                    <span className="font-medium">Profile viewed</span>
-                                  </p>
-                                )}
+                              <div className="text-[11px] text-muted-foreground whitespace-nowrap shrink-0">
+                                {timeAgo}
                               </div>
                             </div>
-                            <div className="text-[11px] text-muted-foreground whitespace-nowrap shrink-0">
-                              {timeAgo}
-                            </div>
                           </div>
-                        </div>
-                      )
-                    })}
+                        )
+                      })}
+                    </div>
                   </div>
+
+                  {hasMoreActivity && (
+                    <div className="flex justify-center pt-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={loadMoreActivity}
+                        disabled={isLoadingMore}
+                        className="text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        {isLoadingMore ? 'Loading...' : 'Load more activity'}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>

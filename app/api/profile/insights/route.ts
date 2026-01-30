@@ -164,6 +164,23 @@ export async function GET(request: NextRequest) {
       }
     })
 
+    const recentEvents = await prisma.analyticsEvent.findMany({
+      where: {
+        profileId: resolvedAddress,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: 10,
+    })
+
+    const recentActivity = recentEvents.map(event => ({
+      type: event.type as 'profile_view' | 'link_click',
+      timestamp: event.createdAt.getTime(),
+      linkTitle: event.linkTitle || undefined,
+      linkId: event.linkId || undefined,
+    }))
+
     return NextResponse.json({
       profile: profile
         ? {
@@ -189,6 +206,7 @@ export async function GET(request: NextRequest) {
         ctr,
         topLinks,
         topCategories,
+        recentActivity,
       },
     })
   } catch (error) {

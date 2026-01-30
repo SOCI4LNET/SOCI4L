@@ -25,13 +25,18 @@ export async function GET(
       )
     }
 
+    const limit = parseInt(_request.nextUrl.searchParams.get('limit') || '100')
+    const offset = parseInt(_request.nextUrl.searchParams.get('offset') || '0')
+
     const events = await prisma.analyticsEvent.findMany({
       where: {
         profileId: normalizedAddress,
       },
       orderBy: {
-        createdAt: 'asc',
+        createdAt: 'desc',
       },
+      take: limit > 0 ? (limit > 500 ? 500 : limit) : 100,
+      skip: offset >= 0 ? offset : 0,
     })
 
     const mapped = events.map((event) => ({
@@ -44,8 +49,8 @@ export async function GET(
       ts: event.createdAt.getTime(),
       source:
         event.source === 'profile' ||
-        event.source === 'qr' ||
-        event.source === 'copy'
+          event.source === 'qr' ||
+          event.source === 'copy'
           ? (event.source as 'profile' | 'qr' | 'copy')
           : ('unknown' as const),
     }))

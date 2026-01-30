@@ -56,6 +56,12 @@ interface PublicInsightsData {
       clicks: number
       share: number
     }>
+    recentActivity: Array<{
+      type: 'profile_view' | 'link_click'
+      timestamp: number
+      linkTitle?: string
+      linkId?: string
+    }>
   }
 }
 
@@ -64,6 +70,10 @@ export default function PublicInsightsPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [range, setRange] = useState<TimeRange>('7d')
+  const [paginatedActivity, setPaginatedActivity] = useState<PublicInsightsData['analytics']['recentActivity']>([])
+  const [activityOffset, setActivityOffset] = useState(10)
+  const [hasMoreActivity, setHasMoreActivity] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -95,6 +105,10 @@ export default function PublicInsightsPage({ params }: PageProps) {
           }
         } else {
           setData(result)
+          if (result.analytics?.recentActivity) {
+            setPaginatedActivity(result.analytics.recentActivity)
+            setHasMoreActivity(result.analytics.recentActivity.length === 10)
+          }
         }
       } catch (err) {
         setError('Failed to load insights')
@@ -133,6 +147,43 @@ export default function PublicInsightsPage({ params }: PageProps) {
     if (!data?.profile) return null
     return data.profile.slug || formatAddress(data.profile.address)
   }, [data?.profile])
+
+  const loadMoreActivity = async () => {
+    if (isLoadingMore || !hasMoreActivity || !data?.profile) return
+    setIsLoadingMore(true)
+
+    try {
+      const limit = 10
+      const response = await fetch(
+        `/api/analytics/profile/${encodeURIComponent(data.profile.address)}?limit=${limit}&offset=${activityOffset}`
+      )
+
+      if (response.ok) {
+        const result = await response.json()
+        const newEvents = result.events as any[]
+
+        if (newEvents.length < limit) {
+          setHasMoreActivity(false)
+        }
+
+        const mapped = newEvents.map(event => ({
+          type: event.type,
+          timestamp: event.ts,
+          linkTitle: event.linkTitle,
+          linkId: event.linkId,
+        }))
+
+        setPaginatedActivity(prev => [...prev, ...mapped])
+        setActivityOffset(prev => prev + limit)
+      } else {
+        setHasMoreActivity(false)
+      }
+    } catch (error) {
+      console.error('[PublicInsightsPage] Failed to load more activity', error)
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -338,6 +389,96 @@ export default function PublicInsightsPage({ params }: PageProps) {
                 </CardContent>
               </Card>
             )}
+
+            {/* Recent Activity */}
+            <section className="mt-8 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Activity className="h-4 w-4" />
+                  Recent Activity
+                </h2>
+                <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Latest Events</span>
+              </div>
+
+              <Card className="bg-card border border-border/60 shadow-sm">
+                <CardContent className="pt-6">
+                  {paginatedActivity.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-sm text-muted-foreground">No recent activity found.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      <div className="relative">
+                        {/* Vertical timeline line */}
+                        <div className="absolute left-[11px] top-0 bottom-0 w-0.5 bg-border/40" />
+
+                        {/* Activity items */}
+                        <div className="space-y-3">
+                          {paginatedActivity.map((activity, idx) => {
+                            // Simple time ago formatting to avoid extra heavy dependencies if needed
+                            // But since we have date-fns in the project, we'll use it
+                            const timeAgo = new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                            const dateStr = new Date(activity.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' })
+
+                            return (
+                              <div
+                                key={`${activity.type}-${activity.timestamp}-${idx}`}
+                                className="relative flex items-center gap-3"
+                              >
+                                {/* Timeline dot */}
+                                <div className="relative z-10 flex items-center justify-center w-6 shrink-0">
+                                  <div className="w-2 h-2 rounded-full bg-muted-foreground/60 border-2 border-background" />
+                                </div>
+
+                                {/* Activity card */}
+                                <div className="flex-1 flex items-center gap-3 rounded-md border border-border/40 bg-background/60 px-3 py-2 min-w-0">
+                                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                                    <div className="flex h-5 w-5 items-center justify-center rounded-md bg-muted/60 text-muted-foreground shrink-0">
+                                      {activity.type === 'link_click' ? (
+                                        <BarChart2 className="h-3 w-3" />
+                                      ) : (
+                                        <Activity className="h-3 w-3" />
+                                      )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      {activity.type === 'link_click' ? (
+                                        <p className="text-xs truncate">
+                                          <span className="text-muted-foreground">Link clicked: </span>
+                                          <span className="font-medium">{activity.linkTitle || 'Untitled link'}</span>
+                                        </p>
+                                      ) : (
+                                        <p className="text-xs">
+                                          <span className="font-medium">Profile viewed</span>
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="text-[10px] text-muted-foreground whitespace-nowrap shrink-0">
+                                    {dateStr} {timeAgo}
+                                  </div>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+
+                      {hasMoreActivity && (
+                        <div className="flex justify-center pt-2">
+                          <button
+                            onClick={loadMoreActivity}
+                            disabled={isLoadingMore}
+                            className="text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+                          >
+                            {isLoadingMore ? 'Loading...' : 'Load more activity'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </section>
           </>
         )}
       </div>
