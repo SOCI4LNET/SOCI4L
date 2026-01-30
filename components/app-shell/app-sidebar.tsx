@@ -78,11 +78,11 @@ const profileItems = [
 
 const navGroups = [
   {
-    label: 'Platform',
+    label: 'Dashboard',
     items: platformItems,
   },
   {
-    label: 'Profile',
+    label: 'Studio',
     items: profileItems,
   },
 ]

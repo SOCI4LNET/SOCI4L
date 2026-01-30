@@ -58,19 +58,32 @@ export function AppTopbar() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem className="hidden md:block">
-              {isLinkDetailPage ? (
-                <BreadcrumbLink asChild>
-                  <Link href={`${pathname.split('/').slice(0, 3).join('/')}?tab=overview`}>
-                    Dashboard
-                  </Link>
-                </BreadcrumbLink>
-              ) : (
-                <BreadcrumbLink asChild>
-                  <Link href={`${pathname.split('?')[0]}?tab=overview`}>
-                    Dashboard
-                  </Link>
-                </BreadcrumbLink>
-              )}
+              {(() => {
+                const dashboardTabs = ['overview', 'assets', 'activity', 'social']
+                const studioTabs = ['builder', 'links', 'insights']
+                const accountTabs = ['settings', 'safety']
+
+                let rootLabel = 'Dashboard'
+                if (studioTabs.includes(currentTab)) rootLabel = 'Studio'
+                else if (accountTabs.includes(currentTab)) rootLabel = 'Account'
+
+                if (isLinkDetailPage) {
+                  return (
+                    <BreadcrumbLink asChild>
+                      <Link href={`${pathname.split('/').slice(0, 3).join('/')}?tab=overview`}>
+                        {rootLabel}
+                      </Link>
+                    </BreadcrumbLink>
+                  )
+                }
+                return (
+                  <BreadcrumbLink asChild>
+                    <Link href={`${pathname.split('?')[0]}?tab=overview`}>
+                      {rootLabel}
+                    </Link>
+                  </BreadcrumbLink>
+                )
+              })()}
             </BreadcrumbItem>
             <BreadcrumbSeparator className="hidden md:block" />
             {isLinkDetailPage && (

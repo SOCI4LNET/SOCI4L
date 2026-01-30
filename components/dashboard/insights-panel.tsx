@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Activity, BarChart2, Clock, Lightbulb, ArrowRight, Share2, TrendingUp, Eye } from 'lucide-react'
+import { Activity, BarChart2, Clock, Lightbulb, ArrowRight, Share2, TrendingUp, Eye, MousePointerClick } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
 import {
@@ -982,6 +982,63 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
           </div>
         </section>
 
+        {/* Source Attribution Section */}
+        <Card className="bg-card border-border/60 shadow-sm">
+          <CardHeader className="pb-3 px-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-sm font-semibold">Top Sources (7d)</CardTitle>
+                <CardDescription className="text-[11px]">Traffic attribution by origin</CardDescription>
+              </div>
+              <Badge variant="outline" className="text-[10px] font-medium opacity-70">
+                Measurable Profile
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="px-6 pb-6">
+            {analytics.totalProfileViews > 0 ? (
+              <div className="space-y-4">
+                {(['profile', 'qr', 'copy', 'unknown'] as AnalyticsSource[]).map((src) => {
+                  const count = analytics.sourceBreakdown[src] || 0
+                  const percentage = analytics.totalProfileViews > 0
+                    ? (count / analytics.totalProfileViews) * 100
+                    : 0
+
+                  const sourceLabels: Record<AnalyticsSource, string> = {
+                    profile: 'Direct',
+                    qr: 'QR',
+                    copy: 'Ref',
+                    unknown: 'Unknown'
+                  }
+
+                  if (count === 0 && src !== 'unknown') return null
+
+                  return (
+                    <div key={src} className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-medium text-muted-foreground">{sourceLabels[src]}</span>
+                        <span className="font-mono text-foreground/80">{percentage.toFixed(0)}%</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-primary/60 rounded-full transition-all duration-500"
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-6 text-center">
+                <p className="text-xs text-muted-foreground italic">
+                  Some traffic sources may be unavailable
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* 2. CHARTS & TRENDS */}
         <section className="space-y-4">
           <SectionHeader
@@ -999,7 +1056,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                   <div className="flex flex-col items-center justify-center text-center gap-2 w-full">
                     <Activity className="h-10 w-10 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium mb-1">No source attribution yet</p>
+                      <p className="text-sm font-medium mb-1">Some traffic sources may be unavailable</p>
                       <p className="text-xs text-muted-foreground">
                         {analytics.totalProfileViews === 0
                           ? 'Share your profile to start collecting analytics'
