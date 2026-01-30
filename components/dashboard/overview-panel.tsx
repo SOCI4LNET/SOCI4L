@@ -767,182 +767,22 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
           </CardContent>
         </Card>
 
-        {/* Assets Card */}
-        <Card className="bg-card border border-border/60 shadow-sm relative">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <div>
-              <CardTitle className="text-base font-semibold">Assets</CardTitle>
-              <CardDescription className="text-xs">Token ve NFT'ler</CardDescription>
-            </div>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => refetchAssets()}
-                    disabled={assetsLoading}
-                    aria-label="Refresh assets"
-                  >
-                    <RefreshCw className={`h-3.5 w-3.5 ${assetsLoading ? 'animate-spin' : ''}`} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Refresh assets</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </CardHeader>
-          <CardContent className="relative">
-            {assetsLoading ? (
-              <div className="space-y-3">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <Skeleton className="h-10 w-10 rounded-full" />
-                    <div className="flex-1 space-y-1">
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-3 w-1/2" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : assetsError ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <p className="text-sm font-medium mb-1">Failed to load assets</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => refetchAssets()}
-                  className="mt-2"
-                >
-                  <RefreshCw className="mr-2 h-3 w-3" />
-                  Try Again
-                </Button>
-              </div>
-            ) : assetsData && ((assetsData.tokens && assetsData.tokens.length > 0) || (assetsData.nfts && assetsData.nfts.length > 0)) ? (
-              <div className="space-y-3 relative">
-                {assetsData.tokens?.slice(0, ASSETS_LIMIT).map((token, idx) => {
-                  // Get logo URL with cache fallback
-                  const getLogoUrl = (): string | null => {
-                    // First check API response
-                    if (token.logoUrl) {
-                      return token.logoUrl
-                    }
-                    // If no logo in API response, check cache
-                    const cacheKey = getCacheKey(token.address, token.symbol)
-                    const cachedLogo = getCachedLogo(cacheKey)
-                    if (cachedLogo) {
-                      return cachedLogo
-                    }
-                    return null
-                  }
 
-                  const logoUrl = getLogoUrl()
 
-                  return (
-                    <div key={token.address || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
-                      <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
-                        {logoUrl ? (
-                          <img
-                            src={logoUrl}
-                            alt={token.symbol}
-                            className="h-10 w-10 rounded-full object-cover"
-                            onLoad={() => {
-                              // Cache logo URL when successfully loaded
-                              const cacheKey = getCacheKey(token.address, token.symbol)
-                              setCachedLogo(cacheKey, logoUrl)
-                            }}
-                            onError={() => {
-                              // Mark as "no logo found" in cache to avoid retrying
-                              const cacheKey = getCacheKey(token.address, token.symbol)
-                              setCachedLogo(cacheKey, null)
-                            }}
-                          />
-                        ) : (
-                          <Coins className="h-5 w-5 text-muted-foreground" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{token.symbol}</p>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <p className="text-xs text-muted-foreground">
-                            {token.balanceFormatted} {token.symbol}
-                          </p>
-                          {token.valueUsd !== undefined && token.valueUsd > 0 && (
-                            <>
-                              <span className="text-xs text-muted-foreground">•</span>
-                              <p className="text-xs text-muted-foreground">
-                                ${token.valueUsd.toFixed(2)}
-                              </p>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-                {assetsData.nfts?.slice(0, Math.max(0, ASSETS_LIMIT - (assetsData.tokens?.length || 0))).map((nft, idx) => (
-                  <div key={`${nft.contract}-${nft.tokenId}` || idx} className="flex items-center gap-3 py-2 border-b border-border/40 last:border-0">
-                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
-                      {nft.imageUrl ? (
-                        <img src={nft.imageUrl} alt={nft.name} className="h-10 w-10 rounded-full object-cover" />
-                      ) : (
-                        <Coins className="h-5 w-5 text-muted-foreground" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{nft.name || `NFT #${nft.tokenId}`}</p>
-                      <p className="text-xs text-muted-foreground">Token ID: {formatAddress(nft.tokenId, 4)}</p>
-                    </div>
-                  </div>
-                ))}
-                {((assetsData.tokens && assetsData.tokens.length >= ASSETS_LIMIT) || (assetsData.nfts && assetsData.nfts.length > 0)) && (
-                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-background/90 backdrop-blur-sm pointer-events-none" />
-                )}
-                <div className="pt-2 relative z-10">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=assets&assetTab=tokens`)}
-                  >
-                    View all
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <Coins className="h-10 w-10 text-muted-foreground mb-3" />
-                <p className="text-sm font-medium mb-1">No assets detected</p>
-                <p className="text-xs text-muted-foreground mb-4">
-                  Tokens and NFTs will appear here once this wallet holds assets.
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => router.push(`/dashboard/${normalizedAddress}?tab=assets&assetTab=tokens`)}
-                >
-                  View all assets
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* QR Code Modal */}
+        {normalizedAddress && publicProfileHref && (
+          <QRCodeModal
+            open={qrModalOpen}
+            onOpenChange={setQrModalOpen}
+            profile={{
+              address: normalizedAddress,
+              slug: profile?.slug || null,
+              displayName: profile?.displayName || null,
+              avatarUrl: `https://effigy.im/a/${normalizedAddress}.svg`,
+            }}
+          />
+        )}
       </div>
-
-      {/* QR Code Modal */}
-      {normalizedAddress && publicProfileHref && (
-        <QRCodeModal
-          open={qrModalOpen}
-          onOpenChange={setQrModalOpen}
-          profile={{
-            address: normalizedAddress,
-            slug: profile?.slug || null,
-            displayName: profile?.displayName || null,
-            avatarUrl: `https://effigy.im/a/${normalizedAddress}.svg`,
-          }}
-        />
-      )}
-    </div>
-    </PageShell >
+    </PageShell>
   )
 }
