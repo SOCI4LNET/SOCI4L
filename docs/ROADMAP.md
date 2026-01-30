@@ -387,4 +387,5 @@ Sell SOCI4L as a service to DAOs/projects.
 
 | Date | Update |
 |------|--------|
+| 2026-01-30 | Shipping v2 soon 🚢 - Investor Mode & Demo System complete |
 | 2026-01-27 | Initial roadmap created |

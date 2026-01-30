@@ -1,17 +1,17 @@
 'use client'
 
 import { useDemo } from '@/lib/demo/demo-context'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { RefreshCcw, Users, Wand2 } from 'lucide-react'
-import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useState } from "react"
+import { Plus, Link as LinkIcon } from 'lucide-react'
 
 export function InvestorControls() {
     const { session, setDataset, resetDemo, simulateAction } = useDemo()
     const router = useRouter()
+    const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false)
+    const [newLink, setNewLink] = useState({ category: 'Social', label: '', url: '' })
 
     const currentDataset = session?.selectedDataset || 'builder'
 
@@ -20,12 +20,19 @@ export function InvestorControls() {
         toast.success(`Switched to ${val} persona`)
     }
 
-    const handleSimulateAction = (action: string) => {
-        simulateAction(action)
+    const handleSimulateAction = (action: string, payload?: any) => {
+        simulateAction(action, payload)
+        toast.success(`Simulated: ${action}`)
+    }
+
+    const handleAddLink = () => {
+        handleSimulateAction('Add Link', newLink)
+        setIsLinkDialogOpen(false)
+        setNewLink({ category: 'Social', label: '', url: '' })
     }
 
     return (
-        <Card className="fixed bottom-4 right-4 w-80 shadow-2xl border-primary/20 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 z-50 animate-in slide-in-from-bottom-5">
+        <Card className="fixed bottom-4 right-4 w-80 shadow-2xl border-primary/20 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 z-50 animate-in slide-in-from-bottom-5 max-h-[80vh] overflow-y-auto">
             <CardHeader className="py-3 px-4 border-b bg-muted/20">
                 <div className="flex items-center justify-between">
                     <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -79,6 +86,22 @@ export function InvestorControls() {
                             variant="outline"
                             size="sm"
                             className="h-7 text-xs"
+                            onClick={() => handleSimulateAction('Add Asset')}
+                        >
+                            Add Asset
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => handleSimulateAction('Add NFT')}
+                        >
+                            Add NFT
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs"
                             onClick={() => handleSimulateAction('Profile Claim')}
                         >
                             Claim Logic
@@ -92,6 +115,60 @@ export function InvestorControls() {
                             Earn Badge
                         </Button>
                     </div>
+
+                    <Dialog open={isLinkDialogOpen} onOpenChange={setIsLinkDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="secondary" size="sm" className="w-full h-8 text-xs mt-2">
+                                <Plus className="h-3 w-3 mr-1" /> Add Custom Link
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Add Profile Link</DialogTitle>
+                                <DialogDescription>
+                                    Add a new link to the demo profile.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4 py-2">
+                                <div className="space-y-2">
+                                    <Label>Category</Label>
+                                    <Select
+                                        value={newLink.category}
+                                        onValueChange={(v) => setNewLink({ ...newLink, category: v })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Social">Social</SelectItem>
+                                            <SelectItem value="Portfolio">Portfolio</SelectItem>
+                                            <SelectItem value="Contact">Contact</SelectItem>
+                                            <SelectItem value="Other">Other</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Label</Label>
+                                    <Input
+                                        placeholder="e.g. My Portfolio"
+                                        value={newLink.label}
+                                        onChange={(e) => setNewLink({ ...newLink, label: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>URL</Label>
+                                    <Input
+                                        placeholder="https://..."
+                                        value={newLink.url}
+                                        onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+                            <DialogFooter>
+                                <Button onClick={handleAddLink}>Add Link</Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
                 </div>
 
                 <div className="pt-2 border-t">

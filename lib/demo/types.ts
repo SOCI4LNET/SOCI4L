@@ -13,7 +13,7 @@ export interface DemoProfile {
     primaryRole?: string | null
     secondaryRoles?: string[]
     statusMessage?: string | null
-    socialLinks?: Array<{ id: string; platform: string; url: string; label?: string }> | null
+    socialLinks?: Array<{ id: string; platform: string; url: string; label?: string; category?: 'Social' | 'Portfolio' | 'Contact' | 'Other' }> | null
     theme?: string
 }
 
@@ -73,6 +73,6 @@ export interface DemoContextType {
     resetDemo: () => void
     updateProfile: (overrides: Partial<DemoProfile>) => void
     setDataset: (dataset: DemoSession['selectedDataset']) => void
-    simulateAction: (action: string) => void
+    simulateAction: (action: string, payload?: any) => void
     isDemo: boolean
 }

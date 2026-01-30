@@ -170,10 +170,9 @@ export function DemoProvider({ children }: { children: ReactNode }) {
             isLoading,
             startSandbox,
             resetDemo,
-            resetDemo,
             updateProfile,
             setDataset,
-            simulateAction: (action: string) => {
+            simulateAction: (action: string, payload?: any) => {
                 setSession(prev => {
                     if (!prev) return null
                     const newStats = { ...prev.walletOverrides }
@@ -223,13 +222,66 @@ export function DemoProvider({ children }: { children: ReactNode }) {
                     }
 
                     if (action === 'Badge Earned') {
-                        // Mocking adding a role as a "badge"
                         const currentRoles = prev.profileOverrides?.secondaryRoles || getCanonicalData(prev.selectedDataset || 'builder').profile.secondaryRoles || []
                         return {
                             ...prev,
                             profileOverrides: {
                                 ...prev.profileOverrides,
                                 secondaryRoles: [...currentRoles, '🏆 Top Rated']
+                            }
+                        }
+                    }
+
+                    if (action === 'Add Asset') {
+                        const currentTokens = prev.walletOverrides?.tokenBalances || getCanonicalData(prev.selectedDataset || 'builder').walletData.tokenBalances
+                        const newToken = {
+                            contractAddress: `0x${Math.random().toString(16).slice(2)}`,
+                            name: 'Simulated Token',
+                            symbol: 'SIM',
+                            balance: (Math.random() * 1000).toFixed(2),
+                            decimals: 18
+                        }
+                        return {
+                            ...prev,
+                            walletOverrides: {
+                                ...prev.walletOverrides,
+                                tokenBalances: [newToken, ...currentTokens]
+                            }
+                        }
+                    }
+
+                    if (action === 'Add NFT') {
+                        const currentNfts = prev.walletOverrides?.nfts || getCanonicalData(prev.selectedDataset || 'builder').walletData.nfts
+                        const newNft = {
+                            contractAddress: `0x${Math.random().toString(16).slice(2)}`,
+                            tokenId: Math.floor(Math.random() * 10000).toString(),
+                            name: `Simulated NFT #${Math.floor(Math.random() * 100)}`,
+                            image: '', // Placeholder will get gradient
+                            collectionName: 'Simulated Collection'
+                        }
+                        return {
+                            ...prev,
+                            walletOverrides: {
+                                ...prev.walletOverrides,
+                                nfts: [newNft, ...currentNfts]
+                            }
+                        }
+                    }
+
+                    if (action === 'Add Link') {
+                        const currentLinks = prev.profileOverrides?.socialLinks || getCanonicalData(prev.selectedDataset || 'builder').profile.socialLinks || []
+                        const newLink = {
+                            id: crypto.randomUUID(),
+                            platform: payload?.label || 'Custom Link',
+                            url: payload?.url || '#',
+                            label: payload?.label || 'New Link',
+                            category: payload?.category || 'Other'
+                        }
+                        return {
+                            ...prev,
+                            profileOverrides: {
+                                ...prev.profileOverrides,
+                                socialLinks: [...currentLinks, newLink]
                             }
                         }
                     }
