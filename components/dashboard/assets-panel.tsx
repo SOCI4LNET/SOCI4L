@@ -37,6 +37,7 @@ import {
   ArrowUpDown,
   ChevronDown,
   Loader2,
+  Layers,
 } from 'lucide-react'
 import { formatAddress } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -1035,6 +1036,28 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>View on explorer</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  asChild
+                                  className="h-7 w-7"
+                                  aria-label="View collection"
+                                >
+                                  <a
+                                    href={getExplorerLink('token', nft.contract)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <Layers className="h-3 w-3" />
+                                  </a>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>View collection</TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
                         </div>

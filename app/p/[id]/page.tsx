@@ -703,17 +703,19 @@ export default function ProfilePage({ params }: PageProps) {
                         {resolvedAddress && isValidAddress(resolvedAddress) && !profile?.isBanned && (
                           <>
                             <div className="w-px h-3 bg-border/50" />
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span className="flex items-center gap-1.5 hover:text-foreground transition-colors cursor-default">
-                                  <Eye className="h-3 w-3" />
-                                  <span>{viewCount !== null ? viewCount : '—'}</span>
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Son 7 gün görüntülenme</p>
-                              </TooltipContent>
-                            </Tooltip>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="flex items-center gap-1.5 hover:text-foreground transition-colors cursor-default">
+                                    <Eye className="h-3 w-3" />
+                                    <span>{viewCount !== null ? viewCount : '—'}</span>
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Son 7 gün görüntülenme</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           </>
                         )}
                       </div>
