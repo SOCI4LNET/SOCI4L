@@ -517,7 +517,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
                           <DropdownMenuTrigger asChild>
                             <Button
                               variant="outline"
-                              size="icon-sm"
+                              size="icon"
                               className="h-7 w-7"
                               aria-label="Share profile"
                             >
@@ -628,7 +628,8 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
                   <TooltipTrigger asChild>
                     <Button
                       variant="outline"
-                      size="icon-sm"
+                      size="icon"
+                      className="h-7 w-7"
                       onClick={() => refetchActivity()}
                       disabled={activityLoading}
                       aria-label="Refresh activity"
