@@ -53,17 +53,18 @@ export async function GET(request: NextRequest) {
 
   // Check if viewing is allowed (blocking logic)
   const sessionAddress = await getSessionAddress()
+
   if (sessionAddress && resolvedAddress) {
     const normalizedSession = sessionAddress.toLowerCase()
     const normalizedTarget = resolvedAddress.toLowerCase()
 
     if (normalizedSession !== normalizedTarget) {
+      // Only block if the Viewer (Session) is BLOCKED BY the Profile Owner (Target)
+      // We allow the Blocker (Session) to view the Blocked User (Target) so they can unblock them
       const block = await prisma.block.findFirst({
         where: {
-          OR: [
-            { blockerAddress: normalizedTarget, blockedAddress: normalizedSession }, // Viewer is blocked by Profile Owner
-            { blockerAddress: normalizedSession, blockedAddress: normalizedTarget }, // Viewer blocked Profile Owner
-          ],
+          blockerAddress: normalizedTarget,
+          blockedAddress: normalizedSession,
         },
       })
 
@@ -71,6 +72,8 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Profile is not available' }, { status: 403 })
       }
     }
+  } else {
+    // Public view (no session) or no target - always allowed
   }
 
   // Fetch full profile with layoutConfig and appearanceConfig from database

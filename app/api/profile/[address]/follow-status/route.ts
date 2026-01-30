@@ -65,12 +65,11 @@ export async function GET(
     // Check for blocks
     const normalizedSession = sessionAddress.toLowerCase()
     if (normalizedSession !== normalizedAddress) {
+      // Only block if viewer is blocked by target
       const block = await prisma.block.findFirst({
         where: {
-          OR: [
-            { blockerAddress: normalizedAddress, blockedAddress: normalizedSession },
-            { blockerAddress: normalizedSession, blockedAddress: normalizedAddress },
-          ],
+          blockerAddress: normalizedAddress,
+          blockedAddress: normalizedSession,
         },
       })
 
