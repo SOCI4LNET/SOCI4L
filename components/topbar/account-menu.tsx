@@ -124,7 +124,9 @@ export function AccountMenu() {
   }
 
   const handleDashboard = () => {
-    router.push(dashboardHref)
+    if (dashboardHref) {
+      router.push(dashboardHref)
+    }
   }
 
   const handlePublicProfile = () => {
@@ -150,7 +152,6 @@ export function AccountMenu() {
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
-                  variant="ghost"
                   size="icon"
                   onClick={handleCopyAddress}
                   className="h-6 w-6"
@@ -163,7 +164,6 @@ export function AccountMenu() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  variant="ghost"
                   variant="ghost"
                   size="icon"
                   onClick={handleShare}
