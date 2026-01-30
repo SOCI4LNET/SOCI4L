@@ -70,21 +70,27 @@ const POPULAR_TOKENS: PopularToken[] = [
   { address: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E', symbol: 'USDC', name: 'USD Coin', decimals: 6, coingeckoId: 'usd-coin' },
   { address: '0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7', symbol: 'USDT', name: 'Tether USD', decimals: 6, coingeckoId: 'tether' },
   { address: '0xd586e7f844cea2f87f50152665bcbc2c279d8d70', symbol: 'DAI.e', name: 'Dai Stablecoin', decimals: 18, coingeckoId: 'dai' },
-  
+
   // Wrapped tokens
   { address: '0x49d5c2bdffac6ce2bfdb6640f4f80f226bc10bab', symbol: 'WETH.e', name: 'Wrapped Ether', decimals: 18, coingeckoId: 'ethereum' },
   { address: '0x408d4cd0adb7cebd1f1a1c33a0ba2098e1295bab', symbol: 'WBTC', name: 'Wrapped Bitcoin', decimals: 8, coingeckoId: 'wrapped-bitcoin' },
   { address: '0x152b9d0FdC40C096757F570A51E494bd4b943E50', symbol: 'BTC.b', name: 'Bitcoin', decimals: 8, coingeckoId: 'bitcoin' },
-  
+
   // DeFi tokens
   { address: '0x5947bb275c521040051d82396192181b413227a3', symbol: 'LINK.e', name: 'Chainlink Token', decimals: 18, coingeckoId: 'chainlink' },
   { address: '0x8ce2dee54bb9921a2ae0a63dbb2df8ed88b91dd9', symbol: 'AAVE', name: 'Aave Token', decimals: 18, coingeckoId: 'aave' },
   { address: '0x63a72806098bd3d9520cc43356dd78afe5d386d9', symbol: 'AAVE.e', name: 'Aave Token', decimals: 18, coingeckoId: 'aave' },
   { address: '0x2b2c81e08f1af8835a78bb2a90ae924ace0ea4be', symbol: 'sAVAX', name: 'Staked AVAX', decimals: 18, coingeckoId: 'avalanche-2' },
   { address: '0x60781C2586D68229fde47564546784ab3fACA982', symbol: 'PNG', name: 'Pangolin', decimals: 18, coingeckoId: 'pangolin' },
-  
+
   // More popular tokens
   { address: '0xf20d962a6c8f70c731bd838a3a388d7d48fa6e15', symbol: 'ETH', name: 'Ethereum', decimals: 18, coingeckoId: 'ethereum' },
+  { address: '0x6e84a6216eA6dACC71eE8E6b0a5B7322EEbC0fDd', symbol: 'JOE', name: 'JoeToken', decimals: 18, coingeckoId: 'joe' },
+  { address: '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7', symbol: 'WAVAX', name: 'Wrapped AVAX', decimals: 18, coingeckoId: 'avalanche-2' },
+  { address: '0x264c1383EA520f73dd837F915ef3a732e204a493', symbol: 'BNB', name: 'Binance Coin', decimals: 18, coingeckoId: 'binancecoin' },
+  { address: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5', symbol: 'QI', name: 'Benqi', decimals: 18, coingeckoId: 'benqi' },
+  { address: '0x130966628846BFd36ff31a822705796e8cb8C18D', symbol: 'MIM', name: 'Magic Internet Money', decimals: 18, coingeckoId: 'magic-internet-money' },
+  { address: '0x554555db6972cb3e43ee0bd467771785f2690a5a', symbol: 'GMX', name: 'GMX', decimals: 18, coingeckoId: 'gmx' },
 ] as const
 
 export interface RPCToken {
@@ -131,38 +137,38 @@ export interface RPCAssetsResponse {
 async function fetchNFTsFromSnowTrace(address: string): Promise<RPCNFT[]> {
   const normalizedAddress = address.toLowerCase()
   const apiKeyParam = SNOWTRACE_API_KEY ? `&apikey=${SNOWTRACE_API_KEY}` : ''
-  
+
   try {
     const nftTxUrl = `${SNOWTRACE_API_URL}?module=account&action=tokennfttx&address=${normalizedAddress}&startblock=0&endblock=99999999&sort=asc${apiKeyParam}`
-    
+
     console.log('[RPC Assets] Fetching NFTs from SnowTrace API...')
     const response = await fetch(nftTxUrl, {
       next: { revalidate: 60 }, // Cache for 60 seconds
     })
-    
+
     if (!response.ok) {
       throw new Error(`SnowTrace API error: ${response.status}`)
     }
-    
+
     const data = await response.json()
-    
+
     if (data.status !== '1' || !data.result || !Array.isArray(data.result)) {
       console.warn('[RPC Assets] SnowTrace API returned no NFT data')
       return []
     }
-    
+
     // Group NFTs by contract and tokenId to get unique NFTs
     // Track ownership by processing all transfers chronologically
     const nftMap = new Map<string, { contractAddress: string; tokenId: string; name?: string }>()
-    
+
     for (const tx of data.result) {
       const contract = tx.contractAddress?.toLowerCase()
       const tokenId = tx.tokenID
-      
+
       if (!contract || !tokenId) continue
-      
+
       const key = `${contract}-${tokenId}`
-      
+
       // If NFT was transferred TO this address, add it
       if (tx.to?.toLowerCase() === normalizedAddress) {
         nftMap.set(key, {
@@ -170,16 +176,16 @@ async function fetchNFTsFromSnowTrace(address: string): Promise<RPCNFT[]> {
           tokenId,
           name: tx.tokenName || undefined,
         })
-      } 
+      }
       // If NFT was transferred FROM this address, remove it
       else if (tx.from?.toLowerCase() === normalizedAddress) {
         nftMap.delete(key)
       }
     }
-    
+
     const nfts = Array.from(nftMap.values())
     console.log(`[RPC Assets] Found ${nfts.length} NFTs from SnowTrace for address ${address}`)
-    
+
     return nfts
   } catch (error) {
     console.error('[RPC Assets] Error fetching NFTs from SnowTrace:', error)
@@ -257,27 +263,27 @@ async function getTokenMetadata(contractAddress: string): Promise<{
 async function fetchTokensFromSnowTrace(address: string): Promise<RPCToken[]> {
   const normalizedAddress = address.toLowerCase()
   const apiKeyParam = SNOWTRACE_API_KEY ? `&apikey=${SNOWTRACE_API_KEY}` : ''
-  
+
   try {
     // Fetch all token transfers for this address
     const tokenTxUrl = `${SNOWTRACE_API_URL}?module=account&action=tokentx&address=${normalizedAddress}&startblock=0&endblock=99999999&sort=asc${apiKeyParam}`
-    
+
     console.log('[RPC Assets] Fetching tokens from SnowTrace API...')
     const response = await fetch(tokenTxUrl, {
       next: { revalidate: 60 }, // Cache for 60 seconds
     })
-    
+
     if (!response.ok) {
       throw new Error(`SnowTrace API error: ${response.status}`)
     }
-    
+
     const data = await response.json()
-    
+
     if (data.status !== '1' || !data.result || !Array.isArray(data.result)) {
       console.warn('[RPC Assets] SnowTrace API returned no token data')
       return []
     }
-    
+
     // Process token transfers to calculate current balances
     const tokenMap = new Map<string, {
       name: string
@@ -286,14 +292,14 @@ async function fetchTokensFromSnowTrace(address: string): Promise<RPCToken[]> {
       balance: bigint
       contractAddress: string
     }>()
-    
+
     for (const tx of data.result) {
       const contract = tx.contractAddress?.toLowerCase()
       if (!contract) continue
-      
+
       const decimals = parseInt(tx.tokenDecimal || '18')
       const value = BigInt(tx.value || '0')
-      
+
       if (!tokenMap.has(contract)) {
         tokenMap.set(contract, {
           name: tx.tokenName || 'Unknown Token',
@@ -303,7 +309,7 @@ async function fetchTokensFromSnowTrace(address: string): Promise<RPCToken[]> {
           contractAddress: contract,
         })
       }
-      
+
       const entry = tokenMap.get(contract)!
       // Calculate balance: incoming adds, outgoing subtracts
       if (tx.to?.toLowerCase() === normalizedAddress) {
@@ -312,7 +318,7 @@ async function fetchTokensFromSnowTrace(address: string): Promise<RPCToken[]> {
         entry.balance -= value
       }
     }
-    
+
     // Convert to RPCToken format, filter out zero balances
     const tokens: RPCToken[] = []
     for (const [contract, data] of tokenMap.entries()) {
@@ -332,12 +338,12 @@ async function fetchTokensFromSnowTrace(address: string): Promise<RPCToken[]> {
         })
       }
     }
-    
+
     console.log('[RPC Assets] SnowTrace API tokens found:', {
       count: tokens.length,
       tokens: tokens.map((t) => ({ symbol: t.symbol, balance: t.balanceFormatted })),
     })
-    
+
     return tokens
   } catch (error) {
     console.warn('[RPC Assets] SnowTrace API fetch failed:', error)
@@ -391,87 +397,87 @@ export async function fetchAssetsFromRPC(
 
     // 2. Try SnowTrace API first (gets ALL tokens, not just popular ones)
     let tokens: RPCToken[] = await fetchTokensFromSnowTrace(normalizedAddress)
-    
+
     // 3. If SnowTrace didn't return tokens, fallback to popular tokens check
     if (tokens.length === 0) {
       console.log('[RPC Assets] SnowTrace returned no tokens, using popular tokens fallback')
-      
+
       // Check popular tokens in parallel (batch requests)
       const tokenChecks = POPULAR_TOKENS.map(async (tokenInfo) => {
         const balance = await getTokenBalance(tokenInfo.address, normalizedAddress)
-      
-      const zero = BigInt(0)
-      if (balance === zero) {
-        return null
-      }
 
-      // Use known metadata or fetch from contract
-      let name: string = tokenInfo.name
-      let symbol: string = tokenInfo.symbol
-      let decimals: number = tokenInfo.decimals
-
-      // Fetch metadata from contract to ensure accuracy
-      const metadata = await getTokenMetadata(tokenInfo.address)
-      // Use fetched metadata if it's valid, otherwise use known values
-      if (metadata.name !== 'Unknown Token') {
-        name = metadata.name
-      }
-      if (metadata.symbol !== 'UNKNOWN') {
-        symbol = metadata.symbol
-      }
-      if (metadata.decimals !== 18 || tokenInfo.decimals === 18) {
-        decimals = metadata.decimals
-      }
-
-      const balanceFormatted = formatUnits(balance, decimals)
-
-      // Get price and logo from CoinGecko if available
-      let priceUsd: number | undefined
-      let usdValue: number | undefined
-      let logoUrl: string | undefined
-      
-      if (tokenInfo.coingeckoId) {
-        try {
-          // Fetch price and logo in parallel
-          const [priceResponse, logoUrlResult] = await Promise.all([
-            fetch(
-              `https://api.coingecko.com/api/v3/simple/price?ids=${tokenInfo.coingeckoId}&vs_currencies=usd`,
-              { next: { revalidate: 60 } }
-            ),
-            getTokenLogoUrl(tokenInfo.coingeckoId),
-          ])
-          
-          if (priceResponse.ok) {
-            const priceData = await priceResponse.json()
-            priceUsd = priceData[tokenInfo.coingeckoId]?.usd
-            if (priceUsd) {
-              usdValue = parseFloat(balanceFormatted) * priceUsd
-            }
-          }
-          
-          logoUrl = logoUrlResult
-        } catch (error) {
-          console.warn(`[RPC Assets] Failed to fetch price/logo for ${tokenInfo.symbol}:`, error)
+        const zero = BigInt(0)
+        if (balance === zero) {
+          return null
         }
-      }
 
-      return {
-        contractAddress: tokenInfo.address.toLowerCase(),
-        symbol,
-        name,
-        decimals,
-        balanceRaw: balance.toString(),
-        balanceFormatted,
-        priceUsd,
-        usdValue,
-        logoUrl,
-        coingeckoId: tokenInfo.coingeckoId,
-      } as RPCToken
-    })
+        // Use known metadata or fetch from contract
+        let name: string = tokenInfo.name
+        let symbol: string = tokenInfo.symbol
+        let decimals: number = tokenInfo.decimals
+
+        // Fetch metadata from contract to ensure accuracy
+        const metadata = await getTokenMetadata(tokenInfo.address)
+        // Use fetched metadata if it's valid, otherwise use known values
+        if (metadata.name !== 'Unknown Token') {
+          name = metadata.name
+        }
+        if (metadata.symbol !== 'UNKNOWN') {
+          symbol = metadata.symbol
+        }
+        if (metadata.decimals !== 18 || tokenInfo.decimals === 18) {
+          decimals = metadata.decimals
+        }
+
+        const balanceFormatted = formatUnits(balance, decimals)
+
+        // Get price and logo from CoinGecko if available
+        let priceUsd: number | undefined
+        let usdValue: number | undefined
+        let logoUrl: string | undefined
+
+        if (tokenInfo.coingeckoId) {
+          try {
+            // Fetch price and logo in parallel
+            const [priceResponse, logoUrlResult] = await Promise.all([
+              fetch(
+                `https://api.coingecko.com/api/v3/simple/price?ids=${tokenInfo.coingeckoId}&vs_currencies=usd`,
+                { next: { revalidate: 60 } }
+              ),
+              getTokenLogoUrl(tokenInfo.coingeckoId),
+            ])
+
+            if (priceResponse.ok) {
+              const priceData = await priceResponse.json()
+              priceUsd = priceData[tokenInfo.coingeckoId]?.usd
+              if (priceUsd) {
+                usdValue = parseFloat(balanceFormatted) * priceUsd
+              }
+            }
+
+            logoUrl = logoUrlResult
+          } catch (error) {
+            console.warn(`[RPC Assets] Failed to fetch price/logo for ${tokenInfo.symbol}:`, error)
+          }
+        }
+
+        return {
+          contractAddress: tokenInfo.address.toLowerCase(),
+          symbol,
+          name,
+          decimals,
+          balanceRaw: balance.toString(),
+          balanceFormatted,
+          priceUsd,
+          usdValue,
+          logoUrl,
+          coingeckoId: tokenInfo.coingeckoId,
+        } as RPCToken
+      })
 
       const tokenResults = await Promise.all(tokenChecks)
       tokens = tokenResults.filter((token): token is RPCToken => token !== null)
-      
+
       console.log('[RPC Assets] Popular tokens found:', {
         count: tokens.length,
         tokens: tokens.map((t) => ({ symbol: t.symbol, balance: t.balanceFormatted })),
@@ -480,7 +486,7 @@ export async function fetchAssetsFromRPC(
       // SnowTrace returned tokens, but we can still check popular tokens for prices/metadata
       // Merge with popular tokens to get better metadata and prices
       const popularTokenMap = new Map(POPULAR_TOKENS.map(t => [t.address.toLowerCase(), t]))
-      
+
       // Enhance SnowTrace tokens with metadata from popular tokens list
       tokens = tokens.map(token => {
         const popularToken = popularTokenMap.get(token.contractAddress)
@@ -490,17 +496,17 @@ export async function fetchAssetsFromRPC(
         }
         return token
       })
-      
+
       // Collect all coingeckoIds for batch fetching
       const coingeckoIds = tokens
         .map(t => (t as RPCToken & { coingeckoId?: string }).coingeckoId)
         .filter((id): id is string => !!id)
-      
+
       // Get addresses and symbols of tokens without coingeckoId (for logo lookup by address)
       const tokensWithoutId = tokens
         .filter(t => !(t as RPCToken & { coingeckoId?: string }).coingeckoId)
         .map(t => t.contractAddress)
-      
+
       // Build symbol map for fallback search
       const symbolMap: Record<string, string> = {}
       for (const token of tokens) {
@@ -508,7 +514,7 @@ export async function fetchAssetsFromRPC(
           symbolMap[token.contractAddress.toLowerCase()] = token.symbol
         }
       }
-      
+
       // Pre-fetch token list in parallel with prices to speed up logo fetching
       // This ensures the token list is ready when we need to fetch logos by address
       const [pricesData, logosById, tokenListReady] = await Promise.all([
@@ -535,22 +541,22 @@ export async function fetchAssetsFromRPC(
         // Pre-fetch token list so address-based lookup is faster
         tokensWithoutId.length > 0 ? getAvalancheTokenList() : Promise.resolve(new Map<string, { id: string; logoUrl: string }>()),
       ])
-      
+
       // Now fetch logos by address (token list is already cached)
       // Pass symbol map for fallback search if token not in cached list
       const logosByAddress = tokensWithoutId.length > 0 && tokenListReady.size > 0
         ? await getTokenLogosByAddresses(tokensWithoutId, symbolMap)
         : {} as Record<string, string>
-      
+
       // Create maps for easy lookup
       const priceMap = new Map((pricesData as Array<{ id: string; price: number | undefined }>).map(p => [p.id, p.price]))
-      
+
       // Apply prices and logos to tokens
       tokens = tokens.map(token => {
         const coingeckoId = (token as RPCToken & { coingeckoId?: string }).coingeckoId
         let priceUsd: number | undefined
         let logoUrl: string | undefined
-        
+
         if (coingeckoId) {
           // Token has coingeckoId - use ID-based lookup
           priceUsd = priceMap.get(coingeckoId)
@@ -559,7 +565,7 @@ export async function fetchAssetsFromRPC(
           // Token doesn't have coingeckoId - try address-based lookup
           logoUrl = logosByAddress[token.contractAddress.toLowerCase()]
         }
-        
+
         return {
           ...token,
           priceUsd,

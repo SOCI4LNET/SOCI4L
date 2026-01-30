@@ -50,7 +50,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
   const normalizedAddress = targetAddress.toLowerCase()
 
   // Check if the profile belongs to the connected wallet
-  const isOwnProfile = connectedAddress && normalizedAddress === connectedAddress.toLowerCase()
+  const isOwnProfile = !!(connectedAddress && normalizedAddress === connectedAddress.toLowerCase())
 
   useEffect(() => {
     setMounted(true)
@@ -164,7 +164,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
     queryFn: async () => {
       if (!targetAddress) throw new Error('No address')
       const normalizedAddress = targetAddress.toLowerCase()
-      const response = await fetch(`/api/wallet/${normalizedAddress}/assets?tab=tokens&limit=${ASSETS_LIMIT}`)
+      const response = await fetch(`/api/wallet/${normalizedAddress}/assets?tab=all&limit=${ASSETS_LIMIT}`)
       if (!response.ok) throw new Error(`test`)
       return response.json()
     },
