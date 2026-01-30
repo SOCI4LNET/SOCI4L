@@ -660,7 +660,7 @@ export default function ProfilePage({ params }: PageProps) {
                         </h1>
 
                         {/* Roles & Ranks */}
-                        {(profile?.role === 'ADMIN' || profile?.role === 'BUILDER') && (
+                        {!profile?.isBanned && (profile?.role === 'ADMIN' || profile?.role === 'BUILDER') && (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -676,7 +676,7 @@ export default function ProfilePage({ params }: PageProps) {
                         )}
 
                         {/* Score Tier Badge */}
-                        {score && score.total > 0 && (
+                        {!profile?.isBanned && score && score.total > 0 && (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -692,12 +692,12 @@ export default function ProfilePage({ params }: PageProps) {
                           </TooltipProvider>
                         )}
 
-                        {profile?.primaryRole && (
+                        {!profile?.isBanned && profile?.primaryRole && (
                           <Badge variant="secondary" className="text-[11px] px-2 py-0 border-border bg-muted/60 text-foreground font-medium">
                             {profile.primaryRole}
                           </Badge>
                         )}
-                        {profile?.secondaryRoles?.map(role => (
+                        {!profile?.isBanned && profile?.secondaryRoles?.map(role => (
                           <Badge key={role} variant="outline" className="text-[10px] px-1.5 py-0 text-muted-foreground/80 font-normal">
                             {role}
                           </Badge>
@@ -718,14 +718,14 @@ export default function ProfilePage({ params }: PageProps) {
                       </div>
 
                       {/* 2. Bio */}
-                      {profile?.bio && (
+                      {!profile?.isBanned && profile?.bio && (
                         <p className="text-sm text-muted-foreground/90 truncate pr-4 leading-relaxed mb-0.5">
                           {profile.bio}
                         </p>
                       )}
 
                       {/* 3. Status / Intent (Whisper style) */}
-                      {profile?.statusMessage && (
+                      {!profile?.isBanned && profile?.statusMessage && (
                         <p className="text-xs text-muted-foreground/70 italic truncate pr-4 leading-relaxed">
                           <span className="opacity-70 mr-1">Building:</span>
                           {profile.statusMessage}
@@ -733,38 +733,40 @@ export default function ProfilePage({ params }: PageProps) {
                       )}
 
                       {/* 3. Social & Network Context (Secondary) */}
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground/70 pt-1 flex-wrap">
-                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 font-normal bg-muted/50 text-muted-foreground hover:bg-muted/80 border-0">
-                          Avalanche
-                        </Badge>
+                      {!profile?.isBanned && (
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground/70 pt-1 flex-wrap">
+                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 font-normal bg-muted/50 text-muted-foreground hover:bg-muted/80 border-0">
+                            Avalanche
+                          </Badge>
 
-                        <div className="w-px h-3 bg-border/50" />
+                          <div className="w-px h-3 bg-border/50" />
 
-                        {profileAddressForFollow && !profile?.isBanned && (
-                          <div className="flex items-center gap-1 hover:text-foreground transition-colors">
-                            <FollowStats address={profileAddressForFollow} />
-                          </div>
-                        )}
+                          {profileAddressForFollow && !profile?.isBanned && (
+                            <div className="flex items-center gap-1 hover:text-foreground transition-colors">
+                              <FollowStats address={profileAddressForFollow} />
+                            </div>
+                          )}
 
-                        {resolvedAddress && isValidAddress(resolvedAddress) && !profile?.isBanned && (
-                          <>
-                            <div className="w-px h-3 bg-border/50" />
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <span className="flex items-center gap-1.5 hover:text-foreground transition-colors cursor-default">
-                                    <Eye className="h-3 w-3" />
-                                    <span>{viewCount !== null ? viewCount : '—'}</span>
-                                  </span>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Son 7 gün görüntülenme</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </>
-                        )}
-                      </div>
+                          {resolvedAddress && isValidAddress(resolvedAddress) && !profile?.isBanned && (
+                            <>
+                              <div className="w-px h-3 bg-border/50" />
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span className="flex items-center gap-1.5 hover:text-foreground transition-colors cursor-default">
+                                      <Eye className="h-3 w-3" />
+                                      <span>{viewCount !== null ? viewCount : '—'}</span>
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Son 7 gün görüntülenme</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -821,7 +823,7 @@ export default function ProfilePage({ params }: PageProps) {
               </CardHeader>
 
               {/* Card Content: Only Social Links (Bio/Status is moved up) */}
-              {profile?.socialLinks && profile.socialLinks.length > 0 && (
+              {!profile?.isBanned && profile?.socialLinks && profile.socialLinks.length > 0 && (
                 <CardContent className="pt-0 pb-4">
                   <div className="flex items-center gap-2 flex-wrap pl-[calc(3rem+1rem)]"> {/* Indent to align with text */}
                     {profile.socialLinks.map((link) => {
