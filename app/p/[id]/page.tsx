@@ -92,6 +92,7 @@ export default function ProfilePage({ params }: PageProps) {
     slug: string | null
     displayName?: string | null
     bio?: string | null
+    role?: string | null
     primaryRole?: string | null
     secondaryRoles?: string[]
     statusMessage?: string | null
@@ -191,6 +192,7 @@ export default function ProfilePage({ params }: PageProps) {
               slug: data.profile.slug,
               displayName: data.profile.displayName,
               bio: data.profile.bio,
+              role: data.profile.role,
               primaryRole: data.profile.primaryRole,
               secondaryRoles: data.profile.secondaryRoles,
               statusMessage: data.profile.statusMessage,
@@ -403,6 +405,7 @@ export default function ProfilePage({ params }: PageProps) {
           slug: data.profile.slug,
           displayName: data.profile.displayName,
           bio: data.profile.bio,
+          role: data.profile.role,
           primaryRole: data.profile.primaryRole,
           secondaryRoles: data.profile.secondaryRoles,
           statusMessage: data.profile.statusMessage,
@@ -653,9 +656,24 @@ export default function ProfilePage({ params }: PageProps) {
                           {primaryDisplayName}
                         </h1>
 
-                        {/* Roles */}
+                        {/* Roles & Ranks */}
+                        {(profile?.role === 'ADMIN' || profile?.role === 'BUILDER') && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge variant="secondary" className="text-[11px] px-2 py-0 border-primary/20 bg-primary/10 text-primary font-bold cursor-help">
+                                  {profile.role === 'ADMIN' ? 'Team' : 'Builder'}
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Rank: {profile.role === 'ADMIN' ? 'Team Member' : 'Verified Builder'}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+
                         {profile?.primaryRole && (
-                          <Badge variant="secondary" className="text-[11px] px-2 py-0 border-primary/20 bg-primary/5 text-primary font-medium">
+                          <Badge variant="secondary" className="text-[11px] px-2 py-0 border-border bg-muted/60 text-foreground font-medium">
                             {profile.primaryRole}
                           </Badge>
                         )}
