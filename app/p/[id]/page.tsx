@@ -186,6 +186,9 @@ export default function ProfilePage({ params }: PageProps) {
           })
           setWalletData(data.walletData)
           setProfileStatus(data.profileStatus)
+          if (data.score) {
+            setScore(data.score)
+          }
           if (data.profile) {
             setProfile({
               address: data.profile.address,
@@ -667,6 +670,23 @@ export default function ProfilePage({ params }: PageProps) {
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p>Rank: {profile.role === 'ADMIN' ? 'Team Member' : 'Verified Builder'}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+
+                        {/* Score Tier Badge */}
+                        {score && score.total > 0 && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge variant="secondary" className="text-[11px] px-2 py-0 border-primary/20 bg-primary/10 text-primary font-bold cursor-help flex items-center gap-1">
+                                  <Sparkles className="h-3 w-3" />
+                                  {score.tierLabel}
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Tier: {score.tierLabel} ({score.total} points)</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>

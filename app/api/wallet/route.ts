@@ -13,6 +13,8 @@ import {
   normalizeAppearanceConfig,
   type ProfileAppearanceConfig,
 } from '@/lib/profile-appearance'
+import { calculateScore, getScoreTier, type ScoreInput } from '@/lib/score'
+import { getFollowersCount } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
 
@@ -230,6 +232,39 @@ export async function GET(request: NextRequest) {
       console.error('[Wallet API] Error fetching view count:', error)
     }
 
+    // Calculate Score & Tier
+    let scoreData = null
+    try {
+      const followersCount = await getFollowersCount(resolvedAddress)
+      const isClaimed = profileStatus !== 'UNCLAIMED'
+
+      const scoreInput: ScoreInput = {
+        isClaimed,
+        displayName: profile?.displayName || null,
+        bio: profile?.bio || null,
+        socialLinksCount: profile?.socialLinks ? (() => {
+          try {
+            const parsed = JSON.parse(profile.socialLinks)
+            return Array.isArray(parsed) ? parsed.length : 0
+          } catch { return 0 }
+        })() : 0,
+        profileLinksCount: profileLinks.length,
+        followersCount
+      }
+
+      const breakdown = calculateScore(scoreInput)
+      const tierInfo = getScoreTier(breakdown.total)
+
+      scoreData = {
+        total: breakdown.total,
+        tier: tierInfo.tier,
+        tierLabel: tierInfo.label,
+        breakdown
+      }
+    } catch (scoreError) {
+      console.error('[Wallet API] Error calculating score:', scoreError)
+    }
+
     const responseData = {
       walletData,
       profileStatus,
@@ -261,6 +296,7 @@ export async function GET(request: NextRequest) {
       layout: layoutConfig,
       appearance: appearanceConfig,
       views7d,
+      score: scoreData,
     }
 
     console.log('[Wallet API] Returning response with layout:', layoutConfig)
