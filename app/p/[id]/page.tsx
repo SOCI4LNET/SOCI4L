@@ -627,10 +627,10 @@ export default function ProfilePage({ params }: PageProps) {
           {/* Profile Info Card - show for all profiles (claimed or unclaimed) */}
           {(isClaimed || !isPrivate) && (
             <Card>
-              <CardHeader>
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                  {/* Left: Avatar + Name + Badge */}
-                  <div className="flex items-center gap-4 min-w-0 flex-1">
+              <CardHeader className="pb-4">
+                <div className="flex items-start justify-between gap-4">
+                  {/* Left: Avatar + Identity + Status + Context */}
+                  <div className="flex items-start gap-4 min-w-0 flex-1">
                     <Avatar className={avatarSize}>
                       {resolvedAddress ? (
                         <>
@@ -646,24 +646,32 @@ export default function ProfilePage({ params }: PageProps) {
                         <AvatarFallback className="text-xs">??</AvatarFallback>
                       )}
                     </Avatar>
-                    <div className="min-w-0 space-y-1.5 flex-1">
+
+                    <div className="min-w-0 space-y-1 flex-1">
+                      {/* 1. Identity Block */}
                       <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                        <h1 className={`${titleClasses} font-semibold truncate`}>
+                        <h1 className={`${titleClasses} font-bold truncate text-foreground`}>
                           {primaryDisplayName}
                         </h1>
-                        {/* Identity Roles */}
+
+                        {/* Roles */}
                         {profile?.primaryRole && (
-                          <Badge variant="secondary" className="text-[11px] px-2 py-0 border-primary/20 bg-primary/5 text-primary">
+                          <Badge variant="secondary" className="text-[11px] px-2 py-0 border-primary/20 bg-primary/5 text-primary font-medium">
                             {profile.primaryRole}
                           </Badge>
                         )}
                         {profile?.secondaryRoles?.map(role => (
-                          <Badge key={role} variant="outline" className="text-[10px] px-1.5 py-0 text-muted-foreground/80">
+                          <Badge key={role} variant="outline" className="text-[10px] px-1.5 py-0 text-muted-foreground/80 font-normal">
                             {role}
                           </Badge>
                         ))}
-                        {isClaimed && !isPrivate && !profile?.isBanned && getStatusBadge()}
-                        {!isClaimed && !profile?.isBanned && getStatusBadge()}
+
+                        {/* Claimed/Status Badge */}
+                        {isClaimed && !isPrivate && !profile?.isBanned && (
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal text-muted-foreground border-border/60">
+                            Claimed
+                          </Badge>
+                        )}
                         {profile?.isBanned && (
                           <Badge variant="destructive" className="text-[11px] px-2 py-0 font-normal flex items-center gap-1">
                             <ShieldAlert className="h-3 w-3" />
@@ -672,123 +680,60 @@ export default function ProfilePage({ params }: PageProps) {
                         )}
                       </div>
 
-                      {/* Status Message */}
-                      {profile?.statusMessage && (
-                        <p className="text-sm text-muted-foreground flex items-center gap-2">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-500/80 inline-block shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
-                          <span className="italic">{profile.statusMessage}</span>
+                      {/* 2. Status / Intent (Merged) */}
+                      {(profile?.statusMessage || profile?.bio) && (
+                        <p className="text-sm text-muted-foreground/90 italic truncate pr-4 leading-relaxed">
+                          {profile?.statusMessage || profile?.bio}
                         </p>
                       )}
 
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-mono">{shortAddress}</span>
-                          {resolvedAddress && (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={handleCopyAddress}
-                                    className="h-5 w-5"
-                                    aria-label="Copy address"
-                                  >
-                                    <Copy className="h-3 w-3" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Copy address</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          )}
-                        </div>
-                        <Badge variant="outline" className="text-[11px] px-2 py-0">
+                      {/* 3. Social & Network Context (Secondary) */}
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground/70 pt-1">
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 font-normal bg-muted/50 text-muted-foreground hover:bg-muted/80 border-0">
                           Avalanche
                         </Badge>
+
+                        <div className="w-px h-3 bg-border/50" />
+
                         {profileAddressForFollow && !profile?.isBanned && (
-                          <span className="flex items-center gap-1">
+                          <div className="flex items-center gap-1 hover:text-foreground transition-colors">
                             <FollowStats address={profileAddressForFollow} />
-                          </span>
+                          </div>
                         )}
-                        {score && !profile?.isBanned && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div
-                                  className={`
-                                    inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full cursor-default
-                                    text-xs font-semibold transition-all
-                                    ${score.tier === 'legendary'
-                                      ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25'
-                                      : score.tier === 'elite'
-                                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md shadow-purple-500/20'
-                                        : score.tier === 'established'
-                                          ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md shadow-blue-500/20'
-                                          : score.tier === 'rising'
-                                            ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-sm'
-                                            : score.tier === 'newcomer'
-                                              ? 'bg-gradient-to-r from-slate-500 to-zinc-500 text-white'
-                                              : 'bg-muted text-muted-foreground'
-                                    }
-                                  `}
-                                >
-                                  <Sparkles className="h-3.5 w-3.5" />
-                                  <span>{score.total}</span>
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent className="text-center">
-                                <p className="font-semibold">{score.tierLabel}</p>
-                                <p className="text-xs text-muted-foreground">SOCI4L Score</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
+
                         {resolvedAddress && isValidAddress(resolvedAddress) && !profile?.isBanned && (
-                          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <Eye className="h-3.5 w-3.5" />
-                            <span className="font-medium">Views</span>
-                            {viewCount !== null ? (
-                              <span className="font-semibold text-foreground">{viewCount}</span>
-                            ) : (
-                              <Skeleton className="h-3.5 w-6" />
-                            )}
-                          </span>
+                          <>
+                            <div className="w-px h-3 bg-border/50" />
+                            <span className="flex items-center gap-1.5 hover:text-foreground transition-colors cursor-default" title="Total Views">
+                              <Eye className="h-3 w-3" />
+                              <span>{viewCount !== null ? viewCount : '—'}</span>
+                            </span>
+                          </>
                         )}
                       </div>
                     </div>
                   </div>
-                  {/* Right: Actions (Follow, Share, Claim) */}
-                  <div className="flex items-center gap-2 flex-shrink-0 flex-wrap sm:justify-end">
+
+                  {/* 4. Actions (Top Right, Isolated) */}
+                  <div className="flex items-center gap-2 flex-shrink-0 pt-1">
                     {profileAddressForFollow && !profile?.isBanned && (
                       <FollowToggle address={profileAddressForFollow} />
                     )}
+
                     {resolvedAddress && isValidAddress(resolvedAddress) && !profile?.isBanned && (
                       <DropdownMenu>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="default"
-                                  size="sm"
-                                  className="h-8"
-                                >
-                                  <Share2 className="mr-2 h-4 w-4" />
-                                  Share profile
-                                </Button>
-                              </DropdownMenuTrigger>
-                            </TooltipTrigger>
-                            <TooltipContent>Share profile</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="icon" className="h-8 w-8 text-muted-foreground">
+                            <Share2 className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={handleCopyProfileLink}>
                             <Copy className="mr-2 h-4 w-4" />
                             <span>Copy profile link</span>
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => {
+                            // ... existing share logic ...
                             const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
                             const profilePath = getPublicProfileHref(resolvedAddress, profile?.slug)
                             const profileUrl = `${baseUrl}${profilePath}`
@@ -813,41 +758,18 @@ export default function ProfilePage({ params }: PageProps) {
                         </DropdownMenuContent>
                       </DropdownMenu>
                     )}
-                    {resolvedAddress && isValidAddress(resolvedAddress) && !profile?.isBanned && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={handleCopyProfileLink}
-                              aria-label="Copy profile link"
-                              className="h-7 w-7"
-                            >
-                              <Copy className="h-3.5 w-3.5" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Copy profile link</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    )}
+
                     {profileStatus === 'UNCLAIMED' && profile?.address && !profile?.isBanned && (
                       <ClaimProfileButton address={profile.address} onSuccess={handleClaimSuccess} />
                     )}
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {profile?.bio && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">{profile.bio}</p>
-                  </div>
-                )}
-                {/* Social Links Icons */}
-                {profile?.socialLinks && profile.socialLinks.length > 0 && (
-                  <div className="flex items-center gap-2 flex-wrap">
+
+              {/* Card Content: Only Social Links (Bio/Status is moved up) */}
+              {profile?.socialLinks && profile.socialLinks.length > 0 && (
+                <CardContent className="pt-0 pb-4">
+                  <div className="flex items-center gap-2 flex-wrap pl-[calc(3rem+1rem)]"> {/* Indent to align with text */}
                     {profile.socialLinks.map((link) => {
                       const platform = link.platform || link.type || 'website'
                       return (
@@ -858,7 +780,7 @@ export default function ProfilePage({ params }: PageProps) {
                                 href={link.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center justify-center h-9 w-9 rounded-full bg-muted/50 hover:bg-muted transition-colors"
+                                className="flex items-center justify-center h-7 w-7 rounded-full border border-border/50 bg-background hover:bg-muted hover:border-border transition-colors text-muted-foreground hover:text-foreground"
                               >
                                 {getSocialIcon(platform)}
                               </a>
@@ -871,8 +793,8 @@ export default function ProfilePage({ params }: PageProps) {
                       )
                     })}
                   </div>
-                )}
-              </CardContent>
+                </CardContent>
+              )}
             </Card>
           )}
 
@@ -899,6 +821,7 @@ export default function ProfilePage({ params }: PageProps) {
                       title: string
                       url: string
                       category: string
+                      categoryId?: string
                       type: 'social' | 'featured' | 'custom'
                       icon?: React.ReactNode
                       order: number

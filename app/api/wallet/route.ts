@@ -226,9 +226,9 @@ export async function GET(request: NextRequest) {
         claimedAt: profile.claimedAt,
         displayName: profile.displayName,
         bio: profile.bio,
-        primaryRole: profile.primaryRole,
-        secondaryRoles: profile.secondaryRoles,
-        statusMessage: profile.statusMessage,
+        primaryRole: profile.primaryRole || null,
+        secondaryRoles: profile.secondaryRoles || [],
+        statusMessage: profile.statusMessage || null,
         socialLinks: profile.socialLinks ? (() => {
           try {
             return JSON.parse(profile.socialLinks)
