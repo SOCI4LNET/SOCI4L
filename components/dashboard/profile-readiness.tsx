@@ -26,7 +26,7 @@ export function ProfileReadiness({ profile, address, onClose }: ProfileReadiness
         {
             label: "Set a Display Name",
             completed: !!profile.displayName && profile.displayName.length > 0,
-            link: `?tab=settings`
+            link: `?tab=builder`
         },
         {
             label: "Add a Bio",
@@ -41,7 +41,7 @@ export function ProfileReadiness({ profile, address, onClose }: ProfileReadiness
         {
             label: "Connect Social Links",
             completed: !!profile.socialLinks && profile.socialLinks.length > 0,
-            link: `?tab=builder`
+            link: `?tab=links`
         }
     ]
 
