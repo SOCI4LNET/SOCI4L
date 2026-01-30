@@ -6,6 +6,8 @@ import {
   normalizeAppearanceConfig,
   type ProfileAppearanceConfig,
 } from '@/lib/profile-appearance'
+import { cookies } from 'next/headers'
+import { verifyMessage, recoverMessageAddress } from 'viem'
 
 // GET: Fetch appearance config for a profile by address
 export async function GET(request: NextRequest) {
@@ -72,13 +74,82 @@ export async function POST(request: NextRequest) {
     // Normalize appearance config before saving
     const normalizedAppearance = normalizeAppearanceConfig(appearance)
 
+    const { signature } = body
+
+    if (!signature) {
+      return NextResponse.json({ error: 'Signature required' }, { status: 400 })
+    }
+
+    // Read nonce from cookie
+    const cookieStore = await cookies()
+    const nonce = cookieStore.get('aph_nonce')?.value
+
+    if (!nonce) {
+      return NextResponse.json(
+        { error: 'Nonce not found. Please call /api/auth/nonce first.' },
+        { status: 400 }
+      )
+    }
+
+    // Build message
+    const message = `Update profile appearance for ${address}. Nonce: ${nonce}`
+
+    // Verify signature and recover signer
+    let signer: string
+    try {
+      signer = await recoverMessageAddress({
+        message,
+        signature: signature as `0x${string}`,
+      })
+
+      const isValid = await verifyMessage({
+        address: signer as `0x${string}`,
+        message,
+        signature: signature as `0x${string}`,
+      })
+
+      if (!isValid) {
+        return NextResponse.json(
+          { error: 'Invalid signature' },
+          { status: 400 }
+        )
+      }
+    } catch (error) {
+      console.error('Signature verification error:', error)
+      return NextResponse.json(
+        { error: 'Signature verification failed' },
+        { status: 400 }
+      )
+    }
+
+    const normalizedSigner = signer.toLowerCase()
+
     // Find or create profile
     let profile = await prisma.profile.findUnique({
       where: { address: normalizedAddress },
     })
 
+    if (profile) {
+      // Check ownership if profile exists
+      const effectiveOwner = profile.ownerAddress ? profile.ownerAddress.toLowerCase() : profile.address.toLowerCase()
+
+      if (normalizedSigner !== effectiveOwner) {
+        return NextResponse.json(
+          { error: 'You do not have permission to update this profile' },
+          { status: 403 }
+        )
+      }
+    }
+
     if (!profile) {
       // Create profile if it doesn't exist (idempotent - handle race conditions)
+      if (normalizedSigner !== normalizedAddress) {
+        return NextResponse.json(
+          { error: 'You can only configure appearance for your own address' },
+          { status: 403 }
+        )
+      }
+
       try {
         profile = await prisma.profile.create({
           data: {
@@ -111,6 +182,9 @@ export async function POST(request: NextRequest) {
         },
       })
     }
+
+    // Clear nonce cookie after successful update
+    cookieStore.delete('aph_nonce')
 
     // Parse and normalize saved config for response
     const savedConfig = normalizeAppearanceConfig(

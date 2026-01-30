@@ -810,11 +810,22 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
         layoutVariant: 'rows',
       }
 
-      // Normalize before saving
+      // Normalize to ensure consistency
       const normalizedConfig = normalizeLayoutConfig(nextConfig)
-      console.log('[BuilderPanel] Saving layout config:', normalizedConfig)
-      console.log('[BuilderPanel] Saving appearance config:', appearanceConfig)
 
+      // Get nonce first
+      const nonceResponse = await fetch('/api/auth/nonce')
+      if (!nonceResponse.ok) throw new Error('Failed to get nonce')
+      const { nonce } = await nonceResponse.json()
+
+      // Sign message for layout update
+      showTransactionLoader("Confirm in Wallet...")
+      const message = `Update profile layout for ${address}. Nonce: ${nonce}`
+      const signature = await signMessageAsync({ message })
+
+      showTransactionLoader("Saving layout...")
+
+      // Save to API
       const response = await fetch('/api/profile/layout', {
         method: 'POST',
         headers: {
@@ -823,6 +834,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
         body: JSON.stringify({
           address,
           layout: normalizedConfig,
+          signature,
         }),
       })
 
@@ -838,7 +850,24 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
 
       // Save appearance config
       const normalizedAppearance = normalizeAppearanceConfig(appearanceConfig)
-      console.log('[BuilderPanel] Saving appearance config:', normalizedAppearance)
+
+      // Get fresh nonce for appearance update (security best practice: new nonce per action, but for UX we might reuse if fast enough. 
+      // However, to be safe and avoid "nonce used" errors if backend checks strictly, let's get a new one or sign a different message)
+      // Actually, let's ask for a separate signature for appearance to be explicit, OR we could have combined them.
+      // Given the current API structure (separate endpoints), we need separate calls.
+      // To improve UX, we could combine these into a batch endpoint in the future.
+      // For now, let's just sign again.
+
+      showTransactionLoader("Confirm appearance update...")
+      const nonceResponseAppearance = await fetch('/api/auth/nonce')
+      if (!nonceResponseAppearance.ok) throw new Error('Failed to get nonce for appearance')
+      const { nonce: nonceAppearance } = await nonceResponseAppearance.json()
+
+      const messageAppearance = `Update profile appearance for ${address}. Nonce: ${nonceAppearance}`
+      const signatureAppearance = await signMessageAsync({ message: messageAppearance })
+
+      showTransactionLoader("Saving appearance...")
+
       const appearanceResponse = await fetch('/api/profile/appearance', {
         method: 'POST',
         headers: {
@@ -847,6 +876,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
         body: JSON.stringify({
           address,
           appearance: normalizedAppearance,
+          signature: signatureAppearance,
         }),
       })
 
@@ -1309,7 +1339,19 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
       // Normalize to ensure consistency
       const normalizedConfig = normalizeLayoutConfig(nextConfig)
 
-      // Save to API immediately (atomic operation)
+      // Get nonce
+      const nonceResponse = await fetch('/api/auth/nonce')
+      if (!nonceResponse.ok) throw new Error('Failed to get nonce')
+      const { nonce } = await nonceResponse.json()
+
+      // Sign message
+      showTransactionLoader("Confirm in Wallet...")
+      const message = `Update profile layout for ${address}. Nonce: ${nonce}`
+      const signature = await signMessageAsync({ message })
+
+      showTransactionLoader("Applying preset...")
+
+      // Save to API immediately
       const response = await fetch('/api/profile/layout', {
         method: 'POST',
         headers: {
@@ -1318,6 +1360,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
         body: JSON.stringify({
           address,
           layout: normalizedConfig,
+          signature,
         }),
       })
 
@@ -1399,8 +1442,32 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
       toast.error('Failed to apply preset. Please try again.')
     } finally {
       setSaving(false)
+      hideTransactionLoader()
     }
   }
+
+  // Compute current effective config for UI sync (determining active preset)
+  // We construct a temporary config object that reflects the current Sections and Rows state
+  // This allows detectPreset to work against what the user sees, not just what was saved.
+  const currentEffectiveConfig: ProfileLayoutConfig = (() => {
+    const allBlocks = sections.map((section) => ({
+      key: section.id,
+      enabled: section.enabled,
+      variant: section.variant || 'compact',
+      order: 0, // Order is derived from row/col
+      row: section.row ?? 0,
+      col: section.col ?? 0 as 0 | 1,
+      span: section.span || 'half',
+    }))
+
+    // Use current layoutRows directly
+    const gridConfig = rowToGridLayout({ rows: layoutRows }, allBlocks)
+    return {
+      ...gridConfig,
+      rows: layoutRows, // Include rows for completeness
+      layoutVariant: 'rows',
+    }
+  })()
 
   return (
     <PageShell
@@ -1798,7 +1865,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
                     <DropdownMenuLabel className="text-xs">Layout presets</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     {PRESETS.map((preset) => {
-                      const currentPreset = detectPreset(layoutConfig)
+                      const currentPreset = detectPreset(currentEffectiveConfig)
                       const isActive = currentPreset === preset.id
                       return (
                         <DropdownMenuItem
@@ -1818,7 +1885,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
                         </DropdownMenuItem>
                       )
                     })}
-                    {detectPreset(layoutConfig) === 'custom' && (
+                    {detectPreset(currentEffectiveConfig) === 'custom' && (
                       <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem disabled className="text-xs text-muted-foreground">
