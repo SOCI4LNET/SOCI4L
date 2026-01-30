@@ -5,13 +5,18 @@ import { OverviewPanelContent } from '@/components/dashboard/overview-panel-cont
 import { getPublicProfileHref } from '@/lib/routing'
 
 export function DemoOverviewPanel() {
-    const { profile, walletData, isLoading, mode, updateProfile } = useDemo()
+    const { profile, walletData, isLoading, mode, updateProfile, session } = useDemo()
 
-    const stats = {
+    const baseStats = {
         followers: 420,
         following: 69,
         views7d: 1337,
         totalLinks: profile.socialLinks?.length || 0,
+    }
+
+    const stats = {
+        ...baseStats,
+        ...(session?.statsOverrides || {})
     }
 
     // Transform transactions matches mostly
@@ -69,7 +74,7 @@ export function DemoOverviewPanel() {
             // Nav & Edit
             basePath={mode === 'sandbox' ? '/demo/sandbox' : '/demo'}
             isEditable={isEditable}
-            onUpdateProfile={updateProfile}
+            onUpdateProfile={updateProfile as any}
         />
     )
 }

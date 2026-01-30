@@ -10,7 +10,7 @@ import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 
 export function InvestorControls() {
-    const { session, setDataset, resetDemo } = useDemo()
+    const { session, setDataset, resetDemo, simulateAction } = useDemo()
     const router = useRouter()
 
     const currentDataset = session?.selectedDataset || 'builder'
@@ -21,8 +21,7 @@ export function InvestorControls() {
     }
 
     const handleSimulateAction = (action: string) => {
-        toast.info(`Simulated: ${action}`)
-        // In a real demo, this might trigger a specific state change or animation
+        simulateAction(action)
     }
 
     return (

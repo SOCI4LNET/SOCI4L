@@ -55,6 +55,11 @@ export interface DemoSession {
     createdAt: number
     profileOverrides: Partial<DemoProfile>
     walletOverrides: Partial<DemoWalletData> // Usually empty, but allowed
+    statsOverrides?: {
+        followers?: number
+        following?: number
+        views7d?: number
+    }
     selectedDataset: 'builder' | 'creator' | 'collector' | 'trader'
 }
 

@@ -170,7 +170,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
             isLoading,
             startSandbox,
             resetDemo,
-            updateProfile,
+            resetDemo,
             updateProfile,
             setDataset,
             simulateAction: (action: string) => {
@@ -179,13 +179,14 @@ export function DemoProvider({ children }: { children: ReactNode }) {
                     const newStats = { ...prev.walletOverrides }
 
                     if (action === 'New Follower') {
-                        // We don't track followers in walletOverrides yet, maybe profileOverrides? 
-                        // Currently Stats are derived in DemoOverviewPanel, so we can't easily update them purely from context 
-                        // unless we move stats to context or overrides.
-                        // For now, let's just trigger a toast to show interaction logic is "processed"
-                        // Or we hackily add a dummy tx or something.
-                        toast.success('Simulation: +1 New Follower (State updated)')
-                        return prev
+                        const currentFollowers = prev.statsOverrides?.followers || 420
+                        return {
+                            ...prev,
+                            statsOverrides: {
+                                ...prev.statsOverrides,
+                                followers: currentFollowers + 1
+                            }
+                        }
                     }
 
                     if (action === 'New Transaction') {
