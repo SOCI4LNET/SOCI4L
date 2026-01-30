@@ -92,7 +92,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { setOpenMobile, isMobile, state } = useSidebar()
-  const currentTab = searchParams.get('tab') || 'overview'
+
+  // Determine current tab from query param OR pathname
+  let currentTab = searchParams.get('tab')
+  if (!currentTab) {
+    if (pathname === '/dashboard/safety') {
+      currentTab = 'safety'
+    } else {
+      currentTab = 'overview'
+    }
+  }
+
   const isCollapsed = state === 'collapsed'
 
   // Check if current route is a profile route
@@ -147,7 +157,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         router.replace(`${pathname}?${sanitized.toString()}`, { scroll: false })
       }
     } else if (value === 'safety') {
+      // Safety is a standalone route
       router.push('/dashboard/safety')
+      return
+    } else if (pathname === '/dashboard/safety') {
+      // If on Safety page and switching to a tab, go to main dashboard with tab param
+      // We rely on /dashboard/page.tsx to handle the redirect to [address]
+      router.push(`/dashboard?tab=${value}`)
       return
     } else {
       router.replace(`${pathname}?${sanitized.toString()}`, { scroll: false })

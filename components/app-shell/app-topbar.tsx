@@ -24,6 +24,7 @@ const tabLabels: Record<string, string> = {
   builder: 'Builder',
   links: 'Links',
   insights: 'Insights',
+  safety: 'Safety',
 }
 
 /**
@@ -33,11 +34,20 @@ const tabLabels: Record<string, string> = {
 export function AppTopbar() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const currentTab = searchParams.get('tab') || 'overview'
-  
+
+  // Determine current tab from query param OR pathname
+  let currentTab = searchParams.get('tab')
+  if (!currentTab) {
+    if (pathname === '/dashboard/safety') {
+      currentTab = 'safety'
+    } else {
+      currentTab = 'overview'
+    }
+  }
+
   // Check if we're on a link detail page
   const isLinkDetailPage = pathname.includes('/links/') && pathname.split('/').length > 4
-  
+
   // Use appropriate label based on page type
   const tabLabel = isLinkDetailPage ? 'Link Insights' : (tabLabels[currentTab] || 'Overview')
 

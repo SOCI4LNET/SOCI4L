@@ -641,24 +641,6 @@ export default function ProfilePage({ params }: PageProps) {
             </CardContent>
           </Card>
         </div>
-      ) : isBlockedByViewer ? (
-        <Card className="border-destructive/50 bg-destructive/5">
-          <CardContent className="pt-6">
-            <div className="text-center py-12">
-              <UserX className="h-12 w-12 mx-auto text-destructive mb-4" />
-              <p className="text-lg font-semibold mb-2 text-destructive">You have blocked this user</p>
-              <p className="text-muted-foreground mb-6">
-                You cannot see their activity or assets while they are blocked.
-              </p>
-              <Button
-                variant="destructive"
-                onClick={handleUnblock}
-              >
-                Unblock User
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       ) : isPrivate ? (
         <Card>
           <CardContent className="pt-6">
@@ -901,9 +883,27 @@ export default function ProfilePage({ params }: PageProps) {
             </Card>
           )}
 
-          {/* Row-based layout - supports single and double rows */}
-          {/* Configs are always initialized with defaults, so safe to render immediately */}
-          {!profile?.isBanned && useRowLayout ? (
+          {isBlockedByViewer ? (
+            <Card className={`${getThemeCardClasses(effectiveAppearanceConfig.theme)} border-destructive/30 bg-destructive/5`}>
+              <CardContent className="pt-12 pb-12">
+                <div className="text-center">
+                  <UserX className="h-10 w-10 mx-auto text-destructive mb-3" />
+                  <p className="text-base font-semibold mb-1 text-destructive">You have blocked this user</p>
+                  <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
+                    You cannot see their activity or assets while they are blocked. Unblock them to view their profile content.
+                  </p>
+                  <Button
+                    variant="outline"
+                    className="border-destructive/30 hover:bg-destructive/10 text-destructive hover:text-destructive"
+                    onClick={handleUnblock}
+                    size="sm"
+                  >
+                    Unblock User
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : !profile?.isBanned && useRowLayout ? (
             // Row-based layout
             <div className="space-y-6 w-full">
               {layoutRows.map((row) => {

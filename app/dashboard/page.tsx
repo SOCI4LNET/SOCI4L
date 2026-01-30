@@ -39,7 +39,10 @@ function DashboardRedirectHandler() {
     if (isConnected && connectedAddress) {
       const dashboardHref = getConnectedDashboardHref(connectedAddress)
       if (dashboardHref) {
-        router.replace(dashboardHref)
+        // Preserve tab param if present
+        const tab = searchParams.get('tab')
+        const hrefWithTab = tab ? `${dashboardHref}?tab=${tab}` : dashboardHref
+        router.replace(hrefWithTab)
         return
       }
     }
