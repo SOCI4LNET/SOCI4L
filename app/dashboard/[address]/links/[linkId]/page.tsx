@@ -366,6 +366,8 @@ export default function LinkInsightsPage({ params }: PageProps) {
             url: item.url,
             enabled: item.enabled,
             order: item.order || 0,
+            categoryId: item.categoryId, // Fix: duplicate preservation
+            platform: item.platform, // Fix: duplicate preservation
           })),
         }),
       })
