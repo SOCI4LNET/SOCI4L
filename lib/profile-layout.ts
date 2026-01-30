@@ -100,7 +100,7 @@ export function isHeavyBlock(type: ProfileBlockKey): boolean {
  */
 export function gridToRowLayout(config: ProfileLayoutConfig): ProfileLayout {
   const enabledBlocks = config.blocks.filter((b) => b.enabled)
-  
+
   // Group blocks by row
   const blocksByRow = new Map<number, ProfileLayoutBlock[]>()
   for (const block of enabledBlocks) {
@@ -110,17 +110,17 @@ export function gridToRowLayout(config: ProfileLayoutConfig): ProfileLayout {
     }
     blocksByRow.get(row)!.push(block)
   }
-  
+
   // Sort rows
   const sortedRows = Array.from(blocksByRow.entries()).sort((a, b) => a[0] - b[0])
-  
+
   // Convert to LayoutRow[]
   const rows: LayoutRow[] = sortedRows.map(([rowIndex, blocks]) => {
     // Sort blocks by col
     blocks.sort((a, b) => (a.col ?? 0) - (b.col ?? 0))
-    
+
     const span = blocks[0]?.span || 'half'
-    
+
     if (span === 'full' || blocks.length === 1) {
       // Single row: full-width
       return {
@@ -138,7 +138,7 @@ export function gridToRowLayout(config: ProfileLayoutConfig): ProfileLayout {
       }
     }
   })
-  
+
   return { rows }
 }
 
@@ -151,10 +151,10 @@ export function rowToGridLayout(layout: ProfileLayout, allBlocks: ProfileLayoutB
   for (const block of allBlocks) {
     blockMap.set(block.key, block)
   }
-  
+
   const blocks: ProfileLayoutBlock[] = []
   let rowIndex = 0
-  
+
   for (const layoutRow of layout.rows) {
     if (layoutRow.type === 'single') {
       // Single row: full-width
@@ -203,7 +203,7 @@ export function rowToGridLayout(layout: ProfileLayout, allBlocks: ProfileLayoutB
       rowIndex++
     }
   }
-  
+
   // Add disabled blocks
   for (const block of allBlocks) {
     if (!blocks.find((b) => b.key === block.key)) {
@@ -217,7 +217,7 @@ export function rowToGridLayout(layout: ProfileLayout, allBlocks: ProfileLayoutB
       })
     }
   }
-  
+
   return {
     layoutVariant: 'grid',
     columns: 2,
@@ -252,11 +252,11 @@ export function normalizeLayoutConfigV3(config: ProfileLayoutConfig): ProfileLay
         ...row,
         id: row.id || `row-${index}`,
       }))
-    
+
     // Ensure no duplicate sections
     const usedSections = new Set<SectionId>()
     const deduplicatedRows: LayoutRow[] = []
-    
+
     for (const row of normalizedRows) {
       if (row.type === 'single') {
         if (row.left && !usedSections.has(row.left)) {
@@ -286,21 +286,21 @@ export function normalizeLayoutConfigV3(config: ProfileLayoutConfig): ProfileLay
         }
       }
     }
-    
+
     // Convert back to grid for backward compatibility
     const gridConfig = rowToGridLayout({ rows: deduplicatedRows }, config.blocks)
-    
+
     return {
       ...gridConfig,
       rows: deduplicatedRows,
       layoutVariant: 'rows',
     }
   }
-  
+
   // Otherwise, use existing grid-based normalization and convert to rows
   const normalized = normalizeLayoutConfig(config)
   const rowLayout = gridToRowLayout(normalized)
-  
+
   return {
     ...normalized,
     rows: rowLayout.rows,
@@ -321,7 +321,7 @@ function migrateOrderToGrid(blocks: ProfileLayoutBlock[]): ProfileLayoutBlock[] 
         span: block.span || 'half',
       }
     }
-    
+
     // Migrate from order: row = floor(order / 2), col = order % 2
     const order = typeof block.order === 'number' ? block.order : index
     return {
@@ -344,26 +344,26 @@ function normalizeGridPositions(blocks: ProfileLayoutBlock[]): ProfileLayoutBloc
   // Separate enabled and disabled blocks
   const enabled = blocks.filter((b) => b.enabled)
   const disabled = blocks.filter((b) => !b.enabled)
-  
+
   // Sort enabled blocks: first by row, then by col
   enabled.sort((a, b) => {
     const rowA = a.row ?? 0
     const rowB = b.row ?? 0
     if (rowA !== rowB) return rowA - rowB
-    
+
     const colA = a.col ?? 0
     const colB = b.col ?? 0
     return colA - colB
   })
-  
+
   // Normalize rows: reassign sequentially, handling full-span blocks
   const normalized: ProfileLayoutBlock[] = []
   let currentRow = 0
   let currentCol = 0
-  
+
   for (const block of enabled) {
     const span = block.span || 'half'
-    
+
     if (span === 'full') {
       // Full-span blocks occupy entire row
       normalized.push({
@@ -381,14 +381,14 @@ function normalizeGridPositions(blocks: ProfileLayoutBlock[]): ProfileLayoutBloc
         currentRow++
         currentCol = 0
       }
-      
+
       normalized.push({
         ...block,
         row: currentRow,
         col: currentCol as 0 | 1,
         span: 'single',
       })
-      
+
       currentCol++
       if (currentCol >= 2) {
         currentRow++
@@ -396,17 +396,17 @@ function normalizeGridPositions(blocks: ProfileLayoutBlock[]): ProfileLayoutBloc
       }
     }
   }
-  
-    // Add disabled blocks with their original positions (or defaults)
-    for (const block of disabled) {
-      normalized.push({
-        ...block,
-        row: block.row ?? 0,
-        col: block.col ?? 0,
-        span: block.span || 'half',
-      })
-    }
-  
+
+  // Add disabled blocks with their original positions (or defaults)
+  for (const block of disabled) {
+    normalized.push({
+      ...block,
+      row: block.row ?? 0,
+      col: block.col ?? 0,
+      span: block.span || 'half',
+    })
+  }
+
   return normalized
 }
 
@@ -427,7 +427,7 @@ export function normalizeLayoutConfig(config: ProfileLayoutConfig): ProfileLayou
     return v3Result
   }
   const byKey = new Map<ProfileBlockKey, ProfileLayoutBlock>()
-  
+
   // Collect existing blocks
   for (const block of config.blocks || []) {
     if (!ALL_BLOCK_KEYS.includes(block.key)) continue // Remove unknown blocks
@@ -478,11 +478,11 @@ export function normalizeLayoutConfig(config: ProfileLayoutConfig): ProfileLayou
 
   // Ensure order is set for backward compatibility (based on grid position)
   const withOrder = normalized.map((block) => {
-      const row = block.row ?? 0
-      const col = block.col ?? 0
-      const span = block.span || 'half'
-      // Calculate order: full-span blocks count as 2 positions
-      const order = span === 'full' ? row * 2 : row * 2 + col
+    const row = block.row ?? 0
+    const col = block.col ?? 0
+    const span = block.span || 'half'
+    // Calculate order: full-span blocks count as 2 positions
+    const order = span === 'full' ? row * 2 : row * 2 + col
     return {
       ...block,
       order,
@@ -494,7 +494,7 @@ export function normalizeLayoutConfig(config: ProfileLayoutConfig): ProfileLayou
     columns: 2,
     blocks: withOrder,
   }
-  
+
   // Convert to row-based layout for new system
   const rowLayout = gridToRowLayout(result)
   return {
@@ -512,7 +512,7 @@ export function getDefaultProfileLayout(): ProfileLayoutConfig {
     { id: 'row-0', type: 'double', left: 'links', right: 'activity' },
     { id: 'row-1', type: 'single', left: 'assets' },
   ]
-  
+
   return {
     layoutVariant: 'rows',
     columns: 2,
@@ -640,7 +640,6 @@ export function applyPreset(
         { ...byKey.get('links')!, enabled: true, order: 0, row: 0, col: 0, span: 'half', variant: 'compact' },
         { ...byKey.get('activity')!, enabled: false, order: 1, row: 0, col: 1, span: 'half', variant: 'compact' },
         { ...byKey.get('assets')!, enabled: false, order: 2, row: 1, col: 0, span: 'half', variant: 'compact' },
-        { ...byKey.get('summary')!, enabled: false, order: 3, row: 2, col: 0, span: 'half', variant: 'compact' },
       ]
       break
 
@@ -651,17 +650,16 @@ export function applyPreset(
         { ...byKey.get('links')!, enabled: true, order: 0, row: 0, col: 0, span: 'half', variant: 'compact' },
         { ...byKey.get('activity')!, enabled: true, order: 1, row: 0, col: 1, span: 'half', variant: 'compact' },
         { ...byKey.get('assets')!, enabled: false, order: 2, row: 1, col: 0, span: 'half', variant: 'compact' },
-        { ...byKey.get('summary')!, enabled: false, order: 3, row: 2, col: 0, span: 'single', variant: 'compact' },
       ]
       break
 
     case 'full':
       // Full Profile: links=true, activity=true, assets=true, compact variants
+      // Note: span 'full' occupies entire row
       nextBlocks = [
-        { ...byKey.get('links')!, enabled: true, order: 0, row: 0, col: 0, span: 'single', variant: 'compact' },
-        { ...byKey.get('activity')!, enabled: true, order: 1, row: 0, col: 1, span: 'single', variant: 'compact' },
-        { ...byKey.get('assets')!, enabled: true, order: 2, row: 1, col: 0, span: 'single', variant: 'compact' },
-        { ...byKey.get('summary')!, enabled: false, order: 3, row: 2, col: 0, span: 'single', variant: 'compact' },
+        { ...byKey.get('links')!, enabled: true, order: 0, row: 0, col: 0, span: 'full', variant: 'compact' },
+        { ...byKey.get('activity')!, enabled: true, order: 1, row: 1, col: 0, span: 'full', variant: 'compact' },
+        { ...byKey.get('assets')!, enabled: true, order: 2, row: 2, col: 0, span: 'full', variant: 'compact' },
       ]
       break
 
@@ -671,7 +669,6 @@ export function applyPreset(
         { ...byKey.get('links')!, enabled: true, order: 0, row: 0, col: 0, span: 'half', variant: 'compact' },
         { ...byKey.get('activity')!, enabled: true, order: 1, row: 0, col: 1, span: 'half', variant: 'hiddenAmounts' },
         { ...byKey.get('assets')!, enabled: true, order: 2, row: 1, col: 0, span: 'half', variant: 'hiddenAmounts' },
-        { ...byKey.get('summary')!, enabled: false, order: 3, row: 2, col: 0, span: 'single', variant: 'compact' },
       ]
       break
 
@@ -743,7 +740,7 @@ export function detectPreset(config: ProfileLayoutConfig): ProfilePreset | 'cust
  * Call this in browser console: window.__verifyPresets?.()
  */
 if (typeof window !== 'undefined') {
-  ;(window as any).__verifyPresets = () => {
+  ; (window as any).__verifyPresets = () => {
     const defaultConfig = getDefaultProfileLayout()
     const presets: ProfilePreset[] = ['links_only', 'minimal', 'full', 'privacy_first']
 

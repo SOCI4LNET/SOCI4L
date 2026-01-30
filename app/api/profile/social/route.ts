@@ -226,7 +226,7 @@ export async function POST(request: NextRequest) {
       updateData.statusMessage = statusMessage && statusMessage.trim() !== '' ? statusMessage.trim() : null
     }
 
-    if (secondaryRoles !== undefined) {
+    if (secondaryRoles !== undefined && secondaryRoles !== null) {
       updateData.secondaryRoles = secondaryRoles
     }
 
@@ -289,7 +289,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error updating social profile:', error)
     return NextResponse.json(
-      { error: 'Failed to update social profile' },
+      { error: `Failed to update social profile: ${error instanceof Error ? error.message : String(error)}` },
       { status: 500 }
     )
   }

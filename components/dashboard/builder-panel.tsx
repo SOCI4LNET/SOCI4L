@@ -573,6 +573,44 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
   const [secondaryRoles, setSecondaryRoles] = useState<string[]>([])
   const [statusMessage, setStatusMessage] = useState<string>('')
 
+  // Role Selection Handler
+  const handleRoleClick = (role: string) => {
+    setHasUnsavedChanges(true)
+
+    // 1. If currently Primary -> toggle off (deselect)
+    if (primaryRole === role) {
+      setPrimaryRole('')
+      // Promote first secondary to primary
+      if (secondaryRoles.length > 0) {
+        const [newPrimary, ...remaining] = secondaryRoles
+        setPrimaryRole(newPrimary)
+        setSecondaryRoles(remaining)
+      }
+      return
+    }
+
+    // 2. If currently Secondary -> toggle off (deselect)
+    if (secondaryRoles.includes(role)) {
+      setSecondaryRoles(secondaryRoles.filter((r) => r !== role))
+      return
+    }
+
+    // 3. New Selection
+    if (!primaryRole) {
+      setPrimaryRole(role)
+      return
+    }
+
+    // 4. Add to Secondary
+    if (secondaryRoles.length < 2) {
+      setSecondaryRoles([...secondaryRoles, role])
+    } else {
+      // Max reached. Replace the last added secondary (mimic stack behavior)
+      // Keep [0], replace [1]
+      setSecondaryRoles([secondaryRoles[0], role])
+    }
+  }
+
   // Load layout from API on mount
   useEffect(() => {
     if (!address) {
@@ -583,9 +621,11 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
     const loadLayout = async () => {
       try {
         setLoading(true)
-        const layoutResponse = await fetch(`/api/profile/layout?address=${encodeURIComponent(address)}`)
-        const appearanceResponse = await fetch(`/api/profile/appearance?address=${encodeURIComponent(address)}`)
-        const profileResponse = await fetch(`/api/wallet?address=${encodeURIComponent(address)}`)
+        const cacheBust = Date.now()
+        const headers = { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+        const layoutResponse = await fetch(`/api/profile/layout?address=${encodeURIComponent(address)}&_t=${cacheBust}`, { cache: 'no-store', headers })
+        const appearanceResponse = await fetch(`/api/profile/appearance?address=${encodeURIComponent(address)}&_t=${cacheBust}`, { cache: 'no-store', headers })
+        const profileResponse = await fetch(`/api/wallet?address=${encodeURIComponent(address)}&_t=${cacheBust}`, { cache: 'no-store', headers })
 
         if (!layoutResponse.ok) {
           const errorData = await layoutResponse.json().catch(() => ({ error: 'Unknown error' }))
@@ -870,7 +910,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
       if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
         toast.error('Transaction rejected')
       } else {
-        toast.error('Failed to save layout. Please try again.')
+        toast.error(error instanceof Error ? error.message : 'Failed to save layout. Please try again.')
       }
     } finally {
       setSaving(false)
@@ -1374,74 +1414,77 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
             <CardTitle className="text-base">Profile Info</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Display Name</Label>
-                <Input
-                  value={displayName}
-                  onChange={(e) => {
-                    setDisplayName(e.target.value)
-                    setHasUnsavedChanges(true)
-                  }}
-                  placeholder="Display name (max 32 characters)"
-                  maxLength={32}
-                />
-                <p className="text-xs text-muted-foreground">
-                  {displayName.length}/32 characters
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label>Bio</Label>
-                <Textarea
-                  value={bio}
-                  onChange={(e) => {
-                    setBio(e.target.value)
-                    setHasUnsavedChanges(true)
-                  }}
-                  placeholder="Bio (max 160 characters)"
-                  maxLength={160}
-                  rows={4}
-                />
-                <p className="text-xs text-muted-foreground">
-                  {bio.length}/160 characters
-                </p>
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {BIO_PATTERNS.map((pattern) => (
-                    <Badge
-                      key={pattern}
-                      variant="outline"
-                      className="cursor-pointer hover:bg-accent hover:text-accent-foreground text-[10px] font-normal py-0.5 px-2 transition-colors border-dashed"
-                      onClick={() => {
-                        setBio(pattern)
-                        setHasUnsavedChanges(true)
-                      }}
-                    >
-                      {pattern}
-                    </Badge>
-                  ))}
+            <div className="space-y-5">
+              {/* 1. Display Name */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-foreground/70">Display Name</Label>
+                <div className="relative group">
+                  <Input
+                    value={displayName}
+                    onChange={(e) => {
+                      setDisplayName(e.target.value)
+                      setHasUnsavedChanges(true)
+                    }}
+                    placeholder="Display name"
+                    maxLength={32}
+                    className="h-9"
+                  />
+                  <span className="absolute right-2 top-2.5 text-[10px] text-muted-foreground opacity-0 group-focus-within:opacity-100 transition-opacity">
+                    {displayName.length}/32
+                  </span>
                 </div>
               </div>
 
-              {/* Status Field - Moved below Bio */}
-              <div className="space-y-1">
-                <Input
-                  value={statusMessage}
-                  onChange={(e) => {
-                    setStatusMessage(e.target.value)
-                    setHasUnsavedChanges(true)
-                  }}
-                  placeholder="What are you building? (Status)"
-                  maxLength={60}
-                  className="border-0 border-b border-border/40 rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary placeholder:text-muted-foreground/50 text-base"
-                />
-                <p className="text-xs text-muted-foreground text-right">
-                  {statusMessage.length}/60
-                </p>
+              {/* 2. Bio (Compact) */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <Label className="text-xs font-semibold text-foreground/70">Bio</Label>
+                </div>
+                <div className="relative group">
+                  <Textarea
+                    value={bio}
+                    onChange={(e) => {
+                      setBio(e.target.value)
+                      setHasUnsavedChanges(true)
+                    }}
+                    placeholder="Tell your story..."
+                    maxLength={160}
+                    rows={1}
+                    className="min-h-[38px] resize-none transition-all duration-300 focus:min-h-[80px] py-2 leading-relaxed scrollbar-hide text-sm"
+                  />
+                  <span className="absolute right-2 bottom-2 text-[10px] text-muted-foreground opacity-0 group-focus-within:opacity-100 transition-opacity bg-background/80 px-1 rounded">
+                    {bio.length}/160
+                  </span>
+                </div>
+
+                {/* Pattern Badges - Hidden when bio has content */}
+                {bio.length === 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1 animate-in fade-in slide-in-from-top-1 duration-300">
+                    {BIO_PATTERNS.map((pattern) => (
+                      <Badge
+                        key={pattern}
+                        variant="secondary"
+                        className="cursor-pointer hover:bg-primary/10 hover:text-primary text-[10px] font-normal py-0 px-2 h-5 transition-colors border-0 bg-muted/50 text-muted-foreground"
+                        onClick={() => {
+                          setBio(pattern)
+                          setHasUnsavedChanges(true)
+                        }}
+                      >
+                        {pattern}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Unified Role Picker */}
-              <div className="space-y-3 pt-2">
-                <Label>Roles (Select up to 3)</Label>
+              {/* 3. Roles (Immediately after Bio) */}
+              {/* 3. Roles (Immediately after Bio) */}
+              <div className="space-y-2 pt-2">
+                <div className="flex items-baseline justify-between">
+                  <Label className="text-xs font-semibold text-foreground/70">Roles <span className="text-[10px] font-normal text-muted-foreground ml-1">(Max 3)</span></Label>
+                  <span className="text-[10px] text-muted-foreground hidden sm:inline-block">First selected is Primary</span>
+                </div>
+
                 <div className="flex flex-wrap gap-2">
                   {ROLES.map((role) => {
                     const isPrimary = primaryRole === role
@@ -1451,61 +1494,59 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
                     return (
                       <Button
                         key={role}
-                        variant={isPrimary ? 'default' : isSecondary ? 'outline' : 'ghost'}
+                        variant="outline"
                         size="sm"
                         className={`
-                          h-8 text-sm font-normal transition-all
-                          ${isPrimary ? 'shadow-sm' : ''}
-                          ${isSecondary ? 'opacity-90 border-primary/20 text-foreground/80' : ''}
-                          ${!isSelected ? 'text-muted-foreground bg-muted/30 hover:bg-muted/60' : ''}
+                          rounded-full px-3 py-0.5 h-[28px] text-xs font-medium transition-all duration-200 border
+                          ${isPrimary
+                            ? 'bg-primary text-primary-foreground border-primary shadow-sm hover:bg-primary/90'
+                            : isSecondary
+                              ? 'bg-background text-primary border-primary/50 hover:bg-primary/5 ring-1 ring-primary/10'
+                              : 'bg-transparent text-muted-foreground border-border/60 hover:border-foreground/40 hover:text-foreground hover:bg-muted/30'
+                          }
                         `}
-                        onClick={() => {
-                          setHasUnsavedChanges(true)
-
-                          // Case 1: Already Primary -> Deselect 
-                          if (isPrimary) {
-                            setPrimaryRole('')
-                            // Promote first secondary to primary
-                            if (secondaryRoles.length > 0) {
-                              const [newPrimary, ...remaining] = secondaryRoles
-                              setPrimaryRole(newPrimary)
-                              setSecondaryRoles(remaining)
-                            }
-                            return
-                          }
-
-                          // Case 2: Already Secondary -> Deselect
-                          if (isSecondary) {
-                            setSecondaryRoles(secondaryRoles.filter(r => r !== role))
-                            return
-                          }
-
-                          // Case 3: New Selection
-                          // If no primary, set as primary
-                          if (!primaryRole) {
-                            setPrimaryRole(role)
-                            return
-                          }
-
-                          // If we have room in secondary (max 2), add there
-                          if (secondaryRoles.length < 2) {
-                            setSecondaryRoles([...secondaryRoles, role])
-                          } else {
-                            // Max reached. Replace the last added secondary.
-                            setSecondaryRoles([secondaryRoles[0], role])
-                          }
-                        }}
+                        onClick={() => handleRoleClick(role)}
                       >
                         {role}
-
+                        {isPrimary && <div className="ml-1.5 w-1 h-1 rounded-full bg-primary-foreground/60" />}
                       </Button>
                     )
                   })}
                 </div>
-                <p className="text-[10px] text-muted-foreground">
-                  First selection is your <strong>Primary Role</strong>. Next two become secondary.
-                </p>
               </div>
+
+              {/* 4. Status (Bottom - Enhanced Visibility) */}
+              <div className="pt-3">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <Label className="text-xs font-semibold text-foreground/70">Building Status</Label>
+                  <TooltipProvider>
+                    <Tooltip delayDuration={300}>
+                      <TooltipTrigger asChild>
+                        <Info className="w-3 h-3 text-muted-foreground/70 cursor-help hover:text-foreground transition-colors" />
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="max-w-[220px] text-xs">
+                        A short update about your current focus or project. Visible on your profile card.
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <div className="relative group">
+                  <Input
+                    value={statusMessage}
+                    onChange={(e) => {
+                      setStatusMessage(e.target.value)
+                      setHasUnsavedChanges(true)
+                    }}
+                    placeholder="What are you building?"
+                    maxLength={60}
+                    className="h-9 bg-muted/30 border-border/60 focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-primary/20 transition-all text-sm placeholder:text-muted-foreground/60"
+                  />
+                  <span className="absolute right-2 top-2.5 text-[10px] text-muted-foreground opacity-0 group-focus-within:opacity-100 transition-opacity bg-background/80 px-1 rounded">
+                    {statusMessage.length}/60
+                  </span>
+                </div>
+              </div>
+
             </div>
           </CardContent>
         </Card>
@@ -1673,64 +1714,73 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
                   const isSelected = appearanceConfig.theme === theme
                   const themeDescriptions: Record<ProfileTheme, { short: string; long: string }> = {
                     default: {
-                      short: 'Standard spacing and styling',
-                      long: 'Standard spacing and styling with balanced visual hierarchy.',
+                      short: 'Neutral / Standard',
+                      long: 'Balanced spacing and standard card styling.',
                     },
                     minimal: {
-                      short: 'Reduced borders, larger spacing',
-                      long: 'Clean and minimal design with reduced borders and larger spacing for better readability.',
+                      short: 'Editorial / Calm',
+                      long: 'Reduced borders and no shadows for readability.',
                     },
                     dense: {
-                      short: 'Tighter spacing, compact cards',
-                      long: 'Compact layout with tighter spacing and smaller cards for information-dense profiles.',
+                      short: 'Tactical / Dense',
+                      long: 'High contrast and compact layout.',
                     },
                     spotlight: {
-                      short: 'Emphasized header and links',
-                      long: 'Spotlight design that emphasizes the header and links section for maximum visibility.',
+                      short: 'Expressive / Focus',
+                      long: 'Highlights key elements with glow effects.',
                     },
                   }
-                  const description = themeDescriptions[theme]
+                  const desc = themeDescriptions[theme]
 
                   return (
-                    <button
+                    <div
                       key={theme}
-                      type="button"
                       onClick={() => handleThemeChange(theme)}
-                      aria-pressed={isSelected}
-                      className={`w-full rounded-md border px-3 py-2.5 text-left transition-colors flex items-center justify-between gap-2 ${isSelected
-                        ? 'border-primary bg-primary/10 ring-1 ring-primary/20'
-                        : 'border-border/60 bg-background/60 hover:border-border hover:bg-background'
-                        }`}
+                      role="radio"
+                      aria-checked={isSelected}
+                      tabIndex={0}
+                      className="cursor-pointer group outline-none"
                     >
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium capitalize mb-0.5">{theme}</div>
-                        <div className="text-xs text-muted-foreground">{description.short}</div>
-                      </div>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              type="button"
-                              onClick={(e) => e.stopPropagation()}
-                              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
-                              aria-label={`${theme} theme information`}
-                            >
-                              <Info className="h-4 w-4" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="text-xs max-w-[200px]">{description.long}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </button>
+                      <Card className={`
+                        relative transition-all duration-200 border
+                        ${isSelected
+                          ? 'bg-muted/30 border-primary/40 shadow-sm'
+                          : 'bg-card border-border hover:bg-muted/20 hover:border-border/80'
+                        }
+                      `}>
+                        <CardContent className="p-3 flex items-start justify-between gap-3">
+                          <div className="space-y-1">
+                            {/* Title */}
+                            <div className={`text-sm font-medium capitalize flex items-center gap-2 ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+                              {theme}
+                            </div>
+
+                            {/* Description */}
+                            <div className="text-xs text-muted-foreground leading-snug max-w-[200px]">
+                              {desc.short}
+                            </div>
+                          </div>
+
+                          {/* Right Side: Selection Indicator */}
+                          <div className="shrink-0 pt-0.5">
+                            {isSelected ? (
+                              <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                <Sparkles className="w-3 h-3" />
+                              </div>
+                            ) : (
+                              <div className="w-5 h-5 rounded-full border border-border/60 bg-transparent group-hover:border-border transition-colors" />
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
                   )
                 })}
               </div>
             </div>
 
             {/* Layout Actions - Moved from header */}
-            <div className="mt-8 pt-6 border-t border-border/30 space-y-3 lg:sticky lg:bottom-6">
+            <div className="pt-4 pb-4 border-t border-border space-y-3 sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10 -mx-6 px-6 -mb-6">
               <div className="flex items-center justify-between gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

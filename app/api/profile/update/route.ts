@@ -181,6 +181,23 @@ export async function POST(request: NextRequest) {
     // Update profile with transaction to ensure slug uniqueness
     const slugLower = slug ? slug.toLowerCase().trim() : null
 
+    // Validate slug if provided
+    if (slugLower) {
+      if (slugLower.length < 3 || slugLower.length > 20) {
+        return NextResponse.json(
+          { error: 'Slug must be between 3 and 20 characters' },
+          { status: 400 }
+        )
+      }
+
+      if (!/^[a-z0-9-]+$/.test(slugLower)) {
+        return NextResponse.json(
+          { error: 'Slug can only contain lowercase letters, numbers, and hyphens' },
+          { status: 400 }
+        )
+      }
+    }
+
     const updated = await prisma.$transaction(async (tx) => {
       // Check slug uniqueness if provided (within transaction)
       if (slugLower) {

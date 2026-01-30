@@ -22,7 +22,7 @@ export function normalizeAppearanceConfig(
   config: Partial<ProfileAppearanceConfig> | null | undefined
 ): ProfileAppearanceConfig {
   const validThemes: ProfileTheme[] = ['default', 'minimal', 'dense', 'spotlight']
-  
+
   if (!config || typeof config !== 'object') {
     return getDefaultAppearanceConfig()
   }
@@ -40,7 +40,7 @@ export function normalizeAppearanceConfig(
  */
 export function getThemeContainerClasses(theme: ProfileTheme): string {
   const baseClasses = 'mx-auto max-w-2xl space-y-6'
-  
+
   switch (theme) {
     case 'minimal':
       return `${baseClasses} space-y-8`
@@ -58,21 +58,26 @@ export function getThemeContainerClasses(theme: ProfileTheme): string {
  * Get theme-specific CSS classes for cards
  */
 export function getThemeCardClasses(theme: ProfileTheme, blockType?: 'links' | 'activity' | 'assets'): string {
-  const baseClasses = 'bg-card border border-border/60 shadow-sm'
-  
+  const baseClasses = 'bg-card border transition-all duration-200'
+
   switch (theme) {
     case 'minimal':
-      return `${baseClasses} border-border/40 shadow-none`
+      // Editorial/Calm: No shadow, subtle border, clean background
+      return `${baseClasses} border-muted/40 shadow-none bg-background`
     case 'dense':
-      return `${baseClasses} border-border/80`
+      // Tactical/Data: Stronger border, no shadow, compact feel
+      return `${baseClasses} border-border/80 shadow-none bg-card`
     case 'spotlight':
+      // Expressive: Spotlight on links, others muted
       if (blockType === 'links') {
-        return `${baseClasses} border-primary/20 shadow-md ring-1 ring-primary/10`
+        return `${baseClasses} border-primary/40 shadow-lg shadow-primary/5 ring-1 ring-primary/20 bg-card`
       }
-      return `${baseClasses} border-border/40 opacity-90`
+      // Other cards slightly transparent/dimmed to let links shine
+      return `${baseClasses} border-border/40 opacity-90 hover:opacity-100 bg-card/50`
     case 'default':
     default:
-      return baseClasses
+      // Neutral Baseline: Standard card style
+      return `${baseClasses} border-border/60 shadow-sm bg-card`
   }
 }
 
@@ -82,14 +87,14 @@ export function getThemeCardClasses(theme: ProfileTheme, blockType?: 'links' | '
 export function getThemeHeaderClasses(theme: ProfileTheme): string {
   switch (theme) {
     case 'minimal':
-      return 'mb-8'
+      return 'mb-10' // More breath
     case 'dense':
-      return 'mb-4'
+      return 'mb-4' // Compact
     case 'spotlight':
-      return 'mb-10'
+      return 'mb-12' // High impact
     case 'default':
     default:
-      return 'mb-6'
+      return 'mb-8' // Balanced
   }
 }
 
@@ -99,21 +104,21 @@ export function getThemeHeaderClasses(theme: ProfileTheme): string {
 export function getThemeTextClasses(theme: ProfileTheme, size: 'title' | 'body' | 'small'): string {
   switch (theme) {
     case 'minimal':
-      if (size === 'title') return 'text-2xl'
-      if (size === 'body') return 'text-base'
-      return 'text-sm'
+      if (size === 'title') return 'text-3xl font-light tracking-tight' // Editorial feel
+      if (size === 'body') return 'text-base leading-relaxed'
+      return 'text-sm text-muted-foreground'
     case 'dense':
-      if (size === 'title') return 'text-lg'
-      if (size === 'body') return 'text-sm'
-      return 'text-xs'
+      if (size === 'title') return 'text-base font-semibold tracking-tight' // Tactical/Compact
+      if (size === 'body') return 'text-xs'
+      return 'text-[10px] text-muted-foreground'
     case 'spotlight':
-      if (size === 'title') return 'text-3xl'
-      if (size === 'body') return 'text-base'
-      return 'text-sm'
+      if (size === 'title') return 'text-4xl font-bold tracking-tighter' // Loud/Expressive
+      if (size === 'body') return 'text-lg'
+      return 'text-sm font-medium'
     case 'default':
     default:
-      if (size === 'title') return 'text-xl'
+      if (size === 'title') return 'text-2xl font-semibold tracking-tight' // Standard
       if (size === 'body') return 'text-sm'
-      return 'text-xs'
+      return 'text-xs text-muted-foreground'
   }
 }

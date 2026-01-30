@@ -302,6 +302,7 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
             <div className="flex items-center gap-2">
               <Input
                 value={slug}
+                maxLength={20}
                 onChange={(e) => {
                   // Allow typing hyphens for intermediate steps, but validate on save/render
                   // Still enforce basic char set (lowercase alphanumeric + hyphen)
@@ -310,11 +311,11 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
                 }}
                 placeholder="your-slug"
                 className={`font-mono ${(slug.length > 0 && (
-                    slug.length < 3 ||
-                    slug.startsWith('-') ||
-                    slug.endsWith('-') ||
-                    slug.includes('--')
-                  )) ? 'border-destructive focus-visible:ring-destructive' : ''
+                  slug.length < 3 ||
+                  slug.startsWith('-') ||
+                  slug.endsWith('-') ||
+                  slug.includes('--')
+                )) ? 'border-destructive focus-visible:ring-destructive' : ''
                   }`}
               />
               <Button
@@ -325,6 +326,7 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
                   savingSlug ||
                   slug === (profile.slug || "") ||
                   slug.length < 3 ||
+                  slug.length > 20 ||
                   slug.startsWith('-') ||
                   slug.endsWith('-') ||
                   slug.includes('--')
@@ -342,6 +344,11 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
             </div>
             {slug.length > 0 && (
               <div className="space-y-1">
+                <div className="flex justify-between items-center text-xs">
+                  <span className={slug.length > 20 ? "text-destructive" : "text-muted-foreground"}>
+                    {slug.length}/20 characters
+                  </span>
+                </div>
                 {slug.length < 3 && (
                   <p className="text-xs text-destructive font-medium">
                     Slug must be at least 3 characters long

@@ -25,11 +25,11 @@ export async function POST(request: NextRequest) {
     // Validate slug
     if (slug !== null && slug !== undefined && slug !== '') {
       const slugStr = String(slug).trim().toLowerCase()
-      
-      // Slug validation: 3-24 chars, only [a-z0-9-]
-      if (slugStr.length < 3 || slugStr.length > 24) {
+
+      // Slug validation: 3-20 chars, only [a-z0-9-]
+      if (slugStr.length < 3 || slugStr.length > 20) {
         return NextResponse.json(
-          { error: 'Slug must be between 3 and 24 characters' },
+          { error: 'Slug must be between 3 and 20 characters' },
           { status: 400 }
         )
       }
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
 
     // Update profile slug with transaction to ensure atomicity and uniqueness
     const finalSlug = slug && slug.trim() !== '' ? String(slug).trim().toLowerCase() : null
-    
+
     // Use transaction to ensure atomicity and prevent race conditions
     const updatedProfile = await prisma.$transaction(async (tx) => {
       // Double-check slug uniqueness right before update (within transaction)
@@ -142,22 +142,22 @@ export async function POST(request: NextRequest) {
         const existingProfileWithSlug = await tx.profile.findUnique({
           where: { slug: finalSlug },
         })
-        
+
         // If slug is taken by another profile, reject
         if (existingProfileWithSlug && existingProfileWithSlug.address.toLowerCase() !== normalizedAddress) {
           throw new Error('This slug is already taken')
         }
       }
-      
+
       // Get current profile to check if we need to clear old slug
       const currentProfile = await tx.profile.findUnique({
         where: { address: normalizedAddress },
       })
-      
+
       if (!currentProfile) {
         throw new Error('Profile not found')
       }
-      
+
       // Update profile slug
       // If setting a new slug, ensure old slug is cleared first
       try {
@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('Error updating slug:', error)
-    
+
     // Handle specific error cases
     if (error.message === 'This slug is already taken') {
       return NextResponse.json(
@@ -201,7 +201,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-    
+
     // Handle Prisma unique constraint violation
     if (error.code === 'P2002' || error.message?.includes('UNIQUE constraint') || error.message?.includes('unique')) {
       return NextResponse.json(
@@ -209,7 +209,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-    
+
     return NextResponse.json(
       { error: 'An error occurred while updating slug' },
       { status: 500 }
