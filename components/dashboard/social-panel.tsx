@@ -339,7 +339,8 @@ export function SocialPanel({ address }: SocialPanelProps) {
     emptyTitle: string,
     emptyHelper: string,
     showUnfollow = false,
-    suggestions: any[] = []
+    suggestions: any[] = [],
+    dateLabel = 'Followed on'
   ) => {
     if (loading) {
       return (
@@ -374,6 +375,7 @@ export function SocialPanel({ address }: SocialPanelProps) {
               statusMessage={s.statusMessage}
               connectionReason={s.reason}
               followedAt={new Date(s.createdAt)}
+              dateLabel="Joined"
             // No showUnfollow since these are suggestions
             />
           ))}
@@ -451,6 +453,7 @@ export function SocialPanel({ address }: SocialPanelProps) {
             connectionReason={item.reason}
             primaryRole={item.primaryRole}
             statusMessage={item.statusMessage}
+            dateLabel={dateLabel}
           />
         ))}
         {/* Suggestions appended to list */}
@@ -526,7 +529,8 @@ export function SocialPanel({ address }: SocialPanelProps) {
                 'No followers yet',
                 'Share your profile to get discovered.',
                 false,
-                suggestionsData?.suggestions // Pass suggestions
+                suggestionsData?.suggestions, // Pass suggestions
+                'Followed you on'
               )}
             </TabsContent>
             <TabsContent value="following" className="mt-4">
@@ -535,7 +539,8 @@ export function SocialPanel({ address }: SocialPanelProps) {
                 "You're not following anyone yet",
                 'Explore profiles and follow creators.',
                 true, // showUnfollow
-                suggestionsData?.suggestions // Pass suggestions
+                suggestionsData?.suggestions, // Pass suggestions
+                'Followed on'
               )}
             </TabsContent>
 
@@ -545,7 +550,8 @@ export function SocialPanel({ address }: SocialPanelProps) {
                 'No mutual connections',
                 'Mutual connections appear when you follow each other.',
                 false,
-                suggestionsData?.suggestions // Pass suggestions
+                suggestionsData?.suggestions, // Pass suggestions
+                'Followed on'
               )}
             </TabsContent>
           </Tabs>

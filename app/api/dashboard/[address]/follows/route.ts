@@ -234,7 +234,7 @@ export async function GET(
           )
         }
 
-        // Fetch profile data for each following to get displayName
+        // Fetch profile data for each following to get displayName and score data
         const profiles = await prisma.profile.findMany({
           where: {
             address: {
@@ -246,6 +246,8 @@ export async function GET(
             displayName: true,
             slug: true,
             updatedAt: true,
+            createdAt: true, // Needed for account age score
+            role: true,
             primaryRole: true,
             statusMessage: true,
           },
@@ -253,8 +255,54 @@ export async function GET(
 
         const profileMap = new Map(profiles.map((p) => [p.address.toLowerCase(), p]))
 
+        // Fetch mutual status for score calculation (Check if THEY follow ME)
+        // followRecords are people I follow (followingAddress)
+        // I need to check if followingAddress follows ME (normalizedAddress)
+        const mutualAddresses = await prisma.follow.findMany({
+          where: {
+            followerAddress: {
+              in: followRecords.map(f => f.followingAddress),
+            },
+            followingAddress: normalizedAddress,
+          },
+          select: {
+            followerAddress: true,
+          },
+        }).then(results => new Set(results.map(r => r.followerAddress)))
+
         let followsWithProfile = followRecords.map((f) => {
           const profile = profileMap.get(f.followingAddress.toLowerCase())
+          let score = 0
+          let reasons: string[] = []
+
+          // Score Calculation
+          // Mutual Check: mutualAddresses contains addresses that follow ME.
+          // f.followingAddress is the person I follow.
+          if (mutualAddresses.has(f.followingAddress)) {
+            score += 40
+            reasons.push('Mutual')
+          }
+          if (profile?.displayName || profile?.slug) {
+            score += 20
+          }
+          if (profile?.role === 'BUILDER' || profile?.role === 'ADMIN') {
+            score += 15
+            reasons.map(r => r !== 'Builder' && r !== 'Team' ? reasons.push(profile.role === 'ADMIN' ? 'Team' : 'Builder') : null)
+          }
+          // Account Age (> 1 year)
+          if (profile?.createdAt && (new Date().getTime() - new Date(profile.createdAt).getTime() > 365 * 24 * 60 * 60 * 1000)) {
+            score += 10
+          }
+          // Follow Duration (> 1 month)
+          if (new Date().getTime() - new Date(f.createdAt).getTime() > 30 * 24 * 60 * 60 * 1000) {
+            score += 10
+            reasons.push('Long-term')
+          }
+          // Activity (updated recently)
+          if (profile?.updatedAt && (new Date().getTime() - new Date(profile.updatedAt).getTime() < 30 * 24 * 60 * 60 * 1000)) {
+            score += 5
+          }
+
           return {
             address: f.followingAddress,
             createdAt: f.createdAt,
@@ -263,6 +311,8 @@ export async function GET(
             updatedAt: profile?.updatedAt || null,
             primaryRole: profile?.primaryRole || null,
             statusMessage: profile?.statusMessage || null,
+            score: Math.min(score, 100),
+            reason: reasons.length > 0 ? reasons.join(' • ') : undefined
           }
         })
 
@@ -279,13 +329,15 @@ export async function GET(
           )
         }
 
-        follows = followsWithProfile.map(({ address, createdAt, displayName, slug, primaryRole, statusMessage }) => ({
+        follows = followsWithProfile.map(({ address, createdAt, displayName, slug, primaryRole, statusMessage, score, reason }) => ({
           address,
           createdAt,
           displayName,
           slug,
           primaryRole,
           statusMessage,
+          score,
+          reason
         }))
       }
     } catch (dbError) {

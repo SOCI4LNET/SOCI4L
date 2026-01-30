@@ -72,6 +72,11 @@ export async function GET(
                 address: true,
                 displayName: true,
                 slug: true,
+                updatedAt: true,
+                createdAt: true,
+                role: true,
+                primaryRole: true,
+                statusMessage: true,
             },
         })
 
@@ -81,11 +86,39 @@ export async function GET(
 
         const mutualsWithProfile = mutuals.map((m) => {
             const profile = profileMap.get(m.followingAddress.toLowerCase())
+            let score = 40 // Base score for mutual
+            let reasons: string[] = ['Mutual']
+
+            if (profile?.displayName || profile?.slug) {
+                score += 20
+            }
+            if (profile?.role === 'BUILDER' || profile?.role === 'ADMIN') {
+                score += 15
+                reasons.map(r => r !== 'Builder' && r !== 'Team' ? reasons.push(profile.role === 'ADMIN' ? 'Team' : 'Builder') : null)
+            }
+            // Account Age (> 1 year)
+            if (profile?.createdAt && (new Date().getTime() - new Date(profile.createdAt).getTime() > 365 * 24 * 60 * 60 * 1000)) {
+                score += 10
+            }
+            // Follow Duration (> 1 month)
+            if (new Date().getTime() - new Date(m.createdAt).getTime() > 30 * 24 * 60 * 60 * 1000) {
+                score += 10
+                reasons.push('Long-term')
+            }
+            // Activity (updated recently)
+            if (profile?.updatedAt && (new Date().getTime() - new Date(profile.updatedAt).getTime() < 30 * 24 * 60 * 60 * 1000)) {
+                score += 5
+            }
+
             return {
                 address: m.followingAddress,
                 createdAt: m.createdAt,
                 displayName: profile?.displayName || null,
                 slug: profile?.slug || null,
+                primaryRole: profile?.primaryRole || null,
+                statusMessage: profile?.statusMessage || null,
+                score: Math.min(score, 100),
+                reason: reasons.length > 0 ? reasons.join(' • ') : undefined
             }
         })
 

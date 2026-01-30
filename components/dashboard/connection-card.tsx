@@ -32,6 +32,7 @@ interface ConnectionCardProps {
     connectionReason?: string | null
     connectionStrength?: number // 0-100 score (V2)
     followedAt: Date
+    dateLabel?: string
     showUnfollow?: boolean
     onUnfollow?: (address: string) => void
 }
@@ -45,6 +46,7 @@ export function ConnectionCard({
     connectionReason,
     connectionStrength,
     followedAt,
+    dateLabel,
     showUnfollow = false,
     onUnfollow,
 }: ConnectionCardProps) {
@@ -122,12 +124,10 @@ export function ConnectionCard({
                     </div>
                 )}
 
-                {/* Followed date (only when showing unfollow) */}
-                {showUnfollow && (
-                    <p className="text-[11px] text-muted-foreground mt-0.5">
-                        Followed on {new Date(followedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </p>
-                )}
+                {/* Followed date */}
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                    {dateLabel || 'Followed on'} {new Date(followedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </p>
             </div>
 
             {/* Actions */}
