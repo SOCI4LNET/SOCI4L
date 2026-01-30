@@ -75,22 +75,38 @@ export function ProfileReadiness({ profile, address, onClose }: ProfileReadiness
             <CardContent className="space-y-4">
                 <Progress value={progress} className="h-2" />
                 <div className="grid gap-2">
-                    {steps.map((step, idx) => (
-                        <div
-                            key={idx}
-                            className={`flex items-center gap-2 p-1.5 rounded-md transition-colors ${step.completed ? 'opacity-60' : 'hover:bg-primary/5 cursor-pointer'}`}
-                            onClick={() => !step.completed && router.push(step.link)}
-                        >
-                            {step.completed ? (
-                                <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                            ) : (
-                                <Circle className="h-4 w-4 text-muted-foreground shrink-0" />
-                            )}
-                            <span className={`text-sm ${step.completed ? 'text-muted-foreground line-through' : 'font-medium'}`}>
-                                {step.label}
-                            </span>
-                        </div>
-                    ))}
+                    {steps.map((step, idx) => {
+                        const content = (
+                            <>
+                                {step.completed ? (
+                                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                                ) : (
+                                    <Circle className="h-4 w-4 text-muted-foreground shrink-0" />
+                                )}
+                                <span className={`text-sm ${step.completed ? 'text-muted-foreground line-through' : 'font-medium'}`}>
+                                    {step.label}
+                                </span>
+                            </>
+                        )
+
+                        if (step.completed) {
+                            return (
+                                <div key={idx} className="flex items-center gap-2 p-1.5 rounded-md opacity-60">
+                                    {content}
+                                </div>
+                            )
+                        }
+
+                        return (
+                            <Link
+                                key={idx}
+                                href={`/dashboard/${address}${step.link}`}
+                                className="flex items-center gap-2 p-1.5 rounded-md transition-colors hover:bg-primary/5"
+                            >
+                                {content}
+                            </Link>
+                        )
+                    })}
                 </div>
             </CardContent>
         </Card>
