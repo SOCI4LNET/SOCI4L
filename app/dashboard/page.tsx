@@ -66,8 +66,8 @@ function DashboardRedirectHandler() {
       <PageShell title="Dashboard" subtitle="Overview">
         <Card>
           <CardHeader className="p-4 pb-3">
-            <CardTitle className="text-base font-semibold">Wallet Connection Required</CardTitle>
-            <CardDescription className="text-xs">Please connect your wallet to access the dashboard</CardDescription>
+            <CardTitle className="text-base font-semibold">Master Console</CardTitle>
+            <CardDescription className="text-xs">Connect your wallet to manage your profile</CardDescription>
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <WalletConnectButtons

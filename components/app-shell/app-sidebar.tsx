@@ -153,7 +153,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <Link href="/" className={`flex items-center justify-center w-full ${isCollapsed ? 'px-0' : 'px-2'} hover:opacity-80 transition-opacity`}>
+        <Link href="/" className={`flex items-center justify-center w-full h-10 ${isCollapsed ? 'px-0' : 'px-2'} hover:opacity-80 transition-opacity`}>
           {isCollapsed ? (
             <Soci4LLogo variant="icon" width={18} height={19} />
           ) : (

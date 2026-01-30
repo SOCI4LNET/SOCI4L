@@ -55,7 +55,7 @@ const SidebarProvider = React.forwardRef<
   // Load persisted sidebar state from localStorage (desktop only)
   const getInitialOpenState = React.useCallback(() => {
     if (typeof window === "undefined") return defaultOpen
-    
+
     try {
       // On desktop, check localStorage for persisted state
       if (window.innerWidth >= SIDEBAR_MOBILE_BREAKPOINT) {
@@ -68,7 +68,7 @@ const SidebarProvider = React.forwardRef<
       // Silently fail if localStorage is not available (e.g., in SSR or private browsing)
       console.warn('[Sidebar] Failed to access localStorage', error)
     }
-    
+
     return defaultOpen
   }, [defaultOpen])
 
@@ -80,7 +80,7 @@ const SidebarProvider = React.forwardRef<
       const newOpen = typeof value === "function" ? value(open) : value
       if (openProp === undefined) {
         setInternalOpen(newOpen)
-        
+
         // Persist to localStorage on desktop (only when collapsed)
         if (typeof window !== "undefined" && window.innerWidth >= SIDEBAR_MOBILE_BREAKPOINT) {
           try {
@@ -101,7 +101,7 @@ const SidebarProvider = React.forwardRef<
     const checkMobile = () => {
       const isMobileView = window.innerWidth < SIDEBAR_MOBILE_BREAKPOINT
       setIsMobile(isMobileView)
-      
+
       // On desktop, restore persisted state
       if (!isMobileView && openProp === undefined) {
         try {
@@ -198,9 +198,9 @@ const sidebarVariants = cva(
 const Sidebar = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> &
-    VariantProps<typeof sidebarVariants> & {
-      collapsible?: "offcanvas" | "icon" | "none"
-    }
+  VariantProps<typeof sidebarVariants> & {
+    collapsible?: "offcanvas" | "icon" | "none"
+  }
 >(({ side = "left", variant = "sidebar", collapsible = "offcanvas", className, children, ...props }, ref) => {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
   const mobile = isMobile && collapsible !== "none"
@@ -224,11 +224,11 @@ const Sidebar = React.forwardRef<
       const footerRect = footer.getBoundingClientRect()
       const viewportHeight = window.innerHeight
       const sidebarRect = sidebarRef.current.getBoundingClientRect()
-      
+
       // Calculate when footer enters the viewport
       const footerTop = footerRect.top
       const sidebarBottom = sidebarRect.bottom
-      
+
       // If footer is visible and sidebar would overlap with it, move sidebar up
       if (footerTop < viewportHeight && footerTop < sidebarBottom) {
         // Calculate how much to move sidebar up
@@ -285,10 +285,10 @@ const Sidebar = React.forwardRef<
   }
 
   // Determine width based on collapsed state
-  const widthClass = state === "collapsed" && collapsible === "icon" 
-    ? "w-[--sidebar-width-icon]" 
+  const widthClass = state === "collapsed" && collapsible === "icon"
+    ? "w-[--sidebar-width-icon]"
     : "w-[--sidebar-width]"
-  
+
   // Add overflow-hidden when collapsed to prevent text from showing and horizontal scrollbar
   const overflowClass = state === "collapsed" && collapsible === "icon"
     ? "overflow-hidden overflow-x-hidden"
@@ -541,7 +541,7 @@ const SidebarMenuButton = React.forwardRef<
   const Comp = asChild ? Slot : "button"
   const { state } = useSidebar()
   const isCollapsed = state === "collapsed"
-  
+
   const button = (
     <Comp
       ref={ref}
@@ -567,7 +567,7 @@ const SidebarMenuButton = React.forwardRef<
   return (
     <Tooltip>
       <TooltipTrigger asChild>{button}</TooltipTrigger>
-      <TooltipContent side="right" align="center" hidden={false} {...tooltip} />
+      <TooltipContent side="right" align="center" hidden={false} {...tooltip} className={cn("z-[100]", tooltip && (tooltip as any).className)} />
     </Tooltip>
   )
 })

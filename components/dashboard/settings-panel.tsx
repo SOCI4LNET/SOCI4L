@@ -8,9 +8,20 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Loader2, Copy } from "lucide-react"
+import { Loader2, Copy, AlertTriangle } from "lucide-react"
 import { toast } from "sonner"
 import { PageShell } from "@/components/app-shell/page-shell"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { useTransaction } from '@/components/providers/transaction-provider'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -129,6 +140,60 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
       } else {
         // Show actual error from backend (e.g. "Slug already taken")
         toast.error(error.message || 'Failed to save custom URL')
+      }
+    } finally {
+      setSavingSlug(false)
+      hideTransactionLoader()
+    }
+  }
+
+  const handleResetSlug = async () => {
+    setSavingSlug(true)
+    try {
+      // Step 1: Get nonce
+      const nonceResponse = await fetch('/api/auth/nonce')
+      if (!nonceResponse.ok) {
+        throw new Error('Failed to get nonce')
+      }
+      const { nonce } = await nonceResponse.json()
+
+      // Step 2: Sign message
+      showTransactionLoader("Confirm reset in Wallet...")
+      // Sending null/empty slug resets to wallet address
+      const message = `Set slug for ${targetAddress} to (empty). Nonce: ${nonce}`
+      const signature = await signMessageAsync({ message })
+
+      showTransactionLoader("Resetting to wallet address...")
+
+      // Step 3: Update slug to null
+      const updateResponse = await fetch('/api/profile/slug', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          address: targetAddress,
+          slug: null,
+          signature,
+        }),
+      })
+
+      const result = await updateResponse.json()
+
+      if (!updateResponse.ok) {
+        throw new Error(result.error || 'Failed to reset URL')
+      }
+
+      // Success - reload data
+      await onUpdate()
+      setSlug('') // Clear local state
+      toast.success('URL reset to wallet address')
+    } catch (error: any) {
+      console.error('Error resetting slug:', error)
+      if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
+        toast.error('Transaction rejected')
+      } else {
+        toast.error(error.message || 'Failed to reset to wallet address')
       }
     } finally {
       setSavingSlug(false)
@@ -315,6 +380,7 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
                   slug.length < 3 ||
                   slug.startsWith('-') ||
                   slug.endsWith('-') ||
+                  slug.endsWith('-') ||
                   slug.includes('--')
                 )) ? 'border-destructive focus-visible:ring-destructive' : ''
                   }`}
@@ -367,9 +433,55 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
                 )}
               </div>
             )}
-            <p className="text-xs text-muted-foreground">
-              Your public link: <span className="font-mono">/p/{slug || "your-slug"}</span>
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">
+                Your public link: <span className="font-mono">/p/{slug || "your-slug"}</span>
+              </p>
+
+              {/* Reset to Address Button */}
+              {profile.slug && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs text-muted-foreground hover:text-destructive h-7 px-2"
+                      disabled={savingSlug}
+                    >
+                      Reset to wallet address
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="flex items-center gap-2">
+                        <AlertTriangle className="h-5 w-5 text-destructive" />
+                        Reset Custom URL?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription className="space-y-2">
+                        <p>
+                          This will remove your custom URL <strong>/p/{profile.slug}</strong> and revert your profile link to your wallet address.
+                        </p>
+                        <p className="font-medium text-destructive">
+                          Warning: Any AVAX spent on acquiring this custom URL will NOT be refunded.
+                        </p>
+                        <p>
+                          Are you sure you want to proceed?
+                        </p>
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleResetSlug}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {savingSlug ? "Resetting..." : "Yes, Reset URL"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </div>
           </CardContent>
         </Card>
 
