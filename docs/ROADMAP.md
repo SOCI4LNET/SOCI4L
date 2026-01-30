@@ -329,6 +329,21 @@ Sell SOCI4L as a service to DAOs/projects.
 
 ---
 
+## Technical Debt & V2 Specifics (Immediate)
+
+### 1. Top Interacted (Social Engagement Analysis)
+**Status:** Placeholder ("Privacy setting required")
+- **File:** `components/dashboard/social-kpi-cards.tsx` and `app/api/profile/[address]/social-stats/route.ts`
+- **Plan:** Build privacy consent UI. Once approved, calculate top interacted profiles via `AnalyticsEvent` table.
+
+### 2. Verified Builder Badge
+- **Goal:** Auto-verify status based on GitHub repos or smart contract ownership verified via signature.
+
+### 3. Global Leaderboard
+- **Goal:** Public ranking page based on "SOCI4L Score". Special rewards for Elite/Legendary ranks.
+
+---
+
 ## Dependencies
 
 | Feature | Depends On |

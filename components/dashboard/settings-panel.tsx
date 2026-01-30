@@ -58,7 +58,8 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
 
   const normalizedAddress = targetAddress.toLowerCase()
   const shortAddress = formatAddress(normalizedAddress, 4)
-  const publicProfileHref = getPublicProfileHref(normalizedAddress, profile.slug)
+  // Always use the raw address URL for the settings display as requested
+  const publicProfileHref = `/p/${normalizedAddress}`
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://soci4l.net"
   const publicProfileUrl = `${appUrl}${publicProfileHref}`
   const identityDisplayName = profile.displayName || shortAddress
