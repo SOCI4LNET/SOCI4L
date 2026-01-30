@@ -19,6 +19,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { toast } from 'sonner'
 
 export type RoleTag = string
 
@@ -152,8 +153,8 @@ export function ConnectionCard({
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuItem>Add to list</DropdownMenuItem>
-                        <DropdownMenuItem>Mute</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => toast.info('Bu özellik yapım aşamasında')}>Add to list</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => toast.info('Bu özellik yapım aşamasında')}>Mute</DropdownMenuItem>
                         {showUnfollow && (
                             <>
                                 <DropdownMenuSeparator />
