@@ -631,7 +631,7 @@ export default function ProfilePage({ params }: PageProps) {
         <div className="space-y-6">
           {/* Profile Info Card - show for all profiles (claimed or unclaimed) */}
           {(isClaimed || !isPrivate) && (
-            <Card>
+            <Card className={getThemeCardClasses(effectiveAppearanceConfig.theme)}>
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between gap-4">
                   {/* Left: Avatar + Identity + Status + Context */}
@@ -1047,11 +1047,11 @@ export default function ProfilePage({ params }: PageProps) {
                                   <div key={category} className="space-y-2">
                                     {shouldShowCategoryHeaders && (
                                       <>
-                                        <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                        <h3 className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>
                                           {category}
                                         </h3>
                                         {categoryData?.description && (
-                                          <p className="text-xs text-muted-foreground">{categoryData.description}</p>
+                                          <p className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>{categoryData.description}</p>
                                         )}
                                       </>
                                     )}
@@ -1088,10 +1088,10 @@ export default function ProfilePage({ params }: PageProps) {
                                                 {link.icon || <Link2 className="h-3.5 w-3.5" />}
                                               </div>
                                               <div className="min-w-0 space-y-0.5">
-                                                <p className="truncate text-sm font-medium text-foreground">
+                                                <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} truncate text-foreground`}>
                                                   {link.title}
                                                 </p>
-                                                <p className="truncate text-[11px] text-muted-foreground flex items-center gap-1.5">
+                                                <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')} truncate flex items-center gap-1.5`}>
                                                   {link.url}
                                                   {link.url.startsWith('http://') && (
                                                     <TooltipProvider>
@@ -1150,7 +1150,7 @@ export default function ProfilePage({ params }: PageProps) {
                                       </div>
                                     )}
                                     <div className="min-w-0">
-                                      <p className={`font-mono ${isFull ? 'text-sm' : 'text-xs'} truncate`}>
+                                      <p className={`font-mono ${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} truncate`}>
                                         {isFull ? tx.hash : formatAddress(tx.hash)}
                                       </p>
                                       {isFull && (
@@ -1182,11 +1182,11 @@ export default function ProfilePage({ params }: PageProps) {
                                   </div>
                                 )}
                                 {showAmounts && (
-                                  <p className={`${isFull ? 'text-sm font-semibold' : 'text-xs'} text-muted-foreground`}>
+                                  <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} font-semibold`}>
                                     {parseFloat(tx.value).toFixed(4)} AVAX
                                   </p>
                                 )}
-                                <p className={`${isFull ? 'text-xs' : 'text-xs'} text-muted-foreground`}>
+                                <p className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>
                                   {new Date(tx.timestamp * 1000).toLocaleString('tr-TR')}
                                 </p>
                               </div>
@@ -1217,46 +1217,45 @@ export default function ProfilePage({ params }: PageProps) {
                           <CardTitle className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'title')}>Assets</CardTitle>
                           <CardDescription className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>Tokens and NFTs</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-3">
-                          <div>
-                            <p className="text-sm text-muted-foreground mb-2">Tokens</p>
+                        <CardContent className={effectiveAppearanceConfig.theme === 'dense' ? 'p-3 space-y-2' : 'p-6 space-y-4'}>
+                          <div className="space-y-2">
+                            <p className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>Tokens</p>
                             {/* Native AVAX Balance */}
                             {walletData.nativeBalance && parseFloat(walletData.nativeBalance) > 0 && (
-                              <div className="flex justify-between items-center mb-2">
-                                <div>
-                                  <p className="text-sm font-medium">AVAX</p>
-                                  <p className="text-xs text-muted-foreground">Avalanche</p>
+                              <div className="flex justify-between items-center px-1">
+                                <div className="min-w-0">
+                                  <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} truncate uppercase`}>AVAX</p>
+                                  <p className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>Avalanche</p>
                                 </div>
                                 {showAmounts && (
-                                  <p className="text-sm font-mono">
-                                    {parseFloat(walletData.nativeBalance).toFixed(4)}
+                                  <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} font-mono`}>
+                                    {parseFloat(walletData.nativeBalance).toLocaleString('tr-TR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
                                   </p>
                                 )}
                               </div>
                             )}
-                            {/* ERC-20 Tokens */}
                             {walletData.tokenBalances && walletData.tokenBalances.length > 0 ? (
                               walletData.tokenBalances.slice(0, maxItems).map((token, idx) => (
-                                <div key={idx} className="flex justify-between items-center mb-2">
-                                  <div>
-                                    <p className="text-sm font-medium">{token.symbol}</p>
-                                    <p className="text-xs text-muted-foreground">{token.name}</p>
+                                <div key={idx} className="flex justify-between items-center px-1">
+                                  <div className="min-w-0">
+                                    <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} truncate uppercase`}>{token.symbol}</p>
+                                    <p className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>{token.name}</p>
                                   </div>
                                   {showAmounts && (
-                                    <p className="text-sm font-mono">
-                                      {parseFloat(token.balance).toFixed(4)}
+                                    <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} font-mono`}>
+                                      {parseFloat(token.balance).toLocaleString('tr-TR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
                                     </p>
                                   )}
                                 </div>
                               ))
                             ) : (
                               !walletData.nativeBalance || parseFloat(walletData.nativeBalance) === 0 ? (
-                                <p className="text-xs text-muted-foreground">—</p>
+                                <p className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>—</p>
                               ) : null
                             )}
                           </div>
-                          <div className="pt-4 border-t">
-                            <p className="text-sm text-muted-foreground mb-2">NFTs</p>
+                          <div className={`pt-3 border-t ${effectiveAppearanceConfig.theme === 'dense' ? 'space-y-1' : 'space-y-2'}`}>
+                            <p className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>NFTs</p>
                             {walletData.nfts && walletData.nfts.length > 0 ? (
                               walletData.nfts.slice(0, maxItems).map((nft, idx) => (
                                 <div key={idx} className="flex items-center gap-3 mb-2 group">
@@ -1278,10 +1277,10 @@ export default function ProfilePage({ params }: PageProps) {
                                     </div>
                                   )}
                                   <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-medium truncate">
+                                    <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} truncate`}>
                                       {nft.name || 'Unnamed NFT'}
                                     </p>
-                                    <p className="text-xs text-muted-foreground font-mono truncate">
+                                    <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')} font-mono truncate`}>
                                       {formatAddress(nft.contractAddress)} #{nft.tokenId}
                                     </p>
                                   </div>

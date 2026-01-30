@@ -68,12 +68,8 @@ export function getThemeCardClasses(theme: ProfileTheme, blockType?: 'links' | '
       // Tactical/Data: Thicker borders, sharp feel
       return `${baseClasses} border-2 border-primary/10 shadow-none bg-card/50 rounded-lg`
     case 'spotlight':
-      // Expressive: Spotlight on links, others muted
-      if (blockType === 'links') {
-        return `${baseClasses} border-primary/40 shadow-lg shadow-primary/5 ring-1 ring-primary/20 bg-card`
-      }
-      // Other cards slightly transparent/dimmed to let links shine
-      return `${baseClasses} border-border/40 opacity-90 hover:opacity-100 bg-card/50`
+      // Expressive: Premium spotlight feel for all cards
+      return `${baseClasses} border-primary/30 shadow-lg shadow-primary/5 ring-1 ring-primary/10 bg-card saturate-[1.1]`
     case 'default':
     default:
       // Neutral Baseline: Standard card style
@@ -138,8 +134,8 @@ export function getThemeTextClasses(theme: ProfileTheme, size: 'title' | 'body' 
       return 'text-[10px] text-muted-foreground uppercase tracking-wider'
     case 'spotlight':
       if (size === 'title') return 'text-4xl font-black tracking-tighter'
-      if (size === 'body') return 'text-lg font-medium'
-      return 'text-sm font-medium opacity-80'
+      if (size === 'body') return 'text-lg font-semibold tracking-tight'
+      return 'text-sm font-medium text-muted-foreground'
     case 'default':
     default:
       if (size === 'title') return 'text-2xl font-semibold tracking-tight'
