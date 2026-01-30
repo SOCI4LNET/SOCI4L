@@ -89,6 +89,7 @@ type TopLinkRow = {
   url: string
   categoryName: string | null
   clicks: number
+  isDeleted: boolean
 }
 
 type RecentActivity = {
@@ -558,6 +559,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
           url,
           categoryName: category?.name || null,
           clicks,
+          isDeleted: !link,
         }
       })
       .filter((row): row is TopLinkRow => row !== null && row.url !== '')
@@ -1117,7 +1119,14 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
 
                         {/* B) Middle: Link name + URL (primary content) */}
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium truncate mb-0.5">{link.title}</p>
+                          <div className="flex items-center gap-1.5 mb-0.5">
+                            <p className="text-xs font-medium truncate">{link.title}</p>
+                            {link.isDeleted && (
+                              <Badge variant="destructive" className="h-3.5 px-1 rounded-[4px] text-[9px] font-semibold uppercase tracking-wider">
+                                Deleted
+                              </Badge>
+                            )}
+                          </div>
                           <p className="text-[11px] text-muted-foreground truncate">
                             {link.url}
                           </p>
