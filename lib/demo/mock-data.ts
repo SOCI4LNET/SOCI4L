@@ -18,9 +18,9 @@ export const DATASETS: Record<string, { profile: DemoProfile; walletData: DemoWa
       secondaryRoles: ['Engineer', 'Contributor'],
       statusMessage: 'Shipping v2 soon 🚢',
       socialLinks: [
-        { id: '1', platform: 'twitter', url: 'https://twitter.com/avalancheavax', label: '@avalancheavax' },
-        { id: '2', platform: 'github', url: 'https://github.com/ava-labs', label: 'ava-labs' },
-        { id: '3', platform: 'website', url: 'https://avax.network', label: 'avax.network' },
+        { id: '1', platform: 'twitter', url: 'https://twitter.com/avalancheavax', label: '@avalancheavax', category: 'Social' },
+        { id: '2', platform: 'github', url: 'https://github.com/ava-labs', label: 'ava-labs', category: 'Portfolio' },
+        { id: '3', platform: 'website', url: 'https://avax.network', label: 'avax.network', category: 'Social' },
       ],
     },
     walletData: {
@@ -65,8 +65,8 @@ export const DATASETS: Record<string, { profile: DemoProfile; walletData: DemoWa
       secondaryRoles: ['Artist', 'Designer'],
       statusMessage: 'New drop live! 🎨',
       socialLinks: [
-        { id: '1', platform: 'instagram', url: 'https://instagram.com/avalanche', label: 'IG' },
-        { id: '2', platform: 'website', url: 'https://artblocks.io', label: 'Portfolio' },
+        { id: '1', platform: 'instagram', url: 'https://instagram.com/avalanche', label: 'IG', category: 'Social' },
+        { id: '2', platform: 'website', url: 'https://artblocks.io', label: 'Portfolio', category: 'Portfolio' },
       ],
     },
     walletData: {
@@ -153,7 +153,7 @@ export const DATASETS: Record<string, { profile: DemoProfile; walletData: DemoWa
       secondaryRoles: ['Farmer', 'Speculator'],
       statusMessage: 'Watching GMX',
       socialLinks: [
-        { id: '1', platform: 'telegram', url: 'https://t.me/avalanche', label: 'Alpha Group' },
+        { id: '1', platform: 'telegram', url: 'https://t.me/avalanche', label: 'Alpha Group', category: 'Social' },
       ],
     },
     walletData: {
