@@ -19,7 +19,7 @@ Dökümantasyon (GitBook, Docusaurus veya Mintlify benzeri bir yapıda) şu ana 
 
 ### 1. Başlangıç (Getting Started)
 - **Cüzdan Bağlantısı:** Avalanche ağında cüzdan bağlama süreci.
-- **Profil Oluşturma:** İlk adımlar ve slug (URL) seçimi.
+- **Profil Oluşturma:** İlk adımlar ve slug (URL) seçimi. (Detaylar: `docs/USER_GUIDE.md`)
 
 ### 2. Profil Kişiselleştirme (Customization)
 - **Presets & Layouts:** Tek tıkla değişen görünüm şablonları (Links Only, Social Focus, Portfolio vb.).
