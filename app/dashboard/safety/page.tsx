@@ -1,18 +1,10 @@
-"use client"
-
+import { PageShell } from "@/components/app-shell/page-shell"
 import { BlockedUsersList, MutedUsersList } from "@/components/dashboard/safety/blocked-users-list"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function SafetyPage() {
     return (
-        <div className="container max-w-4xl py-6 space-y-8">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Safety & Privacy</h1>
-                <p className="text-muted-foreground mt-2">
-                    Manage your blocked accounts and muted users.
-                </p>
-            </div>
-
+        <PageShell title="Safety & Privacy" subtitle="Manage your blocked and muted users.">
             <Tabs defaultValue="blocked" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
                     <TabsTrigger value="blocked">Blocked Accounts</TabsTrigger>
@@ -25,6 +17,6 @@ export default function SafetyPage() {
                     <MutedUsersList />
                 </TabsContent>
             </Tabs>
-        </div>
+        </PageShell>
     )
 }

@@ -20,7 +20,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { LayoutDashboard, Wallet, Activity, Settings, Users, Wand2, Link2, BarChart3, ChevronDown, User } from 'lucide-react'
+import { LayoutDashboard, Wallet, Activity, Settings, Users, Wand2, Link2, BarChart3, ChevronDown, User, Shield } from 'lucide-react'
 import { sanitizeQueryParams } from '@/lib/query-params'
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 import { cn } from '@/lib/utils'
@@ -65,6 +65,11 @@ const profileItems = [
     value: 'insights',
   },
   {
+    title: 'Safety',
+    icon: Shield,
+    value: 'safety',
+  },
+  {
     title: 'Settings',
     icon: Settings,
     value: 'settings',
@@ -98,6 +103,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     (pathname.includes('/builder') ||
       pathname.includes('/links') ||
       pathname.includes('/insights') ||
+      pathname.includes('/safety') ||
       pathname.includes('/settings'))
   const isProfileRoute = isProfileTabFromQuery || isProfileRouteFromPath
 
@@ -140,6 +146,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         // Fallback: use current pathname (shouldn't happen)
         router.replace(`${pathname}?${sanitized.toString()}`, { scroll: false })
       }
+    } else if (value === 'safety') {
+      router.push('/dashboard/safety')
+      return
     } else {
       router.replace(`${pathname}?${sanitized.toString()}`, { scroll: false })
     }

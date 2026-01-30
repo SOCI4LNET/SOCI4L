@@ -97,14 +97,25 @@ export function BlockedUsersList() {
                                         </div>
                                     </div>
                                 </div>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleUnblock(user.address)}
-                                    disabled={unblockingIds.has(user.address)}
-                                >
-                                    Unblock
-                                </Button>
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        asChild
+                                    >
+                                        <a href={`/p/${user.address}`} target="_blank" rel="noopener noreferrer">
+                                            View Profile
+                                        </a>
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleUnblock(user.address)}
+                                        disabled={unblockingIds.has(user.address)}
+                                    >
+                                        Unblock
+                                    </Button>
+                                </div>
                             </div>
                         ))}
                     </div>
