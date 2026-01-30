@@ -717,10 +717,18 @@ export default function ProfilePage({ params }: PageProps) {
                         )}
                       </div>
 
-                      {/* 2. Status / Intent (Merged) */}
-                      {(profile?.statusMessage || profile?.bio) && (
-                        <p className="text-sm text-muted-foreground/90 italic truncate pr-4 leading-relaxed">
-                          {profile?.statusMessage || profile?.bio}
+                      {/* 2. Bio */}
+                      {profile?.bio && (
+                        <p className="text-sm text-muted-foreground/90 truncate pr-4 leading-relaxed mb-0.5">
+                          {profile.bio}
+                        </p>
+                      )}
+
+                      {/* 3. Status / Intent (Whisper style) */}
+                      {profile?.statusMessage && (
+                        <p className="text-xs text-muted-foreground/70 italic truncate pr-4 leading-relaxed">
+                          <span className="opacity-70 mr-1">Building:</span>
+                          {profile.statusMessage}
                         </p>
                       )}
 
