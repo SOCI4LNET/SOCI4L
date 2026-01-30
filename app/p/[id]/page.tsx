@@ -689,7 +689,7 @@ export default function ProfilePage({ params }: PageProps) {
                       )}
 
                       {/* 3. Social & Network Context (Secondary) */}
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground/70 pt-1">
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground/70 pt-1 flex-wrap">
                         <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 font-normal bg-muted/50 text-muted-foreground hover:bg-muted/80 border-0">
                           Avalanche
                         </Badge>

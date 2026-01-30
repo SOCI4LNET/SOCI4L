@@ -401,18 +401,18 @@ export function FollowStats({ address }: { address: string }) {
   console.log('[FollowStats] Rendering:', { address, followersCount, followingCount, stats })
 
   return (
-    <div className="flex items-center gap-5">
+    <div className="flex items-center gap-3 sm:gap-5">
       <div className="flex items-center gap-2">
         <Users className="h-4 w-4 text-muted-foreground" />
         <div className="flex items-baseline gap-1.5">
-          <span className="text-sm text-muted-foreground">Followers</span>
+          <span className="text-sm text-muted-foreground whitespace-nowrap">Followers</span>
           <span className="text-base font-semibold text-foreground">{followersCount}</span>
         </div>
       </div>
       <div className="flex items-center gap-2">
         <UserPlus className="h-4 w-4 text-muted-foreground" />
         <div className="flex items-baseline gap-1.5">
-          <span className="text-sm text-muted-foreground">Following</span>
+          <span className="text-sm text-muted-foreground whitespace-nowrap">Following</span>
           <span className="text-base font-semibold text-foreground">{followingCount}</span>
         </div>
       </div>

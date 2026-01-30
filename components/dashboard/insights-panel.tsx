@@ -937,44 +937,18 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                   </div>
                 ) : (
                   <div className="bg-transparent w-full">
-                    <ResponsiveContainer width="100%" height={260}>
-                      <PieChart>
-                        <Pie
-                          data={chartData.sourceData}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={({ name, percent }) => `${name} ${percent ? (percent * 100).toFixed(0) : 0}%`}
-                          outerRadius={60}
-                          innerRadius={30}
-                          fill="transparent"
-                          dataKey="value"
-                        >
-                          {chartData.sourceData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip content={<CustomTooltip />} />
-                        <text
-                          x="50%"
-                          y="48%"
-                          textAnchor="middle"
-                          dominantBaseline="middle"
-                          style={{ fontSize: '12px', fontWeight: 600, fill: 'hsl(var(--foreground))' }}
-                        >
-                          {analytics.totalProfileViews.toLocaleString('en-US')}
-                        </text>
-                        <text
-                          x="50%"
-                          y="52%"
-                          textAnchor="middle"
-                          dominantBaseline="middle"
-                          style={{ fontSize: '10px', fill: 'hsl(var(--muted-foreground))' }}
-                        >
-                          total views
-                        </text>
-                      </PieChart>
-                    </ResponsiveContainer>
+                    <BarChart data={chartData.sourceData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                      <CartesianGrid {...chartGridProps} />
+                      <XAxis
+                        dataKey="name"
+                        {...chartAxisProps}
+                      />
+                      <YAxis
+                        {...chartAxisProps}
+                      />
+                      <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--foreground))', fillOpacity: 0.04 }} />
+                      <Bar dataKey="value" fill="hsl(var(--primary))" {...chartBarProps} />
+                    </BarChart>
                   </div>
                 )}
               </CardContent>
