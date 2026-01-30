@@ -937,18 +937,20 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                   </div>
                 ) : (
                   <div className="bg-transparent w-full">
-                    <BarChart data={chartData.sourceData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                      <CartesianGrid {...chartGridProps} />
-                      <XAxis
-                        dataKey="name"
-                        {...chartAxisProps}
-                      />
-                      <YAxis
-                        {...chartAxisProps}
-                      />
-                      <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--foreground))', fillOpacity: 0.04 }} />
-                      <Bar dataKey="value" fill="hsl(var(--primary))" {...chartBarProps} />
-                    </BarChart>
+                    <ResponsiveContainer width="100%" height={260}>
+                      <BarChart data={chartData.sourceData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                        <CartesianGrid {...chartGridProps} />
+                        <XAxis
+                          dataKey="name"
+                          {...chartAxisProps}
+                        />
+                        <YAxis
+                          {...chartAxisProps}
+                        />
+                        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--foreground))', fillOpacity: 0.04 }} />
+                        <Bar dataKey="value" fill="hsl(var(--primary))" {...chartBarProps} />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 )}
               </CardContent>
