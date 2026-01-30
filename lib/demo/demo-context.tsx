@@ -171,7 +171,71 @@ export function DemoProvider({ children }: { children: ReactNode }) {
             startSandbox,
             resetDemo,
             updateProfile,
+            updateProfile,
             setDataset,
+            simulateAction: (action: string) => {
+                setSession(prev => {
+                    if (!prev) return null
+                    const newStats = { ...prev.walletOverrides }
+
+                    if (action === 'New Follower') {
+                        // We don't track followers in walletOverrides yet, maybe profileOverrides? 
+                        // Currently Stats are derived in DemoOverviewPanel, so we can't easily update them purely from context 
+                        // unless we move stats to context or overrides.
+                        // For now, let's just trigger a toast to show interaction logic is "processed"
+                        // Or we hackily add a dummy tx or something.
+                        toast.success('Simulation: +1 New Follower (State updated)')
+                        return prev
+                    }
+
+                    if (action === 'New Transaction') {
+                        const newTx = {
+                            hash: `0x${Math.random().toString(16).slice(2)}`,
+                            from: '0xSimulatedUser...',
+                            to: prev.selectedDataset ? getCanonicalData(prev.selectedDataset).walletData.address : '0x...',
+                            value: (Math.random() * 5).toFixed(2),
+                            timestamp: Math.floor(Date.now() / 1000),
+                            blockNumber: 99999999,
+                            type: 'receive'
+                        }
+                        const currentTxs = prev.walletOverrides?.transactions || getCanonicalData(prev.selectedDataset || 'builder').walletData.transactions
+
+                        return {
+                            ...prev,
+                            walletOverrides: {
+                                ...prev.walletOverrides,
+                                transactions: [newTx, ...currentTxs],
+                                nativeBalance: (parseFloat(prev.walletOverrides?.nativeBalance || '10') + parseFloat(newTx.value)).toFixed(2)
+                            }
+                        }
+                    }
+
+                    if (action === 'Profile Claim') {
+                        return {
+                            ...prev,
+                            profileOverrides: {
+                                ...prev.profileOverrides,
+                                status: 'CLAIMED',
+                                claimedAt: new Date().toISOString()
+                            }
+                        }
+                    }
+
+                    if (action === 'Badge Earned') {
+                        // Mocking adding a role as a "badge"
+                        const currentRoles = prev.profileOverrides?.secondaryRoles || getCanonicalData(prev.selectedDataset || 'builder').profile.secondaryRoles || []
+                        return {
+                            ...prev,
+                            profileOverrides: {
+                                ...prev.profileOverrides,
+                                secondaryRoles: [...currentRoles, '🏆 Top Rated']
+                            }
+                        }
+                    }
+
+                    return prev
+                })
+            },
             isDemo: true
         }}>
             {children}

@@ -35,12 +35,12 @@ export const DATASETS: Record<string, { profile: DemoProfile; walletData: DemoWa
         { contractAddress: '0x4', tokenId: '1', name: 'Avax Build #42', collectionName: 'Build Hq' },
         { contractAddress: '0x5', tokenId: '101', name: 'Summit 2024 POAP', collectionName: 'POAP' },
       ],
-      transactions: Array(5).fill(null).map((_, i) => ({
+      transactions: Array(15).fill(null).map((_, i) => ({
         hash: `0x${Math.random().toString(16).slice(2)}`,
         from: MOCK_ADDRESS,
         to: `0x${Math.random().toString(16).slice(2)}`,
         value: (Math.random() * 10).toFixed(2),
-        timestamp: Math.floor(Date.now() / 1000) - (i * 3600), // Recent hours
+        timestamp: Math.floor(Date.now() / 1000) - (i * 43200), // ~12 hours apart
         blockNumber: 12345678 - i,
         type: i % 3 === 0 ? 'contract_interaction' : i % 2 === 0 ? 'send' : 'receive',
       })),
@@ -86,13 +86,13 @@ export const DATASETS: Record<string, { profile: DemoProfile; walletData: DemoWa
         from: MOCK_ADDRESS,
         to: `0x${Math.random().toString(16).slice(2)}`,
         value: '0',
-        timestamp: Date.now() - i * 86400000 * 2,
+        timestamp: Math.floor(Date.now() / 1000) - (i * 172800), // ~2 days apart
         blockNumber: 12345678 - i * 100,
         type: 'mint',
       })),
       txCount: 45,
-      firstSeen: Date.now() - 180 * 86400000,
-      lastSeen: Date.now(),
+      firstSeen: Math.floor(Date.now() / 1000) - (180 * 86400),
+      lastSeen: Math.floor(Date.now() / 1000),
     },
   },
 
@@ -128,13 +128,13 @@ export const DATASETS: Record<string, { profile: DemoProfile; walletData: DemoWa
         from: MOCK_ADDRESS,
         to: `0x${Math.random().toString(16).slice(2)}`,
         value: (Math.random() * 50).toFixed(2),
-        timestamp: Date.now() - i * 86400000,
+        timestamp: Math.floor(Date.now() / 1000) - (i * 86400), // 1 day apart
         blockNumber: 12345678 - i * 50,
         type: 'contract_interaction',
       })),
       txCount: 350,
-      firstSeen: Date.now() - 700 * 86400000,
-      lastSeen: Date.now(),
+      firstSeen: Math.floor(Date.now() / 1000) - (700 * 86400),
+      lastSeen: Math.floor(Date.now() / 1000),
     },
   },
 
@@ -170,13 +170,13 @@ export const DATASETS: Record<string, { profile: DemoProfile; walletData: DemoWa
         from: MOCK_ADDRESS,
         to: `0x${Math.random().toString(16).slice(2)}`,
         value: (Math.random() * 100).toFixed(2),
-        timestamp: Date.now() - i * 3600000, // Frequent txs
+        timestamp: Math.floor(Date.now() / 1000) - (i * 3600), // 1 hour apart
         blockNumber: 12345678 - i * 10,
         type: 'contract_interaction',
       })),
       txCount: 1250,
-      firstSeen: Date.now() - 100 * 86400000,
-      lastSeen: Date.now(),
+      firstSeen: Math.floor(Date.now() / 1000) - (100 * 86400),
+      lastSeen: Math.floor(Date.now() / 1000),
     },
   },
 }

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -159,6 +160,22 @@ export function ProfileHeader({
 
                                             {!isClaimed && !isEditable && (
                                                 <ClaimProfileButton address={normalizedAddress} onSuccess={onClaimSuccess} />
+                                            )}
+
+                                            {profile?.primaryRole && (
+                                                <Badge variant="default" className="text-[10px] px-1.5 h-5 bg-primary/90 hover:bg-primary">
+                                                    {profile.primaryRole}
+                                                </Badge>
+                                            )}
+                                            {profile?.secondaryRoles?.map((role, i) => (
+                                                <Badge key={i} variant="secondary" className="text-[10px] px-1.5 h-5">
+                                                    {role}
+                                                </Badge>
+                                            ))}
+                                            {profile?.statusMessage && (
+                                                <span className="text-xs text-muted-foreground italic ml-1">
+                                                    {profile.statusMessage}
+                                                </span>
                                             )}
 
                                             {isEditable && !isEditing && (
