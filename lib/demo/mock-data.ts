@@ -13,7 +13,7 @@ export const DATASETS: Record<string, { profile: DemoProfile; walletData: DemoWa
       visibility: 'PUBLIC',
       claimedAt: new Date().toISOString(),
       displayName: 'Avalanche Builder',
-      bio: 'Building the future of subnets. Core contributor @AvaLabs. Rust & Solidity.',
+      bio: 'Building the future of subnets. Core contributor. Rust & Solidity.',
       primaryRole: 'Builder',
       secondaryRoles: ['Engineer', 'Contributor'],
       statusMessage: 'Shipping v2 soon 🚢',
@@ -35,18 +35,18 @@ export const DATASETS: Record<string, { profile: DemoProfile; walletData: DemoWa
         { contractAddress: '0x4', tokenId: '1', name: 'Avax Build #42', collectionName: 'Build Hq' },
         { contractAddress: '0x5', tokenId: '101', name: 'Summit 2024 POAP', collectionName: 'POAP' },
       ],
-      transactions: Array(15).fill(null).map((_, i) => ({
+      transactions: Array(5).fill(null).map((_, i) => ({
         hash: `0x${Math.random().toString(16).slice(2)}`,
         from: MOCK_ADDRESS,
         to: `0x${Math.random().toString(16).slice(2)}`,
         value: (Math.random() * 10).toFixed(2),
-        timestamp: Date.now() - i * 86400000 * 0.5,
+        timestamp: Math.floor(Date.now() / 1000) - (i * 3600), // Recent hours
         blockNumber: 12345678 - i,
         type: i % 3 === 0 ? 'contract_interaction' : i % 2 === 0 ? 'send' : 'receive',
       })),
       txCount: 142,
-      firstSeen: Date.now() - 365 * 86400000,
-      lastSeen: Date.now(),
+      firstSeen: Math.floor(Date.now() / 1000) - (365 * 86400),
+      lastSeen: Math.floor(Date.now() / 1000),
     },
   },
 

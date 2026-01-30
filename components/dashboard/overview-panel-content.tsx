@@ -252,6 +252,94 @@ export function OverviewPanelContent({
                 </div>
 
 
+                {/* Assets Section */}
+                {assets && !assets.isLoading && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Tokens */}
+                        <Card className="bg-card border border-border/60 shadow-sm">
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-base font-semibold">Tokens</CardTitle>
+                                <CardDescription className="text-xs">Top holdings</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                {assets.tokens.length > 0 ? (
+                                    assets.tokens.map((token: any, i: number) => (
+                                        <div key={i} className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold">
+                                                    {token.symbol[0]}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium">{token.name}</p>
+                                                    <p className="text-xs text-muted-foreground">{token.symbol}</p>
+                                                </div>
+                                            </div>
+                                            <p className="text-sm font-mono">{parseFloat(token.balanceFormatted).toFixed(2)}</p>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">No tokens found.</p>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        {/* NFTs */}
+                        <Card className="bg-card border border-border/60 shadow-sm">
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-base font-semibold">NFTs</CardTitle>
+                                <CardDescription className="text-xs">Recent collectibles</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {assets.nfts.length > 0 ? (
+                                        assets.nfts.slice(0, 6).map((nft: any, i: number) => (
+                                            <div key={i} className="aspect-square bg-muted rounded-md overflow-hidden relative group">
+                                                {nft.imageUrl ? (
+                                                    // eslint-disable-next-line @next/next/no-img-element
+                                                    <img src={nft.imageUrl} alt={nft.name} className="object-cover w-full h-full" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground p-1 text-center">
+                                                        {nft.name}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground col-span-3">No NFTs found.</p>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                )}
+
+                {/* Links Section */}
+                {profile?.socialLinks && profile.socialLinks.length > 0 && (
+                    <Card className="bg-card border border-border/60 shadow-sm">
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-base font-semibold">Links</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex flex-wrap gap-2">
+                                {profile.socialLinks.map((link, i) => (
+                                    <a
+                                        key={i}
+                                        href={link.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 hover:bg-muted text-sm transition-colors border border-border/50"
+                                    >
+                                        <Link2 className="h-3.5 w-3.5" />
+                                        <span className="font-medium">{link.label || link.platform}</span>
+                                        <ExternalLink className="h-3 w-3 text-muted-foreground ml-1" />
+                                    </a>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+
                 {/* Recent Activity Section (Full Width) */}
                 <Card className="bg-card border border-border/60 shadow-sm relative">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
