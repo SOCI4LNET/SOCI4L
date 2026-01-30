@@ -23,8 +23,10 @@ import {
     Send,
     Mail,
     Instagram,
-    Youtube
+    Youtube,
+    Coins
 } from "lucide-react"
+import { getCachedLogo, setCachedLogo, getCacheKey } from "@/lib/logo-cache"
 import { XIcon } from "@/components/icons/x-icon"
 import { formatAddress } from "@/lib/utils"
 import { PageShell } from "@/components/app-shell/page-shell"
@@ -275,20 +277,55 @@ export function OverviewPanelContent({
                             </CardHeader>
                             <CardContent className="space-y-3">
                                 {assets.tokens.length > 0 ? (
-                                    assets.tokens.map((token: any, i: number) => (
-                                        <div key={i} className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold">
-                                                    {token.symbol[0]}
+                                    assets.tokens.map((token: any, i: number) => {
+                                        // Logo rendering logic
+                                        const getLogoUrl = (): string | null => {
+                                            if (token.logoUrl) {
+                                                if (token.logoUrl.startsWith('/')) return token.logoUrl
+                                                return token.logoUrl
+                                            }
+                                            const cacheKey = getCacheKey(token.address, token.symbol)
+                                            return getCachedLogo(cacheKey)
+                                        }
+
+                                        const logoUrl = getLogoUrl()
+                                        const firstLetter = token.symbol?.charAt(0).toUpperCase() || '?'
+
+                                        return (
+                                            <div key={i} className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                        {logoUrl ? (
+                                                            // eslint-disable-next-line @next/next/no-img-element
+                                                            <img
+                                                                src={logoUrl}
+                                                                alt={token.symbol}
+                                                                className="h-8 w-8 rounded-full object-cover"
+                                                                onError={(e) => {
+                                                                    const target = e.target as HTMLImageElement
+                                                                    target.style.display = 'none'
+                                                                    const parent = target.parentElement
+                                                                    if (parent) {
+                                                                        parent.innerText = firstLetter
+                                                                        parent.className = "h-8 w-8 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold"
+                                                                    }
+                                                                    const cacheKey = getCacheKey(token.address, token.symbol)
+                                                                    setCachedLogo(cacheKey, null)
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            <span className="text-[10px] font-bold">{firstLetter}</span>
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-medium">{token.name}</p>
+                                                        <p className="text-xs text-muted-foreground">{token.symbol}</p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="text-sm font-medium">{token.name}</p>
-                                                    <p className="text-xs text-muted-foreground">{token.symbol}</p>
-                                                </div>
+                                                <p className="text-sm font-mono">{parseFloat(token.balanceFormatted).toFixed(2)}</p>
                                             </div>
-                                            <p className="text-sm font-mono">{parseFloat(token.balanceFormatted).toFixed(2)}</p>
-                                        </div>
-                                    ))
+                                        )
+                                    })
                                 ) : (
                                     <p className="text-sm text-muted-foreground">No tokens found.</p>
                                 )}
