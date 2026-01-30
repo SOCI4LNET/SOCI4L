@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Twitter, QrCode } from "lucide-react"
 import { useAccount } from "wagmi"
+import { ProfileReadiness } from "@/components/dashboard/profile-readiness"
 
 interface WalletData {
   address: string
@@ -114,6 +115,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
     totalLinks: null,
   })
   const [qrModalOpen, setQrModalOpen] = useState(false)
+  const [isReadinessDismissed, setIsReadinessDismissed] = useState(false)
 
   // Get address from route param (primary) or prop (fallback)
   const addressMatch = pathname?.match(/\/dashboard\/(0x[a-fA-F0-9]{40})/)
@@ -126,7 +128,11 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
 
   useEffect(() => {
     setMounted(true)
-  }, [])
+    const dismissed = localStorage.getItem(`readiness_dismissed_${normalizedAddress}`)
+    if (dismissed === 'true') {
+      setIsReadinessDismissed(true)
+    }
+  }, [normalizedAddress])
 
   // Fetch follow stats using React Query for automatic invalidation
   const { data: followStats } = useQuery({
@@ -548,6 +554,18 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
             </div>
           </CardContent>
         </Card>
+
+        {/* Profile Readiness Helper */}
+        {mounted && !isReadinessDismissed && isOwnProfile && (
+          <ProfileReadiness
+            profile={profile || {}}
+            address={normalizedAddress}
+            onClose={() => {
+              setIsReadinessDismissed(true)
+              localStorage.setItem(`readiness_dismissed_${normalizedAddress}`, 'true')
+            }}
+          />
+        )}
 
         {/* Status Hints (Mini Cards) */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
