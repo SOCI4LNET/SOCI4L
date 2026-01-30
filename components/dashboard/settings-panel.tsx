@@ -261,7 +261,9 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
     >
       <div className="space-y-6">
         {/* Profile Readiness Helper */}
-        <ProfileReadiness profile={profile} address={targetAddress} />
+        <div className="w-full">
+          <ProfileReadiness profile={profile} address={targetAddress} />
+        </div>
 
         {/* Account Card */}
         <Card className="bg-card border border-border/60 shadow-sm">

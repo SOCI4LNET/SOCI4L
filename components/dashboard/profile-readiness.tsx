@@ -101,7 +101,7 @@ export function ProfileReadiness({ profile, address, onClose }: ProfileReadiness
                             <Link
                                 key={idx}
                                 href={`/dashboard/${address}${step.link}`}
-                                className="flex items-center gap-2 p-1.5 rounded-md transition-colors hover:bg-primary/5"
+                                className="flex items-center gap-2 p-1.5 rounded-md transition-colors hover:bg-primary/5 block w-full"
                             >
                                 {content}
                             </Link>
