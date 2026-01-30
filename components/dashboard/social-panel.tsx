@@ -534,7 +534,8 @@ export function SocialPanel({ address }: SocialPanelProps) {
                 filteredFollowing,
                 "You're not following anyone yet",
                 'Explore profiles and follow creators.',
-                true // showUnfollow
+                true, // showUnfollow
+                suggestionsData?.suggestions // Pass suggestions
               )}
             </TabsContent>
 
@@ -542,7 +543,9 @@ export function SocialPanel({ address }: SocialPanelProps) {
               {mutualsData && renderList(
                 mutualsData.mutuals || [],
                 'No mutual connections',
-                'Mutual connections appear when you follow each other.'
+                'Mutual connections appear when you follow each other.',
+                false,
+                suggestionsData?.suggestions // Pass suggestions
               )}
             </TabsContent>
           </Tabs>
