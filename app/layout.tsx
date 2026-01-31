@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import { Inter, Playfair_Display, Outfit } from "next/font/google"
 import "./globals.css"
 import { Providers } from "./providers"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -8,7 +8,9 @@ import Footer15 from "@/components/blocks/footer15"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import Script from "next/script"
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
+const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" })
+const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" })
 
 export const metadata: Metadata = {
   title: "SOCI4L - Web3 Profile & Link Hub",
@@ -29,7 +31,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={`${inter.className} ${playfair.variable} ${outfit.variable} ${inter.variable}`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

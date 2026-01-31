@@ -1776,7 +1776,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
                 <h3 className="text-sm font-medium text-muted-foreground">Appearance</h3>
                 <p className="text-xs text-muted-foreground">Choose a visual style for your profile</p>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 pb-6">
                 {(['default', 'minimal', 'dense', 'spotlight'] as ProfileTheme[]).map((theme) => {
                   const isSelected = appearanceConfig.theme === theme
                   const themeDescriptions: Record<ProfileTheme, { short: string; long: string }> = {

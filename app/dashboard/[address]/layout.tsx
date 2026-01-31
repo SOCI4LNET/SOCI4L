@@ -27,7 +27,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
     async function checkAdmin() {
       try {
-        const response = await fetch(`/api/profile/${connectedAddress}`)
+        const response = await fetch(`/api/profile?address=${connectedAddress}`)
         if (response.ok) {
           const data = await response.json()
           setIsAdmin(data.profile?.role === 'ADMIN')
