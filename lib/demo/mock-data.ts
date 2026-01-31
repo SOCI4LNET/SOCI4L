@@ -22,16 +22,6 @@ export const DATASETS: Record<string, { profile: DemoProfile; walletData: DemoWa
         { id: '2', platform: 'github', url: 'https://github.com/ava-labs', label: 'ava-labs', category: 'Portfolio' },
         { id: '3', platform: 'website', url: 'https://avax.network', label: 'avax.network', category: 'Social' },
       ],
-      customLinks: [
-        { id: '1', title: 'My Portfolio', url: 'https://myportfolio.com', enabled: true, categoryId: 'cat-1', order: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-        { id: '2', title: 'Latest Project', url: 'https://github.com/my-project', enabled: true, categoryId: 'cat-1', order: 1, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-        { id: '3', title: 'Schedule a Call', url: 'https://calendly.com/me', enabled: true, categoryId: 'cat-2', order: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-      ],
-      linkCategories: [
-        { id: 'cat-1', name: 'Projects', slug: 'projects', order: 0, isVisible: true, isDefault: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-        { id: 'cat-2', name: 'Contact', slug: 'contact', order: 1, isVisible: true, isDefault: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-        { id: 'default', name: 'General', slug: 'general', order: 2, isVisible: true, isDefault: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-      ],
     },
     walletData: {
       address: MOCK_ADDRESS,

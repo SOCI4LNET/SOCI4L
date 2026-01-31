@@ -3,7 +3,6 @@ import { cookies } from 'next/headers'
 import { verifyMessage, recoverMessageAddress } from 'viem'
 import { prisma } from '@/lib/prisma'
 import { isValidAddress } from '@/lib/utils'
-import { getSessionAddress } from '@/lib/auth'
 
 type SocialLinkPlatform = 'x' | 'instagram' | 'youtube' | 'github' | 'linkedin' | 'website'
 
@@ -26,80 +25,150 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check for session-based auth first
-    const sessionAddress = await getSessionAddress()
-    const targetAddress = address.toLowerCase()
+    if (!signature) {
+      return NextResponse.json(
+        { error: 'Signature required' },
+        { status: 400 }
+      )
+    }
 
-    let authenticatedAddress: string | null = null
-
-    // If valid session matches target, allow
-    if (sessionAddress && sessionAddress === targetAddress) {
-      authenticatedAddress = sessionAddress
-    } else {
-      // Fallback to signature auth
-      if (!signature) {
+    // Validate displayName
+    if (displayName !== null && displayName !== undefined && displayName !== '') {
+      const displayNameStr = String(displayName).trim()
+      if (displayNameStr.length > 32) {
         return NextResponse.json(
-          { error: 'Signature required (or valid session)' },
+          { error: 'Display name must be 32 characters or less' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Validate bio
+    if (bio !== null && bio !== undefined && bio !== '') {
+      const bioStr = String(bio).trim()
+      if (bioStr.length > 160) {
+        return NextResponse.json(
+          { error: 'Bio must be 160 characters or less' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Validate statusMessage
+    if (statusMessage !== null && statusMessage !== undefined && statusMessage !== '') {
+      const statusStr = String(statusMessage).trim()
+      if (statusStr.length > 60) {
+        return NextResponse.json(
+          { error: 'Status message must be 60 characters or less' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Validate roles
+    if (secondaryRoles !== null && secondaryRoles !== undefined) {
+      if (!Array.isArray(secondaryRoles)) {
+        return NextResponse.json(
+          { error: 'Secondary roles must be an array' },
+          { status: 400 }
+        )
+      }
+      if (secondaryRoles.length > 2) {
+        return NextResponse.json(
+          { error: 'Maximum 2 secondary roles allowed' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Validate socialLinks
+    if (socialLinks !== null && socialLinks !== undefined) {
+      if (!Array.isArray(socialLinks)) {
+        return NextResponse.json(
+          { error: 'Social links must be an array' },
           { status: 400 }
         )
       }
 
-      // Read nonce from cookie
-      const cookieStore = await cookies()
-      const nonce = cookieStore.get('aph_nonce')?.value
-
-      if (!nonce) {
+      if (socialLinks.length > 8) {
         return NextResponse.json(
-          { error: 'Nonce not found. Please call /api/auth/nonce first.' },
+          { error: 'Maximum 8 social links allowed' },
           { status: 400 }
         )
       }
 
-      // Build message
-      const message = `Update social profile for ${address}. Nonce: ${nonce}`
+      const validPlatforms: SocialLinkPlatform[] = ['x', 'instagram', 'youtube', 'github', 'linkedin', 'website']
 
-      // Verify signature and recover signer
-      try {
-        const signer = await recoverMessageAddress({
-          message,
-          signature: signature as `0x${string}`,
-        })
-
-        const isValid = await verifyMessage({
-          address: signer as `0x${string}`,
-          message,
-          signature: signature as `0x${string}`,
-        })
-
-        if (!isValid) {
+      for (const link of socialLinks) {
+        const platform = link.platform || link.type
+        if (!platform || !validPlatforms.includes(platform as SocialLinkPlatform)) {
           return NextResponse.json(
-            { error: 'Invalid signature' },
+            { error: `Invalid social link platform. Must be one of: ${validPlatforms.join(', ')}` },
             { status: 400 }
           )
         }
-        authenticatedAddress = signer.toLowerCase()
 
-      } catch (error) {
-        console.error('Signature verification error:', error)
-        return NextResponse.json(
-          { error: 'Signature verification failed' },
-          { status: 400 }
-        )
+        if (!link.url || typeof link.url !== 'string') {
+          return NextResponse.json(
+            { error: 'Each social link must have a URL' },
+            { status: 400 }
+          )
+        }
+
+        // Validate URL format - must be http/https
+        if (!link.url.startsWith('http://') && !link.url.startsWith('https://')) {
+          return NextResponse.json(
+            { error: 'URLs must start with http:// or https://' },
+            { status: 400 }
+          )
+        }
       }
     }
 
-    const normalizedAddress = address.toLowerCase()
-    const normalizedSigner = authenticatedAddress // variable rename for compatibility with below code logic if needed
+    // Read nonce from cookie
+    const cookieStore = await cookies()
+    const nonce = cookieStore.get('aph_nonce')?.value
 
-    // logic check: ownerAddress check needs normalizedSigner
-
-    // If no authentication method succeeded, return an error
-    if (!normalizedSigner) {
+    if (!nonce) {
       return NextResponse.json(
-        { error: 'Authentication failed: No valid session or signature provided.' },
-        { status: 401 }
+        { error: 'Nonce not found. Please call /api/auth/nonce first.' },
+        { status: 400 }
       )
     }
+
+    // Build message
+    const message = `Update social profile for ${address}. Nonce: ${nonce}`
+
+    // Verify signature and recover signer
+    let signer: string
+    try {
+      signer = await recoverMessageAddress({
+        message,
+        signature: signature as `0x${string}`,
+      })
+
+      const isValid = await verifyMessage({
+        address: signer as `0x${string}`,
+        message,
+        signature: signature as `0x${string}`,
+      })
+
+      if (!isValid) {
+        return NextResponse.json(
+          { error: 'Invalid signature' },
+          { status: 400 }
+        )
+      }
+    } catch (error) {
+      console.error('Signature verification error:', error)
+      return NextResponse.json(
+        { error: 'Signature verification failed' },
+        { status: 400 }
+      )
+    }
+
+    const normalizedAddress = address.toLowerCase()
+    const normalizedSigner = signer.toLowerCase()
 
     // Fetch Profile by address
     const profile = await prisma.profile.findUnique({

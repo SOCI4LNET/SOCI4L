@@ -4,7 +4,6 @@ import { verifyMessage, recoverMessageAddress } from 'viem'
 import { prisma } from '@/lib/prisma'
 import { isValidAddress } from '@/lib/utils'
 import { getNonce, markNonceAsUsed, isValidNonce } from '@/lib/nonce-store'
-import { getSessionAddress } from '@/lib/auth'
 
 // Test mode: allow "signed-{nonce}" format for MCP tests
 const TEST_MODE = process.env.NODE_ENV === 'test' || process.env.MCP_TEST_MODE === '1'
@@ -17,7 +16,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid wallet address' }, { status: 400 })
     }
 
-
+    if (!signature) {
+      return NextResponse.json(
+        { error: 'Signature is required' },
+        { status: 400 }
+      )
+    }
 
     // Validate displayName length
     if (displayName !== null && displayName !== undefined && displayName !== '') {
@@ -43,99 +47,103 @@ export async function POST(request: NextRequest) {
 
     const normalizedAddress = address.toLowerCase()
 
-    // Authenticate: Check Session first, then Signature
-    const sessionAddress = await getSessionAddress()
-    let signer: string
+    // Get nonce from cookie or store
     const cookieStore = await cookies()
     let nonce: string | null = null
 
-    if (sessionAddress && sessionAddress === normalizedAddress) {
-      signer = sessionAddress
-    } else {
-      // Fallback to signature auth
-      if (!signature) {
-        return NextResponse.json(
-          { error: 'Signature is required (or valid session)' },
-          { status: 400 }
-        )
+    // Test mode: check if signature is "signed-{nonce}" format
+    if (TEST_MODE && signature.startsWith('signed-')) {
+      const extractedNonce = signature.replace('signed-', '')
+      const nonceRecord = getNonce(extractedNonce)
+      if (nonceRecord && !nonceRecord.used) {
+        nonce = extractedNonce
       }
+    }
 
-      // Get nonce from cookie or store (Test mode logic)
-      if (TEST_MODE && signature.startsWith('signed-')) {
-        const extractedNonce = signature.replace('signed-', '')
-        const nonceRecord = getNonce(extractedNonce)
+    // Check cookie for nonce
+    if (!nonce) {
+      const cookieNonce = cookieStore.get('aph_nonce')?.value
+      if (cookieNonce) {
+        const nonceRecord = getNonce(cookieNonce)
         if (nonceRecord && !nonceRecord.used) {
-          nonce = extractedNonce
+          nonce = cookieNonce
         }
       }
+    }
 
-      // Check cookie for nonce
-      if (!nonce) {
-        const cookieNonce = cookieStore.get('aph_nonce')?.value
-        if (cookieNonce) {
-          const nonceRecord = getNonce(cookieNonce)
-          if (nonceRecord && !nonceRecord.used) {
-            nonce = cookieNonce
-          }
-        }
-      }
+    if (!nonce) {
+      return NextResponse.json(
+        { error: 'Nonce not found. Please call /api/auth/nonce endpoint first.' },
+        { status: 400 }
+      )
+    }
 
-      if (!nonce) {
-        return NextResponse.json(
-          { error: 'Nonce not found. Please call /api/auth/nonce endpoint first.' },
-          { status: 400 }
-        )
-      }
+    // Replay protection: check if nonce is already used
+    if (!isValidNonce(nonce)) {
+      return NextResponse.json(
+        { error: 'Nonce has already been used' },
+        { status: 400 }
+      )
+    }
 
-      // Replay protection: check if nonce is already used
-      if (!isValidNonce(nonce)) {
-        return NextResponse.json(
-          { error: 'Nonce has already been used' },
-          { status: 400 }
-        )
-      }
-
-      // Verify signature and recover signer
-      try {
-        // Test mode logic
-        if (TEST_MODE && (signature === `signed-${nonce}` || signature === nonce)) {
-          signer = normalizedAddress
-        } else if (TEST_MODE && signature.startsWith('signed-')) {
-          const parts = signature.replace('signed-', '').split('-')
-          if (parts.length >= 2) {
-            const sigAddress = parts[0].toLowerCase()
-            const sigNonce = parts.slice(1).join('-')
-            if (sigNonce === nonce && sigAddress === normalizedAddress) {
-              signer = normalizedAddress
-            } else {
-              return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
-            }
+    // Verify signature and recover signer
+    let signer: string
+    try {
+      // Test mode: if signature === "signed-{nonce}" or signature === nonce, accept it
+      // In test mode, signer must match the address in the request
+      if (TEST_MODE && (signature === `signed-${nonce}` || signature === nonce)) {
+        signer = normalizedAddress // In test mode, signer is the address from request
+      } else if (TEST_MODE && signature.startsWith('signed-')) {
+        // Test mode with address: "signed-{address}-{nonce}" format
+        const parts = signature.replace('signed-', '').split('-')
+        if (parts.length >= 2) {
+          const sigAddress = parts[0].toLowerCase()
+          const sigNonce = parts.slice(1).join('-')
+          if (sigNonce === nonce && sigAddress === normalizedAddress) {
+            signer = normalizedAddress
           } else {
-            return NextResponse.json({ error: 'Invalid signature format' }, { status: 400 })
+            return NextResponse.json(
+              { error: 'Invalid signature' },
+              { status: 400 }
+            )
           }
         } else {
-          // Production mode: real ECDSA signature verification
-          const message = `Update profile for ${normalizedAddress}. Nonce: ${nonce}`
-
-          signer = await recoverMessageAddress({
-            message,
-            signature: signature as `0x${string}`,
-          })
-
-          const isValid = await verifyMessage({
-            address: signer as `0x${string}`,
-            message,
-            signature: signature as `0x${string}`,
-          })
-
-          if (!isValid) {
-            return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
-          }
+          return NextResponse.json(
+            { error: 'Invalid signature format' },
+            { status: 400 }
+          )
         }
-      } catch (error) {
-        console.error('Signature verification error:', error)
-        return NextResponse.json({ error: 'Signature verification failed' }, { status: 400 })
+      } else {
+        // Production mode: real ECDSA signature verification
+        // Build message
+        const message = `Update profile for ${normalizedAddress}. Nonce: ${nonce}`
+
+        // Recover signer from signature
+        signer = await recoverMessageAddress({
+          message,
+          signature: signature as `0x${string}`,
+        })
+
+        // Additional verification - verify that signer signed the message
+        const isValid = await verifyMessage({
+          address: signer as `0x${string}`,
+          message,
+          signature: signature as `0x${string}`,
+        })
+
+        if (!isValid) {
+          return NextResponse.json(
+            { error: 'Invalid signature' },
+            { status: 400 }
+          )
+        }
       }
+    } catch (error) {
+      console.error('Signature verification error:', error)
+      return NextResponse.json(
+        { error: 'Signature verification failed' },
+        { status: 400 }
+      )
     }
 
     const normalizedSigner = signer.toLowerCase()
@@ -280,11 +288,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Mark nonce as used (replay protection)
-    if (nonce) {
-      markNonceAsUsed(nonce)
-      // Clear nonce cookie after successful update
-      cookieStore.delete('aph_nonce')
-    }
+    markNonceAsUsed(nonce)
+
+    // Clear nonce cookie after successful update
+    cookieStore.delete('aph_nonce')
 
     const profileWithShowcase = await prisma.profile.findUnique({
       where: { address: normalizedAddress },

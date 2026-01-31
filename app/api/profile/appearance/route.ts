@@ -8,8 +8,6 @@ import {
 } from '@/lib/profile-appearance'
 import { cookies } from 'next/headers'
 import { verifyMessage, recoverMessageAddress } from 'viem'
-import { getSessionAddress } from '@/lib/auth'
-import { getNonce, markNonceAsUsed, isValidNonce } from '@/lib/nonce-store'
 
 // GET: Fetch appearance config for a profile by address
 export async function GET(request: NextRequest) {
@@ -78,64 +76,50 @@ export async function POST(request: NextRequest) {
 
     const { signature } = body
 
-    // Authenticate: Check Session first, then Signature
-    const sessionAddress = await getSessionAddress()
-    let signer: string
+    if (!signature) {
+      return NextResponse.json({ error: 'Signature required' }, { status: 400 })
+    }
+
+    // Read nonce from cookie
     const cookieStore = await cookies()
-    let nonce: string | null = null
+    const nonce = cookieStore.get('aph_nonce')?.value
 
-    if (sessionAddress && sessionAddress === normalizedAddress) {
-      signer = sessionAddress
-    } else {
-      // Fallback to signature auth
-      if (!signature) {
-        return NextResponse.json({ error: 'Signature required (or valid session)' }, { status: 400 })
-      }
+    if (!nonce) {
+      return NextResponse.json(
+        { error: 'Nonce not found. Please call /api/auth/nonce first.' },
+        { status: 400 }
+      )
+    }
 
-      // Read nonce from cookie
-      nonce = cookieStore.get('aph_nonce')?.value || null
+    // Build message
+    const message = `Update profile appearance for ${address}. Nonce: ${nonce}`
 
-      if (!nonce) {
+    // Verify signature and recover signer
+    let signer: string
+    try {
+      signer = await recoverMessageAddress({
+        message,
+        signature: signature as `0x${string}`,
+      })
+
+      const isValid = await verifyMessage({
+        address: signer as `0x${string}`,
+        message,
+        signature: signature as `0x${string}`,
+      })
+
+      if (!isValid) {
         return NextResponse.json(
-          { error: 'Nonce not found. Please call /api/auth/nonce first.' },
+          { error: 'Invalid signature' },
           { status: 400 }
         )
       }
-
-      // Check validation
-      if (!isValidNonce(nonce)) {
-        return NextResponse.json({ error: 'Nonce has already been used' }, { status: 400 })
-      }
-
-      // Build message
-      const message = `Update profile appearance for ${address}. Nonce: ${nonce}`
-
-      // Verify signature and recover signer
-      try {
-        signer = await recoverMessageAddress({
-          message,
-          signature: signature as `0x${string}`,
-        })
-
-        const isValid = await verifyMessage({
-          address: signer as `0x${string}`,
-          message,
-          signature: signature as `0x${string}`,
-        })
-
-        if (!isValid) {
-          return NextResponse.json(
-            { error: 'Invalid signature' },
-            { status: 400 }
-          )
-        }
-      } catch (error) {
-        console.error('Signature verification error:', error)
-        return NextResponse.json(
-          { error: 'Signature verification failed' },
-          { status: 400 }
-        )
-      }
+    } catch (error) {
+      console.error('Signature verification error:', error)
+      return NextResponse.json(
+        { error: 'Signature verification failed' },
+        { status: 400 }
+      )
     }
 
     const normalizedSigner = signer.toLowerCase()
@@ -200,11 +184,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Clear nonce cookie after successful update
-    // Clear nonce cookie after successful update if nonce was used
-    if (nonce) {
-      markNonceAsUsed(nonce)
-      cookieStore.delete('aph_nonce')
-    }
+    cookieStore.delete('aph_nonce')
 
     // Parse and normalize saved config for response
     const savedConfig = normalizeAppearanceConfig(
