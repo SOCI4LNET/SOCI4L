@@ -123,19 +123,20 @@ export function getThemeHeaderClasses(theme: ProfileTheme): string {
 export function getThemeTextClasses(theme: ProfileTheme, size: 'title' | 'body' | 'small'): string {
   switch (theme) {
     case 'minimal':
-      // Minimal: Serif-like headings, larger body
-      if (size === 'title') return 'text-3xl font-serif font-medium tracking-tight' // Changed to Serif, Medium
-      if (size === 'body') return 'text-base leading-relaxed text-foreground/90'
-      return 'text-sm text-muted-foreground'
+      // Minimal: Serif-like headings, keep size same as default
+      if (size === 'title') return 'text-2xl font-serif font-medium tracking-tight'
+      if (size === 'body') return 'text-sm'
+      return 'text-xs text-muted-foreground'
     case 'dense':
-      // Dense: Technical, mono-like spacing
-      if (size === 'title') return 'text-lg font-bold tracking-tight uppercase' // Keep Default/Inter
-      if (size === 'body') return 'text-xs font-medium'
-      return 'text-[10px] text-muted-foreground uppercase tracking-wider'
+      // Dense: Technical, keep size same as default
+      if (size === 'title') return 'text-2xl font-bold tracking-tight uppercase'
+      if (size === 'body') return 'text-sm font-medium'
+      return 'text-xs text-muted-foreground uppercase tracking-wider'
     case 'spotlight':
-      if (size === 'title') return 'text-4xl font-heading font-bold tracking-tight' // Changed to Heading (Outfit)
-      if (size === 'body') return 'text-lg font-medium tracking-tight'
-      return 'text-sm font-medium text-muted-foreground'
+      // Spotlight: Expressive headings, keep size same as default
+      if (size === 'title') return 'text-2xl font-heading font-bold tracking-tight'
+      if (size === 'body') return 'text-sm font-medium tracking-tight'
+      return 'text-xs font-medium text-muted-foreground'
     case 'default':
     default:
       if (size === 'title') return 'text-2xl font-semibold tracking-tight'
