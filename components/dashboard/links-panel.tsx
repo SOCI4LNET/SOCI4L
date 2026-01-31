@@ -1667,23 +1667,6 @@ export function LinksPanel() {
               <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-6 text-center text-xs text-muted-foreground">
                 Loading links...
               </div>
-            ) : links.length === 0 && categories.length <= 1 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-center space-y-4 border-2 border-dashed rounded-lg border-muted">
-                <div className="p-4 bg-primary/5 rounded-full">
-                  <Link2 className="h-8 w-8 text-primary" />
-                </div>
-                <div className="space-y-2 max-w-sm">
-                  <h3 className="text-lg font-semibold">Build your profile</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Add your first link to start building your digital identity.
-                    Changes will appear on your public profile immediately.
-                  </p>
-                </div>
-                <Button onClick={openAddDialog} className="mt-4">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Link
-                </Button>
-              </div>
             ) : (
               <DndContext
                 sensors={sensors}
@@ -1728,6 +1711,25 @@ export function LinksPanel() {
                           />
                         )
                       })}
+
+                      {/* Empty State shown when no links exist, preserving Category visibility */}
+                      {links.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
+                          <div className="p-3 bg-muted rounded-full">
+                            <Link2 className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-medium mb-1">Build your profile</h3>
+                            <p className="text-xs text-muted-foreground mb-4">
+                              Add your first link to start building your digital identity.
+                            </p>
+                          </div>
+                          <Button onClick={openAddDialog} size="sm" variant="default">
+                            <Plus className="mr-2 h-3.5 w-3.5" />
+                            Add Link
+                          </Button>
+                        </div>
+                      )}
 
                       {/* Uncategorized Links */}
                       {(() => {
