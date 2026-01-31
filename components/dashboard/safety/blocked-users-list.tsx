@@ -1,7 +1,25 @@
+import { useState } from "react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useServerAuth } from "@/hooks/use-server-auth"
+import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Skeleton } from "@/components/ui/skeleton"
+import { UserX, VolumeX } from "lucide-react"
+import { formatAddress } from "@/lib/utils"
 
-// ... (keep interface definitions)
+interface BlockedUser {
+    address: string
+    displayName?: string
+    blockedAt: string
+}
 
+interface MutedUser {
+    address: string
+    displayName?: string
+    mutedAt: string
+}
 export function BlockedUsersList() {
     const queryClient = useQueryClient()
     const { ensureSession } = useServerAuth()
