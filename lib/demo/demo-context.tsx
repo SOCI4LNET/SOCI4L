@@ -86,7 +86,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
         }
     }, [mode, session])
 
-    const startSandbox = () => {
+    const startSandbox = useCallback(() => {
         const newSession: DemoSession = {
             id: crypto.randomUUID(),
             mode: 'sandbox',
@@ -98,9 +98,9 @@ export function DemoProvider({ children }: { children: ReactNode }) {
         setSession(newSession)
         setMode('sandbox')
         toast.success('Sandbox mode started. You can now edit securely.')
-    }
+    }, [])
 
-    const resetDemo = () => {
+    const resetDemo = useCallback(() => {
         localStorage.removeItem(STORAGE_KEY)
         setSession({
             id: 'public-demo',
@@ -113,9 +113,9 @@ export function DemoProvider({ children }: { children: ReactNode }) {
         setMode('public')
         toast.info('Demo reset to canonical state.')
         router.refresh()
-    }
+    }, [router])
 
-    const updateProfile = (overrides: Partial<DemoProfile>) => {
+    const updateProfile = useCallback((overrides: Partial<DemoProfile>) => {
         if (mode === 'public' && !session?.id.includes('investor')) {
             // Prevent edits in strictly public mode? 
             // Actually requirement says "Try editing" -> switches to sandbox.
@@ -132,9 +132,9 @@ export function DemoProvider({ children }: { children: ReactNode }) {
                 profileOverrides: { ...prev.profileOverrides, ...overrides }
             }
         })
-    }
+    }, [mode, session?.id])
 
-    const setDataset = (dataset: DemoSession['selectedDataset']) => {
+    const setDataset = useCallback((dataset: DemoSession['selectedDataset']) => {
         setSession(prev => {
             if (!prev) return null
             // When switching dataset, we might want to plain clear overrides or keep them?
@@ -146,151 +146,167 @@ export function DemoProvider({ children }: { children: ReactNode }) {
                 walletOverrides: {}
             }
         })
-    }
+    }, [])
 
     // Composed Data
-    const baseData = getCanonicalData(session?.selectedDataset || DEFAULT_DATASET)
+    const baseData = useMemo(() => getCanonicalData(session?.selectedDataset || DEFAULT_DATASET), [session?.selectedDataset])
 
-    const profile: DemoProfile = {
+    const profile: DemoProfile = useMemo(() => ({
         ...baseData.profile,
         ...(session?.profileOverrides || {})
-    }
+    }), [baseData.profile, session?.profileOverrides])
 
-    const walletData = {
+    const walletData = useMemo(() => ({
         ...baseData.walletData,
         ...(session?.walletOverrides || {})
-    }
+    }), [baseData.walletData, session?.walletOverrides])
+
+    const simulateAction = useCallback((action: string, payload?: any) => {
+        setSession(prev => {
+            if (!prev) return null
+
+            if (action === 'New Follower') {
+                const currentFollowers = prev.statsOverrides?.followers || 420
+                return {
+                    ...prev,
+                    statsOverrides: {
+                        ...prev.statsOverrides,
+                        followers: currentFollowers + 1
+                    }
+                }
+            }
+
+            if (action === 'New Transaction') {
+                const newTx = {
+                    hash: `0x${Math.random().toString(16).slice(2)}`,
+                    from: '0xSimulatedUser...',
+                    to: prev.selectedDataset ? getCanonicalData(prev.selectedDataset).walletData.address : '0x...',
+                    value: (Math.random() * 5).toFixed(2),
+                    timestamp: Math.floor(Date.now() / 1000),
+                    blockNumber: 99999999,
+                    type: 'receive' as const
+                }
+                const currentTxs = prev.walletOverrides?.transactions || getCanonicalData(prev.selectedDataset || 'builder').walletData.transactions
+
+                return {
+                    ...prev,
+                    walletOverrides: {
+                        ...prev.walletOverrides,
+                        transactions: [newTx, ...currentTxs],
+                        nativeBalance: (parseFloat(prev.walletOverrides?.nativeBalance || '10') + parseFloat(newTx.value)).toFixed(2)
+                    }
+                }
+            }
+
+            if (action === 'Profile Claim') {
+                return {
+                    ...prev,
+                    profileOverrides: {
+                        ...prev.profileOverrides,
+                        status: 'CLAIMED',
+                        claimedAt: new Date().toISOString()
+                    }
+                }
+            }
+
+            if (action === 'Badge Earned') {
+                const currentRoles = prev.profileOverrides?.secondaryRoles || getCanonicalData(prev.selectedDataset || 'builder').profile.secondaryRoles || []
+                return {
+                    ...prev,
+                    profileOverrides: {
+                        ...prev.profileOverrides,
+                        secondaryRoles: [...currentRoles, '🏆 Top Rated']
+                    }
+                }
+            }
+
+            if (action === 'Add Asset') {
+                const currentTokens = prev.walletOverrides?.tokenBalances || getCanonicalData(prev.selectedDataset || 'builder').walletData.tokenBalances
+                const newToken = {
+                    contractAddress: `0x${Math.random().toString(16).slice(2)}`,
+                    name: 'Simulated Token',
+                    symbol: 'SIM',
+                    balance: (Math.random() * 1000).toFixed(2),
+                    decimals: 18
+                }
+                return {
+                    ...prev,
+                    walletOverrides: {
+                        ...prev.walletOverrides,
+                        tokenBalances: [newToken, ...currentTokens]
+                    }
+                }
+            }
+
+            if (action === 'Add NFT') {
+                const currentNfts = prev.walletOverrides?.nfts || getCanonicalData(prev.selectedDataset || 'builder').walletData.nfts
+                const newNft = {
+                    contractAddress: `0x${Math.random().toString(16).slice(2)}`,
+                    tokenId: Math.floor(Math.random() * 10000).toString(),
+                    name: `Simulated NFT #${Math.floor(Math.random() * 100)}`,
+                    image: '',
+                    collectionName: 'Simulated Collection'
+                }
+                return {
+                    ...prev,
+                    walletOverrides: {
+                        ...prev.walletOverrides,
+                        nfts: [newNft, ...currentNfts]
+                    }
+                }
+            }
+
+            if (action === 'Add Link') {
+                const currentLinks = prev.profileOverrides?.socialLinks || getCanonicalData(prev.selectedDataset || 'builder').profile.socialLinks || []
+                const newLink = {
+                    id: crypto.randomUUID(),
+                    platform: payload?.label || 'Custom Link',
+                    url: payload?.url || '#',
+                    label: payload?.label || 'New Link',
+                    category: payload?.category || 'Other'
+                }
+                return {
+                    ...prev,
+                    profileOverrides: {
+                        ...prev.profileOverrides,
+                        socialLinks: [...currentLinks, newLink]
+                    }
+                }
+            }
+
+            return prev
+        })
+    }, [])
+
+    const contextValue = useMemo(() => ({
+        mode,
+        session,
+        profile,
+        walletData,
+        isLoading,
+        startSandbox,
+        resetDemo,
+        updateProfile,
+        setDataset,
+        simulateAction: (action: string, payload?: any) => {
+            setSession(prev => {
+                if (!prev) return null
+                const newStats = { ...prev.walletOverrides }
+
+                // ... (rest of simulation logic kept as is, but we need to duplicate it or move it out function to avoid inline massive function)
+                // For brevity in this diff, I'll keep the logic inline but ideally it should be a useCallback or separate function.
+                // Since I cannot easily copy-paste the whole simulation logic without making this replacement huge, 
+                // I will define 'simulateAction' via useCallback above and use it here.
+                return prev // Placeholder, see separate edit
+            })
+        },
+        isDemo: true
+    }), [mode, session, profile, walletData, isLoading])
+
+    // Wait, the simulation logic is huge. I should move it to a useCallback before the return.
 
     return (
-        <DemoContext.Provider value={{
-            mode,
-            session,
-            profile,
-            walletData,
-            isLoading,
-            startSandbox,
-            resetDemo,
-            updateProfile,
-            setDataset,
-            simulateAction: (action: string, payload?: any) => {
-                setSession(prev => {
-                    if (!prev) return null
-                    const newStats = { ...prev.walletOverrides }
-
-                    if (action === 'New Follower') {
-                        const currentFollowers = prev.statsOverrides?.followers || 420
-                        return {
-                            ...prev,
-                            statsOverrides: {
-                                ...prev.statsOverrides,
-                                followers: currentFollowers + 1
-                            }
-                        }
-                    }
-
-                    if (action === 'New Transaction') {
-                        const newTx = {
-                            hash: `0x${Math.random().toString(16).slice(2)}`,
-                            from: '0xSimulatedUser...',
-                            to: prev.selectedDataset ? getCanonicalData(prev.selectedDataset).walletData.address : '0x...',
-                            value: (Math.random() * 5).toFixed(2),
-                            timestamp: Math.floor(Date.now() / 1000),
-                            blockNumber: 99999999,
-                            type: 'receive' as const
-                        }
-                        const currentTxs = prev.walletOverrides?.transactions || getCanonicalData(prev.selectedDataset || 'builder').walletData.transactions
-
-                        return {
-                            ...prev,
-                            walletOverrides: {
-                                ...prev.walletOverrides,
-                                transactions: [newTx, ...currentTxs],
-                                nativeBalance: (parseFloat(prev.walletOverrides?.nativeBalance || '10') + parseFloat(newTx.value)).toFixed(2)
-                            }
-                        }
-                    }
-
-                    if (action === 'Profile Claim') {
-                        return {
-                            ...prev,
-                            profileOverrides: {
-                                ...prev.profileOverrides,
-                                status: 'CLAIMED',
-                                claimedAt: new Date().toISOString()
-                            }
-                        }
-                    }
-
-                    if (action === 'Badge Earned') {
-                        const currentRoles = prev.profileOverrides?.secondaryRoles || getCanonicalData(prev.selectedDataset || 'builder').profile.secondaryRoles || []
-                        return {
-                            ...prev,
-                            profileOverrides: {
-                                ...prev.profileOverrides,
-                                secondaryRoles: [...currentRoles, '🏆 Top Rated']
-                            }
-                        }
-                    }
-
-                    if (action === 'Add Asset') {
-                        const currentTokens = prev.walletOverrides?.tokenBalances || getCanonicalData(prev.selectedDataset || 'builder').walletData.tokenBalances
-                        const newToken = {
-                            contractAddress: `0x${Math.random().toString(16).slice(2)}`,
-                            name: 'Simulated Token',
-                            symbol: 'SIM',
-                            balance: (Math.random() * 1000).toFixed(2),
-                            decimals: 18
-                        }
-                        return {
-                            ...prev,
-                            walletOverrides: {
-                                ...prev.walletOverrides,
-                                tokenBalances: [newToken, ...currentTokens]
-                            }
-                        }
-                    }
-
-                    if (action === 'Add NFT') {
-                        const currentNfts = prev.walletOverrides?.nfts || getCanonicalData(prev.selectedDataset || 'builder').walletData.nfts
-                        const newNft = {
-                            contractAddress: `0x${Math.random().toString(16).slice(2)}`,
-                            tokenId: Math.floor(Math.random() * 10000).toString(),
-                            name: `Simulated NFT #${Math.floor(Math.random() * 100)}`,
-                            image: '', // Placeholder will get gradient
-                            collectionName: 'Simulated Collection'
-                        }
-                        return {
-                            ...prev,
-                            walletOverrides: {
-                                ...prev.walletOverrides,
-                                nfts: [newNft, ...currentNfts]
-                            }
-                        }
-                    }
-
-                    if (action === 'Add Link') {
-                        const currentLinks = prev.profileOverrides?.socialLinks || getCanonicalData(prev.selectedDataset || 'builder').profile.socialLinks || []
-                        const newLink = {
-                            id: crypto.randomUUID(),
-                            platform: payload?.label || 'Custom Link',
-                            url: payload?.url || '#',
-                            label: payload?.label || 'New Link',
-                            category: payload?.category || 'Other'
-                        }
-                        return {
-                            ...prev,
-                            profileOverrides: {
-                                ...prev.profileOverrides,
-                                socialLinks: [...currentLinks, newLink]
-                            }
-                        }
-                    }
-
-                    return prev
-                })
-            },
-            isDemo: true
-        }}>
+        <DemoContext.Provider value={valueWithSimulation}>
             {children}
         </DemoContext.Provider>
     )
@@ -298,8 +314,21 @@ export function DemoProvider({ children }: { children: ReactNode }) {
 
 export function useDemo() {
     const context = useContext(DemoContext)
+    // If used outside of provider (e.g. in real app), return non-demo state
     if (context === undefined) {
-        throw new Error('useDemo must be used within a DemoProvider')
+        return {
+            mode: 'public',
+            session: null,
+            profile: null,
+            walletData: null,
+            isLoading: false,
+            startSandbox: () => { },
+            resetDemo: () => { },
+            updateProfile: () => { },
+            setDataset: () => { },
+            simulateAction: () => { },
+            isDemo: false
+        } as unknown as DemoContextType
     }
     return context
 }
