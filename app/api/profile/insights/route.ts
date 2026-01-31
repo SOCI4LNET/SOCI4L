@@ -117,8 +117,42 @@ export async function GET(request: NextRequest) {
       take: 5,
     })
 
-    // Resolve link titles (including deleted ones)
-    const linksMap = new Map(links.map(l => [l.id, l]))
+    // Resolve link titles (including social links and deleted ones)
+    // We treat Prisma ProfileLink objects and Social Link objects similarly for the map
+    const linksMap = new Map<string, { title: string, url: string }>()
+
+    // 1. Add Custom Links (DB)
+    links.forEach(l => {
+      linksMap.set(l.id, { title: l.title, url: l.url })
+    })
+
+    // 2. Add Social Links (profile.socialLinks JSON)
+    if (profile?.socialLinks) {
+      try {
+        const socialLinks = JSON.parse(profile.socialLinks)
+        if (Array.isArray(socialLinks)) {
+          socialLinks.forEach((link: any) => {
+            // Match ID generation logic from frontend (app/p/[id]/page.tsx)
+            const id = link.id || `social-${link.url}`
+
+            // Determine best label
+            let title = link.label
+            if (!title) {
+              const platform = link.platform || link.type || 'website'
+              // Simple capitalization or fallback
+              title = platform.charAt(0).toUpperCase() + platform.slice(1)
+            }
+
+            linksMap.set(id, {
+              title: title || 'Social Link',
+              url: link.url
+            })
+          })
+        }
+      } catch (e) {
+        console.error('[Public Insights API] Failed to parse social links', e)
+      }
+    }
 
     // Find IDs that are NOT in current links map (deleted links)
     const deletedLinkIds = linkStats

@@ -1144,7 +1144,8 @@ export default function ProfilePage({ params }: PageProps) {
                                                   getSourceFromUrl(searchParams),
                                                   link.categoryId || null,
                                                   link.title,
-                                                  link.url
+                                                  link.url,
+                                                  { skipServer: link.type !== 'social' }
                                                 )
                                               }
                                             }}
