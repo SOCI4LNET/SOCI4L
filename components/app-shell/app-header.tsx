@@ -24,6 +24,10 @@ interface AppHeaderProps {
    * @default false
    */
   showNavigation?: boolean
+  /**
+   * Optional class name for the header
+   */
+  className?: string
 }
 
 const EXAMPLE_PROFILE_ADDRESS = '0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1'
@@ -44,7 +48,7 @@ const navigationItems = [
  * - Optional sidebar trigger for dashboard pages
  * - Sticky positioning support
  */
-export function AppHeader({ showSidebarTrigger = false, sticky = true, showNavigation = false }: AppHeaderProps) {
+export function AppHeader({ showSidebarTrigger = false, sticky = true, showNavigation = false, className }: AppHeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
 
@@ -65,7 +69,8 @@ export function AppHeader({ showSidebarTrigger = false, sticky = true, showNavig
         'flex h-16 min-h-[4rem] items-center gap-4 border-b border-border/60 bg-background/95',
         PAGE_GUTTER,
         sticky && 'sticky top-0 z-50',
-        'backdrop-blur-sm transition-all ease-linear shadow-sm'
+        'backdrop-blur-sm transition-all ease-linear shadow-sm',
+        className
       )}
     >
       {/* Left: Logo */}

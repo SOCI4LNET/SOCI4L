@@ -14,6 +14,10 @@ import { getConnectedDashboardHref } from '@/lib/routing'
 
 const EXAMPLE_PROFILE_ADDRESS = '0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1'
 
+import GradientBlinds from '@/components/ui/gradient-blinds'
+
+// ...
+
 export default function HomePage() {
   const router = useRouter()
   const { address: connectedAddress, isConnected } = useAccount()
@@ -36,9 +40,30 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-background/95 flex flex-col">
-      <AppHeader sticky={true} showNavigation={true} />
-      <main>
+    <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
+      {/* Background Gradient Blinds */}
+      <div className="absolute inset-0 z-0 h-[600px] w-full pointer-events-none opacity-60 dark:opacity-40">
+        <GradientBlinds
+          gradientColors={['#ffffff', '#f1f5f9', '#e2e8f0']} // Subtle Gray/White
+          angle={120}
+          noise={0.15} // Reduced noise
+          blindCount={8}
+          blindMinWidth={50}
+          spotlightRadius={0.6}
+          spotlightSoftness={0.8}
+          spotlightOpacity={0.8}
+          mouseDampening={0.15}
+          distortAmount={0}
+          shineDirection="left"
+          mixBlendMode="multiply" // Blends well with white background
+          className="dark:invert dark:mix-blend-screen" // Invert for dark mode capability
+        />
+        {/* Gradients to fade it out at bottom */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/20 to-background pointer-events-none" />
+      </div>
+
+      <AppHeader sticky={true} showNavigation={true} className="z-10 relative" />
+      <main className="z-10 relative">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 py-10 md:py-16">
           {/* Hero */}
           <section className="grid gap-8 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] items-start">
