@@ -189,15 +189,21 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
   float r = max(uSpotlightRadius, 1e-4);
   float dn = d / r;
   float spot = (1.0 - 2.0 * pow(dn, uSpotlightSoftness)) * uSpotlightOpacity;
-  vec3 cir = vec3(spot);
+  spot = clamp(spot, 0.0, 1.0); // Ensure spot doesn't go negative
+  
   float stripe = fract(uvMod.x * max(uBlindCount, 1.0));
   if (uShineFlip > 0.5) stripe = 1.0 - stripe;
-    vec3 ran = vec3(stripe);
+  
+  // New Logic: Background is black, spotlight reveals the gradient
+  // Multiply gradient (base) by spotlight intensity (spot)
+  // Apply blinds (stripe) as a subtle texture subtraction/multiplication
+  
+  vec3 col = base * spot;
+  col *= (1.0 - stripe * 0.3); // Apply blinds texture
+  
+  col += (rand(gl_FragCoord.xy + iTime) - 0.5) * uNoise;
 
-    vec3 col = cir + base - ran;
-    col += (rand(gl_FragCoord.xy + iTime) - 0.5) * uNoise;
-
-    fragColor = vec4(col, 1.0);
+  fragColor = vec4(col, 1.0);
 }
 
 void main() {

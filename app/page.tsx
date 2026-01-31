@@ -42,24 +42,23 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
       {/* Background Gradient Blinds */}
-      <div className="absolute inset-0 z-0 h-[600px] w-full pointer-events-none opacity-60 dark:opacity-40">
+      <div className="absolute inset-0 z-0 h-[600px] w-full pointer-events-none opacity-80">
         <GradientBlinds
-          gradientColors={['#ffffff', '#f1f5f9', '#e2e8f0']} // Subtle Gray/White
+          gradientColors={['#A855F7', '#3B82F6', '#EC4899']} // Vibrant Purple/Blue/Pink
           angle={120}
-          noise={0.15} // Reduced noise
+          noise={0.1}
           blindCount={8}
           blindMinWidth={50}
-          spotlightRadius={0.6}
-          spotlightSoftness={0.8}
-          spotlightOpacity={0.8}
+          spotlightRadius={0.5}
+          spotlightSoftness={0.6}
+          spotlightOpacity={1}
           mouseDampening={0.15}
           distortAmount={0}
           shineDirection="left"
-          mixBlendMode="multiply" // Blends well with white background
-          className="dark:invert dark:mix-blend-screen" // Invert for dark mode capability
+          mixBlendMode="screen" // Screen helps light pop on dark background
         />
         {/* Gradients to fade it out at bottom */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/20 to-background pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/60 to-background pointer-events-none" />
       </div>
 
       <AppHeader sticky={true} showNavigation={true} className="z-10 relative" />
