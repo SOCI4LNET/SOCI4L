@@ -64,21 +64,24 @@ export function AppTopbar() {
                 const accountTabs = ['settings', 'safety']
 
                 let rootLabel = 'Dashboard'
-                if (studioTabs.includes(currentTab)) rootLabel = 'Studio'
-                else if (accountTabs.includes(currentTab)) rootLabel = 'Account'
+                let rootTab = 'overview'
 
-                if (isLinkDetailPage) {
-                  return (
-                    <BreadcrumbLink asChild>
-                      <Link href={`${pathname.split('/').slice(0, 3).join('/')}?tab=overview`}>
-                        {rootLabel}
-                      </Link>
-                    </BreadcrumbLink>
-                  )
+                if (studioTabs.includes(currentTab)) {
+                  rootLabel = 'Studio'
+                  rootTab = 'builder'
+                } else if (accountTabs.includes(currentTab)) {
+                  rootLabel = 'Account'
+                  rootTab = 'settings'
                 }
+
+                // Base path depends on if we are in a sub-route (e.g. /links/xyz) or main page
+                const basePath = isLinkDetailPage
+                  ? pathname.split('/').slice(0, 3).join('/')
+                  : pathname.split('?')[0]
+
                 return (
                   <BreadcrumbLink asChild>
-                    <Link href={`${pathname.split('?')[0]}?tab=overview`}>
+                    <Link href={`${basePath}?tab=${rootTab}`}>
                       {rootLabel}
                     </Link>
                   </BreadcrumbLink>

@@ -99,7 +99,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
         }
         setSession(newSession)
         setMode('sandbox')
-        toast.success('Sandbox mode started. You can now edit securely.')
+        toast.success('Sandbox mode enabled — changes are local only.')
     }, [])
 
     const resetDemo = useCallback(() => {

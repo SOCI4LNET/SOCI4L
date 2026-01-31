@@ -2,58 +2,58 @@
 
 This sitemap documents the real-world structure and navigation of the Avalanche Project.
 
-## 1. Application Routes (`/app`)
+## 1. Domains & Responsibilities
+
+The product is explicitly split into three distinct domains with no overlap:
+
+| Domain | Responsibility | Access |
+| :--- | :--- | :--- |
+| **Dashboard** | Wallet data, assets, activity, social graph. | **READ-ONLY** |
+| **Studio** | Profile composition, content, analytics. | **WRITE / COMPOSE** |
+| **Account** | Privacy, safety, global settings. | **CONTROL** |
+
+---
+
+## 2. Application Routes (`/app`)
 
 ### 🏠 Public Access
 - **`/`**: Home page (Marketing / Entry).
-- **`/p/[id]`**: **Public Profile**. View a user's digital identity by address or custom slug.
-  - Sub-views: `/insights` (Publicly visible profile analytics).
-- **`/r/[linkId]/track`**: **Link Redirection**. Handles analytics tracking and outgoing redirects for profile links.
+- **`/p/[id]`**: **Public Profile**. View a user's digital identity.
+  - Sub-views: `/insights` (Publicly visible analytics).
+- **`/r/[linkId]/track`**: **Link Redirection**. Analytics tracking for outgoing clicks.
 
 ### 📊 Dashboard (`/dashboard/[address]`)
-The main workspace for connected users, organized by the Sidebar groups:
+**Root: Wallet & Read-Only Data**
+- **Overview** (`?tab=overview`): High-level wallet summary & activity.
+- **Assets** (`?tab=assets`): Detailed token & NFT inventory.
+- **Activity** (`?tab=activity`): Transaction history.
+- **Social** (`?tab=social`): Network graph (Following/Followers).
 
-#### **Group: Platform**
-- **Overview** (`?tab=overview`): High-level wallet summary, top holdings, and recent activity.
-  - *Actions*: Profile Readiness Checklist (Onboarding).
-- **Assets** (`?tab=assets`): Detailed inventory of standard tokens and NFTs.
-  - *Actions*: Refresh, Search, Sort, View on Explorer.
-- **Activity** (`?tab=activity`): Full transaction history with status filtering.
-- **Social** (`?tab=social`): Follower/Following management and networking.
+### 🎨 Studio (`/dashboard/[address]`)
+**Root: Composition & Performance**
+- **Builder** (`?tab=builder`): **Studio Entry**. Identity editor (Bio, Roles, Socials).
+- **Links** (`?tab=links`): Link stack management.
+  - Sub-route: `/links/[linkId]` (Individual link details).
+- **Insights** (`?tab=insights`): Profile performance metrics.
 
-#### **Group: Studio**
-- **Builder** (`?tab=builder`): Core identity editor (Bio, Roles, Social Links).
-- **Links** (`?tab=links`): Link stack management (CRUD for custom links).
-  - *Sub-route*: `/links/[linkId]` (Individual link detailed analytics/edit).
-- **Insights** (`?tab=insights`): Real-time metrics for profile views and link clicks.
-
-#### **Group: Account**
-- **Safety** (`?tab=safety`): Management for Blocked and Muted users.
-- **Settings** (`?tab=settings`): Account-level configuration (Display Name, custom URL claiming).
-
-### 🛠 Administrative
-- **`/master-console`**: Super-admin specialized dashboard.
-  - Routes: `/users`, `/content`, `/analytics`, `/subscribers`, `/system`.
+### ⚙️ Account (`/dashboard/[address]`)
+**Root: Settings & Control**
+- **Settings** (`?tab=settings`): **Account Entry**. Global config (Display Name, URL).
+- **Safety** (`?tab=safety`): Blocked users, mute lists, privacy controls.
 
 ---
 
-## 2. Global UI Features
+## 3. Global UI Features
 
-### 👛 Wallet Menu (Top Right)
-Available on all authenticated pages.
-- **Navigation**: View Profile (Public), Dashboard, Master Console (Admin only).
-- **Actions**:
-  - `Copy`: Copy wallet address / profile link.
-  - `Share`: Social sharing options.
-  - `QR`: Generate profile QR code.
-- **System**: Disconnect wallet.
+### 🧭 Navigation
+- **`AppSidebar`**: Persistent nav enforcing the Dashboard/Studio/Account hierarchy.
+- **`AppTopbar`**: Context-aware breadcrumbs (`Dashboard > Overview`, `Studio > Links`).
 
-### 🧭 Navigation (`/components/app-shell`)
-- **`AppSidebar`**: Persistent side-nav implementing the Platform vs Studio/Profile hierarchy.
-- **`AppTopbar`**: Context-aware breadcrumbs and search.
+### 👛 Wallet Menu
+- Quick access to Public Profile and Disconnect.
 
 ---
 
-## 3. Implementation Status
-- **`/coming-soon`**: 🚧 Empty directory. Route exists but currently renders a blank page (Pending UI implementation).
-- **Redirects**: `/dashboard/safety` and `/dashboard/settings` legacy routes now redirect to tab-based versions.
+## 4. Implementation Status
+- **Routes**: Universally mapped to `/dashboard/[address]` with `?tab` query parameters acting as sub-routes.
+- **Breadcrumbs**: "Virtual" routing implemented to simulate distinct domain paths.

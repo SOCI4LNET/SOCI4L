@@ -542,7 +542,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                   const sourceLabels: Record<AnalyticsSource, string> = {
                     profile: 'Direct',
                     qr: 'QR Code',
-                    copy: 'Referrer',
+                    copy: 'Ref',
                     unknown: 'Unknown'
                   }
 

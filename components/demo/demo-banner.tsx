@@ -25,7 +25,7 @@ export function DemoBanner() {
                     {mode === 'sandbox' && (
                         <>
                             <Edit className="h-4 w-4 text-primary" />
-                            <span className="font-medium text-primary">Sandbox Mode</span>
+                            <span className="font-medium text-primary">Local only. Reset anytime.</span>
                         </>
                     )}
                     {mode === 'investor' && (
@@ -35,7 +35,7 @@ export function DemoBanner() {
                         </>
                     )}
                     <span className="hidden text-muted-foreground md:inline-block">
-                        — {mode === 'public' ? 'Changes are disabled' : 'Changes are local-only and do not affect real data'}
+                        — {mode === 'public' ? 'Changes are disabled' : 'Changes are local-only'}
                     </span>
                 </div>
 
