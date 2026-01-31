@@ -3,6 +3,7 @@ import { useDemo } from '@/lib/demo/demo-context'
 import { toast } from 'sonner'
 import { useParams } from 'next/navigation'
 import { useAccount } from 'wagmi'
+import { useMemo } from 'react'
 
 export type SocialLink = {
     id: string
@@ -78,7 +79,7 @@ export function useProfile(targetAddress?: string) {
     })
 
     // --- Demo Data ---
-    const demoProfile: UserProfile = {
+    const demoProfile: UserProfile = useMemo(() => ({
         id: 'demo-id',
         address: '0xdemo...',
         displayName: session?.profileOverrides?.displayName || 'Demo User',
@@ -95,7 +96,7 @@ export function useProfile(targetAddress?: string) {
         // but we could mock defaults or read from session if we add them.
         layout: null,
         appearance: null
-    }
+    }), [session])
 
     const profile = isDemo ? demoProfile : (profileQuery.data || null)
     const loading = isDemo ? false : profileQuery.isLoading

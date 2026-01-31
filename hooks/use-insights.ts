@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useDemo } from '@/lib/demo/demo-context'
 import { useParams } from 'next/navigation'
 import { useAccount } from 'wagmi'
+import { useMemo } from 'react'
 
 export type AnalyticsData = {
     totalProfileViews: number
@@ -57,7 +58,9 @@ export function useInsights(targetAddress?: string) {
 
     // --- Demo Simulation ---
     // Mock data for demo/investor modes
-    const demoData: AnalyticsData = {
+    // --- Demo Simulation ---
+    // Mock data for demo/investor modes
+    const demoData: AnalyticsData = useMemo(() => ({
         totalProfileViews: 1250,
         totalLinkClicks: 843,
         ctr: 0.67,
@@ -87,7 +90,7 @@ export function useInsights(targetAddress?: string) {
             '2': 215,
             '3': 108
         }
-    }
+    }), [])
 
     // Optimize Investor Mode Simulation (Fake Growth)
     // Logic: Use current timestamp to simulate growth over time if needed,
