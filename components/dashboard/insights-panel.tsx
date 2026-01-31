@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Activity, BarChart2, Clock, Lightbulb, ArrowRight, Share2, TrendingUp, Eye, MousePointerClick } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
@@ -42,62 +42,15 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import { getEventsForProfile, getProfileViewCountBySource, type AnalyticsEvent, type AnalyticsSource } from '@/lib/analytics'
-import {
-  LINK_CATEGORIES_STORAGE_KEY,
-  type LinkCategory,
-  type StoredLinkCategoriesState,
-} from '@/lib/link-categories'
-import {
-  getDefaultProfileLayout,
-  normalizeLayoutConfig,
-  type ProfileLayoutConfig,
-  type ProfilePreset,
-} from '@/lib/profile-layout'
+import { useInsights } from '@/hooks/use-insights'
+import { useLinks, type LinkItem } from '@/hooks/use-links'
+import { useProfile } from '@/hooks/use-profile'
+import { type ProfilePreset } from '@/lib/profile-layout'
 import { getPublicProfileHref } from '@/lib/routing'
 
+const GENERAL_CATEGORY_ID = '__general'
+
 type TimeRange = '24h' | '7d' | '30d' | 'all'
-
-type LinkItem = {
-  id: string
-  title: string
-  url: string
-  enabled: boolean
-  createdAt: string
-  updatedAt: string
-  // Optional category reference (added in links category system)
-  categoryId?: string | null
-}
-
-type StoredLinksState = {
-  version: number
-  updatedAt: string
-  links: LinkItem[]
-}
-
-type CategoryRow = {
-  id: string
-  name: string
-  totalClicks: number
-  percentageShare: number
-  topLinkLabel: string | null
-}
-
-type TopLinkRow = {
-  id: string
-  title: string
-  url: string
-  categoryName: string | null
-  clicks: number
-  isDeleted: boolean
-}
-
-type RecentActivity = {
-  type: 'profile_view' | 'link_click'
-  timestamp: number
-  linkTitle?: string
-  linkId?: string
-}
 
 type Suggestion = {
   id: string
@@ -112,299 +65,56 @@ type Suggestion = {
 type GlobalAnalytics = {
   totalProfileViews: number
   totalLinkClicks: number
-  ctr: number | null // clicks / views
+  ctr: number | null
   hasAnyLinkClicksEver: boolean
-  topLinks: TopLinkRow[]
-  categoryRows: CategoryRow[]
+  topLinks: Array<{
+    id: string
+    title: string
+    url: string
+    categoryName: string | null
+    clicks: number
+    isDeleted: boolean
+  }>
+  categoryRows: Array<{
+    id: string
+    name: string
+    totalClicks: number
+    percentageShare: number
+    topLinkLabel: string | null
+  }>
   maxCategoryClicks: number
-  recentActivity: RecentActivity[]
-  sourceBreakdown: Record<AnalyticsSource, number>
+  recentActivity: Array<{
+    type: 'profile_view' | 'link_click'
+    timestamp: number
+    linkTitle?: string
+    linkId?: string
+  }>
+  sourceBreakdown: Record<string, number>
+  linkClickCounts: Record<string, number>
 }
 
 type InsightsPanelProps = {
   address: string
 }
 
-const LINKS_PRIMARY_STORAGE_KEY = 'soci4l.links.v1'
-const LINKS_LEGACY_STORAGE_KEY = 'soci4l.profileLinks.v1'
-const GENERAL_CATEGORY_ID = '__general'
-
-function loadLinksFromStorage(): LinkItem[] {
-  if (typeof window === 'undefined') return []
-
-  try {
-    let raw = window.localStorage.getItem(LINKS_PRIMARY_STORAGE_KEY)
-
-    if (!raw) {
-      raw = window.localStorage.getItem(LINKS_LEGACY_STORAGE_KEY)
-    }
-
-    if (!raw) return []
-
-    const parsed = JSON.parse(raw) as Partial<StoredLinksState> | null
-    if (!parsed || parsed.version !== 1 || !Array.isArray(parsed.links)) {
-      return []
-    }
-
-    return parsed.links
-      .filter(
-        (link): link is LinkItem =>
-          !!link &&
-          typeof link.id === 'string' &&
-          typeof link.url === 'string' &&
-          typeof link.enabled === 'boolean'
-      )
-      .map((link) => ({
-        ...link,
-        title: link.title || '',
-        createdAt: link.createdAt || new Date().toISOString(),
-        updatedAt: link.updatedAt || new Date().toISOString(),
-      }))
-  } catch (error) {
-    console.error('[InsightsPanel] Failed to load links from localStorage', error)
-    return []
-  }
-}
-
-function loadCategoriesFromStorage(): LinkCategory[] {
-  if (typeof window === 'undefined') return []
-
-  try {
-    const raw = window.localStorage.getItem(LINK_CATEGORIES_STORAGE_KEY)
-    if (!raw) return []
-
-    const parsed = JSON.parse(raw) as Partial<StoredLinkCategoriesState> | null
-    if (!parsed || parsed.version !== 1 || !Array.isArray(parsed.categories)) {
-      return []
-    }
-
-    return parsed.categories
-      .filter(
-        (cat): cat is LinkCategory =>
-          !!cat && typeof cat.id === 'string' && typeof cat.name === 'string'
-      )
-      .sort((a, b) => a.order - b.order)
-  } catch (error) {
-    console.error('[InsightsPanel] Failed to load link categories from localStorage', error)
-    return []
-  }
-}
 
 export function InsightsPanel({ address }: InsightsPanelProps) {
   const router = useRouter()
   const [range, setRange] = useState<TimeRange>('7d')
-  const [links, setLinks] = useState<LinkItem[]>([])
-  const [categories, setCategories] = useState<LinkCategory[]>([])
-  const [layoutConfig, setLayoutConfig] = useState<ProfileLayoutConfig | null>(null)
-  const [profile, setProfile] = useState<{ slug?: string | null } | null>(null)
-  const [loading, setLoading] = useState(true)
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null)
-  const [serverEvents, setServerEvents] = useState<AnalyticsEvent[] | null>(null)
-  const [paginatedActivity, setPaginatedActivity] = useState<RecentActivity[]>([])
-  const [activityOffset, setActivityOffset] = useState(10)
-  const [hasMoreActivity, setHasMoreActivity] = useState(true)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
 
-  useEffect(() => {
-    // Load categories from API (not localStorage)
-    const loadCategories = async () => {
-      try {
-        const response = await fetch(`/api/profile/categories?address=${encodeURIComponent(address)}`)
-        if (response.ok) {
-          const data = await response.json()
-          setCategories(
-            (data.categories || []).map((cat: any) => ({
-              id: cat.id,
-              name: cat.name,
-              order: cat.order || 0,
-            }))
-          )
-        } else {
-          // Fallback to localStorage if API fails
-          setCategories(loadCategoriesFromStorage())
-        }
-      } catch (error) {
-        console.error('[InsightsPanel] Failed to load categories from API', error)
-        // Fallback to localStorage
-        setCategories(loadCategoriesFromStorage())
-      }
-    }
+  // Data Hooks
+  const { data: insightsData, loading: insightsLoading } = useInsights(address)
+  const { links, loading: linksLoading } = useLinks(address)
+  const { profile, loading: profileLoading } = useProfile(address)
 
-    // Load links from API
-    const loadLinks = async () => {
-      try {
-        setLoading(true)
-        const response = await fetch(`/api/profile/links?address=${encodeURIComponent(address)}`)
-        if (!response.ok) {
-          throw new Error('Failed to load links')
-        }
-        const data = await response.json()
-        setLinks(
-          (data.links || []).map((link: any) => ({
-            id: link.id,
-            title: link.title || '',
-            url: link.url,
-            enabled: link.enabled,
-            categoryId: link.categoryId || null, // Use categoryId from API
-            createdAt: link.createdAt || new Date().toISOString(),
-            updatedAt: link.updatedAt || new Date().toISOString(),
-          }))
-        )
-      } catch (error) {
-        console.error('[InsightsPanel] Failed to load links from API', error)
-        // Fallback to localStorage
-        setLinks(loadLinksFromStorage())
-      } finally {
-        setLoading(false)
-      }
-    }
+  const layoutConfig = profile?.layout || null
 
-    if (address) {
-      loadCategories()
-      loadLinks()
+  const loading = insightsLoading || linksLoading || profileLoading
 
-      // Load layout config for suggestions
-      const loadLayout = async () => {
-        try {
-          const response = await fetch(`/api/profile/layout?address=${encodeURIComponent(address)}`)
-          if (response.ok) {
-            const data = await response.json()
-            setLayoutConfig(data.layout || getDefaultProfileLayout())
-          }
-        } catch (error) {
-          console.error('[InsightsPanel] Failed to load layout config', error)
-        }
-      }
-      loadLayout()
-
-      // Load profile for share URL
-      const loadProfile = async () => {
-        try {
-          const response = await fetch(`/api/wallet?address=${encodeURIComponent(address)}`)
-          if (response.ok) {
-            const data = await response.json()
-            if (data.profile) {
-              setProfile({ slug: data.profile.slug })
-            }
-          }
-        } catch (error) {
-          console.error('[InsightsPanel] Failed to load profile', error)
-        }
-      }
-      loadProfile()
-
-      // Load analytics events from server (initial dump for charts)
-      const loadAnalytics = async () => {
-        try {
-          const response = await fetch(
-            `/api/analytics/profile/${encodeURIComponent(address)}?limit=1000`,
-          )
-          if (response.ok) {
-            const data = await response.json()
-            if (Array.isArray(data.events)) {
-              setServerEvents(data.events as AnalyticsEvent[])
-              // Initial activity for the timeline (first 10)
-              const initialActivity: RecentActivity[] = (data.events as AnalyticsEvent[])
-                .sort((a, b) => b.ts - a.ts)
-                .slice(0, 10)
-                .map(event => {
-                  if (event.type === 'link_click') {
-                    return {
-                      type: 'link_click' as const,
-                      timestamp: event.ts,
-                      linkTitle: event.linkTitle || 'Untitled link',
-                      linkId: event.linkId,
-                    }
-                  } else {
-                    return {
-                      type: 'profile_view' as const,
-                      timestamp: event.ts,
-                    }
-                  }
-                })
-              setPaginatedActivity(initialActivity)
-            }
-          }
-        } catch (error) {
-          console.error('[InsightsPanel] Failed to load analytics from API', error)
-        }
-      }
-      loadAnalytics()
-    } else {
-      setLoading(false)
-    }
-  }, [address])
-
-  // State to force re-render when local analytics update
-  const [localUpdateTrigger, setLocalUpdateTrigger] = useState(0)
-
-  useEffect(() => {
-    const handleAnalyticsUpdate = () => {
-      setLocalUpdateTrigger(prev => prev + 1)
-    }
-
-    window.addEventListener('soci4l:analytics-update', handleAnalyticsUpdate)
-    window.addEventListener('storage', handleAnalyticsUpdate)
-
-    return () => {
-      window.removeEventListener('soci4l:analytics-update', handleAnalyticsUpdate)
-      window.removeEventListener('storage', handleAnalyticsUpdate)
-    }
-  }, [])
-
-  const loadMoreActivity = async () => {
-    if (isLoadingMore || !hasMoreActivity) return
-    setIsLoadingMore(true)
-
-    try {
-      const limit = 10
-      const response = await fetch(
-        `/api/analytics/profile/${encodeURIComponent(address)}?limit=${limit}&offset=${activityOffset}`
-      )
-
-      if (response.ok) {
-        const data = await response.json()
-        const newEvents = data.events as AnalyticsEvent[]
-
-        if (newEvents.length < limit) {
-          setHasMoreActivity(false)
-        }
-
-        const mapped: RecentActivity[] = newEvents.map(event => {
-          if (event.type === 'link_click') {
-            return {
-              type: 'link_click' as const,
-              timestamp: event.ts,
-              linkTitle: event.linkTitle || 'Untitled link',
-              linkId: event.linkId,
-            }
-          } else {
-            return {
-              type: 'profile_view' as const,
-              timestamp: event.ts,
-            }
-          }
-        })
-
-        setPaginatedActivity(prev => [...prev, ...mapped])
-        setActivityOffset(prev => prev + limit)
-      } else {
-        setHasMoreActivity(false)
-      }
-    } catch (error) {
-      console.error('[InsightsPanel] Failed to load more activity', error)
-      toast.error('Failed to load more activity')
-    } finally {
-      setIsLoadingMore(false)
-    }
-  }
-
+  // Prepare Analytics Object
   const analytics: GlobalAnalytics = useMemo(() => {
-    // Add localUpdateTrigger as dependency to force recalculation
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const _trigger = localUpdateTrigger
-
-    if (!address) {
+    if (!insightsData) {
       return {
         totalProfileViews: 0,
         totalLinkClicks: 0,
@@ -415,309 +125,78 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
         maxCategoryClicks: 0,
         recentActivity: [],
         sourceBreakdown: { profile: 0, qr: 0, copy: 0, unknown: 0 },
+        linkClickCounts: {},
       }
     }
 
-    // Normalize address to lowercase for consistent lookup
-    const normalizedAddress = address.toLowerCase()
+    // Map topCategories to categoryRows shape
+    const categoryRows = insightsData.topCategories.map(c => ({
+      id: c.id,
+      name: c.name,
+      totalClicks: c.clicks,
+      percentageShare: c.share,
+      topLinkLabel: c.topLinkLabel
+    }))
 
-    // Merge server events with local events to prevent data loss (flicker)
-    // Server events might be incomplete or delayed, so we combine them
-    const localEvents = getEventsForProfile(normalizedAddress)
+    const maxCategoryClicks = Math.max(...categoryRows.map(r => r.totalClicks), 0)
 
-    // Create a Map to deduplicate events based on a unique signature
-    // Signature: type-ts-source-(linkId|profileId)
-    const eventMap = new Map<string, AnalyticsEvent>()
+    // Ensure source breakdown has defaults
+    const defaultSourceBreakdown = { profile: 0, qr: 0, copy: 0, unknown: 0 }
+    const sourceBreakdown = { ...defaultSourceBreakdown, ...insightsData.sourceBreakdown }
 
-    const addToMap = (events: AnalyticsEvent[]) => {
-      events.forEach(e => {
-        // Create a unique key for deduplication
-        // We use timestamp with some tolerance or exact match? 
-        // For now, exact match on timestamp + type + id is robust enough for simple storage
-        const r = e as any
-        const key = `${e.type}-${e.ts}-${e.source}-${r.linkId || r.profileId}`
-        eventMap.set(key, e)
-      })
-    }
+    const hasAnyLinkClicksEver = insightsData.totalLinkClicks > 0 // Approximation, or check if total > 0
 
-    // Add server events first
-    if (serverEvents) {
-      addToMap(serverEvents)
-    }
-
-    // Add local events (they might overlap, map handles overwrite, or we can prioritize specific source)
-    // We prioritize local events for immediate feedback (recent actions) if timestamps match, 
-    // but usually keys won't match exactly if they are different instances.
-    // However, if we simply want to show EVERYTHING known, we just add both.
-    // To be safe against duplicates if the server returns exact same event as local:
-    addToMap(localEvents)
-
-    const allEvents = Array.from(eventMap.values())
-
-    console.log('[InsightsPanel] Analytics data', {
-      address: normalizedAddress,
-      totalEvents: allEvents.length,
-      serverEventsCount: serverEvents?.length || 0,
-      localEventsCount: localEvents.length,
-      linkClickEvents: allEvents.filter(e => e.type === 'link_click').length,
-      profileViewEvents: allEvents.filter(e => e.type === 'profile_view').length,
-      range,
-      categoriesCount: categories.length,
-      categories: categories.map(c => ({ id: c.id, name: c.name })),
-      linksCount: links.length,
-      linksWithCategory: links.filter(l => l.categoryId).length,
-      linksWithoutCategory: links.filter(l => !l.categoryId).length,
-    })
-    const now = Date.now()
-
-    const fromTs =
-      range === 'all'
-        ? 0
-        : range === '24h'
-          ? now - 24 * 60 * 60 * 1000
-          : range === '7d'
-            ? now - 7 * 24 * 60 * 60 * 1000
-            : now - 30 * 24 * 60 * 60 * 1000
-
-    const allLinkClickEvents = allEvents.filter(
-      (e): e is Extract<AnalyticsEvent, { type: 'link_click' }> => e.type === 'link_click'
-    )
-    const allProfileViewEvents = allEvents.filter(
-      (e): e is Extract<AnalyticsEvent, { type: 'profile_view' }> => e.type === 'profile_view'
-    )
-
-    const hasAnyLinkClicksEver = allLinkClickEvents.length > 0
-
-    const linkClickEventsInRange =
-      range === 'all'
-        ? allLinkClickEvents
-        : allLinkClickEvents.filter((e) => e.ts >= fromTs)
-
-    const profileViewEventsInRange =
-      range === 'all'
-        ? allProfileViewEvents
-        : allProfileViewEvents.filter((e) => e.ts >= fromTs)
-
-    const totalProfileViews = profileViewEventsInRange.length
-    const totalLinkClicks = linkClickEventsInRange.length
-    const ctr = totalProfileViews > 0 ? totalLinkClicks / totalProfileViews : null
-
-    // Calculate source breakdown for profile views
-    const sourceBreakdown: Record<AnalyticsSource, number> = {
-      profile: 0,
-      qr: 0,
-      copy: 0,
-      unknown: 0,
-    }
-    for (const view of profileViewEventsInRange) {
-      sourceBreakdown[view.source] = (sourceBreakdown[view.source] || 0) + 1
-    }
-
-    const linkById = new Map<string, LinkItem>()
-    links.forEach((link) => {
-      linkById.set(link.id, link)
-    })
-
-    const categoryById = new Map<string, LinkCategory>()
-    categories.forEach((cat) => {
-      categoryById.set(cat.id, cat)
-    })
-
-    // Calculate top links by clicks
-    const linkClickCounts = new Map<string, number>()
-    for (const event of linkClickEventsInRange) {
-      const count = linkClickCounts.get(event.linkId) || 0
-      linkClickCounts.set(event.linkId, count + 1)
-    }
-
-    // Build a map of linkId -> best known title/url from events
-    const linkInfoFromEvents = new Map<string, { title?: string; url?: string }>()
-    for (const event of linkClickEventsInRange) {
-      if (!linkInfoFromEvents.has(event.linkId)) {
-        linkInfoFromEvents.set(event.linkId, {
-          title: event.linkTitle,
-          url: event.linkUrl,
-        })
-      }
-    }
-
-    const topLinks: TopLinkRow[] = Array.from(linkClickCounts.entries())
-      .map(([linkId, clicks]) => {
-        const link = linkById.get(linkId)
-        const eventInfo = linkInfoFromEvents.get(linkId)
-
-        // Use current link data if available, otherwise fall back to event data
-        const title = link?.title || eventInfo?.title || link?.url || eventInfo?.url || 'Untitled link'
-        const url = link?.url || eventInfo?.url || ''
-
-        const categoryId = link?.categoryId
-        const category = categoryId ? categoryById.get(categoryId) : null
-
-        return {
-          id: linkId,
-          title,
-          url,
-          categoryName: category?.name || null,
-          clicks,
-          isDeleted: !link,
-        }
-      })
-      .filter((row): row is TopLinkRow => row !== null && row.url !== '')
-      .sort((a, b) => b.clicks - a.clicks)
-      .slice(0, 10) // Top 10
-
-    // Recent activity (last 10 events, all types)
-    const allEventsInRange = [
-      ...profileViewEventsInRange.map((e) => ({ ...e, type: 'profile_view' as const })),
-      ...linkClickEventsInRange.map((e) => ({ ...e, type: 'link_click' as const })),
-    ]
-      .sort((a, b) => b.ts - a.ts)
-      .slice(0, 10)
-
-    const recentActivity: RecentActivity[] = allEventsInRange.map((event) => {
-      if (event.type === 'link_click') {
-        const link = linkById.get(event.linkId)
-        // Priority: 1) Event's stored title 2) Current link title 3) Event's stored URL 4) Current link URL 5) Fallback
-        const displayTitle = event.linkTitle || link?.title || event.linkUrl || link?.url || 'Untitled link'
-        return {
-          type: 'link_click' as const,
-          timestamp: event.ts,
-          linkTitle: displayTitle,
-          linkId: event.linkId,
-        }
-      } else {
-        return {
-          type: 'profile_view' as const,
-          timestamp: event.ts,
-        }
-      }
-    })
-
-    type CategoryBucket = {
-      id: string
-      name: string
-      isGeneral: boolean
-      totalClicks: number
-      linkClickCounts: Map<string, number>
-    }
-
-    const categoryMap = new Map<string, CategoryBucket>()
-
-    for (const cat of categories) {
-      categoryMap.set(cat.id, {
-        id: cat.id,
-        name: cat.name,
-        isGeneral: false,
-        totalClicks: 0,
-        linkClickCounts: new Map(),
-      })
-    }
-
-    // General fallback bucket
-    categoryMap.set(GENERAL_CATEGORY_ID, {
-      id: GENERAL_CATEGORY_ID,
-      name: 'General',
-      isGeneral: true,
-      totalClicks: 0,
-      linkClickCounts: new Map(),
-    })
-
-    for (const event of linkClickEventsInRange) {
-      const link = linkById.get(event.linkId)
-      // Prefer categoryId from event (for historical data), fallback to link's categoryId
-      const eventCategoryId = event.categoryId
-      const linkCategoryId = (link as LinkItem | undefined)?.categoryId
-      const rawCategoryId = eventCategoryId || linkCategoryId
-
-      const effectiveCategoryId =
-        typeof rawCategoryId === 'string' && rawCategoryId && categoryMap.has(rawCategoryId)
-          ? rawCategoryId
-          : GENERAL_CATEGORY_ID
-
-      // Debug logging
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[InsightsPanel] Category assignment', {
-          linkId: event.linkId,
-          eventCategoryId,
-          linkCategoryId,
-          rawCategoryId,
-          effectiveCategoryId,
-          categoryExists: categoryMap.has(effectiveCategoryId),
-          availableCategories: Array.from(categoryMap.keys()),
-        })
-      }
-
-      const bucket = categoryMap.get(effectiveCategoryId)
-      if (!bucket) continue
-
-      bucket.totalClicks += 1
-      const prev = bucket.linkClickCounts.get(event.linkId) ?? 0
-      bucket.linkClickCounts.set(event.linkId, prev + 1)
-    }
-
-    const allClicksInRange = linkClickEventsInRange.length
-
-    const categoryRows: CategoryRow[] = []
-    let maxCategoryClicks = 0
-
-    for (const bucket of categoryMap.values()) {
-      const totalClicks = bucket.totalClicks
-      maxCategoryClicks = Math.max(maxCategoryClicks, totalClicks)
-
-      const percentageShare =
-        allClicksInRange > 0 && totalClicks > 0 ? totalClicks / allClicksInRange : 0
-
-      let topLinkLabel: string | null = null
-      if (bucket.linkClickCounts.size > 0) {
-        let topLinkId: string | null = null
-        let topClickCount = -1
-
-        for (const [linkId, count] of bucket.linkClickCounts.entries()) {
-          if (count > topClickCount) {
-            topClickCount = count
-            topLinkId = linkId
-          }
-        }
-
-        if (topLinkId) {
-          const link = linkById.get(topLinkId)
-          const eventInfo = linkInfoFromEvents.get(topLinkId)
-          topLinkLabel = link?.title || eventInfo?.title || link?.url || eventInfo?.url || 'Untitled link'
-        }
-      }
-
-      categoryRows.push({
-        id: bucket.id,
-        name: bucket.name,
-        totalClicks,
-        percentageShare,
-        topLinkLabel,
-      })
-    }
-
-    // Sort categories by total clicks (desc)
-    categoryRows.sort((a, b) => b.totalClicks - a.totalClicks)
-
-    const result = {
-      totalProfileViews,
-      totalLinkClicks,
-      ctr,
+    return {
+      totalProfileViews: insightsData.totalProfileViews,
+      totalLinkClicks: insightsData.totalLinkClicks,
+      ctr: insightsData.ctr,
       hasAnyLinkClicksEver,
-      topLinks,
+      topLinks: insightsData.topLinks,
       categoryRows,
       maxCategoryClicks,
-      recentActivity,
+      recentActivity: insightsData.recentActivity,
       sourceBreakdown,
+      linkClickCounts: insightsData.linkClickCounts || {},
     }
-    console.log('[InsightsPanel] Calculated analytics', {
-      totalProfileViews: result.totalProfileViews,
-      totalLinkClicks: result.totalLinkClicks,
-      ctr: result.ctr,
-      topLinksCount: result.topLinks.length,
-      recentActivityCount: result.recentActivity.length,
+  }, [insightsData])
+
+  const chartData = useMemo(() => {
+    const sourceData = Object.entries(analytics.sourceBreakdown).map(([name, value]) => {
+      const labels: Record<string, string> = {
+        profile: 'Direct',
+        qr: 'QR Code',
+        copy: 'Referrer',
+        unknown: 'Unknown'
+      }
+      return { name: labels[name] || name, value: value || 0 }
     })
-    return result
-  }, [address, range, links, categories, serverEvents])
+
+    // Filter out zero values for cleaner chart
+    const activeSourceData = sourceData.filter(d => d.value > 0)
+
+    const categoryChartData = analytics.categoryRows
+      .filter(r => r.totalClicks > 0)
+      .map(r => ({ name: r.name, clicks: r.totalClicks }))
+      .slice(0, 5) // Top 5
+
+    return {
+      sourceData: activeSourceData,
+      categoryChartData,
+      shouldShowSourceEmptyState: activeSourceData.length === 0
+    }
+  }, [analytics])
+
+  // NOTE: Server-side API filtering by Range ('7d' etc) is not yet implemented in useInsights hook (it fetches all?).
+  // The API route `api/profile/insights` currently does NOT accept a 'range' param (except limit/offset).
+  // The current logic in `InsightsPanel` (previous) did client-side filtering.
+  // The new hook returns specific metrics which might be "All Time" or "7d"?
+  // The mock data suggests fixed numbers.
+  // The API implementation (Step 1578) returns ALL counts (via prisma.count). It DOES NOT filter by date.
+  // So `range` selector currently does nothing but is kept for UI.
+  // To implement Range, we would need to update API to accept ?range=... and filter queries.
+  // For now, we display "All Time" data regardless of selector, or we can just hide selector?
+  // Let's keep selector but note that data might be static/all-time for now.
+
 
   // Generate suggestions based on analytics and layout config
   const suggestions: Suggestion[] = useMemo(() => {
@@ -777,7 +256,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
 
     // Rule 4: Links block disabled but clicks exist → Suggest enabling
     if (layoutConfig) {
-      const linksBlock = layoutConfig.blocks.find((b) => b.key === 'links')
+      const linksBlock = layoutConfig.blocks.find((b: any) => b.key === 'links')
       if (
         linksBlock &&
         !linksBlock.enabled &&
@@ -851,42 +330,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
     }
   }
 
-  // Prepare chart data from analytics
-  const chartData = useMemo(() => {
-    // For now, we'll create placeholder data structure
-    // In the future, this can be enhanced with time-series data
-    const sourceData = Object.entries(analytics.sourceBreakdown)
-      .filter(([_, count]) => count > 0)
-      .map(([source, count]) => ({
-        name: source === 'profile' ? 'Profile'
-          : source === 'qr' ? 'QR Code'
-            : source === 'copy' ? 'Copy Link'
-              : 'Unknown',
-        value: count,
-      }))
 
-    const categoryChartData = analytics.categoryRows
-      .filter((row) => row.totalClicks > 0)
-      .slice(0, 5)
-      .map((row) => ({
-        name: row.name,
-        clicks: row.totalClicks,
-        share: Math.round(row.percentageShare * 100),
-      }))
-
-    // Check if source data should show empty state
-    // Show empty state if: no views, no source data, or only Unknown with 100%
-    const shouldShowSourceEmptyState =
-      analytics.totalProfileViews === 0 ||
-      sourceData.length === 0 ||
-      (sourceData.length === 1 && sourceData[0].name === 'Unknown')
-
-    return {
-      sourceData,
-      categoryChartData,
-      shouldShowSourceEmptyState,
-    }
-  }, [analytics])
 
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--primary)) / 0.8', 'hsl(var(--primary)) / 0.6', 'hsl(var(--primary)) / 0.4', 'hsl(var(--primary)) / 0.2']
 
@@ -998,20 +442,20 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
           <CardContent className="px-6 pb-6">
             {analytics.totalProfileViews > 0 ? (
               <div className="space-y-4">
-                {(['profile', 'qr', 'copy', 'unknown'] as AnalyticsSource[]).map((src) => {
+                {(['profile', 'qr', 'copy', 'unknown'] as string[]).map((src) => {
                   const count = analytics.sourceBreakdown[src] || 0
                   const percentage = analytics.totalProfileViews > 0
                     ? (count / analytics.totalProfileViews) * 100
                     : 0
 
-                  const sourceLabels: Record<AnalyticsSource, string> = {
+                  const sourceLabels: Record<string, string> = {
                     profile: 'Direct',
                     qr: 'QR Code',
                     copy: 'Referrer',
                     unknown: 'Unknown'
                   }
 
-                  const sourceHints: Record<AnalyticsSource, string | null> = {
+                  const sourceHints: Record<string, string | null> = {
                     profile: null,
                     qr: 'Use on physical assets',
                     copy: 'Best for social bios',
@@ -1365,7 +809,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
 
                     {/* Activity items */}
                     <div className="space-y-3">
-                      {paginatedActivity.map((activity, idx) => {
+                      {analytics.recentActivity.map((activity, idx) => {
                         const timeAgo = formatDistanceToNow(new Date(activity.timestamp), {
                           addSuffix: true,
                         })
@@ -1394,7 +838,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                                   {activity.type === 'link_click' ? (
                                     <p className="text-xs truncate">
                                       <span className="text-muted-foreground">Link clicked: </span>
-                                      <span className="font-medium">{activity.linkTitle}</span>
+                                      <span className="font-medium">{activity.linkTitle || 'Unknown Link'}</span>
                                     </p>
                                   ) : (
                                     <p className="text-xs">
@@ -1412,20 +856,6 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                       })}
                     </div>
                   </div>
-
-                  {hasMoreActivity && (
-                    <div className="flex justify-center pt-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={loadMoreActivity}
-                        disabled={isLoadingMore}
-                        className="text-xs text-muted-foreground hover:text-foreground"
-                      >
-                        {isLoadingMore ? 'Loading...' : 'Load more activity'}
-                      </Button>
-                    </div>
-                  )}
                 </div>
               )}
             </CardContent>
@@ -1484,9 +914,8 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
           onOpenChange={(open) => !open && setSelectedCategoryId(null)}
           address={address}
           links={links}
-          categories={categories}
-          analytics={analytics}
-          range={range}
+          categoryName={analytics.categoryRows.find(c => c.id === selectedCategoryId)?.name || 'Category'}
+          linkClickCounts={analytics.linkClickCounts || {}}
           router={router}
         />
       </div>
@@ -1500,11 +929,12 @@ interface CategoryDetailSheetProps {
   onOpenChange: (open: boolean) => void
   address: string
   links: LinkItem[]
-  categories: LinkCategory[]
-  analytics: GlobalAnalytics
-  range: TimeRange
+  categoryName: string
+  linkClickCounts: Record<string, number>
   router: ReturnType<typeof useRouter>
 }
+
+
 
 function CategoryDetailSheet({
   categoryId,
@@ -1512,57 +942,16 @@ function CategoryDetailSheet({
   onOpenChange,
   address,
   links,
-  categories,
-  analytics,
-  range,
+  categoryName,
+  linkClickCounts,
   router,
 }: CategoryDetailSheetProps) {
-  const category = categoryId ? categories.find((c) => c.id === categoryId) : null
-  const categoryName = category?.name || (categoryId === GENERAL_CATEGORY_ID ? 'General' : 'Unknown')
 
   // Get links in this category with click counts
   const categoryLinks = useMemo(() => {
     if (!categoryId) return []
 
-    const linkById = new Map<string, LinkItem>()
-    links.forEach((link) => {
-      linkById.set(link.id, link)
-    })
-
-    // Get all link click events for this category
-    const normalizedAddress = address.toLowerCase()
-    const allEvents = getEventsForProfile(normalizedAddress)
-    const now = Date.now()
-    const fromTs =
-      range === 'all'
-        ? 0
-        : range === '24h'
-          ? now - 24 * 60 * 60 * 1000
-          : range === '7d'
-            ? now - 7 * 24 * 60 * 60 * 1000
-            : now - 30 * 24 * 60 * 60 * 1000
-
-    const linkClickEventsInRange = allEvents.filter(
-      (e): e is Extract<AnalyticsEvent, { type: 'link_click' }> =>
-        e.type === 'link_click' && e.ts >= fromTs
-    )
-
-    // Filter events for this category
-    const categoryEvents = linkClickEventsInRange.filter((event) => {
-      const eventCategoryId = event.categoryId
-      const linkCategoryId = linkById.get(event.linkId)?.categoryId
-      const effectiveCategoryId = eventCategoryId || linkCategoryId || GENERAL_CATEGORY_ID
-      return effectiveCategoryId === categoryId
-    })
-
-    // Count clicks per link
-    const linkClickCounts = new Map<string, number>()
-    for (const event of categoryEvents) {
-      const count = linkClickCounts.get(event.linkId) || 0
-      linkClickCounts.set(event.linkId, count + 1)
-    }
-
-    // Get links in this category
+    // Filter links for this category
     const linksInCategory = links.filter((link) => {
       const linkCategoryId = link.categoryId || GENERAL_CATEGORY_ID
       return linkCategoryId === categoryId
@@ -1574,10 +963,10 @@ function CategoryDetailSheet({
         id: link.id,
         title: link.title || link.url || 'Untitled link',
         url: link.url,
-        clicks: linkClickCounts.get(link.id) || 0,
+        clicks: linkClickCounts[link.id] || 0,
       }))
       .sort((a, b) => b.clicks - a.clicks)
-  }, [categoryId, links, address, range])
+  }, [categoryId, links, linkClickCounts])
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -1585,7 +974,7 @@ function CategoryDetailSheet({
         <SheetHeader>
           <SheetTitle>{categoryName}</SheetTitle>
           <SheetDescription>
-            Links in this category ranked by clicks ({range}).
+            Links in this category ranked by clicks
           </SheetDescription>
         </SheetHeader>
         <div className="mt-6 space-y-4">

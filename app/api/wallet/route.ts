@@ -105,6 +105,7 @@ export async function GET(request: NextRequest) {
       id: true,
       layoutConfig: true,
       appearanceConfig: true,
+      showcase: true,
     },
   })
 
@@ -338,6 +339,7 @@ export async function GET(request: NextRequest) {
             return null
           }
         })() : null,
+        showcase: fullProfile?.showcase || [],
       } : null,
       links: profileLinks,
       categories: categories || [],

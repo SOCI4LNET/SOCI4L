@@ -15,6 +15,29 @@ export interface DemoProfile {
     statusMessage?: string | null
     socialLinks?: Array<{ id: string; platform: string; url: string; label?: string; category?: 'Social' | 'Portfolio' | 'Contact' | 'Other' }> | null
     theme?: string
+    showcase?: Array<{ contractAddress: string; tokenId: string }>
+    customLinks?: Array<{
+        id: string
+        title: string
+        url: string
+        enabled: boolean
+        categoryId?: string | null
+        order?: number
+        createdAt: string
+        updatedAt: string
+    }> | null
+    linkCategories?: Array<{
+        id: string
+        name: string
+        slug: string
+        description?: string | null
+        order: number
+        isVisible: boolean
+        isDefault: boolean
+        linkCount?: number
+        createdAt: string
+        updatedAt: string
+    }> | null
 }
 
 export interface DemoWalletData {

@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { useAccount } from 'wagmi'
 import { useParams, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 import {
   DndContext,
@@ -29,8 +30,6 @@ import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { CSS } from '@dnd-kit/utilities'
 import { GripVertical, Link2, Plus, Pencil, Trash2, ExternalLink, BarChart2, Github, Linkedin, Globe, Youtube, Eye, EyeOff, ArrowUp, ArrowDown, Folder, ChevronDown, ChevronRight, MoreVertical, Loader2, Instagram } from 'lucide-react'
 import { XIcon } from '@/components/icons/x-icon'
-import { useRouter } from 'next/navigation'
-import { useSignMessage } from 'wagmi'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 import { PageShell } from '@/components/app-shell/page-shell'
@@ -69,29 +68,7 @@ import {
 import { toast } from 'sonner'
 import { useTransaction } from '@/components/providers/transaction-provider'
 
-type LinkItem = {
-  id: string
-  title: string
-  url: string
-  enabled: boolean
-  categoryId?: string | null
-  order?: number
-  createdAt: string
-  updatedAt: string
-}
-
-type LinkCategory = {
-  id: string
-  name: string
-  slug: string
-  description?: string | null
-  order: number
-  isVisible: boolean
-  isDefault: boolean
-  linkCount?: number
-  createdAt: string
-  updatedAt: string
-}
+import { useLinks, LinkItem, LinkCategory } from '@/hooks/use-links'
 
 type SocialLinkPlatform = 'website' | 'x' | 'instagram' | 'github' | 'youtube' | 'linkedin'
 
@@ -101,16 +78,6 @@ interface SocialLink {
   url: string
   label?: string
 }
-
-type StoredLinksState = {
-  version: number
-  updatedAt: string
-  links: LinkItem[]
-}
-
-const PRIMARY_STORAGE_KEY = 'soci4l.links.v1'
-const LEGACY_STORAGE_KEY = 'soci4l.profileLinks.v1'
-
 
 // =============================================================================
 // DRAG & DROP COMPONENTS
@@ -490,24 +457,46 @@ function CategoryBlock({
 }
 
 
-export function LinksPanel() {
+export function LinksPanel({ targetAddress: propTargetAddress }: { targetAddress?: string }) {
   const params = useParams()
   const searchParams = useSearchParams()
   const { address: connectedAddress } = useAccount()
-  const { signMessageAsync } = useSignMessage()
-  const { showTransactionLoader, hideTransactionLoader } = useTransaction()
   const linksListRef = useRef<HTMLDivElement>(null)
-  const [links, setLinks] = useState<LinkItem[]>([])
-  const [categories, setCategories] = useState<LinkCategory[]>([])
+
+  // Determine target address
+  const targetAddress = propTargetAddress?.toLowerCase() || (params.address as string)?.toLowerCase() || connectedAddress?.toLowerCase() || ''
+
+  // Use the hook
+  const {
+    links,
+    categories,
+    loading,
+    socialLinks,
+    createLink,
+    updateLink,
+    deleteLink,
+    saveLinks,
+    createCategory,
+    updateCategory,
+    deleteCategory,
+    saveCategories,
+    saveSocialLinks,
+    isReadOnly
+  } = useLinks(targetAddress)
+
+  const categoriesLoading = loading
+  const socialLinksLoading = loading
+  const socialLinksSaving = loading
+  const saving = loading
+  const categoriesSaving = loading
+
+  // Local UI State
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingLink, setEditingLink] = useState<LinkItem | null>(null)
   const [formTitle, setFormTitle] = useState('')
   const [formUrl, setFormUrl] = useState('')
   const [formCategoryId, setFormCategoryId] = useState<string>('')
-  const [loading, setLoading] = useState(true)
-  const [categoriesLoading, setCategoriesLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [categoriesSaving, setCategoriesSaving] = useState(false)
+
   const [highlightedLinkId, setHighlightedLinkId] = useState<string | null>(null)
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set())
   const [activeId, setActiveId] = useState<string | null>(null)
@@ -519,56 +508,35 @@ export function LinksPanel() {
   const [categoryFormDescription, setCategoryFormDescription] = useState('')
 
   // Social Links state
-  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([])
-  const [socialLinksLoading, setSocialLinksLoading] = useState(true)
-  const [socialLinksSaving, setSocialLinksSaving] = useState(false)
   const [socialDialogOpen, setSocialDialogOpen] = useState(false)
   const [editingSocialLink, setEditingSocialLink] = useState<SocialLink | null>(null)
   const [newSocialPlatform, setNewSocialPlatform] = useState<SocialLinkPlatform>('website')
   const [newSocialUrl, setNewSocialUrl] = useState('')
   const [newSocialLabel, setNewSocialLabel] = useState('')
 
-  // Get target address from route params or connected wallet
-  const targetAddress = (params.address as string)?.toLowerCase() || connectedAddress?.toLowerCase() || ''
-
   // Helper functions for social links
   const getSocialIcon = (platform: SocialLinkPlatform) => {
     switch (platform) {
-      case 'x':
-        return <XIcon className="h-4 w-4" />
-      case 'github':
-        return <Github className="h-4 w-4" />
-      case 'youtube':
-        return <Youtube className="h-4 w-4" />
-      case 'linkedin':
-        return <Linkedin className="h-4 w-4" />
-      case 'instagram':
-        return <Instagram className="h-4 w-4" />
-      case 'website':
-      default:
-        return <Globe className="h-4 w-4" />
+      case 'x': return <XIcon className="h-4 w-4" />
+      case 'github': return <Github className="h-4 w-4" />
+      case 'youtube': return <Youtube className="h-4 w-4" />
+      case 'linkedin': return <Linkedin className="h-4 w-4" />
+      case 'instagram': return <Instagram className="h-4 w-4" />
+      case 'website': default: return <Globe className="h-4 w-4" />
     }
   }
 
   const getSocialLabel = (platform: SocialLinkPlatform) => {
     switch (platform) {
-      case 'x':
-        return 'X'
-      case 'github':
-        return 'GitHub'
-      case 'youtube':
-        return 'YouTube'
-      case 'linkedin':
-        return 'LinkedIn'
-      case 'instagram':
-        return 'Instagram'
-      case 'website':
-      default:
-        return 'Website'
+      case 'x': return 'X'
+      case 'github': return 'GitHub'
+      case 'youtube': return 'YouTube'
+      case 'linkedin': return 'LinkedIn'
+      case 'instagram': return 'Instagram'
+      case 'website': default: return 'Website'
     }
   }
 
-  // Fixed order for social links
   const SOCIAL_LINK_ORDER: SocialLinkPlatform[] = ['website', 'x', 'instagram', 'github', 'youtube', 'linkedin']
 
   const sortSocialLinks = (links: SocialLink[]): SocialLink[] => {
@@ -582,29 +550,52 @@ export function LinksPanel() {
     })
   }
 
-  // Handle query params for deep linking from Insights
+  // Handle query params for deep linking
   useEffect(() => {
     const linkId = searchParams.get('link')
-    const categoryId = searchParams.get('category')
-
     if (linkId && linksListRef.current) {
       setHighlightedLinkId(linkId)
-      // Scroll to links list
       setTimeout(() => {
         linksListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }, 300)
-      // Clear highlight after 3 seconds
       setTimeout(() => setHighlightedLinkId(null), 3000)
     }
+  }, [searchParams])
 
-    if (categoryId) {
-      // Category highlighting can be added later if needed
-      // For now, just scroll to links list
-      setTimeout(() => {
-        linksListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }, 300)
-    }
-  }, [searchParams, links])
+  // Group links by category - memoized
+  const linksByCategory = useMemo(() => {
+    const grouped = new Map<string | null, LinkItem[]>()
+    categories.forEach(cat => grouped.set(cat.id, []))
+    grouped.set(null, [])
+    links.forEach(link => {
+      const categoryId = link.categoryId || null
+      if (!grouped.has(categoryId)) grouped.set(categoryId, [])
+      grouped.get(categoryId)!.push(link)
+    })
+    // Sort links within each category
+    grouped.forEach((linkList) => {
+      linkList.sort((a, b) => (a.order || 0) - (b.order || 0))
+    })
+    return grouped
+  }, [categories, links])
+
+  // Get sorted categories
+  const sortedCategories = useMemo(() => {
+    return [...categories].sort((a, b) => (a.order || 0) - (b.order || 0))
+  }, [categories])
+
+  const getCategoryLinkCount = (categoryId: string | null) => {
+    return linksByCategory.get(categoryId)?.length || 0
+  }
+
+  const toggleCategoryCollapse = (categoryId: string) => {
+    setCollapsedCategories(prev => {
+      const next = new Set(prev)
+      if (next.has(categoryId)) next.delete(categoryId)
+      else next.add(categoryId)
+      return next
+    })
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -617,402 +608,6 @@ export function LinksPanel() {
     })
   )
 
-  // Load categories from API
-  useEffect(() => {
-    if (!targetAddress) {
-      setCategoriesLoading(false)
-      return
-    }
-
-    const loadCategories = async () => {
-      try {
-        setCategoriesLoading(true)
-        const response = await fetch(`/api/profile/categories?address=${encodeURIComponent(targetAddress)}`)
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-          throw new Error(errorData.error || `HTTP ${response.status}: Failed to load categories`)
-        }
-
-        const data = await response.json()
-
-        if (data.error) {
-          throw new Error(data.error)
-        }
-
-        const loadedCategories = (data.categories || []).map((cat: any) => ({
-          id: cat.id,
-          name: cat.name,
-          slug: cat.slug,
-          description: cat.description || null,
-          order: cat.order || 0,
-          isVisible: cat.isVisible ?? true,
-          isDefault: cat.isDefault ?? false,
-          linkCount: cat.linkCount || 0,
-          createdAt: cat.createdAt || new Date().toISOString(),
-          updatedAt: cat.updatedAt || new Date().toISOString(),
-        }))
-
-        setCategories(loadedCategories)
-
-        // If no categories exist, create default "General" category
-        if (loadedCategories.length === 0) {
-          await saveCategories([{
-            name: 'General',
-            slug: 'general',
-            description: null,
-            order: 0,
-            isVisible: true,
-            isDefault: true,
-          }])
-        }
-      } catch (error) {
-        console.error('[LinksPanel] Failed to load categories from API', error)
-        // Don't show error toast for empty categories
-        setCategories([])
-      } finally {
-        setCategoriesLoading(false)
-      }
-    }
-
-    loadCategories()
-  }, [targetAddress])
-
-  // Load links from API
-  useEffect(() => {
-    if (!targetAddress) {
-      setLoading(false)
-      return
-    }
-
-    const loadLinks = async () => {
-      try {
-        setLoading(true)
-        const response = await fetch(`/api/profile/links?address=${encodeURIComponent(targetAddress)}`)
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-          throw new Error(errorData.error || `HTTP ${response.status}: Failed to load links`)
-        }
-
-        const data = await response.json()
-
-        // Check if response has an error field
-        if (data.error) {
-          throw new Error(data.error)
-        }
-
-        setLinks(
-          (data.links || []).map((link: any) => ({
-            id: link.id,
-            title: link.title || '',
-            url: link.url,
-            enabled: link.enabled,
-            categoryId: link.categoryId || null,
-            order: link.order || 0,
-            createdAt: link.createdAt || new Date().toISOString(),
-            updatedAt: link.updatedAt || new Date().toISOString(),
-          }))
-        )
-      } catch (error) {
-        console.error('[LinksPanel] Failed to load links from API', error)
-        toast.error('Failed to load links. Please refresh the page.')
-        // Set empty links array on error to prevent UI blocking
-        setLinks([])
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadLinks()
-  }, [targetAddress])
-
-  // Load social links from API
-  useEffect(() => {
-    if (!targetAddress) {
-      setSocialLinksLoading(false)
-      return
-    }
-
-    const loadSocialLinks = async () => {
-      try {
-        setSocialLinksLoading(true)
-        const response = await fetch(`/api/wallet?address=${encodeURIComponent(targetAddress)}`)
-
-        if (!response.ok) {
-          throw new Error('Failed to load profile')
-        }
-
-        const data = await response.json()
-        const links = data.profile?.socialLinks || []
-        setSocialLinks(links.map((link: any) => ({
-          id: link.id || crypto.randomUUID(),
-          platform: (link.platform || link.type || 'website') as SocialLinkPlatform,
-          url: link.url || '',
-          label: link.label || '',
-        })))
-      } catch (error) {
-        console.error('[LinksPanel] Failed to load social links', error)
-        setSocialLinks([])
-      } finally {
-        setSocialLinksLoading(false)
-      }
-    }
-
-    loadSocialLinks()
-  }, [targetAddress])
-
-  // Save social links
-  const saveSocialLinks = async (linksToSave: SocialLink[]) => {
-    if (!targetAddress) {
-      toast.error('Wallet connection not found')
-      return false
-    }
-
-    try {
-      setSocialLinksSaving(true)
-
-      // Step 1: Get nonce
-      const nonceResponse = await fetch('/api/auth/nonce')
-      if (!nonceResponse.ok) {
-        throw new Error('Failed to get nonce')
-      }
-      const { nonce } = await nonceResponse.json()
-
-      // Step 2: Sign message (must match API's expected format)
-      showTransactionLoader("Confirm in Wallet...")
-      const message = `Update social profile for ${targetAddress}. Nonce: ${nonce}`
-      const signature = await signMessageAsync({ message })
-
-      showTransactionLoader("Saving social links...")
-
-      // Step 3: Update profile
-      const response = await fetch('/api/profile/social', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          address: targetAddress,
-          socialLinks: linksToSave.length > 0 ? linksToSave : null,
-          signature,
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-        throw new Error(errorData.error || `HTTP ${response.status}: Failed to save social links`)
-      }
-
-      const data = await response.json()
-
-      if (data.error) {
-        throw new Error(data.error)
-      }
-
-      const savedLinks = data.profile?.socialLinks || []
-      setSocialLinks(savedLinks.map((link: any) => ({
-        id: link.id || crypto.randomUUID(),
-        platform: (link.platform || link.type || 'website') as SocialLinkPlatform,
-        url: link.url || '',
-        label: link.label || '',
-      })))
-      return true
-    } catch (error: any) {
-      console.error('[LinksPanel] Failed to save social links', error)
-      if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
-        toast.error('Transaction rejected')
-      } else {
-        toast.error('Failed to save social links. Please try again.')
-      }
-      return false
-    } finally {
-      setSocialLinksSaving(false)
-      hideTransactionLoader()
-    }
-  }
-
-  const saveCategories = async (categoriesToSave: (Omit<LinkCategory, 'id' | 'createdAt' | 'updatedAt' | 'linkCount'> & { id?: string })[]) => {
-    if (!targetAddress) {
-      toast.error('Wallet connection not found')
-      return false
-    }
-
-    try {
-      setCategoriesSaving(true)
-      const response = await fetch('/api/profile/categories', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          address: targetAddress,
-          categories: categoriesToSave.map((cat: Omit<LinkCategory, 'id' | 'createdAt' | 'updatedAt' | 'linkCount'> & { id?: string }, index) => ({
-            id: cat.id || undefined,
-            name: cat.name,
-            slug: cat.slug,
-            description: cat.description || null,
-            order: cat.order !== undefined ? cat.order : index,
-            isVisible: cat.isVisible !== undefined ? cat.isVisible : true,
-            isDefault: cat.isDefault || false,
-          })),
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-        throw new Error(errorData.error || `HTTP ${response.status}: Failed to save categories`)
-      }
-
-      const data = await response.json()
-
-      if (data.error) {
-        throw new Error(data.error)
-      }
-
-      setCategories(
-        (data.categories || []).map((cat: any) => ({
-          id: cat.id,
-          name: cat.name,
-          slug: cat.slug,
-          description: cat.description || null,
-          order: cat.order ?? 0,
-          isVisible: cat.isVisible ?? true,
-          isDefault: cat.isDefault ?? false,
-          linkCount: cat.linkCount || 0,
-          createdAt: cat.createdAt || new Date().toISOString(),
-          updatedAt: cat.updatedAt || new Date().toISOString(),
-        }))
-      )
-      return true
-    } catch (error) {
-      console.error('[LinksPanel] Failed to save categories', error)
-      toast.error('Failed to save categories. Please try again.')
-      return false
-    } finally {
-      setCategoriesSaving(false)
-    }
-  }
-
-  const saveLinks = async (linksToSave: LinkItem[]) => {
-    if (!targetAddress) {
-      toast.error('Wallet connection not found')
-      return false
-    }
-
-    try {
-      setSaving(true)
-      const response = await fetch('/api/profile/links', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          address: targetAddress,
-          links: linksToSave.map((link, index) => ({
-            id: link.id,
-            title: link.title,
-            url: link.url,
-            enabled: link.enabled,
-            categoryId: link.categoryId || null,
-            order: link.order !== undefined ? link.order : index,
-          })),
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-        throw new Error(errorData.error || `HTTP ${response.status}: Failed to save links`)
-      }
-
-      const data = await response.json()
-
-      // Check if response has an error field
-      if (data.error) {
-        throw new Error(data.error)
-      }
-
-      setLinks(
-        (data.links || []).map((link: any) => ({
-          id: link.id,
-          title: link.title || '',
-          url: link.url,
-          enabled: link.enabled ?? true,
-          categoryId: link.categoryId || null,
-          order: link.order ?? 0,
-          createdAt: link.createdAt || new Date().toISOString(),
-          updatedAt: link.updatedAt || new Date().toISOString(),
-        }))
-      )
-      return true
-    } catch (error) {
-      console.error('[LinksPanel] Failed to save links', error)
-      toast.error('Failed to save links. Please try again.')
-      return false
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const updateLinks = async (updater: (prev: LinkItem[]) => LinkItem[]) => {
-    const next = updater(links)
-    setLinks(next)
-    await saveLinks(next)
-  }
-
-  // Group links by category - memoized to prevent recalculation issues
-  const linksByCategory = useMemo(() => {
-    const grouped = new Map<string | null, LinkItem[]>()
-
-    // Initialize with all categories
-    categories.forEach(cat => {
-      grouped.set(cat.id, [])
-    })
-
-    // Add uncategorized bucket
-    grouped.set(null, [])
-
-    // Group links
-    links.forEach(link => {
-      const categoryId = link.categoryId || null
-      if (!grouped.has(categoryId)) {
-        grouped.set(categoryId, [])
-      }
-      grouped.get(categoryId)!.push(link)
-    })
-
-    // Sort links within each category by order
-    grouped.forEach((linkList, categoryId) => {
-      linkList.sort((a, b) => (a.order || 0) - (b.order || 0))
-    })
-
-    return grouped
-  }, [categories, links])
-
-  // Get sorted categories (by order only - all categories can be sorted) - memoized
-  const sortedCategories = useMemo(() => {
-    return [...categories].sort((a, b) => {
-      return (a.order || 0) - (b.order || 0)
-    })
-  }, [categories])
-
-  // Get link count for a category
-  const getCategoryLinkCount = (categoryId: string | null) => {
-    return linksByCategory.get(categoryId)?.length || 0
-  }
-
-  const toggleCategoryCollapse = (categoryId: string) => {
-    setCollapsedCategories(prev => {
-      const next = new Set(prev)
-      if (next.has(categoryId)) {
-        next.delete(categoryId)
-      } else {
-        next.add(categoryId)
-      }
-      return next
-    })
-  }
-
   // =============================================================================
   // DRAG & DROP STATE AND HANDLERS
   // =============================================================================
@@ -1021,7 +616,6 @@ export function LinksPanel() {
   const getActiveDragType = (): 'category' | 'link' | null => {
     if (!activeId) return null
     if (typeof activeId === 'string' && activeId.startsWith('cat-')) return 'category'
-    // If it's a link ID (not starting with special prefix)
     if (links.some(l => l.id === activeId)) return 'link'
     return null
   }
@@ -1072,8 +666,8 @@ export function LinksPanel() {
 
       const overCategoryId = overIdStr.replace('cat-', '')
 
-      const activeIndex = sortedCategories.findIndex(cat => cat.id === activeCategoryId)
-      const overIndex = sortedCategories.findIndex(cat => cat.id === overCategoryId)
+      const activeIndex = sortedCategories.findIndex((cat) => cat.id === activeCategoryId)
+      const overIndex = sortedCategories.findIndex((cat) => cat.id === overCategoryId)
 
       if (activeIndex === -1 || overIndex === -1 || activeIndex === overIndex) return
 
@@ -1084,34 +678,14 @@ export function LinksPanel() {
         order: idx,
       }))
 
-      // Save previous state for rollback
-      const previousCategories = [...categories]
-
-      // Optimistic update
-      setCategories(withOrder)
-
-      // Persist to server
-      const success = await saveCategories(withOrder.map(cat => ({
-        id: cat.id,
-        name: cat.name,
-        slug: cat.slug,
-        description: cat.description,
-        order: cat.order,
-        isVisible: cat.isVisible,
-        isDefault: cat.isDefault,
-      })))
-
-      if (!success) {
-        setCategories(previousCategories)
-        toast.error('Failed to reorder categories')
-      }
+      await saveCategories(withOrder)
       return
     }
 
     // =======================================================================
     // LINK OPERATIONS
     // =======================================================================
-    const activeLink = links.find(l => l.id === activeIdStr)
+    const activeLink = links.find((l) => l.id === activeIdStr)
     if (!activeLink) return
 
     // Case 1: Dropping on a category drop zone (empty area in category)
@@ -1122,29 +696,17 @@ export function LinksPanel() {
       const targetCategoryLinks = linksByCategory.get(targetCategoryId) || []
       const newOrder = targetCategoryLinks.length
 
-      const previousLinks = [...links]
-      const updated = links.map(l =>
-        l.id === activeIdStr
-          ? { ...l, categoryId: targetCategoryId, order: newOrder }
-          : l
-      )
-      setLinks(updated)
-
-      const success = await saveLinks(updated)
-      if (!success) {
-        setLinks(previousLinks)
-        toast.error('Failed to move link')
-      }
+      await updateLink(activeLink.id, { categoryId: targetCategoryId, order: newOrder })
       return
     }
 
     // Case 2: Dropping on another link
-    const overLink = links.find(l => l.id === overIdStr)
+    const overLink = links.find((l) => l.id === overIdStr)
     if (!overLink) return
 
     const targetCategoryId = overLink.categoryId || null
     const targetCategoryLinks = linksByCategory.get(targetCategoryId) || []
-    const overIndex = targetCategoryLinks.findIndex(l => l.id === overIdStr)
+    const overIndex = targetCategoryLinks.findIndex((l) => l.id === overIdStr)
 
     if (overIndex === -1) return
 
@@ -1154,7 +716,7 @@ export function LinksPanel() {
 
       // Remove from old category
       const updatedOldLinks = oldCategoryLinks
-        .filter(l => l.id !== activeIdStr)
+        .filter((l) => l.id !== activeIdStr)
         .map((link, idx) => ({ ...link, order: idx }))
 
       // Add to new category at target position
@@ -1166,51 +728,175 @@ export function LinksPanel() {
         order: idx,
       }))
 
-      const previousLinks = [...links]
-      const updated = links.map(l => {
-        const inOld = updatedOldLinks.find(wl => wl.id === l.id)
-        const inNew = updatedNewLinks.find(wl => wl.id === l.id)
-        return inNew || inOld || l
-      })
-
-      setLinks(updated)
-
-      const success = await saveLinks(updated)
-      if (!success) {
-        setLinks(previousLinks)
-        toast.error('Failed to move link')
-      }
+      const allUpdatedLinks = [...updatedOldLinks, ...updatedNewLinks]
+      await saveLinks(allUpdatedLinks)
     } else {
       // Reordering within same category
-      const activeIndex = targetCategoryLinks.findIndex(l => l.id === activeIdStr)
+      const activeIndex = targetCategoryLinks.findIndex((l) => l.id === activeIdStr)
       if (activeIndex === -1 || activeIndex === overIndex) return
 
-      const previousLinks = [...links]
       const reordered = arrayMove(targetCategoryLinks, activeIndex, overIndex)
       const withOrder = reordered.map((link, index) => ({
         ...link,
         order: index,
       }))
 
-      // Update all links, preserving other categories
-      const updated = links.map(l => {
-        const found = withOrder.find(wl => wl.id === l.id)
-        return found || l
-      })
-
-      setLinks(updated)
-
-      // Persist to server
-      const success = await saveLinks(updated)
-
-      // Rollback on failure
-      if (!success) {
-        setLinks(previousLinks)
-        toast.error('Failed to reorder links')
-      }
+      await saveLinks(withOrder)
     }
   }
 
+  // --- CRUD Handlers ---
+
+  const handleSubmit = async () => {
+    // Validate
+    const trimmedTitle = formTitle.trim()
+    const trimmedUrl = formUrl.trim()
+    const urlError = validateUrl(trimmedUrl)
+    if (urlError) {
+      toast.error('Please enter a valid URL (must start with http:// or https://)')
+      return
+    }
+
+    const payload = {
+      title: trimmedTitle,
+      url: trimmedUrl,
+      categoryId: formCategoryId === 'uncategorized' ? null : formCategoryId,
+      // order handled by backend or hook default
+    }
+
+    let success = false
+    if (editingLink) {
+      success = await updateLink(editingLink.id, payload)
+    } else {
+      success = await createLink(payload)
+    }
+
+    if (success) {
+      setDialogOpen(false)
+      setEditingLink(null)
+      setFormTitle('')
+      setFormUrl('')
+      setFormCategoryId('')
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    await deleteLink(id)
+  }
+
+  const handleToggleEnabled = async (id: string, enabled: boolean) => {
+    await updateLink(id, { enabled })
+  }
+
+  const handleCategorySubmit = async () => {
+    const trimmedName = categoryFormName.trim()
+    if (!trimmedName) {
+      toast.error('Category name is required')
+      return
+    }
+
+    const slug = trimmedName
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+
+    const payload = {
+      name: trimmedName,
+      description: categoryFormDescription.trim() || null,
+      slug: slug,
+      isVisible: true,
+    }
+
+    let success = false
+    if (editingCategory) {
+      success = await updateCategory(editingCategory.id, payload)
+    } else {
+      success = await createCategory({ ...payload, isDefault: false, order: categories.length })
+    }
+
+    if (success) {
+      setCategoryDialogOpen(false)
+      setEditingCategory(null)
+      setCategoryFormName('')
+      setCategoryFormDescription('')
+    }
+  }
+
+  const handleDeleteCategory = async (id: string) => {
+    await deleteCategory(id)
+  }
+
+  const handleToggleCategoryVisibility = async (id: string) => {
+    const cat = categories.find((c) => c.id === id)
+    if (cat) {
+      await updateCategory(id, { isVisible: !cat.isVisible })
+    }
+  }
+
+  // --- Socials ---
+  const handleSaveSocialLink = async () => {
+    if (!newSocialUrl.trim()) {
+      toast.error('URL is required')
+      return
+    }
+
+    if (!newSocialUrl.startsWith('http://') && !newSocialUrl.startsWith('https://')) {
+      toast.error('URL must start with http:// or https://')
+      return
+    }
+
+    let updatedLinks: SocialLink[]
+
+    // Cast socialLinks to ensure types
+    const currentSocialLinks = socialLinks as SocialLink[]
+
+    if (editingSocialLink) {
+      updatedLinks = currentSocialLinks.map((link: SocialLink) =>
+        link.id === editingSocialLink.id
+          ? {
+            ...link,
+            platform: newSocialPlatform,
+            url: newSocialUrl.trim(),
+            label: newSocialLabel.trim() || undefined,
+          }
+          : link
+      )
+    } else {
+      // Check if platform already exists
+      if (currentSocialLinks.some((link: SocialLink) => link.platform === newSocialPlatform)) {
+        toast.error(`${getSocialLabel(newSocialPlatform)} is already added`)
+        return
+      }
+
+      updatedLinks = [
+        ...currentSocialLinks,
+        {
+          id: crypto.randomUUID(),
+          platform: newSocialPlatform,
+          url: newSocialUrl.trim(),
+          label: newSocialLabel.trim() || undefined,
+        },
+      ]
+    }
+
+    // Sort by fixed order
+    const sorted = sortSocialLinks(updatedLinks)
+    const success = await saveSocialLinks(sorted)
+    if (success) {
+      toast.success(editingSocialLink ? 'Social link updated' : 'Social link added')
+      setSocialDialogOpen(false)
+    }
+  }
+
+  const handleDeleteSocialLink = async (id: string) => {
+    const currentSocialLinks = socialLinks as SocialLink[]
+    const newLinks = currentSocialLinks.filter((l: SocialLink) => l.id !== id)
+    await saveSocialLinks(newLinks)
+  }
+
+  // Helper funcs
   const openAddDialog = () => {
     setEditingLink(null)
     setFormTitle('')
@@ -1228,89 +914,6 @@ export function LinksPanel() {
     setDialogOpen(true)
   }
 
-  const handleToggleEnabled = async (id: string, enabled: boolean) => {
-    const updated = links.map((link) =>
-      link.id === id
-        ? {
-          ...link,
-          enabled,
-          updatedAt: new Date().toISOString(),
-        }
-        : link
-    )
-    setLinks(updated)
-    await saveLinks(updated)
-  }
-
-  const handleDelete = async (id: string) => {
-    const updated = links.filter((link) => link.id !== id)
-    setLinks(updated)
-    const success = await saveLinks(updated)
-    if (success) {
-      toast.success('Link silindi')
-    }
-  }
-
-  const validateUrl = (value: string) => {
-    const url = value.trim()
-    if (!url) return 'URL is required'
-    if (!/^https?:\/\//i.test(url)) return 'URL must start with http:// or https://'
-    return null
-  }
-
-  const handleSubmit = async () => {
-    const trimmedTitle = formTitle.trim()
-    const trimmedUrl = formUrl.trim()
-    const urlError = validateUrl(trimmedUrl)
-    if (urlError) {
-      toast.error('Please enter a valid URL (must start with http:// or https://)')
-      return
-    }
-
-    // New links go to "Uncategorized" (null) if no category selected
-    const categoryId = formCategoryId || null
-
-    const now = new Date().toISOString()
-
-    if (editingLink) {
-      const updated = links.map((link) =>
-        link.id === editingLink.id
-          ? {
-            ...link,
-            title: trimmedTitle,
-            url: trimmedUrl,
-            categoryId,
-            updatedAt: now,
-          }
-          : link
-      )
-      setLinks(updated)
-      const success = await saveLinks(updated)
-      if (success) {
-        toast.success('Link updated')
-        setDialogOpen(false)
-      }
-    } else {
-      const newItem: LinkItem = {
-        id: crypto.randomUUID(),
-        title: trimmedTitle,
-        url: trimmedUrl,
-        enabled: true,
-        categoryId,
-        order: links.length,
-        createdAt: now,
-        updatedAt: now,
-      }
-      const updated = [...links, newItem]
-      setLinks(updated)
-      const success = await saveLinks(updated)
-      if (success) {
-        toast.success('Link added')
-        setDialogOpen(false)
-      }
-    }
-  }
-
   // Category management functions
   const openAddCategoryDialog = () => {
     setEditingCategory(null)
@@ -1326,136 +929,12 @@ export function LinksPanel() {
     setCategoryDialogOpen(true)
   }
 
-  const handleCategorySubmit = async () => {
-    const trimmedName = categoryFormName.trim()
-    if (!trimmedName) {
-      toast.error('Category name is required')
-      return
-    }
-
-    const slug = trimmedName
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/[\s_-]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-
-    if (editingCategory) {
-      const updated = categories.map((cat) =>
-        cat.id === editingCategory.id
-          ? {
-            ...cat,
-            name: trimmedName,
-            slug,
-            description: categoryFormDescription.trim() || null,
-          }
-          : cat
-      )
-      const success = await saveCategories(updated)
-      if (success) {
-        toast.success('Category updated')
-        setCategoryDialogOpen(false)
-      }
-    } else {
-      const newCategory: Omit<LinkCategory, 'id' | 'createdAt' | 'updatedAt' | 'linkCount'> = {
-        name: trimmedName,
-        slug,
-        description: categoryFormDescription.trim() || null,
-        order: categories.length,
-        isVisible: true,
-        isDefault: false,
-      }
-      const updated = [...categories, newCategory as LinkCategory]
-      const success = await saveCategories(updated.map(cat => ({
-        ...(cat.id ? { id: cat.id } : {}),
-        name: cat.name,
-        slug: cat.slug,
-        description: cat.description,
-        order: cat.order,
-        isVisible: cat.isVisible,
-        isDefault: cat.isDefault,
-      })))
-      if (success) {
-        toast.success('Category added')
-        setCategoryDialogOpen(false)
-      }
-    }
+  const validateUrl = (value: string) => {
+    const url = value.trim()
+    if (!url) return 'URL is required'
+    if (!/^https?:\/\//i.test(url)) return 'URL must start with http:// or https://'
+    return null
   }
-
-  const handleDeleteCategory = async (id: string) => {
-    const category = categories.find(cat => cat.id === id)
-    if (category?.isDefault) {
-      toast.error('Default category cannot be deleted')
-      return
-    }
-
-    // Move links from deleted category to default category
-    const defaultCategory = categories.find(cat => cat.isDefault)
-    if (defaultCategory) {
-      const updatedLinks = links.map(link =>
-        link.categoryId === id
-          ? { ...link, categoryId: defaultCategory.id }
-          : link
-      )
-      await saveLinks(updatedLinks)
-    }
-
-    const updated = categories.filter(cat => cat.id !== id)
-    const success = await saveCategories(updated.map(cat => ({
-      ...(cat.id ? { id: cat.id } : {}),
-      name: cat.name,
-      slug: cat.slug,
-      description: cat.description,
-      order: cat.order,
-      isVisible: cat.isVisible,
-      isDefault: cat.isDefault,
-    })))
-    if (success) {
-      toast.success('Category deleted')
-    }
-  }
-
-  const handleToggleCategoryVisibility = async (id: string) => {
-    const updated = categories.map((cat) =>
-      cat.id === id
-        ? { ...cat, isVisible: !cat.isVisible }
-        : cat
-    )
-    await saveCategories(updated.map(cat => ({
-      ...(cat.id ? { id: cat.id } : {}),
-      name: cat.name,
-      slug: cat.slug,
-      description: cat.description,
-      order: cat.order,
-      isVisible: cat.isVisible,
-      isDefault: cat.isDefault,
-    })))
-  }
-
-  const handleMoveCategory = async (id: string, direction: 'up' | 'down') => {
-    const index = categories.findIndex(cat => cat.id === id)
-    if (index === -1) return
-
-    const newIndex = direction === 'up' ? index - 1 : index + 1
-    if (newIndex < 0 || newIndex >= categories.length) return
-
-    const reordered = arrayMove(categories, index, newIndex)
-    const withOrder = reordered.map((cat, idx) => ({
-      ...cat,
-      order: idx,
-    }))
-    await saveCategories(withOrder.map(cat => ({
-      id: cat.id,
-      name: cat.name,
-      slug: cat.slug,
-      description: cat.description,
-      order: cat.order,
-      isVisible: cat.isVisible,
-      isDefault: cat.isDefault,
-    })))
-  }
-
-  const enabledLinks = links.filter((link) => link.enabled)
 
   // Social Links handlers
   const openAddSocialDialog = () => {
@@ -1472,62 +951,6 @@ export function LinksPanel() {
     setNewSocialUrl(link.url)
     setNewSocialLabel(link.label || '')
     setSocialDialogOpen(true)
-  }
-
-  const handleSaveSocialLink = async () => {
-    if (!newSocialUrl.trim()) {
-      toast.error('URL is required')
-      return
-    }
-
-    if (!newSocialUrl.startsWith('http://') && !newSocialUrl.startsWith('https://')) {
-      toast.error('URL must start with http:// or https://')
-      return
-    }
-
-    let updatedLinks: SocialLink[]
-
-    if (editingSocialLink) {
-      updatedLinks = socialLinks.map(link =>
-        link.id === editingSocialLink.id
-          ? { ...link, platform: newSocialPlatform, url: newSocialUrl.trim(), label: newSocialLabel.trim() || undefined }
-          : link
-      )
-    } else {
-      // Check if platform already exists
-      if (socialLinks.some(link => link.platform === newSocialPlatform)) {
-        toast.error(`${getSocialLabel(newSocialPlatform)} is already added`)
-        return
-      }
-
-      updatedLinks = [
-        ...socialLinks,
-        {
-          id: crypto.randomUUID(),
-          platform: newSocialPlatform,
-          url: newSocialUrl.trim(),
-          label: newSocialLabel.trim() || undefined,
-        },
-      ]
-    }
-
-    // Sort by fixed order
-    const sorted = sortSocialLinks(updatedLinks)
-    setSocialLinks(sorted)
-    const success = await saveSocialLinks(sorted)
-    if (success) {
-      toast.success(editingSocialLink ? 'Social link updated' : 'Social link added')
-      setSocialDialogOpen(false)
-    }
-  }
-
-  const handleDeleteSocialLink = async (id: string) => {
-    const updated = socialLinks.filter(link => link.id !== id)
-    setSocialLinks(updated)
-    const success = await saveSocialLinks(updated)
-    if (success) {
-      toast.success('Social link deleted')
-    }
   }
 
   return (

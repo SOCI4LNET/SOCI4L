@@ -155,6 +155,12 @@ export async function GET(request: NextRequest) {
       }))
     }
 
+    // Load categories for this profile
+    const categories = await prisma.linkCategory.findMany({
+      where: { profileId: profile?.id },
+    })
+    const categoryMap = new Map(categories.map(c => [c.id, c]))
+
     const topLinks = linkStats.map(stat => {
       const link = stat.linkId ? linksMap.get(stat.linkId) : null
       const deletedDetails = stat.linkId ? deletedLinkDetails.get(stat.linkId) : null
@@ -163,10 +169,14 @@ export async function GET(request: NextRequest) {
       const url = link?.url || deletedDetails?.url || ''
       const isDeleted = !link && !!stat.linkId // If ID exists but no link record, it's deleted
 
+      const linkCategoryId = link?.categoryId
+      const category = linkCategoryId ? categoryMap.get(linkCategoryId) : null
+
       return {
         id: stat.linkId || 'unknown',
         title,
         url,
+        categoryName: category?.name || null,
         clicks: stat._count._all,
         isDeleted,
       }
@@ -193,19 +203,49 @@ export async function GET(request: NextRequest) {
 
     // Resolve category names
     // We need to fetch categories for this profile first
-    const categories = await prisma.linkCategory.findMany({
-      where: { profileId: profile?.id },
-    })
-    const categoryMap = new Map(categories.map(c => [c.id, c]))
-    const topCategories = categoryStats.map(stat => {
+
+    const topCategories = await Promise.all(categoryStats.map(async stat => {
       const cat = stat.categoryId ? categoryMap.get(stat.categoryId) : null
+
+      // Find top link for this category
+      let topLinkLabel: string | null = null
+      if (stat.categoryId) {
+        const topLinkEvent = await prisma.analyticsEvent.groupBy({
+          by: ['linkId'],
+          where: {
+            profileId: resolvedAddress,
+            categoryId: stat.categoryId,
+            type: 'link_click'
+          },
+          _count: { _all: true },
+          orderBy: { _count: { linkId: 'desc' } },
+          take: 1
+        })
+
+        if (topLinkEvent.length > 0 && topLinkEvent[0].linkId) {
+          const linkId = topLinkEvent[0].linkId
+          const link = linksMap.get(linkId)
+          // If link deleted, try to find title from event
+          if (link) {
+            topLinkLabel = link.title
+          } else {
+            const evt = await prisma.analyticsEvent.findFirst({
+              where: { linkId, linkTitle: { not: null } },
+              select: { linkTitle: true }
+            })
+            topLinkLabel = evt?.linkTitle || 'Unknown Link'
+          }
+        }
+      }
+
       return {
         id: stat.categoryId || 'unknown',
         name: cat?.name || (stat.categoryId === 'general' ? 'General' : 'Unknown'),
         clicks: stat._count._all,
         share: totalLinkClicks > 0 ? stat._count._all / totalLinkClicks : 0,
+        topLinkLabel
       }
-    })
+    }))
 
     const recentEvents = await prisma.analyticsEvent.findMany({
       where: {
@@ -223,6 +263,36 @@ export async function GET(request: NextRequest) {
       linkTitle: event.linkTitle || undefined,
       linkId: event.linkId || undefined,
     }))
+
+    // Source Breakdown
+    const sourceStats = await prisma.analyticsEvent.groupBy({
+      by: ['source'],
+      where: {
+        profileId: resolvedAddress,
+        type: 'profile_view',
+      },
+      _count: { _all: true },
+    })
+
+    const sourceBreakdown = sourceStats.reduce((acc, stat) => {
+      acc[stat.source] = stat._count._all
+      return acc
+    }, {} as Record<string, number>)
+
+    // All link click counts for lookup
+    const allLinkStats = await prisma.analyticsEvent.groupBy({
+      by: ['linkId'],
+      where: {
+        profileId: resolvedAddress,
+        type: 'link_click',
+        linkId: { not: null },
+      },
+      _count: { _all: true },
+    })
+    const linkClickCounts = allLinkStats.reduce((acc, stat) => {
+      if (stat.linkId) acc[stat.linkId] = stat._count._all
+      return acc
+    }, {} as Record<string, number>)
 
     return NextResponse.json({
       profile: profile
@@ -250,6 +320,8 @@ export async function GET(request: NextRequest) {
         topLinks,
         topCategories,
         recentActivity,
+        sourceBreakdown,
+        linkClickCounts,
       },
     })
   } catch (error) {

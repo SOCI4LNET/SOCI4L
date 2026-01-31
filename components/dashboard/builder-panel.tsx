@@ -42,10 +42,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { useSignMessage } from 'wagmi'
 import { Loader2 } from 'lucide-react'
-import { useTransaction } from '@/components/providers/transaction-provider'
-
+import { useProfile } from '@/hooks/use-profile'
 import { PageShell } from '@/components/app-shell/page-shell'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Toggle } from '@/components/ui/toggle'
@@ -545,8 +543,10 @@ type BuilderPanelProps = {
 export function BuilderPanel({ address }: BuilderPanelProps) {
   const searchParams = useSearchParams()
   const linksSectionRef = useRef<HTMLDivElement>(null)
-  const { signMessageAsync } = useSignMessage()
-  const { showTransactionLoader, hideTransactionLoader } = useTransaction()
+
+  const { profile, loading: profileLoading, updateLayout, updateAppearance, updateIdentity, isReadOnly } = useProfile(address)
+  const loading = profileLoading
+
   const [sections, setSections] = useState<ProfileSection[]>(INITIAL_SECTIONS)
   const [layoutConfig, setLayoutConfig] = useState<ProfileLayoutConfig>(() =>
     getDefaultProfileLayout()
@@ -560,7 +560,6 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
     getDefaultAppearanceConfig()
   )
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [highlightedLinkId, setHighlightedLinkId] = useState<string | null>(null)
   const [highlightedCategoryId, setHighlightedCategoryId] = useState<string | null>(null)
@@ -611,136 +610,86 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
     }
   }
 
-  // Load layout from API on mount
+  // Load layout from profile on update
   useEffect(() => {
-    if (!address) {
-      setLoading(false)
-      return
+    if (!profile) return
+
+    // Layout
+    const config = profile.layout || getDefaultProfileLayout()
+    setLayoutConfig(config)
+
+    // Update row-based layout
+    if (config.rows && config.rows.length > 0) {
+      setLayoutRows(config.rows)
+    } else {
+      const rowLayout = gridToRowLayout(config)
+      setLayoutRows(rowLayout.rows)
     }
 
-    const loadLayout = async () => {
-      try {
-        setLoading(true)
-        const cacheBust = Date.now()
-        const headers = { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
-        const layoutResponse = await fetch(`/api/profile/layout?address=${encodeURIComponent(address)}&_t=${cacheBust}`, { cache: 'no-store', headers })
-        const appearanceResponse = await fetch(`/api/profile/appearance?address=${encodeURIComponent(address)}&_t=${cacheBust}`, { cache: 'no-store', headers })
-        const profileResponse = await fetch(`/api/wallet?address=${encodeURIComponent(address)}&_t=${cacheBust}`, { cache: 'no-store', headers })
+    // Appearance
+    const appearance = profile.appearance || getDefaultAppearanceConfig()
+    setAppearanceConfig(appearance)
 
-        if (!layoutResponse.ok) {
-          const errorData = await layoutResponse.json().catch(() => ({ error: 'Unknown error' }))
-          throw new Error(errorData.error || `HTTP ${layoutResponse.status}: Failed to load layout`)
-        }
+    // Profile Info
+    setDisplayName(profile.displayName || '')
+    setBio(profile.bio || '')
+    setPrimaryRole(profile.primaryRole || '')
+    setSecondaryRoles(profile.secondaryRoles || [])
+    setStatusMessage(profile.statusMessage || '')
 
-        const layoutData = await layoutResponse.json()
+    // Initialize Sections
+    const byId = INITIAL_SECTIONS.reduce<Record<ProfileSectionId, ProfileSection>>(
+      (acc, section) => {
+        acc[section.id] = section
+        return acc
+      },
+      {} as Record<ProfileSectionId, ProfileSection>
+    )
 
-        // Check if response has an error field
-        if (layoutData.error) {
-          throw new Error(layoutData.error)
-        }
+    const next: ProfileSection[] = []
 
-        const config = layoutData.layout || getDefaultProfileLayout()
-        setLayoutConfig(config)
+    // Sort blocks by grid position (row, then col)
+    const sortedBlocks = [...config.blocks]
+      .filter((b) => b.key !== 'summary') // Filter out deprecated summary
+      .sort((a, b) => {
+        const rowA = a.row ?? 0
+        const rowB = b.row ?? 0
+        if (rowA !== rowB) return rowA - rowB
+        const colA = a.col ?? 0
+        const colB = b.col ?? 0
+        return colA - colB
+      })
+    const usedIds = new Set<ProfileSectionId>()
 
-        // Update row-based layout
-        if (config.rows && config.rows.length > 0) {
-          setLayoutRows(config.rows)
-        } else {
-          const rowLayout = gridToRowLayout(config)
-          setLayoutRows(rowLayout.rows)
-        }
+    for (const block of sortedBlocks) {
+      const id = block.key as ProfileSectionId
+      const base = byId[id]
+      if (!base) continue
+      usedIds.add(id)
+      next.push({
+        ...base,
+        enabled: block.enabled,
+        variant: block.variant || 'compact',
+        row: block.row ?? 0,
+        col: block.col ?? 0,
+        span: block.span || 'half',
+      })
+    }
 
-        // Load profile info
-        if (profileResponse.ok) {
-          const profileData = await profileResponse.json()
-          if (profileData.profile) {
-            setDisplayName(profileData.profile.displayName || '')
-            setBio(profileData.profile.bio || '')
-            setPrimaryRole(profileData.profile.primaryRole || '')
-            setSecondaryRoles(profileData.profile.secondaryRoles || [])
-            setStatusMessage(profileData.profile.statusMessage || '')
-          }
-        }
-
-        if (appearanceResponse.ok) {
-          const appearanceData = await appearanceResponse.json()
-          if (appearanceData.error) {
-            console.warn('[BuilderPanel] Appearance error:', appearanceData.error)
-            // Use default appearance on error
-            setAppearanceConfig(getDefaultAppearanceConfig())
-          } else {
-            const appearance = appearanceData.appearance || getDefaultAppearanceConfig()
-            setAppearanceConfig(appearance)
-          }
-        } else {
-          // Use default appearance if request fails
-          setAppearanceConfig(getDefaultAppearanceConfig())
-        }
-
-        const byId = INITIAL_SECTIONS.reduce<Record<ProfileSectionId, ProfileSection>>(
-          (acc, section) => {
-            acc[section.id] = section
-            return acc
-          },
-          {} as Record<ProfileSectionId, ProfileSection>
-        )
-
-        const next: ProfileSection[] = []
-
-        // Sort blocks by grid position (row, then col)
-        const sortedBlocks = [...config.blocks]
-          .filter((b) => b.key !== 'summary') // Filter out deprecated summary
-          .sort((a, b) => {
-            const rowA = a.row ?? 0
-            const rowB = b.row ?? 0
-            if (rowA !== rowB) return rowA - rowB
-            const colA = a.col ?? 0
-            const colB = b.col ?? 0
-            return colA - colB
-          })
-        const usedIds = new Set<ProfileSectionId>()
-
-        for (const block of sortedBlocks) {
-          const id = block.key as ProfileSectionId
-          const base = byId[id]
-          if (!base) continue
-          usedIds.add(id)
-          next.push({
-            ...base,
-            enabled: block.enabled,
-            variant: block.variant || 'compact',
-            row: block.row ?? 0,
-            col: block.col ?? 0,
-            span: block.span || 'half',
-          })
-        }
-
-        for (const section of INITIAL_SECTIONS) {
-          if (!usedIds.has(section.id)) {
-            next.push({
-              ...section,
-              row: 0,
-              col: 0,
-              span: 'half',
-            })
-          }
-        }
-
-        setSections(next)
-        setHasUnsavedChanges(false)
-      } catch (error) {
-        console.error('[BuilderPanel] Failed to load layout config', error)
-        toast.error('Failed to load layout. Please refresh the page.')
-        // Set default configs on error to prevent UI blocking
-        setLayoutConfig(getDefaultProfileLayout())
-        setAppearanceConfig(getDefaultAppearanceConfig())
-      } finally {
-        setLoading(false)
+    for (const section of INITIAL_SECTIONS) {
+      if (!usedIds.has(section.id)) {
+        next.push({
+          ...section,
+          row: 0,
+          col: 0,
+          span: 'half',
+        })
       }
     }
 
-    loadLayout()
-  }, [address])
+    setSections(next)
+    setHasUnsavedChanges(false)
+  }, [profile])
 
   // Handle query params for deep linking from Insights
   useEffect(() => {
@@ -787,164 +736,51 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
   }
 
   const handleSaveLayout = async () => {
-    if (!address) return
+    if (isReadOnly) return
 
     try {
       setSaving(true)
 
-      // Convert row-based layout to grid-based for backward compatibility
+      // 1. Layout
       const allBlocks = sections.map((section) => ({
         key: section.id,
         enabled: section.enabled,
         variant: section.variant || 'compact',
-        order: 0,
-        row: 0,
-        col: 0 as 0 | 1,
-        span: 'half' as const,
+        order: section.row ?? 0, // Fallback order
+        row: section.row ?? 0,
+        col: section.col as 0 | 1 ?? 0,
+        span: section.span || 'half' as const,
       }))
-
       const gridConfig = rowToGridLayout({ rows: layoutRows }, allBlocks)
-      const nextConfig: ProfileLayoutConfig = {
+      const nextConfig = {
         ...gridConfig,
         rows: layoutRows,
-        layoutVariant: 'rows',
+        layoutVariant: 'rows' as 'rows',
       }
+      const normalizedConfig = normalizeLayoutConfig(nextConfig as any)
 
-      // Normalize to ensure consistency
-      const normalizedConfig = normalizeLayoutConfig(nextConfig)
+      await updateLayout(normalizedConfig)
 
-      // Get nonce first
-      const nonceResponse = await fetch('/api/auth/nonce')
-      if (!nonceResponse.ok) throw new Error('Failed to get nonce')
-      const { nonce } = await nonceResponse.json()
-
-      // Sign message for layout update
-      showTransactionLoader("Confirm in Wallet...")
-      const message = `Update profile layout for ${address}. Nonce: ${nonce}`
-      const signature = await signMessageAsync({ message })
-
-      showTransactionLoader("Saving layout...")
-
-      // Save to API
-      const response = await fetch('/api/profile/layout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          address,
-          layout: normalizedConfig,
-          signature,
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-        throw new Error(errorData.error || 'Failed to save layout')
-      }
-
-      const layoutData = await response.json()
-      const savedConfig = normalizeLayoutConfig(layoutData.layout || normalizedConfig)
-      console.log('[BuilderPanel] Layout saved successfully:', savedConfig)
-      setLayoutConfig(savedConfig)
-
-      // Save appearance config
+      // 2. Appearance
       const normalizedAppearance = normalizeAppearanceConfig(appearanceConfig)
+      await updateAppearance(normalizedAppearance)
 
-      // Get fresh nonce for appearance update (security best practice: new nonce per action, but for UX we might reuse if fast enough. 
-      // However, to be safe and avoid "nonce used" errors if backend checks strictly, let's get a new one or sign a different message)
-      // Actually, let's ask for a separate signature for appearance to be explicit, OR we could have combined them.
-      // Given the current API structure (separate endpoints), we need separate calls.
-      // To improve UX, we could combine these into a batch endpoint in the future.
-      // For now, let's just sign again.
-
-      showTransactionLoader("Confirm appearance update...")
-      const nonceResponseAppearance = await fetch('/api/auth/nonce')
-      if (!nonceResponseAppearance.ok) throw new Error('Failed to get nonce for appearance')
-      const { nonce: nonceAppearance } = await nonceResponseAppearance.json()
-
-      const messageAppearance = `Update profile appearance for ${address}. Nonce: ${nonceAppearance}`
-      const signatureAppearance = await signMessageAsync({ message: messageAppearance })
-
-      showTransactionLoader("Saving appearance...")
-
-      const appearanceResponse = await fetch('/api/profile/appearance', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          address,
-          appearance: normalizedAppearance,
-          signature: signatureAppearance,
-        }),
+      // 3. Identity
+      await updateIdentity({
+        displayName: displayName.trim() || null,
+        bio: bio.trim() || null,
+        primaryRole: primaryRole.trim() || null,
+        secondaryRoles: secondaryRoles,
+        statusMessage: statusMessage.trim() || null,
       })
 
-      if (appearanceResponse.ok) {
-        const appearanceData = await appearanceResponse.json()
-        console.log('[BuilderPanel] Appearance saved successfully:', appearanceData.appearance)
-        setAppearanceConfig(appearanceData.appearance)
-      } else {
-        console.error('[BuilderPanel] Failed to save appearance config:', appearanceResponse.status)
-      }
-
-      // Save profile info (display name, bio, social links, visibility)
-      try {
-        // Step 1: Get nonce
-        const nonceResponse = await fetch('/api/auth/nonce')
-        if (!nonceResponse.ok) {
-          throw new Error('Failed to get nonce')
-        }
-        const { nonce } = await nonceResponse.json()
-
-        // Step 2: Sign message (must match API's expected format)
-        showTransactionLoader("Confirm in Wallet...")
-        const message = `Update social profile for ${address}. Nonce: ${nonce}`
-        const signature = await signMessageAsync({ message })
-
-        showTransactionLoader("Saving profile...")
-
-        // Step 3: Update profile (display name and bio only - social links are managed in Links panel)
-        const profileResponse = await fetch('/api/profile/social', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            address,
-            displayName: displayName.trim() || null,
-            bio: bio.trim() || null,
-            primaryRole: primaryRole.trim() || null,
-            secondaryRoles: secondaryRoles,
-            statusMessage: statusMessage.trim() || null,
-            signature,
-          }),
-        })
-
-        if (!profileResponse.ok) {
-          const errorData = await profileResponse.json().catch(() => ({ error: 'Unknown error' }))
-          throw new Error(errorData.error || 'Failed to save profile info')
-        }
-
-        console.log('[BuilderPanel] Profile info saved successfully')
-      } catch (error: any) {
-        console.error('[BuilderPanel] Failed to save profile info:', error)
-        // Re-throw to be handled by the main catch block
-        throw error
-      }
-
-      toast.success('Layout, appearance and profile information saved. Please refresh the public profile page.')
+      toast.success('Profile updated successfully.')
       setHasUnsavedChanges(false)
-    } catch (error: any) {
-      console.error('[BuilderPanel] Failed to save layout', error)
-      if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
-        toast.error('Transaction rejected')
-      } else {
-        toast.error(error instanceof Error ? error.message : 'Failed to save layout. Please try again.')
-      }
+    } catch (error) {
+      console.error('Failed to save', error)
+      toast.error('Failed to save changes.')
     } finally {
       setSaving(false)
-      hideTransactionLoader()
     }
   }
 
@@ -1325,10 +1161,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
   }
 
   const handleApplyPreset = async (preset: PresetDefinition) => {
-    if (!address) {
-      toast.error('Wallet connection required')
-      return
-    }
+    if (isReadOnly) return
 
     try {
       setSaving(true)
@@ -1339,110 +1172,16 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
       // Normalize to ensure consistency
       const normalizedConfig = normalizeLayoutConfig(nextConfig)
 
-      // Get nonce
-      const nonceResponse = await fetch('/api/auth/nonce')
-      if (!nonceResponse.ok) throw new Error('Failed to get nonce')
-      const { nonce } = await nonceResponse.json()
+      // Save to API (use hook)
+      await updateLayout(normalizedConfig)
 
-      // Sign message
-      showTransactionLoader("Confirm in Wallet...")
-      const message = `Update profile layout for ${address}. Nonce: ${nonce}`
-      const signature = await signMessageAsync({ message })
-
-      showTransactionLoader("Applying preset...")
-
-      // Save to API immediately
-      const response = await fetch('/api/profile/layout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          address,
-          layout: normalizedConfig,
-          signature,
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-        throw new Error(errorData.error || 'Failed to save preset')
-      }
-
-      const data = await response.json()
-      const savedConfig = data.layout || normalizedConfig
-
-      // Update state from saved config (single source of truth)
-      setLayoutConfig(savedConfig)
-
-      // Update row-based layout
-      if (savedConfig.rows && savedConfig.rows.length > 0) {
-        setLayoutRows(savedConfig.rows)
-      } else {
-        const rowLayout = gridToRowLayout(savedConfig)
-        setLayoutRows(rowLayout.rows)
-      }
-
-      // Update sections UI to match saved config
-      const byId = INITIAL_SECTIONS.reduce<Record<ProfileSectionId, ProfileSection>>(
-        (acc, section) => {
-          acc[section.id] = section
-          return acc
-        },
-        {} as Record<ProfileSectionId, ProfileSection>
-      )
-
-      const nextSections: ProfileSection[] = []
-      // Sort blocks by grid position (row, then col)
-      const sortedBlocks = [...savedConfig.blocks]
-        .filter((b) => b.key !== 'summary') // Filter out deprecated summary
-        .sort((a, b) => {
-          const rowA = a.row ?? 0
-          const rowB = b.row ?? 0
-          if (rowA !== rowB) return rowA - rowB
-          const colA = a.col ?? 0
-          const colB = b.col ?? 0
-          return colA - colB
-        })
-      const usedIds = new Set<ProfileSectionId>()
-
-      for (const block of sortedBlocks) {
-        const id = block.key as ProfileSectionId
-        const base = byId[id]
-        if (!base) continue
-        usedIds.add(id)
-        nextSections.push({
-          ...base,
-          enabled: block.enabled,
-          variant: block.variant || 'compact',
-          row: block.row ?? 0,
-          col: block.col ?? 0,
-          span: block.span || 'single',
-        })
-      }
-
-      for (const section of INITIAL_SECTIONS) {
-        if (!usedIds.has(section.id)) {
-          nextSections.push({
-            ...section,
-            row: 0,
-            col: 0,
-            span: 'half',
-          })
-        }
-      }
-
-      setSections(nextSections)
+      toast.success(`Preset applied: ${preset.name}.`)
       setHasUnsavedChanges(false)
-      toast.success(`Preset applied: ${preset.name}. Please refresh the public profile page.`, {
-        duration: 4000,
-      })
     } catch (error) {
       console.error('[BuilderPanel] Failed to apply preset', error)
       toast.error('Failed to apply preset. Please try again.')
     } finally {
       setSaving(false)
-      hideTransactionLoader()
     }
   }
 
