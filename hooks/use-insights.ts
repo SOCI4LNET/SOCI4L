@@ -91,13 +91,26 @@ export function useInsights(targetAddress?: string) {
             // BUT move it here later.
             // For now, to keep it simple and working:
             // Fetch from /api/profile/insights (it exists in old state).
-            const res = await fetch(`/ api / profile / insights ? address = ${encodeURIComponent(address)} `)
+            const res = await fetch(`/api/profile/insights?address=${encodeURIComponent(address)}`)
             if (!res.ok) throw new Error('Failed to fetch insights')
             const data = await res.json()
 
-            // The old API might not have all fields (linkClickCounts, etc).
-            // So we might need to patch it or accept partial data.
-            return data.analytics as AnalyticsData
+            // The API returns 'analytics' object.
+            const raw = data.analytics
+
+            // Backfill missing fields that are expected by the UI type
+            const linkClickCounts: Record<string, number> = {}
+            if (raw.topLinks) {
+                raw.topLinks.forEach((l: any) => {
+                    if (l.id && l.clicks) linkClickCounts[l.id] = l.clicks
+                })
+            }
+
+            return {
+                ...raw,
+                linkClickCounts,
+                sourceBreakdown: raw.sourceBreakdown || {}
+            } as AnalyticsData
         },
         enabled: (!!address) || isDemo
     })
