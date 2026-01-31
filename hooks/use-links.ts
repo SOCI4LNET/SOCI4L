@@ -29,6 +29,7 @@ export type LinkCategory = {
 
 export function useLinks(targetAddress?: string) {
     const { isDemo, profile: demoProfile, simulateAction, updateProfile } = useDemo()
+    const queryClient = useQueryClient()
 
     // Guard for real mode: address is required
     const address = targetAddress || ''

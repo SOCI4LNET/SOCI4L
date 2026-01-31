@@ -1,4 +1,4 @@
-```typescript
+
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'next/navigation'
 import { useAccount } from 'wagmi'
@@ -42,7 +42,7 @@ export function useInsights(targetAddress?: string) {
     const address = targetAddress?.toLowerCase() ||
         (params.address as string)?.toLowerCase() ||
         connectedAddress?.toLowerCase() || ''
-    
+
     // --- Demo Data ---
     const demoData: AnalyticsData = useMemo(() => ({
         totalProfileViews: 1250,
@@ -91,7 +91,7 @@ export function useInsights(targetAddress?: string) {
             // BUT move it here later.
             // For now, to keep it simple and working:
             // Fetch from /api/profile/insights (it exists in old state).
-            const res = await fetch(`/ api / profile / insights ? address = ${ encodeURIComponent(address) } `)
+            const res = await fetch(`/ api / profile / insights ? address = ${encodeURIComponent(address)} `)
             if (!res.ok) throw new Error('Failed to fetch insights')
             const data = await res.json()
 
@@ -109,4 +109,3 @@ export function useInsights(targetAddress?: string) {
         isDemo
     }
 }
-```
