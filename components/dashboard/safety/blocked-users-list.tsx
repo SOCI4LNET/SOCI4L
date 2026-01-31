@@ -1,43 +1,32 @@
-"use client"
+import { useServerAuth } from "@/hooks/use-server-auth"
 
-import { useState, useEffect } from "react"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
-import { UserX, VolumeX } from "lucide-react"
-import { toast } from "sonner"
-import { formatAddress } from "@/lib/utils"
-
-interface BlockedUser {
-    address: string
-    displayName: string | null
-    blockedAt: string
-}
-
-interface MutedUser {
-    address: string
-    displayName: string | null
-    mutedAt: string
-}
+// ... (keep interface definitions)
 
 export function BlockedUsersList() {
     const queryClient = useQueryClient()
+    const { ensureSession } = useServerAuth()
     const [unblockingIds, setUnblockingIds] = useState<Set<string>>(new Set())
 
     const { data: blockedUsers, isLoading, error } = useQuery({
         queryKey: ["blocked-users"],
         queryFn: async () => {
             const response = await fetch("/api/me/blocked")
+            if (response.status === 401) throw new Error("Unauthorized")
             if (!response.ok) throw new Error("Failed to fetch blocked users")
             const data = await response.json()
             return data.blockedUsers as BlockedUser[]
         },
+        retry: (failureCount, error: any) => {
+            if (error.message === "Unauthorized") return false
+            return failureCount < 2
+        }
     })
 
     const handleUnblock = async (address: string) => {
         try {
+            const hasSession = await ensureSession()
+            if (!hasSession) return
+
             setUnblockingIds(prev => new Set(prev).add(address))
             const response = await fetch(`/api/profile/${address.toLowerCase()}/block`, {
                 method: "POST",
@@ -58,8 +47,41 @@ export function BlockedUsersList() {
         }
     }
 
+    const handleAuth = async () => {
+        const success = await ensureSession()
+        if (success) {
+            queryClient.invalidateQueries({ queryKey: ["blocked-users"] })
+        }
+    }
+
     if (isLoading) return <LoadingState />
-    if (error) return <div className="text-red-500">Failed to load blocked users</div>
+
+    if (error) {
+        if (error.message === "Unauthorized") {
+            return (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <UserX className="h-5 w-5" />
+                            Blocked Users
+                        </CardTitle>
+                        <CardDescription>
+                            Sign in to view your blocked users.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex flex-col items-center justify-center py-6 space-y-4">
+                            <p className="text-sm text-muted-foreground text-center">
+                                You need to verify your wallet ownership to see this private list.
+                            </p>
+                            <Button onClick={handleAuth}>Verify Ownership</Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            )
+        }
+        return <div className="text-red-500">Failed to load blocked users</div>
+    }
 
     return (
         <Card>
@@ -135,20 +157,29 @@ export function BlockedUsersList() {
 
 export function MutedUsersList() {
     const queryClient = useQueryClient()
+    const { ensureSession } = useServerAuth()
     const [unmutingIds, setUnmutingIds] = useState<Set<string>>(new Set())
 
     const { data: mutedUsers, isLoading, error } = useQuery({
         queryKey: ["muted-users"],
         queryFn: async () => {
             const response = await fetch("/api/me/muted")
+            if (response.status === 401) throw new Error("Unauthorized")
             if (!response.ok) throw new Error("Failed to fetch muted users")
             const data = await response.json()
             return data.mutedUsers as MutedUser[]
         },
+        retry: (failureCount, error: any) => {
+            if (error.message === "Unauthorized") return false
+            return failureCount < 2
+        }
     })
 
     const handleUnmute = async (address: string) => {
         try {
+            const hasSession = await ensureSession()
+            if (!hasSession) return
+
             setUnmutingIds(prev => new Set(prev).add(address))
             const response = await fetch(`/api/profile/${address.toLowerCase()}/mute`, {
                 method: "POST",
@@ -169,8 +200,41 @@ export function MutedUsersList() {
         }
     }
 
+    const handleAuth = async () => {
+        const success = await ensureSession()
+        if (success) {
+            queryClient.invalidateQueries({ queryKey: ["muted-users"] })
+        }
+    }
+
     if (isLoading) return <LoadingState />
-    if (error) return <div className="text-red-500">Failed to load muted users</div>
+
+    if (error) {
+        if (error.message === "Unauthorized") {
+            return (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <VolumeX className="h-5 w-5" />
+                            Muted Users
+                        </CardTitle>
+                        <CardDescription>
+                            Sign in to view your muted users.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex flex-col items-center justify-center py-6 space-y-4">
+                            <p className="text-sm text-muted-foreground text-center">
+                                You need to verify your wallet ownership to see this private list.
+                            </p>
+                            <Button onClick={handleAuth}>Verify Ownership</Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            )
+        }
+        return <div className="text-red-500">Failed to load muted users</div>
+    }
 
     return (
         <Card>
