@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation'
 import { AppShell } from '@/components/app-shell/app-shell'
 import { toast } from 'sonner'
 
+import { DemoProvider } from '@/lib/demo/demo-context'
+
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -134,7 +136,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex flex-col min-h-screen w-full">
       <div className="flex flex-1 flex-col">
-        <AppShell address={displayAddress}>{children}</AppShell>
+        <DemoProvider>
+          <AppShell address={displayAddress}>{children}</AppShell>
+        </DemoProvider>
       </div>
     </div>
   )
