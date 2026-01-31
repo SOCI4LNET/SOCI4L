@@ -42,7 +42,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
       {/* Background Gradient Blinds */}
-      <div className="absolute inset-0 z-0 h-[600px] w-full pointer-events-none opacity-80">
+      <div className="absolute inset-0 z-0 h-[600px] w-full opacity-80">
         <GradientBlinds
           gradientColors={['#A855F7', '#3B82F6', '#EC4899']} // Vibrant Purple/Blue/Pink
           angle={120}
