@@ -198,7 +198,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     vec3 col = base * spot;
     col *= (1.0 - stripe * 0.3); // Apply blinds pattern
     
-    col += (rand(gl_FragCoord.xy + iTime) - 0.5) * uNoise;
+    col += (rand(gl_FragCoord.xy) - 0.5) * uNoise;
 
     fragColor = vec4(col, 1.0);
 }

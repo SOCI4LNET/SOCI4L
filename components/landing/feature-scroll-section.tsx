@@ -282,7 +282,7 @@ function PrivacyControlVisual() {
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-medium text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">Wallet Only</span>
+                            <span className="text-[10px] font-medium text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">Private</span>
                         </div>
                     </div>
                     <div className="flex items-center justify-between p-2 rounded-lg bg-zinc-900/50 border border-white/5">
@@ -303,27 +303,35 @@ function PrivacyControlVisual() {
             </div>
 
             {/* Preview Section */}
-            <div className="flex-1 bg-zinc-900/30 rounded-lg border border-white/5 p-4 relative overflow-hidden">
-                <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-2 py-1 rounded-full border border-white/10">
+            <div className="flex-1 bg-zinc-900/30 rounded-lg border border-white/5 p-4 relative overflow-hidden group">
+                <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-2 py-1 rounded-full border border-white/10 z-20">
                     <Eye className="w-3 h-3 text-zinc-400" />
                     <span className="text-[10px] text-zinc-400 font-medium">Public View</span>
                 </div>
 
-                <div className="mt-4 space-y-3 opacity-60 pointer-events-none select-none">
+                <div className="mt-4 space-y-3 opacity-60 pointer-events-none select-none relative">
+                    {/* Stacked Cards Animation */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 to-transparent z-10" />
+
                     {/* Blurred/Hidden Net Worth */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 transition-transform duration-500 group-hover:scale-[1.02] group-hover:translate-x-1">
                         <div className="w-10 h-10 rounded-full bg-zinc-800" />
                         <div className="space-y-2">
                             <div className="w-24 h-3 rounded bg-zinc-800" />
                             <div className="w-16 h-2 rounded bg-zinc-800" />
                         </div>
                     </div>
-                    <div className="h-24 rounded-lg bg-zinc-800/50 border border-white/5 flex items-center justify-center">
+
+                    <div className="h-24 rounded-lg bg-zinc-800/50 border border-white/5 flex items-center justify-center relative transition-all duration-500 group-hover:rotate-1 group-hover:scale-[1.02] origin-center">
+                        <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                         <div className="flex flex-col items-center gap-2">
-                            <EyeOff className="w-5 h-5 text-zinc-600" />
-                            <p className="text-xs text-zinc-600 font-medium">Hidden by User</p>
+                            <EyeOff className="w-5 h-5 text-zinc-600 transition-transform duration-300 group-hover:scale-110 group-hover:text-zinc-500" />
+                            <p className="text-xs text-zinc-600 font-medium group-hover:text-zinc-500 transition-colors">Hidden by User</p>
                         </div>
                     </div>
+
+                    {/* Extra mocked content for depth */}
+                    <div className="h-12 rounded-lg bg-zinc-800/30 border border-white/5 opacity-50 transition-all duration-700 delay-75 group-hover:-rotate-1 group-hover:translate-y-1" />
                 </div>
             </div>
         </div>
@@ -460,16 +468,15 @@ function ProfileViewsChart() {
 
 const LINKS_DATA = [
     { name: "Portfolio", clicks: 1240, ctr: "12%", status: "active" },
-    { name: "Twitter", clicks: 856, ctr: "8.5%", status: "active" },
+    { name: "X (Twitter)", clicks: 856, ctr: "8.5%", status: "active" },
     { name: "Newsletter", clicks: 42, ctr: "0.8%", status: "warning" },
     { name: "Old Shop", clicks: 0, ctr: "0%", status: "dead" },
 ]
 
 const SECTION_CTR_DATA = [
-    { name: 'Header', value: 45 },
-    { name: 'Links', value: 32 },
-    { name: 'Grid', value: 15 },
-    { name: 'Footer', value: 8 },
+    { name: 'Profile Bio', value: 45 },
+    { name: 'Link Grid', value: 32 },
+    { name: 'Socials', value: 15 },
 ]
 
 function LinkPerformanceVisual() {
@@ -535,9 +542,16 @@ function LinkPerformanceVisual() {
                             <YAxis type="category" hide />
                             <Tooltip
                                 cursor={{ fill: 'transparent' }}
-                                contentStyle={{ backgroundColor: '#09090b', borderColor: '#27272a', borderRadius: '8px', fontSize: '10px', padding: '4px 8px' }}
-                                itemStyle={{ color: '#e4e4e7' }}
-                                labelStyle={{ display: 'none' }}
+                                content={({ active, payload }) => {
+                                    if (active && payload && payload.length) {
+                                        return (
+                                            <div className="bg-zinc-950 border border-white/10 px-2 py-1.5 rounded-lg shadow-xl text-[10px]">
+                                                <span className="text-zinc-400 font-medium">{payload[0].payload.name}:</span> <span className="text-white font-bold tabular-nums">{payload[0].value}%</span>
+                                            </div>
+                                        )
+                                    }
+                                    return null
+                                }}
                             />
                             <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                                 {SECTION_CTR_DATA.map((entry, index) => (
@@ -567,11 +581,11 @@ function OnChainContextVisual() {
                         <span className="text-[10px] text-zinc-500 font-medium">$12,450</span>
                     </div>
                     <div className="space-y-3 mt-2">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between group/token hover:bg-white/5 p-1 -mx-1 rounded transition-colors cursor-default">
                             <div className="flex items-center gap-2">
-                                <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-[8px] font-bold text-white">A</div>
+                                <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-[8px] font-bold text-white shadow-lg group-hover/token:scale-110 transition-transform">A</div>
                                 <div>
-                                    <p className="text-xs font-medium text-zinc-200">AVAX</p>
+                                    <p className="text-xs font-medium text-zinc-200 group-hover/token:text-white transition-colors">AVAX</p>
                                     <p className="text-[10px] text-zinc-500">Avalanche</p>
                                 </div>
                             </div>
@@ -580,11 +594,11 @@ function OnChainContextVisual() {
                                 <p className="text-[10px] text-emerald-500">+2.4%</p>
                             </div>
                         </div>
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between group/token hover:bg-white/5 p-1 -mx-1 rounded transition-colors cursor-default">
                             <div className="flex items-center gap-2">
-                                <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-[8px] font-bold text-white">U</div>
+                                <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-[8px] font-bold text-white shadow-lg group-hover/token:scale-110 transition-transform">U</div>
                                 <div>
-                                    <p className="text-xs font-medium text-zinc-200">USDC</p>
+                                    <p className="text-xs font-medium text-zinc-200 group-hover/token:text-white transition-colors">USDC</p>
                                     <p className="text-[10px] text-zinc-500">Circle</p>
                                 </div>
                             </div>
@@ -596,19 +610,41 @@ function OnChainContextVisual() {
                     </div>
                 </div>
 
-                {/* NFT/Collectibles Card (Simplified) */}
-                <div className="bg-zinc-950/50 rounded-lg border border-white/5 p-4 flex flex-col relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="flex items-center justify-between mb-2 relative z-10">
+                {/* NFT/Collectibles Card (Enhanced) */}
+                <div className="bg-zinc-950/50 rounded-lg border border-white/5 p-4 flex flex-col relative overflow-hidden group hover:border-white/10 transition-colors">
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                    <div className="flex items-center justify-between mb-4 relative z-10">
                         <h4 className="text-xs font-semibold text-zinc-100">Collectibles</h4>
-                        <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded text-white">32</span>
+                        <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded text-white group-hover:bg-white/20 transition-colors">32</span>
                     </div>
-                    <div className="flex -space-x-3 mt-auto relative z-10 pl-2">
-                        {[1, 2, 3].map((i) => (
-                            <div key={i} className="w-8 h-8 rounded-lg border-2 border-zinc-950 bg-zinc-800 shadow-xl" style={{ backgroundImage: `linear-gradient(135deg, #3f3f46 ${i * 10}%, #18181b 100%)` }} />
-                        ))}
-                        <div className="w-8 h-8 rounded-lg border-2 border-zinc-950 bg-zinc-900 flex items-center justify-center text-[10px] text-zinc-400 font-medium">
-                            +29
+
+                    <div className="flex-1 relative group/stack">
+                        {/* Stacked Cards Visualization */}
+                        <div className="absolute bottom-0 left-0 right-0 h-16">
+                            {[0, 1, 2].map((i) => (
+                                <div
+                                    key={i}
+                                    className="absolute bottom-0 left-0 w-12 h-16 rounded-lg border border-white/10 shadow-lg transition-all duration-300 ease-out group-hover/stack:translate-x-1"
+                                    style={{
+                                        left: `${i * 24}px`,
+                                        zIndex: i,
+                                        transform: `rotate(${i * 4 - 4}deg) translateY(${i * -2}px)`,
+                                        backgroundImage: i === 0 ? 'url(https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?auto=format&fit=crop&q=80&w=100&h=100)' :
+                                            i === 1 ? 'url(https://images.unsplash.com/photo-1634986666676-ec8fd927c23d?auto=format&fit=crop&q=80&w=100&h=100)' :
+                                                'linear-gradient(135deg, #18181b 0%, #27272a 100%)',
+                                        backgroundSize: 'cover',
+                                        backgroundPosition: 'center'
+                                    }}
+                                >
+                                    <div className="absolute inset-0 hover:z-20 hover:scale-110 hover:-translate-y-4 hover:rotate-0 transition-all duration-300 cursor-pointer shadow-xl rounded-lg" />
+                                    {i === 2 && (
+                                        <div className="w-full h-full flex items-center justify-center text-[10px] text-zinc-400 font-medium bg-zinc-900/90 backdrop-blur-sm pointer-events-none">
+                                            +29
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -631,16 +667,20 @@ function OnChainContextVisual() {
                 </div>
 
                 {/* Simulated Activity Chart */}
-                <div className="flex-1 flex items-end gap-1 pb-1">
+                <div className="flex-1 flex items-end gap-1 pb-1 px-1 h-12">
                     {[30, 45, 25, 60, 80, 50, 40, 70, 90, 65, 55, 40, 60, 75, 50, 85, 95, 70, 60, 80, 50, 40, 60, 70, 55, 45, 65, 80, 90, 75].map((h, i) => (
                         <div
                             key={i}
                             style={{ height: `${h}%` }}
                             className={cn(
-                                "flex-1 rounded-t-sm",
-                                i > 25 ? "bg-orange-500" : "bg-zinc-800/80"
+                                "flex-1 rounded-t-sm transition-all duration-300 hover:scale-y-110 origin-bottom group/bar relative",
+                                i > 25 ? "bg-orange-500 hover:bg-orange-400" : "bg-zinc-800/80 hover:bg-zinc-700"
                             )}
-                        />
+                        >
+                            <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-zinc-950 border border-white/10 text-white text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
+                                {Math.floor(h * 1.5)} tx
+                            </div>
+                        </div>
                     ))}
                 </div>
                 <div className="flex justify-between mt-2 pt-2 border-t border-white/5">
