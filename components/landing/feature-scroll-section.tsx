@@ -17,8 +17,8 @@ const FEATURES = [
     },
     {
         id: 'share-qr',
-        title: 'Share with QR',
-        description: "Create a public wallet profile, attach your links, and share everything through one QR code.",
+        title: 'Share your profile anywhere',
+        description: "Turn your wallet into a social profile, add your links, and share everything via link or QR, instantly accessible to anyone.",
         icon: QrCode,
         color: "from-blue-500 to-indigo-500",
         image: "/qr-feature-bg.png"

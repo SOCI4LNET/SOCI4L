@@ -77,17 +77,18 @@ export default function HomePage() {
               <div className="space-y-6">
                 <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/20 px-3 py-1 text-xs text-muted-foreground">
                   <Badge variant="outline" className="h-5 px-2 text-[11px]">
-                    SOCI4L
+                    Wallet
                   </Badge>
-                  <span>SOCI4L · Wallet-first profiles & link intelligence</span>
+                  <span>Social identity Hub</span>
                 </div>
                 <div className="space-y-3">
                   <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
-                    Turn your Avalanche wallet into a measurable public profile.
+                    Turn your Avalanche wallet into a measurable public identity.
                   </h1>
                   <p className="max-w-xl text-sm text-muted-foreground md:text-base">
-                    Turn your wallet into your SOCI4L profile. Showcase your on-chain assets, add your links, and share everything as a single public page with full control and built-in insights.
-                  </p>
+                    Turn your wallet into your SOCI4L profile.
+Showcase on-chain assets, add links, and share everything as one public page with full control and built-in insights.
+                </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                   <Button
@@ -110,7 +111,7 @@ export default function HomePage() {
                 </div>
                 <div className="text-xs text-muted-foreground">
                   <span className="font-medium text-foreground">Simple funnel:</span>{' '}
-                  share → view → click → dapp → tx
+                  create profile → add links → share → track engagement
                 </div>
               </div>
 
