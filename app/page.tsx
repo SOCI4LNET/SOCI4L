@@ -4,20 +4,21 @@ import { useRouter } from 'next/navigation'
 import { useAccount } from 'wagmi'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ArrowRight, LayoutDashboard, Wand2, Sparkles, Code2, LineChart, Globe, Twitter, Github, Wallet, Coins, ArrowUpRight } from 'lucide-react'
+import { MockProfileVisual } from '@/components/landing/mock-profile-visual'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { BarChart2, Link2, Sparkles, Wallet, LayoutDashboard, Wand2 } from 'lucide-react'
+import { BarChart2, Link2 } from 'lucide-react'
 import { AppHeader } from '@/components/app-shell/app-header'
 import { toast } from 'sonner'
 import { getConnectedDashboardHref } from '@/lib/routing'
-
-const EXAMPLE_PROFILE_ADDRESS = '0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1'
-
 import GradientBlinds from '@/components/ui/gradient-blinds'
 import { FeatureScrollSection } from '@/components/landing/feature-scroll-section'
 import { OrbitConnection } from '@/components/landing/orbit-connection'
 import { SmoothScrollLayout } from '@/components/landing/smooth-scroll-layout'
+
+const EXAMPLE_PROFILE_ADDRESS = '0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1'
 
 // ...
 
@@ -111,56 +112,9 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <Card className="bg-card/80 border-border/70 shadow-sm backdrop-blur-sm">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-sm">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                    <span>Profile funnel preview</span>
-                  </CardTitle>
-                  <CardDescription className="text-xs">
-                    How SOCI4L routes attention from a shared profile into real Avalanche usage.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="rounded-md border border-dashed border-border/60 bg-muted/10 p-3">
-                    <ol className="space-y-2 text-xs">
-                      <li className="flex items-start gap-2">
-                        <span className="mt-[2px] h-4 w-4 rounded-full bg-primary/10 text-[10px] font-medium text-primary flex items-center justify-center">
-                          1
-                        </span>
-                        <span>
-                          You share your SOCI4L profile link or QR code from your Avalanche wallet.
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="mt-[2px] h-4 w-4 rounded-full bg-primary/10 text-[10px] font-medium text-primary flex items-center justify-center">
-                          2
-                        </span>
-                        <span>
-                          Visitors land on a wallet-first profile with summary, links, activity, and assets.
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="mt-[2px] h-4 w-4 rounded-full bg-primary/10 text-[10px] font-medium text-primary flex items-center justify-center">
-                          3
-                        </span>
-                        <span>
-                          They click into curated link categories that point to Avalanche dapps and tools.
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="mt-[2px] h-4 w-4 rounded-full bg-primary/10 text-[10px] font-medium text-primary flex items-center justify-center">
-                          4
-                        </span>
-                        <span>
-                          Those dapps handle the final step: transactions, governance, mints, and more on
-                          Avalanche.
-                        </span>
-                      </li>
-                    </ol>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="relative mx-auto w-full max-w-[600px] lg:max-w-none">
+                <MockProfileVisual />
+              </div>
             </div>
             {/* Galaxy Orbit Animation (Anchored to Bottom via Flex) */}
             <div className="relative w-full z-0 pointer-events-none mt-auto">
@@ -213,10 +167,10 @@ export default function HomePage() {
                 </ul>
               </CardContent>
             </Card>
-          </section>
+          </section >
 
           {/* Core capabilities */}
-          <section className="space-y-4">
+          < section className="space-y-4" >
             <div className="space-y-1">
               <h2 className="text-base font-semibold">Why SOCI4L</h2>
               <p className="text-xs text-muted-foreground">
@@ -263,10 +217,10 @@ export default function HomePage() {
                 </CardContent>
               </Card>
             </div>
-          </section>
+          </section >
 
           {/* Avalanche benefits */}
-          <section className="space-y-4">
+          < section className="space-y-4" >
             <div className="space-y-1">
               <h2 className="text-base font-semibold">Why Avalanche benefits</h2>
               <p className="text-xs text-muted-foreground">
@@ -295,10 +249,10 @@ export default function HomePage() {
                 </ul>
               </CardContent>
             </Card>
-          </section>
+          </section >
 
           {/* What users can do today + roadmap */}
-          <section className="space-y-4">
+          < section className="space-y-4" >
             <Tabs defaultValue="today" className="w-full">
               <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                 <div className="space-y-1">
@@ -401,7 +355,7 @@ export default function HomePage() {
                 </Card>
               </TabsContent>
             </Tabs>
-          </section>
+          </section >
 
         </main >
       </div >

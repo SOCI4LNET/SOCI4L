@@ -3,7 +3,7 @@
 import React, { useRef, useState, useEffect } from 'react'
 import { motion, useScroll, useTransform, useSpring, useInView } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { Sparkles, LayoutTemplate, Wallet, Eye, QrCode, Copy, Share2, Check, Link2, Send } from 'lucide-react'
+import { Sparkles, LayoutTemplate, Wallet, Eye, QrCode, Copy, Share2, Check, Activity, ArrowUpRight, Clock, ShieldCheck, MousePointer2, AlertCircle, EyeOff, Lock, Globe } from 'lucide-react'
 
 // Feature Data
 const FEATURES = [
@@ -277,8 +277,7 @@ function FeatureImage({ feature, index, setActiveFeature }: { feature: any, inde
 
 // Chart Component using Recharts
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
-import { AlertCircle, ArrowUpRight, MousePointer2, ShieldCheck, Activity } from 'lucide-react'
-import { EyeOff, Lock, Globe } from 'lucide-react'
+
 
 function PrivacyControlVisual() {
     return (
@@ -722,38 +721,75 @@ function ShareQRVisual() {
     }
 
     return (
-        <div className="w-full h-full flex flex-col items-center justify-center relative p-8 group/canvas">
+        <div className="w-full h-full flex items-center justify-center relative p-8 select-none">
             {/* Background Decor */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-500/10 via-transparent to-transparent opacity-50" />
 
-            {/* Floating Elements (Background) */}
-            <div className="absolute inset-0 pointer-events-none">
-                {/* Top Left: Portfolio Link */}
-                <div className="absolute top-[20%] left-[15%] bg-black/40 backdrop-blur-md border border-white/5 pr-4 pl-2 py-2 rounded-full flex items-center gap-2 transform -rotate-6 transition-all duration-700 hover:scale-105 hover:bg-black/60 z-0 opacity-0 animate-[fadeIn_0.5s_ease-out_0.2s_forwards]">
-                    <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/30">
-                        <Link2 className="w-3 h-3 text-blue-400" />
+            {/* Left Card: Top Links (Simulated) */}
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 -translate-x-12 scale-90 opacity-60 hover:opacity-100 hover:scale-95 hover:z-20 transition-all duration-500 blur-[1px] hover:blur-0 group/left">
+                <div className="w-[200px] bg-[#121214] rounded-xl border border-white/10 p-4 shadow-2xl">
+                    <div className="flex items-center gap-2 mb-3 text-zinc-400">
+                        <ArrowUpRight className="w-4 h-4" />
+                        <span className="text-xs font-semibold">Top Links</span>
                     </div>
-                    <span className="text-xs font-medium text-zinc-400">Portfolio</span>
-                </div>
-
-                {/* Bottom Right: Social Badge */}
-                <div className="absolute bottom-[25%] right-[10%] bg-black/40 backdrop-blur-md border border-white/5 pr-4 pl-2 py-2 rounded-full flex items-center gap-2 transform rotate-3 transition-all duration-700 hover:scale-105 hover:bg-black/60 z-20 opacity-0 animate-[fadeIn_0.5s_ease-out_0.4s_forwards]">
-                    <div className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center border border-white/10">
-                        <span className="text-[10px] font-bold text-white">𝕏</span>
+                    <div className="space-y-2">
+                        {['My Website', 'X', 'Telegram'].map((link, i) => (
+                            <div key={link} className="flex items-center justify-between text-[10px]">
+                                <span className="text-zinc-300">{link}</span>
+                                <span className="text-zinc-500 tabular-nums">{1240 - i * 300} clicks</span>
+                            </div>
+                        ))}
                     </div>
-                    <span className="text-xs font-medium text-zinc-400">@soci4l</span>
                 </div>
+            </div>
 
-                {/* Top Right: Telegram Icon */}
-                <div className="absolute top-[25%] right-[20%] bg-black/40 backdrop-blur-md border border-white/5 p-2 rounded-full flex items-center justify-center transform rotate-12 transition-all duration-700 hover:scale-110 hover:bg-black/60 z-0 opacity-0 animate-[fadeIn_0.5s_ease-out_0.6s_forwards]">
-                    <div className="w-8 h-8 rounded-full bg-sky-500/20 flex items-center justify-center border border-sky-500/30">
-                        <Send className="w-4 h-4 text-sky-400 ml-0.5" />
+            {/* Right Card: Recent Activity (Simulated) */}
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 translate-x-12 scale-90 opacity-60 hover:opacity-100 hover:scale-95 hover:z-20 transition-all duration-500 blur-[1px] hover:blur-0 group/right">
+                <div className="w-[200px] bg-[#121214] rounded-xl border border-white/10 p-4 shadow-2xl">
+                    <div className="flex items-center gap-2 mb-3 text-zinc-400">
+                        <Activity className="w-4 h-4" />
+                        <span className="text-xs font-semibold">Activity</span>
+                    </div>
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded-full bg-red-500/20 flex items-center justify-center">
+                                <span className="text-[8px] font-bold text-red-500">A</span>
+                            </div>
+                            <div className="flex-1">
+                                <div className="flex justify-between text-[10px]">
+                                    <span className="text-zinc-300">Sent AVAX</span>
+                                    <span className="text-zinc-500">2m ago</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center">
+                                <span className="text-[8px] font-bold text-blue-500">U</span>
+                            </div>
+                            <div className="flex-1">
+                                <div className="flex justify-between text-[10px]">
+                                    <span className="text-zinc-300">Swap USDC</span>
+                                    <span className="text-zinc-500">1h ago</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 rounded-full bg-purple-500/20 flex items-center justify-center">
+                                <span className="text-[8px] font-bold text-purple-500">N</span>
+                            </div>
+                            <div className="flex-1">
+                                <div className="flex justify-between text-[10px]">
+                                    <span className="text-zinc-300">Mint NFT</span>
+                                    <span className="text-zinc-500">1d ago</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             {/* Main QR Card */}
-            <div className="w-full max-w-[280px] bg-[#121214] rounded-2xl p-4 shadow-2xl relative z-10 group transition-transform duration-500 hover:scale-[1.02] border border-white/10">
+            <div className="w-full max-w-[280px] bg-[#121214] rounded-2xl p-4 shadow-2xl relative z-30 group transition-transform duration-500 hover:scale-[1.02] border border-white/10">
                 {/* Card Header */}
                 <div className="flex items-center gap-3 mb-4">
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-[10px] shadow-lg font-mono">
