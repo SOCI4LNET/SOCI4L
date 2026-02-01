@@ -69,7 +69,7 @@ export function AppHeader({ showSidebarTrigger = false, sticky = true, showNavig
         'flex h-16 min-h-[4rem] items-center gap-4 border-b border-border/60 bg-background/95',
         PAGE_GUTTER,
         sticky && 'sticky top-0 z-50',
-        'backdrop-blur-sm transition-all ease-linear shadow-sm',
+        'backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-all ease-linear shadow-sm',
         className
       )}
     >

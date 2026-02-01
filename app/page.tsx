@@ -15,6 +15,7 @@ import { getConnectedDashboardHref } from '@/lib/routing'
 const EXAMPLE_PROFILE_ADDRESS = '0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1'
 
 import GradientBlinds from '@/components/ui/gradient-blinds'
+import { FeatureScrollSection } from '@/components/landing/feature-scroll-section'
 
 // ...
 
@@ -40,18 +41,18 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-background flex flex-col relative">
       {/* Background Gradient Blinds */}
-      <div className="absolute inset-0 z-0 h-[600px] w-full opacity-80">
+      <div className="absolute inset-0 z-0 h-[600px] w-full opacity-80 overflow-hidden">
         <GradientBlinds
           gradientColors={['#A855F7', '#3B82F6', '#EC4899']} // Vibrant Purple/Blue/Pink
-          angle={120}
-          noise={0.1}
-          blindCount={8}
-          blindMinWidth={50}
-          spotlightRadius={0.5}
-          spotlightSoftness={0.6}
-          spotlightOpacity={1}
+          angle={135}
+          noise={0.35}
+          blindCount={24}
+          blindMinWidth={20}
+          spotlightRadius={0.75}
+          spotlightSoftness={0.9}
+          spotlightOpacity={0.8}
           mouseDampening={0.15}
           distortAmount={0}
           shineDirection="left"
@@ -158,6 +159,11 @@ export default function HomePage() {
               </CardContent>
             </Card>
           </section>
+
+          <Separator className="bg-border/60" />
+
+          {/* Feature Scroll Section */}
+          <FeatureScrollSection />
 
           <Separator className="bg-border/60" />
 
