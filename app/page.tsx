@@ -17,6 +17,8 @@ import GradientBlinds from '@/components/ui/gradient-blinds'
 import { FeatureScrollSection } from '@/components/landing/feature-scroll-section'
 import { OrbitConnection } from '@/components/landing/orbit-connection'
 import { SmoothScrollLayout } from '@/components/landing/smooth-scroll-layout'
+import { CTASection } from '@/components/landing/cta-section'
+import { UseCaseSection } from '@/components/landing/use-case-section'
 
 const EXAMPLE_PROFILE_ADDRESS = '0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1'
 
@@ -356,6 +358,12 @@ export default function HomePage() {
               </TabsContent>
             </Tabs>
           </section >
+
+          {/* Use Case Section */}
+          <UseCaseSection />
+
+          {/* CTA Section */}
+          <CTASection />
 
         </main >
       </div >
