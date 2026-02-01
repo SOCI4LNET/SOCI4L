@@ -16,6 +16,8 @@ const EXAMPLE_PROFILE_ADDRESS = '0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1'
 
 import GradientBlinds from '@/components/ui/gradient-blinds'
 import { FeatureScrollSection } from '@/components/landing/feature-scroll-section'
+import { OrbitConnection } from '@/components/landing/orbit-connection'
+import { SmoothScrollLayout } from '@/components/landing/smooth-scroll-layout'
 
 // ...
 
@@ -41,131 +43,135 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col relative">
-      {/* Background Gradient Blinds */}
-      <div className="absolute inset-0 z-0 h-[600px] w-full opacity-80 overflow-hidden">
-        <GradientBlinds
-          gradientColors={['#A855F7', '#3B82F6', '#EC4899']} // Vibrant Purple/Blue/Pink
-          angle={135}
-          noise={0.35}
-          blindCount={24}
-          blindMinWidth={20}
-          spotlightRadius={0.75}
-          spotlightSoftness={0.9}
-          spotlightOpacity={0.8}
-          mouseDampening={0.15}
-          distortAmount={0}
-          shineDirection="left"
-          mixBlendMode="screen" // Screen helps light pop on dark background
-        />
-        {/* Gradients to fade it out at bottom */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/60 to-background pointer-events-none" />
-      </div>
+    <SmoothScrollLayout>
+      <div className="min-h-screen bg-background flex flex-col relative">
+        {/* Background Gradient Blinds */}
+        <div className="absolute inset-0 z-0 h-[600px] w-full opacity-80 overflow-hidden">
+          <GradientBlinds
+            gradientColors={['#A855F7', '#3B82F6', '#EC4899']} // Vibrant Purple/Blue/Pink
+            angle={135}
+            noise={0.35}
+            blindCount={24}
+            blindMinWidth={20}
+            spotlightRadius={0.75}
+            spotlightSoftness={0.9}
+            spotlightOpacity={0.8}
+            mouseDampening={0.15}
+            distortAmount={0}
+            shineDirection="left"
+            mixBlendMode="screen" // Screen helps light pop on dark background
+          />
+          {/* Gradients to fade it out at bottom */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/60 to-background pointer-events-none" />
+        </div>
 
-      <AppHeader sticky={true} showNavigation={true} className="z-10 relative" />
-      <main className="z-10 relative">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 py-10 md:py-16">
-          {/* Hero */}
-          <section className="grid gap-8 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] items-start">
-            <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/20 px-3 py-1 text-xs text-muted-foreground">
-                <Badge variant="outline" className="h-5 px-2 text-[11px]">
-                  SOCI4L
-                </Badge>
-                <span>SOCI4L · Wallet-first profiles & link intelligence</span>
-              </div>
-              <div className="space-y-3">
-                <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
-                  SOCI4L turns your Avalanche wallet into a measurable, privacy-first public profile.
-                </h1>
-                <p className="max-w-xl text-sm text-muted-foreground md:text-base">
-                  Present who you are on-chain, control what you show, and see which links and sections
-                  actually drive people into Avalanche dapps.
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  size="sm"
-                  onClick={openDashboard}
-                  className="gap-2 shadow-sm transition-transform hover:-translate-y-0.5"
-                >
-                  <LayoutDashboard className="h-3.5 w-3.5" />
-                  Open Dashboard
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={tryDemo}
-                  className="gap-2 border-border/70 bg-background/60 transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-primary/5"
-                >
-                  <Wand2 className="h-3.5 w-3.5 text-primary" />
-                  Try Demo
-                </Button>
-              </div>
-              <div className="text-xs text-muted-foreground">
-                <span className="font-medium text-foreground">Simple funnel:</span>{' '}
-                share → view → click → dapp → tx
-              </div>
-            </div>
-
-            <Card className="bg-card/80 border-border/70 shadow-sm backdrop-blur-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-sm">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  <span>Profile funnel preview</span>
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  How SOCI4L routes attention from a shared profile into real Avalanche usage.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="rounded-md border border-dashed border-border/60 bg-muted/10 p-3">
-                  <ol className="space-y-2 text-xs">
-                    <li className="flex items-start gap-2">
-                      <span className="mt-[2px] h-4 w-4 rounded-full bg-primary/10 text-[10px] font-medium text-primary flex items-center justify-center">
-                        1
-                      </span>
-                      <span>
-                        You share your SOCI4L profile link or QR code from your Avalanche wallet.
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="mt-[2px] h-4 w-4 rounded-full bg-primary/10 text-[10px] font-medium text-primary flex items-center justify-center">
-                        2
-                      </span>
-                      <span>
-                        Visitors land on a wallet-first profile with summary, links, activity, and assets.
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="mt-[2px] h-4 w-4 rounded-full bg-primary/10 text-[10px] font-medium text-primary flex items-center justify-center">
-                        3
-                      </span>
-                      <span>
-                        They click into curated link categories that point to Avalanche dapps and tools.
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="mt-[2px] h-4 w-4 rounded-full bg-primary/10 text-[10px] font-medium text-primary flex items-center justify-center">
-                        4
-                      </span>
-                      <span>
-                        Those dapps handle the final step: transactions, governance, mints, and more on
-                        Avalanche.
-                      </span>
-                    </li>
-                  </ol>
+        <AppHeader sticky={true} showNavigation={true} className="z-10 relative" />
+        <main className="flex-1 flex flex-col container mx-auto px-4 pt-20 pb-0 relative z-10">
+          {/* Header Section - Full Viewport Height */}
+          <section className="flex flex-col relative min-h-[calc(100vh-6rem)] pb-0">
+            {/* Hero Text Content */}
+            <div className="grid lg:grid-cols-2 gap-12 lg:gap-24 items-start relative z-10 flex-1">
+              <div className="space-y-6">
+                <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-muted/20 px-3 py-1 text-xs text-muted-foreground">
+                  <Badge variant="outline" className="h-5 px-2 text-[11px]">
+                    SOCI4L
+                  </Badge>
+                  <span>SOCI4L · Wallet-first profiles & link intelligence</span>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="space-y-3">
+                  <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
+                    Turn your Avalanche wallet into a measurable public profile.
+                  </h1>
+                  <p className="max-w-xl text-sm text-muted-foreground md:text-base">
+                    Turn your wallet into your SOCI4L profile. Showcase your on-chain assets, add your links, and share everything as a single public page with full control and built-in insights.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button
+                    size="sm"
+                    onClick={openDashboard}
+                    className="gap-2 shadow-sm transition-transform hover:-translate-y-0.5"
+                  >
+                    <LayoutDashboard className="h-3.5 w-3.5" />
+                    Open Dashboard
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={tryDemo}
+                    className="gap-2 border-border/70 bg-background/60 transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-primary/5"
+                  >
+                    <Wand2 className="h-3.5 w-3.5 text-primary" />
+                    Try Demo
+                  </Button>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground">Simple funnel:</span>{' '}
+                  share → view → click → dapp → tx
+                </div>
+              </div>
+
+              <Card className="bg-card/80 border-border/70 shadow-sm backdrop-blur-sm">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-sm">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <span>Profile funnel preview</span>
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    How SOCI4L routes attention from a shared profile into real Avalanche usage.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="rounded-md border border-dashed border-border/60 bg-muted/10 p-3">
+                    <ol className="space-y-2 text-xs">
+                      <li className="flex items-start gap-2">
+                        <span className="mt-[2px] h-4 w-4 rounded-full bg-primary/10 text-[10px] font-medium text-primary flex items-center justify-center">
+                          1
+                        </span>
+                        <span>
+                          You share your SOCI4L profile link or QR code from your Avalanche wallet.
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="mt-[2px] h-4 w-4 rounded-full bg-primary/10 text-[10px] font-medium text-primary flex items-center justify-center">
+                          2
+                        </span>
+                        <span>
+                          Visitors land on a wallet-first profile with summary, links, activity, and assets.
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="mt-[2px] h-4 w-4 rounded-full bg-primary/10 text-[10px] font-medium text-primary flex items-center justify-center">
+                          3
+                        </span>
+                        <span>
+                          They click into curated link categories that point to Avalanche dapps and tools.
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="mt-[2px] h-4 w-4 rounded-full bg-primary/10 text-[10px] font-medium text-primary flex items-center justify-center">
+                          4
+                        </span>
+                        <span>
+                          Those dapps handle the final step: transactions, governance, mints, and more on
+                          Avalanche.
+                        </span>
+                      </li>
+                    </ol>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            {/* Galaxy Orbit Animation (Anchored to Bottom via Flex) */}
+            <div className="relative w-full z-0 pointer-events-none mt-auto">
+              <OrbitConnection />
+            </div>
           </section>
 
-          <Separator className="bg-border/60" />
+
 
           {/* Feature Scroll Section */}
           <FeatureScrollSection />
-
-          <Separator className="bg-border/60" />
 
           {/* Problem & Solution */}
           <section className="grid gap-6 md:grid-cols-2">
@@ -397,8 +403,8 @@ export default function HomePage() {
             </Tabs>
           </section>
 
-        </div>
-      </main>
-    </div>
+        </main >
+      </div >
+    </SmoothScrollLayout >
   )
 }

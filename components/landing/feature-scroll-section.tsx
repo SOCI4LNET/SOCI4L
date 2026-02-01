@@ -3,7 +3,7 @@
 import React, { useRef, useState, useEffect } from 'react'
 import { motion, useScroll, useTransform, useSpring, useInView } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { Sparkles, LayoutTemplate, Wallet, Eye } from 'lucide-react'
+import { Sparkles, LayoutTemplate, Wallet, Eye, QrCode, Copy, Share2, Check, Link2, Send } from 'lucide-react'
 
 // Feature Data
 const FEATURES = [
@@ -14,6 +14,14 @@ const FEATURES = [
         icon: Sparkles,
         color: "from-violet-500 to-purple-500",
         image: "/feature-1-bg.png"
+    },
+    {
+        id: 'share-qr',
+        title: 'Share with QR',
+        description: "Create a public wallet profile, attach your links, and share everything through one QR code.",
+        icon: QrCode,
+        color: "from-blue-500 to-indigo-500",
+        image: "/qr-feature-bg.png"
     },
     {
         id: 'design',
@@ -52,8 +60,8 @@ export function FeatureScrollSection() {
                 <div className="hidden md:flex flex-col justify-center h-screen sticky top-0 py-24">
                     <div className="space-y-4 mb-12">
                         <h2 className="text-3xl md:text-3xl font-semibold tracking-tight text-foreground/90">
-                            Create, collaborate,<br />
-                            and go live.
+                            More than just<br />
+                            connecting a wallet
                         </h2>
                     </div>
 
@@ -138,6 +146,10 @@ function FeatureImage({ feature, index, setActiveFeature }: { feature: any, inde
         }
     }, [isInView, index, setActiveFeature])
 
+    // List of custom visual IDs
+    const CUSTOM_VISUAL_IDS = ['ai', 'share-qr', 'design', 'context', 'privacy']
+    const hasCustomVisual = CUSTOM_VISUAL_IDS.includes(feature.id)
+
     return (
         <div
             id={`feature-img-${index}`}
@@ -146,15 +158,15 @@ function FeatureImage({ feature, index, setActiveFeature }: { feature: any, inde
         >
 
             <div className="relative w-full aspect-square md:aspect-[16/10] rounded-xl overflow-hidden shadow-2xl border border-white/10 bg-muted/5">
-                {/* Background Image - Hidden for first 4 features (Chart, Link, Context, Privacy) */}
-                {index > 3 && (
+                {/* Background Image - Only if NOT a custom visual */}
+                {!hasCustomVisual && (
                     <div className={cn(
                         "absolute inset-0 opacity-20 bg-gradient-to-br mix-blend-overlay z-10",
                         feature.color
                     )} />
                 )}
 
-                {index > 3 ? (
+                {!hasCustomVisual ? (
                     <img
                         src={feature.image}
                         alt={feature.title}
@@ -164,8 +176,8 @@ function FeatureImage({ feature, index, setActiveFeature }: { feature: any, inde
                     <div className="absolute inset-0 bg-black" />
                 )}
 
-                {/* Chart Overlay (Only for First Feature) */}
-                {index === 0 && (
+                {/* Chart Overlay (Analytics) */}
+                {feature.id === 'ai' && (
                     <div className="absolute inset-0 z-20 p-6">
                         {/* "Gray Area" Container - Expanded to fill */}
                         <div className="w-full h-full bg-black rounded-xl border border-white/15 p-6 shadow-2xl overflow-hidden flex flex-col">
@@ -201,8 +213,17 @@ function FeatureImage({ feature, index, setActiveFeature }: { feature: any, inde
                     </div>
                 )}
 
-                {/* Link Performance Visual (Only for Second Feature) */}
-                {index === 1 && (
+                {/* Share QR Visual */}
+                {feature.id === 'share-qr' && (
+                    <div className="absolute inset-0 z-20 p-6">
+                        <div className="w-full h-full bg-black rounded-xl border border-white/15 p-4 shadow-2xl overflow-hidden">
+                            <ShareQRVisual />
+                        </div>
+                    </div>
+                )}
+
+                {/* Link Performance Visual */}
+                {feature.id === 'design' && (
                     <div className="absolute inset-0 z-20 p-6">
                         <div className="w-full h-full bg-black rounded-xl border border-white/15 p-4 shadow-2xl overflow-hidden">
                             <LinkPerformanceVisual />
@@ -210,8 +231,8 @@ function FeatureImage({ feature, index, setActiveFeature }: { feature: any, inde
                     </div>
                 )}
 
-                {/* On-chain Context Visual (Only for Third Feature) */}
-                {index === 2 && (
+                {/* On-chain Context Visual */}
+                {feature.id === 'context' && (
                     <div className="absolute inset-0 z-20 p-6">
                         <div className="w-full h-full bg-black rounded-xl border border-white/15 p-4 shadow-2xl overflow-hidden">
                             <OnChainContextVisual />
@@ -219,8 +240,8 @@ function FeatureImage({ feature, index, setActiveFeature }: { feature: any, inde
                     </div>
                 )}
 
-                {/* Privacy Control Visual (Only for Fourth Feature) */}
-                {index === 3 && (
+                {/* Privacy Control Visual */}
+                {feature.id === 'privacy' && (
                     <div className="absolute inset-0 z-20 p-6">
                         <div className="w-full h-full bg-black rounded-xl border border-white/15 p-4 shadow-2xl overflow-hidden">
                             <PrivacyControlVisual />
@@ -228,8 +249,8 @@ function FeatureImage({ feature, index, setActiveFeature }: { feature: any, inde
                     </div>
                 )}
 
-                {/* UI Overlay Simulation (Hidden for First, Second, Third, and Fourth Feature) */}
-                {index > 3 && (
+                {/* UI Overlay Simulation */}
+                {!hasCustomVisual && (
                     <div className="absolute inset-0 z-20 p-6 flex flex-col justify-between pointer-events-none">
                         {/* Top Bar Mock */}
                         <div className="w-full h-8 bg-background/40 backdrop-blur-md rounded-lg border border-white/10 flex items-center px-3 gap-2">
@@ -686,6 +707,115 @@ function OnChainContextVisual() {
                 <div className="flex justify-between mt-2 pt-2 border-t border-white/5">
                     <div className="text-[10px] text-zinc-500">126 Txns</div>
                     <div className="text-[10px] text-zinc-500">High Activity</div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+function ShareQRVisual() {
+    const [copied, setCopied] = React.useState(false)
+
+    const handleCopy = () => {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+    }
+
+    return (
+        <div className="w-full h-full flex flex-col items-center justify-center relative p-8 group/canvas">
+            {/* Background Decor */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-indigo-500/10 via-transparent to-transparent opacity-50" />
+
+            {/* Floating Elements (Background) */}
+            <div className="absolute inset-0 pointer-events-none">
+                {/* Top Left: Portfolio Link */}
+                <div className="absolute top-[20%] left-[15%] bg-black/40 backdrop-blur-md border border-white/5 pr-4 pl-2 py-2 rounded-full flex items-center gap-2 transform -rotate-6 transition-all duration-700 hover:scale-105 hover:bg-black/60 z-0 opacity-0 animate-[fadeIn_0.5s_ease-out_0.2s_forwards]">
+                    <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/30">
+                        <Link2 className="w-3 h-3 text-blue-400" />
+                    </div>
+                    <span className="text-xs font-medium text-zinc-400">Portfolio</span>
+                </div>
+
+                {/* Bottom Right: Social Badge */}
+                <div className="absolute bottom-[25%] right-[10%] bg-black/40 backdrop-blur-md border border-white/5 pr-4 pl-2 py-2 rounded-full flex items-center gap-2 transform rotate-3 transition-all duration-700 hover:scale-105 hover:bg-black/60 z-20 opacity-0 animate-[fadeIn_0.5s_ease-out_0.4s_forwards]">
+                    <div className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center border border-white/10">
+                        <span className="text-[10px] font-bold text-white">𝕏</span>
+                    </div>
+                    <span className="text-xs font-medium text-zinc-400">@soci4l</span>
+                </div>
+
+                {/* Top Right: Telegram Icon */}
+                <div className="absolute top-[25%] right-[20%] bg-black/40 backdrop-blur-md border border-white/5 p-2 rounded-full flex items-center justify-center transform rotate-12 transition-all duration-700 hover:scale-110 hover:bg-black/60 z-0 opacity-0 animate-[fadeIn_0.5s_ease-out_0.6s_forwards]">
+                    <div className="w-8 h-8 rounded-full bg-sky-500/20 flex items-center justify-center border border-sky-500/30">
+                        <Send className="w-4 h-4 text-sky-400 ml-0.5" />
+                    </div>
+                </div>
+            </div>
+
+            {/* Main QR Card */}
+            <div className="w-full max-w-[280px] bg-[#121214] rounded-2xl p-4 shadow-2xl relative z-10 group transition-transform duration-500 hover:scale-[1.02] border border-white/10">
+                {/* Card Header */}
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-[10px] shadow-lg font-mono">
+                        0x
+                    </div>
+                    <div>
+                        <h4 className="text-zinc-100 font-bold text-sm tracking-tight font-mono">0x71...3a9</h4>
+                        <p className="text-zinc-500 text-[10px] font-medium font-mono">soci4l.net/0x71...3a9</p>
+                    </div>
+                    <div className="ml-auto">
+                        <Share2 className="w-4 h-4 text-zinc-500 group-hover:text-zinc-300 transition-colors" />
+                    </div>
+                </div>
+
+                {/* QR Code Area */}
+                <div className="aspect-square bg-black/50 rounded-xl p-4 mb-4 relative overflow-hidden border border-white/5 group/qr">
+                    {/* Simulated QR Pattern */}
+                    <div className="w-full h-full grid grid-cols-7 grid-rows-7 gap-1">
+                        {Array.from({ length: 49 }).map((_, i) => {
+                            // Corner markers
+                            const isCorner =
+                                (i >= 0 && i <= 2) || (i >= 7 && i <= 9) || (i >= 14 && i <= 16) ||
+                                (i >= 4 && i <= 6) || (i >= 11 && i <= 13) || (i >= 18 && i <= 20) ||
+                                (i >= 28 && i <= 30) || (i >= 35 && i <= 37) || (i >= 42 && i <= 44);
+
+                            return (
+                                <div
+                                    key={i}
+                                    className={`rounded-[1px] transition-all duration-500 ${isCorner ? 'bg-zinc-200' : Math.random() > 0.4 ? 'bg-zinc-400/80' : 'bg-white/5'}`}
+                                    style={{ opacity: Math.random() > 0.5 ? 1 : 0.3 }}
+                                />
+                            )
+                        })}
+                    </div>
+
+                    {/* Central Logo Overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="bg-[#121214] p-2 rounded-full border border-white/10 shadow-xl group-hover/qr:scale-110 transition-transform">
+                            <div className="w-5 h-5 bg-red-500 rounded-sm flex items-center justify-center">
+                                <span className="text-white font-bold text-[9px]">A</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Action Button - Fake Copy */}
+                <div
+                    onClick={handleCopy}
+                    className="flex items-center gap-2 bg-white/5 rounded-lg p-2 cursor-pointer hover:bg-white/10 active:scale-95 transition-all duration-200 group/btn border border-white/5 select-none"
+                >
+                    <div className={cn(
+                        "flex-1 text-center text-xs font-medium transition-colors",
+                        copied ? "text-emerald-400" : "text-zinc-300 group-hover/btn:text-white"
+                    )}>
+                        {copied ? "Copied!" : "Copy Link"}
+                    </div>
+                    <div className={cn(
+                        "w-6 h-6 rounded flex items-center justify-center shadow-sm transition-colors",
+                        copied ? "bg-emerald-500/20 text-emerald-400" : "bg-white/10 text-zinc-400 group-hover/btn:text-white"
+                    )}>
+                        {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                    </div>
                 </div>
             </div>
         </div>
