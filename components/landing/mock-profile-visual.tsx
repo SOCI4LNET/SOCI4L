@@ -13,7 +13,7 @@ export function MockProfileVisual() {
     const [clicks, setClicks] = useState({ portfolio: 0, twitter: 0, youtube: 0, linkedin: 0 })
     const [links, setLinks] = useState([
         { id: 'portfolio', title: 'Portfolio Website', subtitle: 'My personal work', icon: ArrowUpRight, color: 'text-muted-foreground', bg: 'bg-background' },
-        { id: 'twitter', title: 'X', subtitle: '@avalanche', icon: Link2, color: 'text-muted-foreground', bg: 'bg-background' },
+        { id: 'twitter', title: 'X', subtitle: '@soci4lnet', icon: Link2, color: 'text-muted-foreground', bg: 'bg-background' },
         { id: 'linkedin', title: 'LinkedIn', subtitle: 'Professional network', icon: Link2, color: 'text-muted-foreground', bg: 'bg-background' }
     ])
 
@@ -69,7 +69,8 @@ export function MockProfileVisual() {
 
             // Drag to list (Bottom position)
             // Header(~80) + Assets(~100) + 3 Links(~60*3=180) = ~360y
-            setCursorPos({ x: 300, y: 380, opacity: 1 })
+            // Target align with left padding (p-6) + card padding (p-3) + grip width (~10) ≈ 55px
+            setCursorPos({ x: 55, y: 380, opacity: 1 })
             await new Promise(r => setTimeout(r, 800))
             if (!mounted) return
 
@@ -90,7 +91,8 @@ export function MockProfileVisual() {
 
             // --- STEP 4: REORDER LINKS ---
             // Move cursor to the new link (now at bottom, index 3)
-            setCursorPos({ x: 280, y: 420, opacity: 1 })
+            // Align with grip handle (left side)
+            setCursorPos({ x: 55, y: 420, opacity: 1 })
             await new Promise(r => setTimeout(r, 600))
             if (!mounted) return
 
@@ -101,7 +103,7 @@ export function MockProfileVisual() {
 
             // Drag up to top (index 0 position)
             // Header(~80) + Assets(~100) = ~180y
-            setCursorPos({ x: 280, y: 200, opacity: 1 })
+            setCursorPos({ x: 55, y: 200, opacity: 1 })
             await new Promise(r => setTimeout(r, 800))
             if (!mounted) return
 
@@ -189,8 +191,9 @@ export function MockProfileVisual() {
                                 initial={{ opacity: 0, scale: 0.5 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.5 }}
-                                className="absolute top-4 left-4 w-64 p-3 rounded-lg bg-card border border-border/60 shadow-xl flex items-center gap-3"
+                                className="absolute -top-2 -left-2 w-64 p-3 rounded-lg bg-card border border-border/60 shadow-xl flex items-center gap-3"
                             >
+                                <GripVertical className="w-4 h-4 text-muted-foreground/30" />
                                 <div className="w-9 h-9 rounded-md bg-red-500/10 flex items-center justify-center shrink-0">
                                     <Youtube className="w-4 h-4 text-red-500" />
                                 </div>
@@ -217,10 +220,14 @@ export function MockProfileVisual() {
                             <h2 className="text-lg font-heading font-semibold text-foreground">0x8ab...1b1</h2>
                             <Badge variant="secondary" className="text-[10px] h-5 px-1.5 pointer-events-none">Whale</Badge>
                         </div>
-                        <div className="flex items-center gap-2 mt-1">
-                            <div className="h-3 w-24 bg-muted/50 rounded animate-pulse" />
-                            <div className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-                            <div className="h-3 w-16 bg-muted/50 rounded animate-pulse" />
+                        <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground w-full">
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-foreground font-semibold font-mono">1.2k</span> <span>Followers</span>
+                            </div>
+                            <div className="w-0.5 h-0.5 rounded-full bg-border" />
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-foreground font-semibold font-mono">342</span> <span>Following</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -269,9 +276,9 @@ export function MockProfileVisual() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: step >= 1 ? 1 : 0, y: step >= 1 ? 0 : 10 }}
                     transition={{ duration: 0.5 }}
-                    className="p-4 rounded-xl bg-card border border-border/40 shadow-sm flex items-center justify-between"
+                    className="p-4 rounded-xl bg-card border border-border/40 shadow-sm flex items-center"
                 >
-                    <div className="flex items-center gap-3">
+                    <div className="flex-1 flex items-center gap-3">
                         <div className="p-2.5 rounded-lg bg-primary/10 text-primary">
                             <Wallet className="w-5 h-5" />
                         </div>
@@ -280,8 +287,8 @@ export function MockProfileVisual() {
                             <span className="text-foreground font-bold text-lg font-heading tracking-tight">$1,240.52</span>
                         </div>
                     </div>
-                    <div className="w-px h-8 bg-border/50" />
-                    <div className="flex items-center gap-3">
+                    <div className="w-px h-8 bg-border/50 shrink-0" />
+                    <div className="flex-1 flex items-center gap-3 pl-6">
                         <div className="p-2.5 rounded-lg bg-purple-500/10 text-purple-500">
                             <LayoutTemplate className="w-5 h-5" />
                         </div>
