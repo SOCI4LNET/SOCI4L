@@ -199,13 +199,13 @@ export function ComparisonSection() {
                         </div>
 
                         <div className="flex gap-3">
-                            <Button className="flex-1 gap-2 font-semibold shadow-lg shadow-white/5 bg-white text-black hover:bg-zinc-200">
+                            <Button className="flex-1 gap-2 font-semibold shadow-lg shadow-white/5 bg-white text-black hover:bg-zinc-200 h-10">
                                 Follow Profile
                             </Button>
-                            <Button variant="outline" size="icon" className="border-zinc-800 bg-zinc-900/50 text-white hover:bg-zinc-900 hover:text-white">
-                                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+                            <Button variant="outline" size="icon" className="h-10 w-10 border-zinc-800 bg-zinc-900/50 text-white hover:bg-zinc-900 hover:text-white rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
                             </Button>
-                            <Button variant="outline" size="icon" className="border-zinc-800 bg-zinc-900/50 text-white hover:bg-zinc-900 hover:text-white">
+                            <Button variant="outline" size="icon" className="h-10 w-10 border-zinc-800 bg-zinc-900/50 text-white hover:bg-zinc-900 hover:text-white rounded-lg">
                                 <ExternalLink className="w-4 h-4" />
                             </Button>
                         </div>
