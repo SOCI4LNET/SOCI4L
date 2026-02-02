@@ -113,13 +113,15 @@ export default function HomePage() {
                     Try Demo
                   </Button>
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  <span className="font-medium text-foreground">Simple funnel:</span>{' '}
-                  create profile → add links → share → track engagement
+                <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground">Simple funnel:</span>
+                  <span className="leading-relaxed">
+                    create profile → add links → share → track engagement
+                  </span>
                 </div>
               </div>
 
-              <div className="relative mx-auto w-full max-w-[600px] lg:max-w-none">
+              <div className="relative mx-auto w-full max-w-[600px] lg:max-w-none origin-top scale-[0.85] sm:scale-100 lg:scale-100 -mt-8 sm:mt-0">
                 <MockProfileVisual />
               </div>
             </div>

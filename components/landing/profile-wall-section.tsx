@@ -93,7 +93,7 @@ function ProfileCard({ data, index }: { data: ProfileData; index: number }) {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
+                transition={{ duration: 0.4, delay: index * 0.05 }}
                 className="group relative w-full rounded-2xl bg-card border border-border/50 shadow-sm flex flex-col hover:shadow-2xl hover:border-border/80 hover:-translate-y-1 transition-all duration-300 overflow-visible"
             >
                 {/* Cover / Header Area */}
