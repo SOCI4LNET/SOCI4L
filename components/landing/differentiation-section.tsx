@@ -34,7 +34,7 @@ export function DifferentiationSection() {
                     <h2 className="text-sm font-mono uppercase tracking-widest text-primary mb-4">
                         The Standard
                     </h2>
-                    <h3 className="text-3xl md:text-4xl font-semibold tracking-tight text-white mb-6">
+                    <h3 className="text-3xl md:text-4xl font-semibold tracking-tight text-foreground mb-6">
                         Defined by what we are <span className="text-muted-foreground">not.</span>
                     </h3>
                     <p className="text-lg text-muted-foreground leading-relaxed">
@@ -42,9 +42,9 @@ export function DifferentiationSection() {
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 border-y border-white/5 divide-y md:divide-y-0 md:divide-x divide-white/5 bg-white/[0.01] backdrop-blur-sm">
+                <div className="grid grid-cols-1 md:grid-cols-3 border-y border-border/10 divide-y md:divide-y-0 md:divide-x divide-border/10 bg-card/5 backdrop-blur-sm">
                     {DIFFERENTIATORS.map((item, index) => (
-                        <div key={index} className="group relative p-8 md:p-12 transition-all duration-700 hover:bg-white/[0.02]">
+                        <div key={index} className="group relative p-8 md:p-12 transition-all duration-700 hover:bg-foreground/[0.02]">
                             {/* Hover Noise Texture */}
                             <div className="absolute inset-0 opacity-0 group-hover:opacity-20 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] transition-opacity duration-700" />
 
@@ -53,21 +53,21 @@ export function DifferentiationSection() {
 
                             <div className="flex flex-col h-full relative z-10">
                                 <div className="flex items-center justify-between mb-12">
-                                    <div className="p-3 rounded-xl bg-white/5 text-zinc-400 group-hover:text-primary group-hover:bg-primary/10 transition-all duration-500">
+                                    <div className="p-3 rounded-xl bg-foreground/5 text-muted-foreground group-hover:text-primary group-hover:bg-primary/10 transition-all duration-500">
                                         <item.icon className="w-6 h-6" strokeWidth={1.5} />
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-[10px] font-mono uppercase tracking-widest font-medium text-zinc-600 group-hover:text-zinc-400 transition-colors">
+                                        <span className="text-[10px] font-mono uppercase tracking-widest font-medium text-muted-foreground group-hover:text-foreground/70 transition-colors">
                                             {item.tag}
                                         </span>
                                     </div>
                                 </div>
 
                                 <div className="space-y-4 mt-auto">
-                                    <h3 className="text-2xl font-medium tracking-tight text-zinc-200 group-hover:text-white transition-colors duration-300">
+                                    <h3 className="text-2xl font-medium tracking-tight text-foreground/80 group-hover:text-foreground transition-colors duration-300">
                                         {item.title}
                                     </h3>
-                                    <p className="text-sm text-zinc-500 leading-relaxed font-normal group-hover:text-zinc-400 transition-colors duration-300">
+                                    <p className="text-sm text-muted-foreground leading-relaxed font-normal group-hover:text-foreground/70 transition-colors duration-300">
                                         {item.description}
                                     </p>
                                 </div>

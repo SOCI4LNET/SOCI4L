@@ -18,10 +18,10 @@ export function UseCaseSection() {
             bgGlow: 'bg-emerald-500/10',
             cta: 'Read the docs',
             colSpan: 'md:col-span-2',
-            // Mock Visual: Code Snippet - Moved up to be more visible
+            // Mock Visual: Code Snippet - Adjusted for Light/Dark
             visual: (
-                <div className="absolute right-6 top-1/2 -translate-y-[40%] translate-x-12 w-[280px] bg-slate-950/90 backdrop-blur-md rounded-lg border border-white/10 p-3 shadow-2xl opacity-60 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500 rotate-1 group-hover:rotate-0 hidden md:block z-20">
-                    <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-2">
+                <div className="absolute right-6 top-1/2 -translate-y-[40%] translate-x-12 w-[280px] bg-slate-50 dark:bg-slate-950/90 backdrop-blur-md rounded-lg border border-slate-200 dark:border-white/10 p-3 shadow-2xl opacity-60 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500 rotate-1 group-hover:rotate-0 hidden md:block z-20">
+                    <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/5 pb-2 mb-2">
                         <div className="flex gap-1.5">
                             <div className="w-2 h-2 rounded-full bg-red-500/20" />
                             <div className="w-2 h-2 rounded-full bg-yellow-500/20" />
@@ -29,11 +29,12 @@ export function UseCaseSection() {
                         </div>
                         <span className="text-[9px] text-slate-500 font-mono">profile.ts</span>
                     </div>
-                    <div className="space-y-1.5 font-mono text-[9px] leading-relaxed text-slate-400">
-                        <div className="flex"><span className="w-4 text-slate-600">1</span><span><span className="text-purple-400">import</span> <span className="text-blue-300">{`{ resolve }`}</span> <span className="text-purple-400">from</span> <span className="text-green-300">'@soci4l/sdk'</span></span></div>
-                        <div className="flex"><span className="w-4 text-slate-600">2</span><span></span></div>
-                        <div className="flex"><span className="w-4 text-slate-600">3</span><span><span className="text-purple-400">const</span> user <span className="text-pink-400">=</span> <span className="text-blue-400">await</span> resolve(<span className="text-orange-300">address</span>)</span></div>
-                        <div className="flex"><span className="w-4 text-slate-600">4</span><span><span className="text-blue-300">console</span>.<span className="text-yellow-300">log</span>(user.ens)</span></div>
+                    {/* Syntax highlighting adapted for legibility on both, or we prefer dark code block on light? Keeping it "code-like" mostly dark or high contrast. Let's try a clean light theme code block. */}
+                    <div className="space-y-1.5 font-mono text-[9px] leading-relaxed text-slate-600 dark:text-slate-400">
+                        <div className="flex"><span className="w-4 text-slate-400 dark:text-slate-600">1</span><span><span className="text-purple-600 dark:text-purple-400">import</span> <span className="text-blue-600 dark:text-blue-300">{`{ resolve }`}</span> <span className="text-purple-600 dark:text-purple-400">from</span> <span className="text-green-600 dark:text-green-300">'@soci4l/sdk'</span></span></div>
+                        <div className="flex"><span className="w-4 text-slate-400 dark:text-slate-600">2</span><span></span></div>
+                        <div className="flex"><span className="w-4 text-slate-400 dark:text-slate-600">3</span><span><span className="text-purple-600 dark:text-purple-400">const</span> user <span className="text-pink-600 dark:text-pink-400">=</span> <span className="text-blue-600 dark:text-blue-400">await</span> resolve(<span className="text-orange-600 dark:text-orange-300">address</span>)</span></div>
+                        <div className="flex"><span className="w-4 text-slate-400 dark:text-slate-600">4</span><span><span className="text-blue-600 dark:text-blue-300">console</span>.<span className="text-yellow-600 dark:text-yellow-300">log</span>(user.ens)</span></div>
                     </div>
                 </div>
             )
@@ -55,28 +56,28 @@ export function UseCaseSection() {
 
                     {/* Back Card */}
                     <div className="absolute -bottom-10 -right-4 opacity-40 group-hover:opacity-60 transition-all duration-500 group-hover:-translate-y-2 group-hover:-translate-x-1 z-0">
-                        <div className="w-36 h-48 bg-zinc-900 border border-white/5 rounded-2xl rotate-[5deg] overflow-hidden relative shadow-xl">
+                        <div className="w-36 h-48 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/5 rounded-2xl rotate-[5deg] overflow-hidden relative shadow-xl">
                             <div className="absolute inset-0 bg-gradient-to-bl from-blue-500/10 via-indigo-500/10 to-purple-500/10" />
                         </div>
                     </div>
 
                     {/* Front Card */}
                     <div className="absolute -bottom-8 -right-8 opacity-90 group-hover:opacity-100 transition-all duration-500 group-hover:-translate-y-4 group-hover:-translate-x-4 z-10">
-                        <div className="w-40 h-52 bg-zinc-950/90 backdrop-blur-md border border-white/10 rounded-2xl rotate-[-6deg] overflow-hidden shadow-2xl relative flex flex-col">
+                        <div className="w-40 h-52 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md border border-slate-200 dark:border-white/10 rounded-2xl rotate-[-6deg] overflow-hidden shadow-2xl relative flex flex-col">
                             {/* Image Placeholder */}
                             <div className="h-32 w-full bg-gradient-to-tr from-pink-500/20 via-rose-500/10 to-transparent relative overflow-hidden">
                                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mixed-blend-overlay" />
-                                <div className="absolute bottom-2 right-2 p-1 bg-black/40 rounded-md backdrop-blur-md border border-white/5">
+                                <div className="absolute bottom-2 right-2 p-1 bg-white/40 dark:bg-black/40 rounded-md backdrop-blur-md border border-white/20 dark:border-white/5">
                                     <div className="w-3 h-3 rounded-full bg-pink-500/50" />
                                 </div>
                             </div>
 
                             {/* Card Meta */}
                             <div className="flex-1 p-3 flex flex-col justify-center gap-2">
-                                <div className="h-2 w-2/3 bg-white/10 rounded-full" />
+                                <div className="h-2 w-2/3 bg-slate-100 dark:bg-white/10 rounded-full" />
                                 <div className="flex items-center gap-2">
                                     <div className="w-5 h-5 rounded-full bg-linear-to-r from-pink-500 to-purple-500 opacity-80" />
-                                    <div className="h-1.5 w-1/3 bg-white/5 rounded-full" />
+                                    <div className="h-1.5 w-1/3 bg-slate-100 dark:bg-white/5 rounded-full" />
                                 </div>
                             </div>
                         </div>
@@ -96,15 +97,15 @@ export function UseCaseSection() {
             // Mock Visual: Real Avatars with hover expansion
             visual: (
                 <div className="absolute right-10 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-6 opacity-60 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0">
-                    <div className="flex items-center gap-3 bg-zinc-950/80 border border-white/10 rounded-full px-4 py-2 backdrop-blur-md shadow-xl hover:scale-105 transition-transform duration-300">
+                    <div className="flex items-center gap-3 bg-white/80 dark:bg-zinc-950/80 border border-slate-200 dark:border-white/10 rounded-full px-4 py-2 backdrop-blur-md shadow-xl hover:scale-105 transition-transform duration-300">
                         <div className="flex -space-x-3">
-                            <img src="https://effigy.im/a/0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1.svg" className="w-8 h-8 rounded-full border-2 border-zinc-950 bg-zinc-900" alt="Member" />
-                            <img src="https://effigy.im/a/0xd8da6bf26964af9d7eed9e03e53415d37aa96045.svg" className="w-8 h-8 rounded-full border-2 border-zinc-950 bg-zinc-900" alt="Member" />
-                            <img src="https://effigy.im/a/0x1f9090aaE28b8a3dCeaDf281B0F1282B40256C8a.svg" className="w-8 h-8 rounded-full border-2 border-zinc-950 bg-zinc-900" alt="Member" />
-                            <img src="https://effigy.im/a/0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE.svg" className="w-8 h-8 rounded-full border-2 border-zinc-950 bg-zinc-900" alt="Member" />
+                            <img src="https://effigy.im/a/0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1.svg" className="w-8 h-8 rounded-full border-2 border-white dark:border-zinc-950 bg-slate-100 dark:bg-zinc-900" alt="Member" />
+                            <img src="https://effigy.im/a/0xd8da6bf26964af9d7eed9e03e53415d37aa96045.svg" className="w-8 h-8 rounded-full border-2 border-white dark:border-zinc-950 bg-slate-100 dark:bg-zinc-900" alt="Member" />
+                            <img src="https://effigy.im/a/0x1f9090aaE28b8a3dCeaDf281B0F1282B40256C8a.svg" className="w-8 h-8 rounded-full border-2 border-white dark:border-zinc-950 bg-slate-100 dark:bg-zinc-900" alt="Member" />
+                            <img src="https://effigy.im/a/0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE.svg" className="w-8 h-8 rounded-full border-2 border-white dark:border-zinc-950 bg-slate-100 dark:bg-zinc-900" alt="Member" />
                         </div>
-                        <div className="h-4 w-px bg-white/10" />
-                        <span className="text-xs text-zinc-400 font-medium">+84 members</span>
+                        <div className="h-4 w-px bg-slate-200 dark:bg-white/10" />
+                        <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">+84 members</span>
                     </div>
                 </div>
             )
