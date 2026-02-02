@@ -145,7 +145,10 @@ export function ComparisonSection() {
                     className="relative group rounded-2xl border border-zinc-900 bg-black flex flex-col h-[480px] overflow-hidden shadow-2xl"
                 >
                     {/* Profile Header (Cover) */}
-                    <div className="h-32 w-full relative bg-black">
+                    <div className="h-32 w-full relative bg-neutral-900/50">
+                        {/* Abstract Cover Pattern */}
+                        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-500 via-purple-500 to-transparent" />
+
                         {/* More Menu */}
                         <div className="absolute top-4 right-4">
                             <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full bg-black/40 hover:bg-black/60 text-white/80 hover:text-white backdrop-blur-md">
@@ -155,60 +158,85 @@ export function ComparisonSection() {
                     </div>
 
                     <div className="px-8 flex-1 flex flex-col relative pb-8">
-                        {/* Avatar */}
+                        {/* Avatar - Rounded Square for "Real Wallet" / NFT look */}
                         <div className="absolute -top-12 left-8">
-                            <div className="relative group/avatar cursor-pointer">
+                            <motion.div
+                                initial={{ scale: 0.8, opacity: 0 }}
+                                whileInView={{ scale: 1, opacity: 1 }}
+                                transition={{ delay: 0.3, type: "spring" }}
+                                className="relative group/avatar cursor-pointer"
+                            >
                                 <div className="w-24 h-24 rounded-2xl border-[4px] border-black bg-zinc-900 overflow-hidden shadow-xl">
-                                    <AvatarImage src="https://api.dicebear.com/9.x/pixel-art/svg?seed=CryptoKing" className="object-cover w-full h-full" />
+                                    <AvatarImage src="https://effigy.im/a/0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1.svg" className="object-cover w-full h-full" />
                                 </div>
                                 <div className="absolute bottom-0 -right-1 w-6 h-6 bg-emerald-500 border-4 border-black rounded-full" />
-                            </div>
+                            </motion.div>
                         </div>
 
                         <div className="mt-14 space-y-1">
                             <div className="flex items-center gap-2">
-                                <h3 className="text-2xl font-bold text-white tracking-tight">CryptoKing.avax</h3>
+                                {/* Name replaced with formatted Address as requested */}
+                                <h3 className="text-2xl font-bold text-white tracking-tight font-mono">0x1e4a...2dd5</h3>
                                 <Badge variant="secondary" className="bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/20 px-1.5 py-0.5 text-[9px] h-5 uppercase tracking-wider font-semibold">
                                     Whale
                                 </Badge>
                             </div>
-                            <div className="text-sm text-zinc-500 font-mono flex items-center gap-2 group/address cursor-pointer">
-                                0x1e4a...5f92dd5
-                                <Copy className="w-3 h-3 opacity-0 group-hover/address:opacity-100 transition-opacity" />
-                            </div>
+                            {/* Subtext removed since main title is address now, or we can put a "Label" here? 
+                                User said "metni altinda bosluk yok" (no space under bio). 
+                                I'll keep the subtext minimal or remove if redundant. 
+                                Let's remove the redundancy. 
+                            */}
                         </div>
 
-                        <div className="mt-5 text-sm text-zinc-400 leading-relaxed font-medium pr-4">
+                        {/* Bio - No bottom margin/space */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.4 }}
+                            className="mt-4 text-sm text-zinc-400 leading-relaxed font-medium pr-4"
+                        >
                             Building the future of finance on Avalanche 🔺. Collector of rare abstract art & governance delegate.
-                        </div>
+                        </motion.div>
 
-                        {/* Social Signals */}
+                        {/* Social Signals - Micro-animations added */}
                         <div className="grid grid-cols-3 gap-4 py-6 border-t border-zinc-900 mt-auto">
-                            <div className="text-center group/stat cursor-pointer hover:bg-zinc-900/50 rounded-lg py-2 transition-colors">
-                                <div className="text-lg font-bold text-white">12.4k</div>
-                                <div className="text-[9px] text-zinc-600 uppercase tracking-widest font-semibold">Followers</div>
-                            </div>
-                            <div className="text-center border-l border-zinc-900 group/stat cursor-pointer hover:bg-zinc-900/50 rounded-lg py-2 transition-colors">
-                                <div className="text-lg font-bold text-white">842</div>
-                                <div className="text-[9px] text-zinc-600 uppercase tracking-widest font-semibold">Collected</div>
-                            </div>
-                            <div className="text-center border-l border-zinc-900 group/stat cursor-pointer hover:bg-zinc-900/50 rounded-lg py-2 transition-colors">
-                                <div className="text-lg font-bold text-white">Elite</div>
-                                <div className="text-[9px] text-zinc-600 uppercase tracking-widest font-semibold">Rank</div>
-                            </div>
+                            {[
+                                { val: '12.4k', label: 'Followers' },
+                                { val: '842', label: 'Collected' },
+                                { val: 'Elite', label: 'Rank' }
+                            ].map((stat, i) => (
+                                <motion.div
+                                    key={i}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.5 + (i * 0.1) }}
+                                    className={cn(
+                                        "text-center group/stat cursor-pointer hover:bg-zinc-900/50 rounded-lg py-2 transition-colors",
+                                        i > 0 && "border-l border-zinc-900"
+                                    )}
+                                >
+                                    <div className="text-lg font-bold text-white group-hover/stat:scale-110 transition-transform origin-center">{stat.val}</div>
+                                    <div className="text-[9px] text-zinc-600 uppercase tracking-widest font-semibold">{stat.label}</div>
+                                </motion.div>
+                            ))}
                         </div>
 
-                        <div className="flex gap-3">
-                            <Button className="flex-1 gap-2 font-semibold shadow-lg shadow-white/5 bg-white text-black hover:bg-zinc-200 h-10">
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.8 }}
+                            className="flex gap-3"
+                        >
+                            <Button className="flex-1 gap-2 font-semibold shadow-lg shadow-white/5 bg-white text-black hover:bg-zinc-200 h-10 transition-transform active:scale-95">
                                 Follow Profile
                             </Button>
-                            <Button variant="outline" size="icon" className="h-10 w-10 border-zinc-800 bg-zinc-900/50 text-white hover:bg-zinc-900 hover:text-white rounded-lg">
+                            <Button variant="outline" size="icon" className="h-10 w-10 border-zinc-800 bg-zinc-900/50 text-white hover:bg-zinc-900 hover:text-white rounded-lg transition-transform active:scale-95">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
                             </Button>
-                            <Button variant="outline" size="icon" className="h-10 w-10 border-zinc-800 bg-zinc-900/50 text-white hover:bg-zinc-900 hover:text-white rounded-lg">
+                            <Button variant="outline" size="icon" className="h-10 w-10 border-zinc-800 bg-zinc-900/50 text-white hover:bg-zinc-900 hover:text-white rounded-lg transition-transform active:scale-95">
                                 <ExternalLink className="w-4 h-4" />
                             </Button>
-                        </div>
+                        </motion.div>
                     </div>
 
                     {/* Label Tag */}
