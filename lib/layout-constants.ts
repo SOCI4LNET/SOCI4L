@@ -19,7 +19,7 @@ export const PAGE_GUTTER = 'px-4 md:px-6'
  * - Provides readable line length (1100-1280px range) while maintaining full-width shell
  * - Set to 1200px for optimal readability
  */
-export const CONTENT_MAX_WIDTH = 'max-w-[1200px]'
+export const CONTENT_MAX_WIDTH = 'max-w-[1248px]'
 
 /**
  * Vertical padding for page content areas

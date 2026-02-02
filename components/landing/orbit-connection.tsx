@@ -29,15 +29,15 @@ export function OrbitConnection() {
                         </clipPath>
                     </defs>
 
-                    <g clipPath="url(#top-half-clip)">
+                    <g clipPath="url(#top-half-clip)" className="stroke-muted-foreground/40 dark:stroke-white/40">
                         {/* Orbit 1: Outer - Very Tall */}
-                        <ellipse cx="700" cy="400" rx="600" ry="350" stroke="white" strokeOpacity="0.4" strokeWidth="1" strokeDasharray="4 4" />
+                        <ellipse cx="700" cy="400" rx="600" ry="350" strokeWidth="1" strokeDasharray="4 4" />
 
                         {/* Orbit 2: Middle */}
-                        <ellipse cx="700" cy="400" rx="450" ry="260" stroke="white" strokeOpacity="0.4" strokeWidth="1" strokeDasharray="4 4" />
+                        <ellipse cx="700" cy="400" rx="450" ry="260" strokeWidth="1" strokeDasharray="4 4" />
 
                         {/* Orbit 3: Inner */}
-                        <ellipse cx="700" cy="400" rx="300" ry="180" stroke="white" strokeOpacity="0.4" strokeWidth="1" />
+                        <ellipse cx="700" cy="400" rx="300" ry="180" strokeWidth="1" />
                     </g>
                 </svg>
             </div>
@@ -94,12 +94,12 @@ const ORBIT_ITEMS = [
         content: (
             <IconAnchor
                 icon={
-                    <div className="bg-black/90 backdrop-blur-md border border-white/20 p-2 rounded-full shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-                        <ArrowUpRight className="w-4 h-4 text-white" />
+                    <div className="bg-background/90 backdrop-blur-md border border-border p-2 rounded-full shadow-sm">
+                        <ArrowUpRight className="w-4 h-4 text-foreground" />
                     </div>
                 }
                 label={
-                    <span className="text-white/80 text-xs font-medium tracking-wide uppercase">TRANSACTIONS</span>
+                    <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase">TRANSACTIONS</span>
                 }
             />
         )
@@ -108,8 +108,8 @@ const ORBIT_ITEMS = [
         rx: 600, ry: 350, duration: 80, angle: 90, reverse: false,
         content: (
             <Centered>
-                <div className="bg-black/90 backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-full hover:border-white/40 transition-colors">
-                    <span className="text-white/70 text-xs font-mono">0x71...3a9</span>
+                <div className="bg-background/90 backdrop-blur-md border border-border px-3 py-1.5 rounded-full hover:border-primary/50 transition-colors">
+                    <span className="text-muted-foreground text-xs font-mono">0x71...3a9</span>
                 </div>
             </Centered>
         )
@@ -119,12 +119,12 @@ const ORBIT_ITEMS = [
         content: (
             <IconAnchor
                 icon={
-                    <div className="bg-black/90 border border-white/20 p-2 rounded-full">
-                        <LayoutDashboard className="w-4 h-4 text-white/80" />
+                    <div className="bg-background/90 border border-border p-2 rounded-full">
+                        <LayoutDashboard className="w-4 h-4 text-muted-foreground" />
                     </div>
                 }
                 label={
-                    <span className="text-white/60 text-xs font-medium">Dashboard</span>
+                    <span className="text-muted-foreground text-xs font-medium">Dashboard</span>
                 }
             />
         )
@@ -133,8 +133,8 @@ const ORBIT_ITEMS = [
         rx: 600, ry: 350, duration: 80, angle: 270, reverse: false,
         content: (
             <Centered>
-                <div className="bg-black/90 border border-white/30 p-2 rounded-full">
-                    <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                <div className="bg-background/90 border border-border/60 p-2 rounded-full">
+                    <div className="w-1.5 h-1.5 bg-foreground rounded-full animate-pulse" />
                 </div>
             </Centered>
         )
@@ -146,12 +146,12 @@ const ORBIT_ITEMS = [
         content: (
             <IconAnchor
                 icon={
-                    <div className="bg-black/90 backdrop-blur-md border border-pink-500/30 p-2 rounded-full shadow-[0_0_20px_rgba(236,72,153,0.3)]">
-                        <Users className="w-4 h-4 text-pink-200" />
+                    <div className="bg-background/90 backdrop-blur-md border border-pink-500/30 p-2 rounded-full shadow-[0_0_20px_rgba(236,72,153,0.3)]">
+                        <Users className="w-4 h-4 text-pink-500" />
                     </div>
                 }
                 label={
-                    <span className="text-pink-100/90 text-xs font-medium">Social Graph</span>
+                    <span className="text-foreground text-xs font-medium">Social Graph</span>
                 }
             />
         )
@@ -162,13 +162,13 @@ const ORBIT_ITEMS = [
             // Refactored to IconAnchor for consistent single-line "Pattern"
             <IconAnchor
                 icon={
-                    <div className="bg-black/90 border border-white/25 p-2 rounded-full shadow-sm">
-                        <Plus className="w-3.5 h-3.5 text-white/90" />
+                    <div className="bg-background/90 border border-border p-2 rounded-full shadow-sm">
+                        <Plus className="w-3.5 h-3.5 text-foreground" />
                     </div>
                 }
                 label={
-                    <div className="bg-black/60 backdrop-blur-sm border border-white/10 px-2.5 py-1 rounded-md">
-                        <span className="text-white/90 text-xs font-medium whitespace-nowrap">1 Follower</span>
+                    <div className="bg-background/80 backdrop-blur-sm border border-border px-2.5 py-1 rounded-md">
+                        <span className="text-foreground text-xs font-medium whitespace-nowrap">1 Follower</span>
                     </div>
                 }
             />
@@ -179,12 +179,12 @@ const ORBIT_ITEMS = [
         content: (
             <IconAnchor
                 icon={
-                    <div className="bg-black/90 border border-white/20 p-2 rounded-full">
-                        <QrCode className="w-4 h-4 text-white/80" />
+                    <div className="bg-background/90 border border-border p-2 rounded-full">
+                        <QrCode className="w-4 h-4 text-muted-foreground" />
                     </div>
                 }
                 label={
-                    <span className="text-white/70 text-xs">QR Scanned</span>
+                    <span className="text-muted-foreground text-xs">QR Scanned</span>
                 }
             />
         )
@@ -194,12 +194,12 @@ const ORBIT_ITEMS = [
         content: (
             <IconAnchor
                 icon={
-                    <div className="bg-black/90 border border-white/20 p-2 rounded-full">
-                        <MousePointer2 className="w-4 h-4 text-white/70" />
+                    <div className="bg-background/90 border border-border p-2 rounded-full">
+                        <MousePointer2 className="w-4 h-4 text-muted-foreground" />
                     </div>
                 }
                 label={
-                    <span className="text-white/60 text-xs">Link Clicked</span>
+                    <span className="text-muted-foreground text-xs">Link Clicked</span>
                 }
             />
         )
@@ -211,13 +211,13 @@ const ORBIT_ITEMS = [
         content: (
             <IconAnchor
                 icon={
-                    <div className="bg-black/90 backdrop-blur-md border border-blue-500/30 p-2 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.3)]">
-                        <Wallet className="w-4 h-4 text-blue-200" />
+                    <div className="bg-background/90 backdrop-blur-md border border-blue-500/30 p-2 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.3)]">
+                        <Wallet className="w-4 h-4 text-blue-500" />
                     </div>
                 }
                 label={
-                    <div className="bg-black/60 backdrop-blur-sm border border-white/10 px-2 py-0.5 rounded-md">
-                        <span className="text-blue-100 text-xs font-mono">$AVAX</span>
+                    <div className="bg-background/80 backdrop-blur-sm border border-border px-2 py-0.5 rounded-md">
+                        <span className="text-foreground text-xs font-mono">$AVAX</span>
                     </div>
                 }
             />
@@ -227,8 +227,8 @@ const ORBIT_ITEMS = [
         rx: 300, ry: 180, duration: 40, angle: 120, reverse: false,
         content: (
             <Centered>
-                <div className="bg-black/90 border border-white/30 px-2 py-1 rounded-md group-hover:bg-white/10 transition-colors">
-                    <span className="text-white/80 text-xs font-medium">NFTs</span>
+                <div className="bg-background/90 border border-border px-2 py-1 rounded-md group-hover:bg-muted transition-colors">
+                    <span className="text-muted-foreground text-xs font-medium">NFTs</span>
                 </div>
             </Centered>
         )
@@ -237,8 +237,8 @@ const ORBIT_ITEMS = [
         rx: 300, ry: 180, duration: 40, angle: 240, reverse: false,
         content: (
             <Centered>
-                <div className="bg-black/90 border border-white/20 p-2 rounded-full group-hover:border-white/50 transition-colors">
-                    <Plus className="w-4 h-4 text-white/80" />
+                <div className="bg-background/90 border border-border p-2 rounded-full group-hover:border-primary/50 transition-colors">
+                    <Plus className="w-4 h-4 text-muted-foreground" />
                 </div>
             </Centered>
         )

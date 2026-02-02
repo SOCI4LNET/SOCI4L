@@ -1,9 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Code2, PenTool, Users, ArrowRight } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { Code2, PenTool, Users, ArrowRight, Terminal } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 export function UseCaseSection() {
@@ -13,129 +12,192 @@ export function UseCaseSection() {
         {
             title: 'Builders',
             icon: Code2,
-            description: 'Share one profile instead of explaining your wallet every time.',
-            keywords: 'Grants · Demos · Products',
+            description: 'Integrate Web3 identity with a few lines of code.',
+            keywords: ['SDKs', 'API', 'Docs'],
             color: 'text-emerald-500',
-            bgColor: 'bg-emerald-500/10',
-            borderColor: 'group-hover:border-emerald-500/50',
-            cta: 'See how builders use SOCI4L'
+            bgGlow: 'bg-emerald-500/10',
+            cta: 'Read the docs',
+            colSpan: 'md:col-span-2',
+            // Mock Visual: Code Snippet - Moved up to be more visible
+            visual: (
+                <div className="absolute right-6 top-1/2 -translate-y-[40%] translate-x-12 w-[280px] bg-slate-950/90 backdrop-blur-md rounded-lg border border-white/10 p-3 shadow-2xl opacity-60 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500 rotate-1 group-hover:rotate-0 hidden md:block z-20">
+                    <div className="flex items-center justify-between border-b border-white/5 pb-2 mb-2">
+                        <div className="flex gap-1.5">
+                            <div className="w-2 h-2 rounded-full bg-red-500/20" />
+                            <div className="w-2 h-2 rounded-full bg-yellow-500/20" />
+                            <div className="w-2 h-2 rounded-full bg-green-500/20" />
+                        </div>
+                        <span className="text-[9px] text-slate-500 font-mono">profile.ts</span>
+                    </div>
+                    <div className="space-y-1.5 font-mono text-[9px] leading-relaxed text-slate-400">
+                        <div className="flex"><span className="w-4 text-slate-600">1</span><span><span className="text-purple-400">import</span> <span className="text-blue-300">{`{ resolve }`}</span> <span className="text-purple-400">from</span> <span className="text-green-300">'@soci4l/sdk'</span></span></div>
+                        <div className="flex"><span className="w-4 text-slate-600">2</span><span></span></div>
+                        <div className="flex"><span className="w-4 text-slate-600">3</span><span><span className="text-purple-400">const</span> user <span className="text-pink-400">=</span> <span className="text-blue-400">await</span> resolve(<span className="text-orange-300">address</span>)</span></div>
+                        <div className="flex"><span className="w-4 text-slate-600">4</span><span><span className="text-blue-300">console</span>.<span className="text-yellow-300">log</span>(user.ens)</span></div>
+                    </div>
+                </div>
+            )
         },
         {
             title: 'Creators',
             icon: PenTool,
-            description: 'Share one profile instead of explaining your wallet every time.',
-            keywords: 'Links · Socials · NFTs',
+            description: 'One link for all your NFTs and social content.',
+            keywords: ['Bio', 'Gallery'],
             color: 'text-pink-500',
-            bgColor: 'bg-pink-500/10',
-            borderColor: 'group-hover:border-pink-500/50',
-            cta: 'View example profile'
+            bgGlow: 'bg-pink-500/10',
+            cta: 'Claim profile',
+            colSpan: 'md:col-span-1',
+            // Mock Visual: Filled Media Cards (Detailed NFT-style cards)
+            visual: (
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full overflow-hidden pointer-events-none">
+                    {/* Decorative blur */}
+                    <div className="absolute top-1/3 right-1/4 w-24 h-24 bg-pink-500/10 rounded-full blur-3xl opacity-50" />
+
+                    {/* Back Card */}
+                    <div className="absolute -bottom-10 -right-4 opacity-40 group-hover:opacity-60 transition-all duration-500 group-hover:-translate-y-2 group-hover:-translate-x-1 z-0">
+                        <div className="w-36 h-48 bg-zinc-900 border border-white/5 rounded-2xl rotate-[5deg] overflow-hidden relative shadow-xl">
+                            <div className="absolute inset-0 bg-gradient-to-bl from-blue-500/10 via-indigo-500/10 to-purple-500/10" />
+                        </div>
+                    </div>
+
+                    {/* Front Card */}
+                    <div className="absolute -bottom-8 -right-8 opacity-90 group-hover:opacity-100 transition-all duration-500 group-hover:-translate-y-4 group-hover:-translate-x-4 z-10">
+                        <div className="w-40 h-52 bg-zinc-950/90 backdrop-blur-md border border-white/10 rounded-2xl rotate-[-6deg] overflow-hidden shadow-2xl relative flex flex-col">
+                            {/* Image Placeholder */}
+                            <div className="h-32 w-full bg-gradient-to-tr from-pink-500/20 via-rose-500/10 to-transparent relative overflow-hidden">
+                                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mixed-blend-overlay" />
+                                <div className="absolute bottom-2 right-2 p-1 bg-black/40 rounded-md backdrop-blur-md border border-white/5">
+                                    <div className="w-3 h-3 rounded-full bg-pink-500/50" />
+                                </div>
+                            </div>
+
+                            {/* Card Meta */}
+                            <div className="flex-1 p-3 flex flex-col justify-center gap-2">
+                                <div className="h-2 w-2/3 bg-white/10 rounded-full" />
+                                <div className="flex items-center gap-2">
+                                    <div className="w-5 h-5 rounded-full bg-linear-to-r from-pink-500 to-purple-500 opacity-80" />
+                                    <div className="h-1.5 w-1/3 bg-white/5 rounded-full" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )
         },
         {
-            title: 'DAOs / Teams',
+            title: 'DAOs & Teams',
             icon: Users,
-            description: 'Share one profile instead of explaining your wallet every time.',
-            keywords: 'Members · Governance · Resources',
+            description: 'Create team profiles and aggregate member activity.',
+            keywords: ['Governance', 'Squads'],
             color: 'text-sky-500',
-            bgColor: 'bg-sky-500/10',
-            borderColor: 'group-hover:border-sky-500/50',
-            cta: 'View team profile'
+            bgGlow: 'bg-sky-500/10',
+            cta: 'Create squad',
+            colSpan: 'md:col-span-3',
+            // Mock Visual: Real Avatars with hover expansion
+            visual: (
+                <div className="absolute right-10 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-6 opacity-60 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0">
+                    <div className="flex items-center gap-3 bg-zinc-950/80 border border-white/10 rounded-full px-4 py-2 backdrop-blur-md shadow-xl hover:scale-105 transition-transform duration-300">
+                        <div className="flex -space-x-3">
+                            <img src="https://effigy.im/a/0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1.svg" className="w-8 h-8 rounded-full border-2 border-zinc-950 bg-zinc-900" alt="Member" />
+                            <img src="https://effigy.im/a/0xd8da6bf26964af9d7eed9e03e53415d37aa96045.svg" className="w-8 h-8 rounded-full border-2 border-zinc-950 bg-zinc-900" alt="Member" />
+                            <img src="https://effigy.im/a/0x1f9090aaE28b8a3dCeaDf281B0F1282B40256C8a.svg" className="w-8 h-8 rounded-full border-2 border-zinc-950 bg-zinc-900" alt="Member" />
+                            <img src="https://effigy.im/a/0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE.svg" className="w-8 h-8 rounded-full border-2 border-zinc-950 bg-zinc-900" alt="Member" />
+                        </div>
+                        <div className="h-4 w-px bg-white/10" />
+                        <span className="text-xs text-zinc-400 font-medium">+84 members</span>
+                    </div>
+                </div>
+            )
         },
     ]
 
     return (
-        <section className="container mx-auto px-4 py-24 space-y-12 relative">
-            {/* Subtle Gradient Divider */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-border to-transparent opacity-50" />
+        <section className="container mx-auto px-4 py-24 relative">
 
-            <div className="text-center space-y-4">
+            <div className="text-center space-y-3 mb-12 relative z-10">
                 <motion.h2
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 10 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.5 }}
+                    transition={{ duration: 0.4 }}
                     className="text-3xl font-semibold tracking-tight sm:text-4xl text-foreground"
                 >
-                    Who is this for?
+                    Who is SOCI4L for?
                 </motion.h2>
-                <motion.p
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: 0.1 }}
-                    className="text-muted-foreground text-lg"
-                >
-                    Is this for me? <br className="sm:hidden" />
-                    <span className="text-foreground/80">Probably, if you have a wallet.</span>
-                </motion.p>
+
+                <p className="text-muted-foreground max-w-2xl mx-auto pt-2">
+                    Whether you&apos;re building the future, creating art, or governing the network, SOCI4L gives you the identity layer you need.
+                </p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-3 max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mx-auto">
                 {cases.map((item, index) => {
                     const isHovered = hoveredIndex === index
-                    const isAnyHovered = hoveredIndex !== null
 
                     return (
                         <motion.div
                             key={index}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            whileInView={{ opacity: 1, scale: 1 }}
                             viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: index * 0.1 + 0.2 }}
+                            transition={{ duration: 0.4, delay: index * 0.1 }}
                             onMouseEnter={() => setHoveredIndex(index)}
                             onMouseLeave={() => setHoveredIndex(null)}
-                            className="h-full"
-                            animate={{
-                                scale: isHovered ? 1.05 : isAnyHovered ? 0.95 : 1,
-                                opacity: isAnyHovered && !isHovered ? 0.6 : 1,
-                                filter: isAnyHovered && !isHovered ? 'blur(2px)' : 'blur(0px)',
-                            }}
+                            className={cn(
+                                "relative group rounded-2xl overflow-hidden min-h-[220px] flex flex-col bg-card/40 hover:bg-card/60 border border-border/40 transition-all duration-500",
+                                isHovered ? "shadow-lg border-border/60" : "shadow-sm",
+                                item.colSpan
+                            )}
                         >
-                            <Card className={cn(
-                                "group relative h-full overflow-hidden transition-all duration-500",
-                                "bg-card/40 border-border/60 hover:bg-card/80",
-                                item.borderColor
-                            )}>
-                                {/* Hover Glow Effect */}
-                                <div className={cn(
-                                    "absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100",
-                                    "bg-gradient-to-br from-transparent via-transparent to-primary/5"
-                                )} />
+                            {/* Subtle Glow */}
+                            <div className={cn(
+                                "absolute inset-0 bg-gradient-to-br from-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-700 pointer-events-none",
+                                item.bgGlow.replace('bg-', 'from-')
+                            )} />
 
-                                <CardHeader className="relative flex flex-col items-center gap-4 py-8">
+                            {/* Noise */}
+                            <div className="absolute inset-0 opacity-[0.02] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+
+                            <div className="relative p-6 flex flex-col h-full z-10 w-full pointer-events-none">
+                                <div className="flex items-start justify-between mb-3">
                                     <div className={cn(
-                                        "relative flex h-16 w-16 items-center justify-center rounded-full transition-all duration-500",
-                                        "bg-secondary/50 backdrop-blur-sm group-hover:scale-110",
-                                        isHovered ? item.bgColor : ""
+                                        "p-2 rounded-lg bg-background/50 border border-border/50 text-foreground/80 transition-colors duration-300",
+                                        isHovered ? item.color : ""
                                     )}>
-                                        <item.icon className={cn(
-                                            "h-8 w-8 transition-colors duration-500",
-                                            isHovered ? item.color : "text-muted-foreground"
-                                        )} />
+                                        <item.icon className="w-5 h-5" />
                                     </div>
-                                    <CardTitle className="text-xl font-medium">{item.title}</CardTitle>
-                                </CardHeader>
 
-                                <CardContent className="relative text-center px-8 pb-10 space-y-4">
-                                    <p className="text-muted-foreground leading-relaxed">
-                                        {item.description}
-                                    </p>
-
-                                    {/* Keywords */}
-                                    <p className="text-xs font-medium text-muted-foreground/60 uppercase tracking-wider">
-                                        {item.keywords}
-                                    </p>
-
-                                    {/* Micro CTA */}
                                     <div className={cn(
-                                        "pt-4 flex items-center justify-center gap-1.5 text-sm font-medium transition-all duration-300",
-                                        isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2",
-                                        item.color
+                                        "flex items-center gap-1 text-[11px] font-medium uppercase tracking-wider transition-all duration-300 opacity-60 group-hover:translate-x-0 group-hover:opacity-100",
+                                        isHovered ? "-translate-x-0 " + item.color : "translate-x-2 text-muted-foreground"
                                     )}>
                                         {item.cta}
-                                        <ArrowRight className="h-3.5 w-3.5" />
+                                        <ArrowRight className="w-3 h-3" />
                                     </div>
-                                </CardContent>
-                            </Card>
+                                </div>
+
+                                <div>
+                                    <h3 className="text-lg font-medium text-foreground mb-1.5">{item.title}</h3>
+                                    <p className="text-sm text-muted-foreground leading-relaxed max-w-[90%] font-medium">
+                                        {item.description}
+                                    </p>
+                                </div>
+
+                                <div className="mt-auto pt-4 flex flex-wrap gap-1.5">
+                                    {item.keywords.map((keyword, k) => (
+                                        <div
+                                            key={k}
+                                            className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-muted/50 text-muted-foreground border border-border/30"
+                                        >
+                                            {keyword}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Background Visual Element */}
+                            {item.visual}
+
                         </motion.div>
                     )
                 })}

@@ -194,13 +194,19 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     float stripe = fract(uvMod.x * max(uBlindCount, 1.0));
     if (uShineFlip > 0.5) stripe = 1.0 - stripe;
     
-    // CUSTOM LOGIC: Reveal gradient only where mouse is, background black.
+    // CUSTOM LOGIC: Reveal gradient only where mouse is, background TRANSPARENT otherwise.
     vec3 col = base * spot;
     col *= (1.0 - stripe * 0.3); // Apply blinds pattern
     
     col += (rand(gl_FragCoord.xy) - 0.5) * uNoise;
 
-    fragColor = vec4(col, 1.0);
+    // Use the spotlight intensity (spot) as the alpha channel, clamped for visibility
+    float alpha = spot; 
+    
+    // Smooth step for nicer fade
+    alpha = smoothstep(0.0, 1.0, alpha);
+
+    fragColor = vec4(col, alpha);
 }
 
 void main() {

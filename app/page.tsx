@@ -14,11 +14,15 @@ import { AppHeader } from '@/components/app-shell/app-header'
 import { toast } from 'sonner'
 import { getConnectedDashboardHref } from '@/lib/routing'
 import GradientBlinds from '@/components/ui/gradient-blinds'
-import { FeatureScrollSection } from '@/components/landing/feature-scroll-section'
+
 import { OrbitConnection } from '@/components/landing/orbit-connection'
 import { SmoothScrollLayout } from '@/components/landing/smooth-scroll-layout'
-import { CTASection } from '@/components/landing/cta-section'
+import { ComparisonSection } from '@/components/landing/comparison-section'
 import { UseCaseSection } from '@/components/landing/use-case-section'
+import { RoadmapSection } from '@/components/landing/roadmap-section'
+import { DifferentiationSection } from '@/components/landing/differentiation-section'
+import { SignalsSection } from '@/components/landing/signals-section'
+import { ProfileWallSection } from '@/components/landing/profile-wall-section'
 
 const EXAMPLE_PROFILE_ADDRESS = '0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1'
 
@@ -87,8 +91,8 @@ export default function HomePage() {
                   </h1>
                   <p className="max-w-xl text-sm text-muted-foreground md:text-base">
                     Turn your wallet into your SOCI4L profile.
-Showcase on-chain assets, add links, and share everything as one public page with full control and built-in insights.
-                </p>
+                    Showcase on-chain assets, add links, and share everything as one public page with full control and built-in insights.
+                  </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                   <Button
@@ -127,244 +131,26 @@ Showcase on-chain assets, add links, and share everything as one public page wit
 
 
 
-          {/* Feature Scroll Section */}
-          <FeatureScrollSection />
 
-          {/* Problem & Solution */}
-          <section className="grid gap-6 md:grid-cols-2">
-            <Card className="bg-card/80 border-border/70 shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold">Problem</CardTitle>
-                <CardDescription className="text-xs">
-                  Addresses are unreadable. Profiles are missing. Feedback loops don&apos;t exist.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2 text-xs text-muted-foreground">
-                <ul className="space-y-1 list-disc list-inside">
-                  <li>Long hex addresses don&apos;t explain who you are or what you build.</li>
-                  <li>Links to sites, docs, dapps, and socials are scattered across the internet.</li>
-                  <li>
-                    You rarely know which profile links people click, or which routes lead to on-chain
-                    actions.
-                  </li>
-                  <li>
-                    Privacy controls are all-or-nothing: either expose everything on-chain or stay opaque.
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
 
-            <Card className="bg-card/80 border-border/70 shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold">Solution</CardTitle>
-                <CardDescription className="text-xs">
-                  A wallet-first profile layer that gives you identity, control, and measurement.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2 text-xs text-muted-foreground">
-                <ul className="space-y-1 list-disc list-inside">
-                  <li>Profile Builder composes summary, assets, activity, and curated links.</li>
-                  <li>Per-block visibility and layout controls, plus one-click presets.</li>
-                  <li>Links organized into categories, with insights on what actually gets clicked.</li>
-                  <li>Shareable public profiles with QR codes for fast routing into Avalanche dapps.</li>
-                </ul>
-              </CardContent>
-            </Card>
-          </section >
 
-          {/* Core capabilities */}
-          < section className="space-y-4" >
-            <div className="space-y-1">
-              <h2 className="text-base font-semibold">Why SOCI4L</h2>
-              <p className="text-xs text-muted-foreground">
-                What makes SOCI4L a different kind of profile and link layer for Avalanche.
-              </p>
-            </div>
-            <div className="grid gap-4 md:grid-cols-3">
-              <Card className="bg-card/80 border-border/70 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40">
-                <CardHeader className="flex flex-row items-center gap-2 pb-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <Wallet className="h-4 w-4" />
-                  </div>
-                  <CardTitle className="text-sm font-medium">Wallet-first identity</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0 text-xs text-muted-foreground">
-                  Profiles are anchored to Avalanche wallets, not new social silos. The address stays
-                  the root of identity; SOCI4L makes it human and navigable.
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card/80 border-border/70 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40">
-                <CardHeader className="flex flex-row items-center gap-2 pb-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <Link2 className="h-4 w-4" />
-                  </div>
-                  <CardTitle className="text-sm font-medium">Category-based links</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0 text-xs text-muted-foreground">
-                  Group links into categories like core dapps, docs, or community. SOCI4L tracks
-                  performance per category so you can see which intent buckets actually work.
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card/80 border-border/70 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40">
-                <CardHeader className="flex flex-row items-center gap-2 pb-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <BarChart2 className="h-4 w-4" />
-                  </div>
-                  <CardTitle className="text-sm font-medium">Built-in insights</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0 text-xs text-muted-foreground">
-                  Global and category-level analytics show how profile views and link clicks evolve
-                  over time, closing the loop between layout changes and real behavior.
-                </CardContent>
-              </Card>
-            </div>
-          </section >
-
-          {/* Avalanche benefits */}
-          < section className="space-y-4" >
-            <div className="space-y-1">
-              <h2 className="text-base font-semibold">Why Avalanche benefits</h2>
-              <p className="text-xs text-muted-foreground">
-                SOCI4L makes Avalanche addresses easier to understand and route into the ecosystem.
-              </p>
-            </div>
-            <Card className="bg-card/80 border-border/70 shadow-sm">
-              <CardContent className="space-y-2 pt-4 text-xs text-muted-foreground">
-                <ul className="space-y-1 list-disc list-inside">
-                  <li>
-                    Turns raw addresses into understandable profiles with clear summaries, links, and
-                    activity.
-                  </li>
-                  <li>
-                    Profiles act as curated entry points into Avalanche-native dapps, tools, and
-                    communities.
-                  </li>
-                  <li>
-                    Category and link analytics help builders learn which entry points drive actual
-                    usage.
-                  </li>
-                  <li>
-                    Projects and contributors can present consistent, wallet-anchored narratives that
-                    are easy to share.
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-          </section >
-
-          {/* What users can do today + roadmap */}
-          < section className="space-y-4" >
-            <Tabs defaultValue="today" className="w-full">
-              <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                <div className="space-y-1">
-                  <h2 className="text-base font-semibold">Product today & what comes next</h2>
-                  <p className="text-xs text-muted-foreground">
-                    SOCI4L is usable today, with a clear path for deeper identity and analytics on
-                    Avalanche.
-                  </p>
-                </div>
-                <TabsList className="h-8">
-                  <TabsTrigger value="today" className="px-3 text-xs">
-                    Today
-                  </TabsTrigger>
-                  <TabsTrigger value="future" className="px-3 text-xs">
-                    Future (roadmap)
-                  </TabsTrigger>
-                </TabsList>
-              </div>
-              <TabsContent value="today" className="mt-4">
-                <div className="grid gap-4 md:grid-cols-3">
-                  <Card className="bg-card/80 border-border/70 shadow-sm">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="flex items-center gap-2 text-sm">
-                        <LayoutDashboard className="h-4 w-4 text-primary" />
-                        <span>Claim & build profiles</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-0 text-xs text-muted-foreground space-y-1">
-                      <p>Claim a wallet-first profile for your Avalanche address.</p>
-                      <p>Compose summary, assets, activity, and curated links with presets.</p>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="bg-card/80 border-border/70 shadow-sm">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="flex items-center gap-2 text-sm">
-                        <Link2 className="h-4 w-4 text-primary" />
-                        <span>Organize & share links</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-0 text-xs text-muted-foreground space-y-1">
-                      <p>Create link categories like dapps, docs, and community.</p>
-                      <p>Share a single profile URL or QR code instead of scattered links.</p>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="bg-card/80 border-border/70 shadow-sm">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="flex items-center gap-2 text-sm">
-                        <BarChart2 className="h-4 w-4 text-primary" />
-                        <span>Measure what works</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-0 text-xs text-muted-foreground space-y-1">
-                      <p>See profile views and link clicks over time.</p>
-                      <p>Compare performance by category to refine your layout and routing.</p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="future" className="mt-4">
-                <Card className="bg-card/80 border-border/70 shadow-sm">
-                  <CardHeader className="pb-2 flex items-center gap-2">
-                    <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
-                      Future roadmap
-                    </Badge>
-                    <CardTitle className="text-sm font-medium">
-                      Ideas for where SOCI4L can go next
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0 text-xs text-muted-foreground space-y-1.5">
-                    <ul className="space-y-1.5 list-disc list-inside">
-                      <li>
-                        Richer on-chain identity signals (e.g. governance, protocol usage, long-term
-                        activity streaks) as optional profile blocks.
-                      </li>
-                      <li>
-                        Team and project profiles that aggregate multiple wallets and contributors in a
-                        single view.
-                      </li>
-                      <li>
-                        Opt-in dapp modules that surface personalized status or entry points inside
-                        profiles.
-                      </li>
-                      <li>
-                        Privacy-respecting reputation indicators that help others quickly assess active,
-                        consistent profiles.
-                      </li>
-                      <li>
-                        Cross-surface analytics for how SOCI4L profiles perform when linked from other
-                        Avalanche properties.
-                      </li>
-                    </ul>
-                    <p className="pt-2 text-[11px] text-muted-foreground/80">
-                      These items are intentionally future-facing and not commitments. The focus today
-                      is a solid, usable profile and link intelligence layer.
-                    </p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </section >
+          {/* Comparison Section (Wallet vs Identity) */}
+          <ComparisonSection />
 
           {/* Use Case Section */}
           <UseCaseSection />
 
-          {/* CTA Section */}
-          <CTASection />
+          {/* Differentiation Section (Why Not X?) */}
+          <DifferentiationSection />
+
+          {/* Signals vs Vanity Section */}
+          <SignalsSection />
+
+          {/* Roadmap Section */}
+          <RoadmapSection />
+
+          {/* Profile Wall Section */}
+          <ProfileWallSection />
 
         </main >
       </div >
