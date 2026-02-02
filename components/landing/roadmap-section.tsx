@@ -8,38 +8,38 @@ import { Badge } from '@/components/ui/badge'
 const ROADMAP_ITEMS = [
     {
         phase: 'NOW',
-        title: 'Foundation',
-        description: 'Establishing the core identity layer on Avalanche.',
+        title: 'Foundation & Data',
+        description: 'Building the core operations and data integrity layer.',
         status: 'active',
         items: [
-            'Avalanche Profile Claim',
-            'Social Link Aggregation',
-            'Basic On-chain Analytics',
-            'SOCI4L Score (Beta)'
+            'Admin Panel & User Management',
+            'Server-side Analytics (verified views)',
+            'OpenSea NFT Integration',
+            'Demo Mode for Investors'
         ]
     },
     {
         phase: 'NEXT',
-        title: 'Ecosystem',
-        description: 'Deepening integrations and developer tools.',
+        title: 'Engagement',
+        description: 'Gamification and ecosystem growth tools.',
         status: 'upcoming',
         items: [
-            'Verified Credentials (VCs)',
-            'Developer SDK & API',
-            'dApp Sign-in Integration',
-            'Role-based Badges'
+            'Luma Events Integration',
+            'Achievement Badges System',
+            'Referral Growth Engine',
+            'SOCI4L Score v2'
         ]
     },
     {
         phase: 'LATER',
         title: 'Expansion',
-        description: 'Breaking boundaries. The future is chain-agnostic.',
+        description: 'Scaling the protocol and monetization.',
         status: 'future',
         items: [
-            'Multi-chain Identity Aggregation',
-            'Universal Profile Layer',
-            'DAO Governance',
-            'Cross-chain Reputation'
+            'On-chain Social Verification',
+            'Curated NFT Showcases',
+            'Multi-chain Support (ETH/Base)',
+            'Developer API & Premium Tiers'
         ]
     }
 ]
