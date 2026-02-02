@@ -230,3 +230,38 @@ model UserListMember {
   @@index([listId])
   @@index([memberAddress])
 }
+
+// Docs Admin Panel Models
+
+model DocsAdmin {
+  id        String   @id @default(cuid())
+  address   String   @unique // Wallet address
+  name      String?
+  role      String   @default("EDITOR") // EDITOR | SUPER_ADMIN
+  createdAt DateTime @default(now())
+
+  articles  DocsArticle[]
+  
+  @@index([address])
+}
+
+model DocsArticle {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String?
+  content     String   // MDX Content (TEXT type in postgres)
+  category    String   @default("General")
+  published   Boolean  @default(false)
+  viewCount   Int      @default(0)
+  
+  authorId    String
+  author      DocsAdmin @relation(fields: [authorId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([slug])
+  @@index([category])
+  @@index([published])
+}
