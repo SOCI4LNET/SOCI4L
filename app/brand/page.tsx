@@ -52,29 +52,29 @@ export default function BrandPage() {
                     <section>
                         <div className="flex items-end justify-between mb-12 border-b border-border/40 pb-6">
                             <h2 className="text-2xl font-mono uppercase tracking-widest text-muted-foreground">01. Logomark</h2>
-                            <Button variant="outline" size="sm" asChild>
-                                <a href="/logos/icon.png" download="SOCI4L_Icon.png" className="gap-2">
-                                    <Download className="w-4 h-4" /> Download Assets
-                                </a>
-                            </Button>
+                            <div className="flex gap-2">
+                                <Button variant="outline" size="sm" asChild>
+                                    <a href="/logos/icon.png" download="SOCI4L_Icon_Source.png" target="_blank" rel="noopener noreferrer" className="gap-2">
+                                        <Download className="w-4 h-4" /> Download PNG
+                                    </a>
+                                </Button>
+                            </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             {/* Dark Mode Preview */}
                             <motion.div variants={item} className="group relative overflow-hidden rounded-3xl border border-white/10 bg-[#0A0A0B] p-12 md:p-24 flex items-center justify-center min-h-[400px]">
                                 <div className="absolute top-6 left-6 text-xs font-mono text-zinc-500 uppercase tracking-wider">Dark Background</div>
-                                <div className="relative z-10 scale-150 transition-transform duration-500 group-hover:scale-125">
-                                    {/* Explicitly using icon variant, logo is white by default in dark mode content */}
-                                    <Soci4LLogo variant="icon" width={120} height={120} className="invert-0" />
+                                <div className="relative z-10 transition-transform duration-500 group-hover:scale-110">
+                                    <Soci4LLogo variant="icon" width={100} height={100} className="invert-0" />
                                 </div>
                             </motion.div>
 
                             {/* Light Mode Preview */}
                             <motion.div variants={item} className="group relative overflow-hidden rounded-3xl border border-black/5 bg-[#F9F9F9] p-12 md:p-24 flex items-center justify-center min-h-[400px]">
                                 <div className="absolute top-6 left-6 text-xs font-mono text-zinc-400 uppercase tracking-wider">Light Background</div>
-                                <div className="relative z-10 scale-150 transition-transform duration-500 group-hover:scale-125">
-                                    {/* Invert for light background to match brand usage */}
-                                    <Soci4LLogo variant="icon" width={120} height={120} className="invert" />
+                                <div className="relative z-10 transition-transform duration-500 group-hover:scale-110">
+                                    <Soci4LLogo variant="icon" width={100} height={100} className="invert" />
                                 </div>
                             </motion.div>
                         </div>
@@ -85,8 +85,8 @@ export default function BrandPage() {
                         <div className="flex items-end justify-between mb-12 border-b border-border/40 pb-6">
                             <h2 className="text-2xl font-mono uppercase tracking-widest text-muted-foreground">02. Combination</h2>
                             <Button variant="outline" size="sm" asChild>
-                                <a href="/logos/combination.png" download="SOCI4L_Logo_Full.png" className="gap-2">
-                                    <Download className="w-4 h-4" /> Download Assets
+                                <a href="/logos/combination.png" download="SOCI4L_Logo_Full.png" target="_blank" rel="noopener noreferrer" className="gap-2">
+                                    <Download className="w-4 h-4" /> Download PNG
                                 </a>
                             </Button>
                         </div>
@@ -95,13 +95,14 @@ export default function BrandPage() {
                             {/* Dark Mode Full */}
                             <motion.div variants={item} className="group relative overflow-hidden rounded-3xl border border-white/10 bg-[#0A0A0B] p-16 md:p-32 flex items-center justify-center">
                                 <div className="absolute top-6 left-6 text-xs font-mono text-zinc-500 uppercase tracking-wider">Primary</div>
-                                <Soci4LLogo variant="combination" width={400} height={120} className="w-full max-w-[400px] invert-0" />
+                                {/* Adjusted width to natural size (300px) to prevent blur */}
+                                <Soci4LLogo variant="combination" width={300} height={52} className="w-full max-w-[300px] invert-0 transition-transform duration-500 group-hover:scale-105" />
                             </motion.div>
 
                             {/* Light Mode Full */}
                             <motion.div variants={item} className="group relative overflow-hidden rounded-3xl border border-black/5 bg-[#F9F9F9] p-16 md:p-32 flex items-center justify-center">
                                 <div className="absolute top-6 left-6 text-xs font-mono text-zinc-400 uppercase tracking-wider">Secondary</div>
-                                <Soci4LLogo variant="combination" width={400} height={120} className="w-full max-w-[400px] invert" />
+                                <Soci4LLogo variant="combination" width={300} height={52} className="w-full max-w-[300px] invert transition-transform duration-500 group-hover:scale-105" />
                             </motion.div>
                         </div>
                     </section>
