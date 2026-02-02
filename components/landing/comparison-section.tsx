@@ -41,87 +41,87 @@ export function ComparisonSection() {
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5 }}
-                    className="relative group rounded-2xl border border-border/40 bg-zinc-950/80 overflow-hidden flex flex-col h-[480px] shadow-2xl"
+                    className="relative group rounded-2xl border border-border/40 bg-card/50 dark:bg-zinc-950/80 backdrop-blur-sm overflow-hidden flex flex-col h-[480px] shadow-2xl"
                 >
                     {/* Fake Browser Header */}
-                    <div className="h-10 border-b border-white/5 bg-zinc-900/50 flex items-center px-4 gap-2 backdrop-blur-md">
+                    <div className="h-10 border-b border-border/10 bg-muted/50 dark:bg-zinc-900/50 flex items-center px-4 gap-2">
                         <div className="flex gap-1.5 opacity-50">
                             <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
                             <div className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
                             <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
                         </div>
-                        <div className="ml-4 h-6 px-3 bg-zinc-950/50 rounded text-[10px] items-center flex text-zinc-500 font-mono w-full max-w-[240px] border border-white/5">
+                        <div className="ml-4 h-6 px-3 bg-background/50 dark:bg-zinc-950/50 rounded text-[10px] items-center flex text-muted-foreground font-mono w-full max-w-[240px] border border-border/10">
                             snowtrace.io/address/0x1e4a...
                         </div>
                     </div>
 
                     {/* Explorer Content */}
-                    <div className="p-6 font-mono text-xs space-y-6 text-zinc-400">
+                    <div className="p-6 font-mono text-xs space-y-6 text-muted-foreground">
                         {/* Header Row */}
-                        <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                        <div className="flex items-center justify-between border-b border-border/10 pb-4">
                             <div className="space-y-1.5">
-                                <div className="text-zinc-600 uppercase tracking-wider text-[9px] font-semibold">Address</div>
-                                <div className="flex items-center gap-2 text-zinc-300 bg-zinc-900/80 px-2 py-1 rounded border border-white/5">
+                                <div className="text-muted-foreground/70 uppercase tracking-wider text-[9px] font-semibold">Address</div>
+                                <div className="flex items-center gap-2 text-foreground bg-muted/50 dark:bg-zinc-900/80 px-2 py-1 rounded border border-border/10">
                                     0x1e4a3d...5f92dd5
                                     <Copy className="w-3 h-3 ml-auto opacity-30" />
                                 </div>
                             </div>
-                            <div className="h-8 w-8 rounded bg-zinc-900 flex items-center justify-center border border-white/5">
-                                <div className="w-4 h-4 rounded-sm bg-zinc-800" />
+                            <div className="h-8 w-8 rounded bg-muted/50 dark:bg-zinc-900 flex items-center justify-center border border-border/10">
+                                <div className="w-4 h-4 rounded-sm bg-muted-foreground/20 dark:bg-zinc-800" />
                             </div>
                         </div>
 
                         {/* Stats Grid */}
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1 p-3 bg-zinc-900/30 rounded border border-white/5">
-                                <div className="text-zinc-600 text-[9px] uppercase">Balance</div>
-                                <div className="text-zinc-300 font-medium">145.2 AVAX</div>
+                            <div className="space-y-1 p-3 bg-muted/30 dark:bg-zinc-900/30 rounded border border-border/10">
+                                <div className="text-muted-foreground/70 text-[9px] uppercase">Balance</div>
+                                <div className="text-foreground font-medium">145.2 AVAX</div>
                             </div>
-                            <div className="space-y-1 p-3 bg-zinc-900/30 rounded border border-white/5">
-                                <div className="text-zinc-600 text-[9px] uppercase">Tx Count</div>
-                                <div className="text-zinc-300 font-medium">1,204</div>
+                            <div className="space-y-1 p-3 bg-muted/30 dark:bg-zinc-900/30 rounded border border-border/10">
+                                <div className="text-muted-foreground/70 text-[9px] uppercase">Tx Count</div>
+                                <div className="text-foreground font-medium">1,204</div>
                             </div>
                         </div>
 
                         {/* Tx Table Header */}
                         <div className="space-y-3 pt-2">
-                            <div className="flex gap-4 text-[9px] text-zinc-600 border-b border-white/5 pb-2 uppercase tracking-wide">
-                                <span className="text-zinc-400 font-medium w-1/3">Tx Hash</span>
+                            <div className="flex gap-4 text-[9px] text-muted-foreground/70 border-b border-border/10 pb-2 uppercase tracking-wide">
+                                <span className="w-1/3">Tx Hash</span>
                                 <span className="w-1/6">Block</span>
                                 <span className="w-1/6">Method</span>
                                 <span className="text-right flex-1">Age</span>
                             </div>
                             {/* Rows */}
-                            <div className="space-y-3 opacity-60">
+                            <div className="space-y-3 opacity-80">
                                 <div className="flex items-center text-[10px] gap-4">
-                                    <span className="text-blue-500/80 w-1/3 truncate font-medium">0x8a2f...91b</span>
-                                    <span className="text-zinc-500 w-1/6">129384</span>
-                                    <span className="w-1/6"><span className="bg-zinc-900 px-1.5 py-0.5 rounded text-[8px] border border-white/5 text-zinc-400">Transfer</span></span>
-                                    <span className="text-right flex-1 text-zinc-600">2m ago</span>
+                                    <span className="text-blue-500 w-1/3 truncate font-medium">0x8a2f...91b</span>
+                                    <span className="text-muted-foreground w-1/6">129384</span>
+                                    <span className="w-1/6"><span className="bg-muted dark:bg-zinc-900 px-1.5 py-0.5 rounded text-[8px] border border-border/10 text-muted-foreground">Transfer</span></span>
+                                    <span className="text-right flex-1 text-muted-foreground">2m ago</span>
                                 </div>
                                 <div className="flex items-center text-[10px] gap-4">
-                                    <span className="text-blue-500/80 w-1/3 truncate font-medium">0x1d9c...4e2</span>
-                                    <span className="text-zinc-500 w-1/6">129381</span>
-                                    <span className="w-1/6"><span className="bg-zinc-900 px-1.5 py-0.5 rounded text-[8px] border border-white/5 text-zinc-400">Swap</span></span>
-                                    <span className="text-right flex-1 text-zinc-600">5m ago</span>
+                                    <span className="text-blue-500 w-1/3 truncate font-medium">0x1d9c...4e2</span>
+                                    <span className="text-muted-foreground w-1/6">129381</span>
+                                    <span className="w-1/6"><span className="bg-muted dark:bg-zinc-900 px-1.5 py-0.5 rounded text-[8px] border border-border/10 text-muted-foreground">Swap</span></span>
+                                    <span className="text-right flex-1 text-muted-foreground">5m ago</span>
                                 </div>
                                 <div className="flex items-center text-[10px] gap-4">
-                                    <span className="text-blue-500/80 w-1/3 truncate font-medium">0x7b3a...f01</span>
-                                    <span className="text-zinc-500 w-1/6">129375</span>
-                                    <span className="w-1/6"><span className="bg-zinc-900 px-1.5 py-0.5 rounded text-[8px] border border-white/5 text-zinc-400">Approval</span></span>
-                                    <span className="text-right flex-1 text-zinc-600">12m ago</span>
+                                    <span className="text-blue-500 w-1/3 truncate font-medium">0x7b3a...f01</span>
+                                    <span className="text-muted-foreground w-1/6">129375</span>
+                                    <span className="w-1/6"><span className="bg-muted dark:bg-zinc-900 px-1.5 py-0.5 rounded text-[8px] border border-border/10 text-muted-foreground">Approval</span></span>
+                                    <span className="text-right flex-1 text-muted-foreground">12m ago</span>
                                 </div>
                                 <div className="flex items-center text-[10px] gap-4">
-                                    <span className="text-blue-500/80 w-1/3 truncate font-medium">0x9e2d...c34</span>
-                                    <span className="text-zinc-500 w-1/6">129362</span>
-                                    <span className="w-1/6"><span className="bg-zinc-900 px-1.5 py-0.5 rounded text-[8px] border border-white/5 text-zinc-400">Transfer</span></span>
-                                    <span className="text-right flex-1 text-zinc-600">24m ago</span>
+                                    <span className="text-blue-500 w-1/3 truncate font-medium">0x9e2d...c34</span>
+                                    <span className="text-muted-foreground w-1/6">129362</span>
+                                    <span className="w-1/6"><span className="bg-muted dark:bg-zinc-900 px-1.5 py-0.5 rounded text-[8px] border border-border/10 text-muted-foreground">Transfer</span></span>
+                                    <span className="text-right flex-1 text-muted-foreground">24m ago</span>
                                 </div>
                                 <div className="flex items-center text-[10px] gap-4">
-                                    <span className="text-blue-500/80 w-1/3 truncate font-medium">0x5f1a...b98</span>
-                                    <span className="text-zinc-500 w-1/6">129340</span>
-                                    <span className="w-1/6"><span className="bg-zinc-900 px-1.5 py-0.5 rounded text-[8px] border border-white/5 text-zinc-400">Mint</span></span>
-                                    <span className="text-right flex-1 text-zinc-600">1h ago</span>
+                                    <span className="text-blue-500 w-1/3 truncate font-medium">0x5f1a...b98</span>
+                                    <span className="text-muted-foreground w-1/6">129340</span>
+                                    <span className="w-1/6"><span className="bg-muted dark:bg-zinc-900 px-1.5 py-0.5 rounded text-[8px] border border-border/10 text-muted-foreground">Mint</span></span>
+                                    <span className="text-right flex-1 text-muted-foreground">1h ago</span>
                                 </div>
                             </div>
                         </div>
@@ -129,7 +129,7 @@ export function ComparisonSection() {
 
                     {/* Label Tag */}
                     <div className="absolute bottom-4 left-4">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium bg-zinc-900 text-zinc-500 border border-zinc-800">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium bg-muted dark:bg-zinc-900 text-muted-foreground border border-border/50">
                             <Activity className="w-3 h-3" />
                             Raw Data
                         </span>
@@ -142,16 +142,16 @@ export function ComparisonSection() {
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 0.1 }}
-                    className="relative group rounded-2xl border border-zinc-900 bg-black flex flex-col h-[480px] overflow-hidden shadow-2xl"
+                    className="relative group rounded-2xl border border-border bg-card text-card-foreground flex flex-col h-[480px] overflow-hidden shadow-2xl dark:border-zinc-900 dark:bg-black"
                 >
                     {/* Profile Header (Cover) */}
-                    <div className="h-32 w-full relative bg-neutral-900/50">
+                    <div className="h-32 w-full relative bg-muted/30 dark:bg-neutral-900/50">
                         {/* Abstract Cover Pattern */}
                         <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-500 via-purple-500 to-transparent" />
 
                         {/* More Menu */}
                         <div className="absolute top-4 right-4">
-                            <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full bg-black/40 hover:bg-black/60 text-white/80 hover:text-white backdrop-blur-md">
+                            <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full bg-background/40 hover:bg-background/60 dark:bg-black/40 dark:hover:bg-black/60 text-foreground/80 hover:text-foreground backdrop-blur-md">
                                 <MoreHorizontal className="w-4 h-4" />
                             </Button>
                         </div>
@@ -166,25 +166,25 @@ export function ComparisonSection() {
                                 transition={{ delay: 0.3, type: "spring" }}
                                 className="relative group/avatar cursor-pointer"
                             >
-                                <div className="w-24 h-24 rounded-2xl border-[4px] border-black bg-zinc-900 overflow-hidden shadow-xl">
+                                <div className="w-24 h-24 rounded-2xl border-[4px] border-card dark:border-black bg-muted dark:bg-zinc-900 overflow-hidden shadow-xl">
                                     <AvatarImage src="https://effigy.im/a/0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1.svg" className="object-cover w-full h-full" />
                                 </div>
-                                <div className="absolute bottom-0 -right-1 w-6 h-6 bg-emerald-500 border-4 border-black rounded-full" />
+                                <div className="absolute bottom-0 -right-1 w-6 h-6 bg-emerald-500 border-4 border-card dark:border-black rounded-full" />
                             </motion.div>
                         </div>
 
                         <div className="mt-14 space-y-1">
                             <div className="flex items-center gap-2">
                                 {/* Name replaced with formatted Address as requested */}
-                                <h3 className="text-2xl font-bold text-white tracking-tight font-mono">0x1e4a...2dd5</h3>
-                                <Badge variant="secondary" className="bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/20 px-1.5 py-0.5 text-[9px] h-5 uppercase tracking-wider font-semibold">
+                                <h3 className="text-2xl font-bold text-foreground dark:text-white tracking-tight font-mono">0x1e4a...2dd5</h3>
+                                <Badge variant="secondary" className="bg-blue-500/10 text-blue-500 dark:text-blue-400 border-blue-500/20 hover:bg-blue-500/20 px-1.5 py-0.5 text-[9px] h-5 uppercase tracking-wider font-semibold">
                                     Whale
                                 </Badge>
                             </div>
-                            {/* Subtext removed since main title is address now, or we can put a "Label" here? 
-                                User said "metni altinda bosluk yok" (no space under bio). 
-                                I'll keep the subtext minimal or remove if redundant. 
-                                Let's remove the redundancy. 
+                            {/* Subtext removed since main title is address now, or we can put a "Label" here?
+                                User said "metni altinda bosluk yok" (no space under bio).
+                                I'll keep the subtext minimal or remove if redundant.
+                                Let's remove the redundancy.
                             */}
                         </div>
 
@@ -193,13 +193,13 @@ export function ComparisonSection() {
                             initial={{ opacity: 0, y: 10 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.4 }}
-                            className="mt-4 text-sm text-zinc-400 leading-relaxed font-medium pr-4"
+                            className="mt-4 text-sm text-muted-foreground dark:text-zinc-400 leading-relaxed font-medium pr-4"
                         >
                             Building the future of finance on Avalanche 🔺. Collector of rare abstract art & governance delegate.
                         </motion.div>
 
                         {/* Social Signals - Micro-animations added */}
-                        <div className="grid grid-cols-3 gap-4 py-6 border-t border-zinc-900 mt-auto">
+                        <div className="grid grid-cols-3 gap-4 py-6 border-t border-border dark:border-zinc-900 mt-auto">
                             {[
                                 { val: '12.4k', label: 'Followers' },
                                 { val: '842', label: 'Collected' },
@@ -211,12 +211,12 @@ export function ComparisonSection() {
                                     whileInView={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.5 + (i * 0.1) }}
                                     className={cn(
-                                        "text-center group/stat cursor-pointer hover:bg-zinc-900/50 rounded-lg py-2 transition-colors",
-                                        i > 0 && "border-l border-zinc-900"
+                                        "text-center group/stat cursor-pointer hover:bg-muted/50 dark:hover:bg-zinc-900/50 rounded-lg py-2 transition-colors",
+                                        i > 0 && "border-l border-border dark:border-zinc-900"
                                     )}
                                 >
-                                    <div className="text-lg font-bold text-white group-hover/stat:scale-110 transition-transform origin-center">{stat.val}</div>
-                                    <div className="text-[9px] text-zinc-600 uppercase tracking-widest font-semibold">{stat.label}</div>
+                                    <div className="text-lg font-bold text-foreground dark:text-white group-hover/stat:scale-110 transition-transform origin-center">{stat.val}</div>
+                                    <div className="text-[9px] text-muted-foreground uppercase tracking-widest font-semibold">{stat.label}</div>
                                 </motion.div>
                             ))}
                         </div>
@@ -227,13 +227,13 @@ export function ComparisonSection() {
                             transition={{ delay: 0.8 }}
                             className="flex gap-3"
                         >
-                            <Button className="flex-1 gap-2 font-semibold shadow-lg shadow-white/5 bg-white text-black hover:bg-zinc-200 h-10 transition-transform active:scale-95">
+                            <Button className="flex-1 gap-2 font-semibold shadow-lg shadow-black/5 dark:shadow-white/5 bg-foreground text-background hover:bg-foreground/90 dark:bg-white dark:text-black dark:hover:bg-zinc-200 h-10 transition-transform active:scale-95">
                                 Follow Profile
                             </Button>
-                            <Button variant="outline" size="icon" className="h-10 w-10 border-zinc-800 bg-zinc-900/50 text-white hover:bg-zinc-900 hover:text-white rounded-lg transition-transform active:scale-95">
+                            <Button variant="outline" size="icon" className="h-10 w-10 border-border dark:border-zinc-800 bg-background/50 dark:bg-zinc-900/50 text-foreground dark:text-white hover:bg-muted dark:hover:bg-zinc-900 rounded-lg transition-transform active:scale-95">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
                             </Button>
-                            <Button variant="outline" size="icon" className="h-10 w-10 border-zinc-800 bg-zinc-900/50 text-white hover:bg-zinc-900 hover:text-white rounded-lg transition-transform active:scale-95">
+                            <Button variant="outline" size="icon" className="h-10 w-10 border-border dark:border-zinc-800 bg-background/50 dark:bg-zinc-900/50 text-foreground dark:text-white hover:bg-muted dark:hover:bg-zinc-900 rounded-lg transition-transform active:scale-95">
                                 <ExternalLink className="w-4 h-4" />
                             </Button>
                         </motion.div>
