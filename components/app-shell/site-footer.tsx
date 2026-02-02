@@ -31,6 +31,7 @@ const footerLinks = {
         { label: 'Support', href: 'https://discord.gg/soci4l', external: true },
         { label: 'Privacy', href: '/privacy', external: false },
         { label: 'Terms', href: '/terms', external: false },
+        { label: 'Brand Guidelines', href: '/brand', external: false },
     ] as FooterLink[],
 }
 
