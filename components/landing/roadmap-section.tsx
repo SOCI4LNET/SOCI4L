@@ -12,34 +12,34 @@ const ROADMAP_ITEMS = [
         description: 'Building the core operations and data integrity layer.',
         status: 'active',
         items: [
+            'Gasless Profile Engine',
             'Admin Panel & User Management',
             'Server-side Analytics (verified views)',
-            'OpenSea NFT Integration',
-            'Demo Mode for Investors'
+            'OpenSea NFT Integration'
         ]
     },
     {
         phase: 'NEXT',
-        title: 'Engagement',
-        description: 'Gamification and ecosystem growth tools.',
+        title: 'Growth & Economy',
+        description: 'Monetization tools for creators and gamification.',
         status: 'upcoming',
         items: [
-            'Luma Events Integration',
-            'Achievement Badges System',
-            'Referral Growth Engine',
-            'SOCI4L Score v2'
+            'Token-Gated Access (Web3 Patreon)',
+            'Creator Tipping & Subscriptions',
+            'SOCI4L Score v2',
+            'Luma Events Integration'
         ]
     },
     {
         phase: 'LATER',
-        title: 'Expansion',
-        description: 'Scaling the protocol and monetization.',
+        title: 'Protocol Layer',
+        description: 'Moving social graph and reputation on-chain.',
         status: 'future',
         items: [
-            'On-chain Social Verification',
-            'Curated NFT Showcases',
-            'Multi-chain Support (ETH/Base)',
-            'Developer API & Premium Tiers'
+            'On-chain Social Graph (Portability)',
+            'Portable Reputation (Attestations)',
+            'Multi-chain Support',
+            'Developer API'
         ]
     }
 ]
