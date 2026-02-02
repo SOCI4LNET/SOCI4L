@@ -20,7 +20,7 @@ export function SiteHeader() {
       <div className="container mx-auto px-4 md:px-6 py-4">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center">
-            <Soci4LLogo variant="combination" width={120} height={21} />
+            <Soci4LLogo variant="combination" width={96} height={23} />
           </Link>
           <div className="flex items-center gap-2">
             {!mounted ? (

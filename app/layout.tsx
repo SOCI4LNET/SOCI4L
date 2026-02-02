@@ -17,10 +17,9 @@ export const metadata: Metadata = {
   description: "SOCI4L turns your wallet into a measurable, privacy-first public profile. Create your Web3 profile with link analytics.",
   icons: {
     icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/logos/icon.svg", type: "image/svg+xml" },
+      { url: "/logos/icon.png", type: "image/png" },
     ],
-    apple: "/logos/icon.svg",
+    apple: "/logos/icon.png",
   },
 }
 

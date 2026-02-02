@@ -79,7 +79,7 @@ export function AppHeader({ showSidebarTrigger = false, sticky = true, showNavig
           href="/"
           className="flex items-center gap-2 hover:opacity-80 transition-opacity group"
         >
-          <Soci4LLogo variant="combination" className="h-7 w-auto transition-transform group-hover:scale-105" />
+          <Soci4LLogo variant="combination" className="h-5 w-auto transition-transform group-hover:scale-105" />
         </Link>
       </div>
 
