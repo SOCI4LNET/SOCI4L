@@ -16,7 +16,8 @@ export function SmoothScrollLayout({ children }: SmoothScrollLayoutProps) {
         duration: 1.5,
         smoothWheel: true,
         wheelMultiplier: 1,
-        touchMultiplier: 2,
+        touchMultiplier: 0, // Disable touch smoothing on mobile to prevent fighting with native scroll
+        smoothTouch: false, // Explicitly disable smooth touch to fix 'creeping' issue
     }
 
     return (

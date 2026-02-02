@@ -92,7 +92,7 @@ function ProfileCard({ data, index }: { data: ProfileData; index: number }) {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
+                viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 className="group relative w-full rounded-2xl bg-card border border-border/50 shadow-sm flex flex-col hover:shadow-2xl hover:border-border/80 hover:-translate-y-1 transition-all duration-300 overflow-visible"
             >
@@ -314,7 +314,7 @@ export function ProfileWallSection() {
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
+                    viewport={{ once: true, margin: "-50px" }}
                     className="text-center space-y-6 max-w-2xl px-4"
                 >
                     <div className="space-y-2">
