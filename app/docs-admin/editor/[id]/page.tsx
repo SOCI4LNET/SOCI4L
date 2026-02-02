@@ -1,0 +1,125 @@
+'use client'
+
+import { useState } from 'react'
+import { RichMDXEditor } from '@/components/docs-admin/rich-mdx-editor'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Save, ArrowLeft, Loader2 } from 'lucide-react'
+import Link from 'next/link'
+import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
+
+export default function ArticleEditorPage({ params }: { params: { id: string } }) {
+    const router = useRouter()
+    const isNew = params.id === 'new'
+
+    const [loading, setLoading] = useState(false)
+    const [title, setTitle] = useState('')
+    const [slug, setSlug] = useState('')
+    const [category, setCategory] = useState("General")
+    const [content, setContent] = useState('')
+
+    // Auto-generate slug from title if new
+    const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value
+        setTitle(val)
+        if (isNew) {
+            setSlug(val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''))
+        }
+    }
+
+    const handleSave = async () => {
+        if (!title || !slug || !content) {
+            toast.error('Please fill in all fields')
+            return
+        }
+
+        setLoading(true)
+        try {
+            const response = await fetch('/api/docs-admin/articles', {
+                method: isNew ? 'POST' : 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: isNew ? undefined : params.id,
+                    title,
+                    slug,
+                    category,
+                    content,
+                    published: true // auto publishing for demo
+                })
+            })
+
+            if (!response.ok) throw new Error('Failed to save')
+
+            toast.success('Article saved successfully')
+            router.push('/docs-admin/articles')
+        } catch (error) {
+            toast.error('Error saving article')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    return (
+        <div className="space-y-6 pb-20">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <Button variant="ghost" size="icon" asChild>
+                        <Link href="/docs-admin/articles"><ArrowLeft className="h-4 w-4" /></Link>
+                    </Button>
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight">{isNew ? 'New Article' : 'Edit Article'}</h1>
+                        <p className="text-sm text-muted-foreground">
+                            {isNew ? 'Create a new documentation page' : `Editing: ${slug}`}
+                        </p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Button variant="outline">Discard</Button>
+                    <Button onClick={handleSave} disabled={loading} className="gap-2">
+                        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                        Save Changes
+                    </Button>
+                </div>
+            </div>
+
+            {/* Meta Fields */}
+            <div className="grid gap-6 md:grid-cols-3">
+                <div className="space-y-2">
+                    <Label>Title</Label>
+                    <Input value={title} onChange={handleTitleChange} placeholder="Getting Started" />
+                </div>
+                <div className="space-y-2">
+                    <Label>Slug</Label>
+                    <Input value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="getting-started" />
+                </div>
+                <div className="space-y-2">
+                    <Label>Category</Label>
+                    <Select value={category} onValueChange={setCategory}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="General">General</SelectItem>
+                            <SelectItem value="SDK">SDK</SelectItem>
+                            <SelectItem value="API Reference">API Reference</SelectItem>
+                            <SelectItem value="Integrations">Integrations</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+
+            {/* Editor */}
+            <div className="space-y-2">
+                <Label>Content (MDX)</Label>
+                <RichMDXEditor
+                    initialContent={content}
+                    onChange={setContent}
+                />
+            </div>
+        </div>
+    )
+}
