@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, usePathname } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
@@ -51,11 +51,17 @@ interface SiteFooterProps {
 
 export default function SiteFooter({ className }: SiteFooterProps = {}) {
     const params = useParams()
+    const pathname = usePathname()
     const address = params?.address as string | undefined
     const [email, setEmail] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     const currentYear = new Date().getFullYear()
+
+    // Hide footer on docs pages
+    if (pathname?.startsWith('/docs')) {
+        return null
+    }
 
     const handleEmailSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
