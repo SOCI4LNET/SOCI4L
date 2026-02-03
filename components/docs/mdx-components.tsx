@@ -1,122 +1,97 @@
-
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Callout } from '@/components/docs/ui/callout'
+import { DocsCard } from '@/components/docs/ui/card'
+import {
+    DocsTitle,
+    DocsHeading,
+    DocsSubHeading,
+    DocsParagraph,
+    DocsList,
+    DocsListItem,
+    DocsCode
+} from '@/components/docs/ui/typography'
+import { cn } from '@/lib/utils'
 import Link from 'next/link'
-import { ArrowRight, Book, Key, Layers, Shield, Info, AlertTriangle, CheckCircle, XCircle } from "lucide-react"
-import { CodeBlock } from "@/components/docs/code-block"
-import { CodeGroup } from "@/components/docs/code-group"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { cn } from "@/lib/utils"
 
-// --- Custom Components ---
+const slugify = (str: string) =>
+    str
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/[\s_-]+/g, '-')
+        .replace(/^-+|-+$/g, '')
 
-const Callout = ({ type = "info", title, children, ...props }: any) => {
-    let Icon = Info
-    let variant: "default" | "destructive" = "default"
-    let className = "border-blue-500/50 text-blue-500 dark:border-blue-500/30"
-
-    if (type === 'warning') { Icon = AlertTriangle; className = "border-yellow-500/50 text-yellow-600 dark:text-yellow-500 dark:border-yellow-500/30" }
-    if (type === 'danger' || type === 'error') { Icon = XCircle; variant = "destructive" }
-    if (type === 'success' || type === 'tip') { Icon = CheckCircle; className = "border-green-500/50 text-green-600 dark:text-green-500 dark:border-green-500/30" }
-
-    return (
-        <Alert variant={variant} className={cn("my-6", className)} {...props}>
-            <Icon className="h-4 w-4" />
-            {title && <AlertTitle>{title}</AlertTitle>}
-            <AlertDescription className="mt-2 text-sm [&>p]:leading-normal">
-                {children}
-            </AlertDescription>
-        </Alert>
-    )
-}
-
-const Tabs = ({ items, children }: any) => {
-    return (
-        <div className="my-6 border rounded-md overflow-hidden bg-background">
-            {/* Simple tab rendering for now, matching preview renderer */}
-            <div className="bg-muted/50 p-2 flex gap-2 border-b">
-                {items?.map((item: string) => (
-                    <span key={item} className="text-xs font-mono px-2 py-1 bg-background rounded border shadow-sm">{item}</span>
-                ))}
-            </div>
-            <div className="p-0 [&>pre]:m-0 [&>pre]:rounded-none [&>pre]:border-0">
-                {children}
-            </div>
-        </div>
-    )
-}
-
-const Steps = ({ children }: any) => {
-    return (
-        <div className="space-y-4 pl-4 border-l-2 border-muted my-6 counter-reset-step">
-            {children}
-        </div>
-    )
-}
-
-// Map of components available in MDX
 export const components = {
-    // Shadcn Components
-    Card: ({ href, children, ...props }: any) => {
-        if (href) {
-            return (
-                <Link href={href} className="block not-prose h-full">
-                    <Card {...props} className="hover:border-primary/50 transition-colors cursor-pointer h-full">
-                        <CardHeader>
-                            {children}
-                        </CardHeader>
-                    </Card>
-                </Link>
-            )
-        }
-        return (
-            <Card {...props} className="not-prose hover:border-primary/50 transition-colors">
-                <CardHeader>{children}</CardHeader>
-            </Card>
-        )
+    h1: DocsTitle,
+    h2: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => {
+        const id = slugify(typeof children === 'string' ? children : '')
+        return <DocsHeading id={id} className="mt-3 first:mt-0 mb-0" {...props}>{children}</DocsHeading>
     },
-    CardTitle,
-    CardDescription,
-    CardContent,
-    CardHeader,
-    Button,
-
-    // Icons
-    ArrowRight,
-    Book,
-    Key,
-    Layers,
-    Shield,
-
-    // Custom Docs Components
-    Callout,
-    Tabs,
-    Tab: ({ children }: any) => <>{children}</>, // Pass through content for now
-    Steps,
-
-    // Standard HTML overrides
-    a: ({ href, children, ...props }: any) => (
-        <Link href={href || '#'} {...props} className="text-primary hover:underline font-medium">
+    h3: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => {
+        const id = slugify(typeof children === 'string' ? children : '')
+        return <DocsSubHeading id={id} className="mt-2 mb-0" {...props}>{children}</DocsSubHeading>
+    },
+    h4: ({ className, children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => {
+        const id = slugify(typeof children === 'string' ? children : '')
+        return <h4 id={id} className={cn("scroll-m-20 text-lg font-medium tracking-tight mt-2 mb-0", className)} {...props}>{children}</h4>
+    },
+    p: DocsParagraph,
+    ul: DocsList,
+    ol: ({ className, ...props }: React.HTMLAttributes<HTMLOListElement>) => (
+        <ol className={cn("my-2 ml-6 list-decimal [&>li]:mt-1", className)} {...props} />
+    ),
+    li: DocsListItem,
+    code: DocsCode,
+    pre: ({ className, ...props }: React.HTMLAttributes<HTMLPreElement>) => (
+        <pre
+            className={cn("mb-2 mt-3 overflow-x-auto rounded-lg border bg-zinc-950 py-3 dark:bg-zinc-900", className)}
+            {...props}
+        />
+    ),
+    hr: ({ ...props }: React.HTMLAttributes<HTMLHRElement>) => <hr className="my-4 border-border" {...props} />,
+    table: ({ className, ...props }: React.HTMLAttributes<HTMLTableElement>) => (
+        <div className="my-3 w-full overflow-y-auto">
+            <table className={cn("w-full", className)} {...props} />
+        </div>
+    ),
+    tr: ({ className, ...props }: React.HTMLAttributes<HTMLTableRowElement>) => (
+        <tr className={cn("m-0 border-t p-0 even:bg-muted", className)} {...props} />
+    ),
+    th: ({ className, ...props }: React.HTMLAttributes<HTMLTableCellElement>) => (
+        <th
+            className={cn(
+                "border px-4 py-2 text-left font-bold [&[align=center]]:text-center [&[align=right]]:text-right",
+                className
+            )}
+            {...props}
+        />
+    ),
+    td: ({ className, ...props }: React.HTMLAttributes<HTMLTableCellElement>) => (
+        <td
+            className={cn(
+                "border px-4 py-2 text-left [&[align=center]]:text-center [&[align=right]]:text-right",
+                className
+            )}
+            {...props}
+        />
+    ),
+    blockquote: ({ className, ...props }: React.HTMLAttributes<HTMLQuoteElement>) => (
+        <blockquote
+            className={cn(
+                "mt-2 border-l-2 pl-6 italic [&>*]:text-muted-foreground",
+                className
+            )}
+            {...props}
+        />
+    ),
+    a: ({ href, children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+        <Link href={href || '#'} className={cn("font-medium underline underline-offset-4 decoration-primary/50 hover:decoration-primary transition-colors", props.className)} {...props}>
             {children}
         </Link>
     ),
-
-    // Explicit overrides for typography plugin to pick up
-    h1: ({ children }: any) => <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl mt-12 mb-6">{children}</h1>,
-    h2: ({ children }: any) => <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0 mt-12 mb-6">{children}</h2>,
-    h3: ({ children }: any) => <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight mt-10 mb-4">{children}</h3>,
-    ul: ({ children }: any) => <ul className="my-6 ml-6 list-disc [&>li]:mt-2">{children}</ul>,
-    ol: ({ children }: any) => <ol className="my-6 ml-6 list-decimal [&>li]:mt-2">{children}</ol>,
-    li: ({ children }: any) => <li className="leading-7">{children}</li>,
-
-    // Explicit override for pre to ensure scrolling
-    pre: ({ children }: any) => (
-        <div className="relative rounded-lg border bg-muted/50 my-6 overflow-x-auto">
-            <pre className="p-4">{children}</pre>
-        </div>
-    ),
-
-    // Code block syntax highlighting? handled by rehype plugins often, or custom component
-    CodeBlock,
-    CodeGroup,
+    // Custom Components
+    Callout,
+    Card: DocsCard,
+    Step: ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+        <div className={cn("step ml-4 mb-4 border-l pl-8 relative before:content-[''] before:absolute before:w-3 before:h-3 before:bg-background before:border-2 before:border-primary before:rounded-full before:-left-[6.5px] before:top-1", className)} {...props} />
+    )
 }
