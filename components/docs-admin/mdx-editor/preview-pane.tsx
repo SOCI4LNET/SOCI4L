@@ -30,7 +30,7 @@ export function PreviewPane() {
             ref={containerRef}
             className="h-full w-full overflow-y-auto bg-background p-8 border-l border-border"
         >
-            <div className="prose dark:prose-invert max-w-none">
+            <div className="w-full max-w-4xl mx-auto pb-20">
                 <MDXPreviewRenderer content={content} />
             </div>
         </div>

@@ -46,7 +46,9 @@ export default function DocsAdminLogin() {
             }
 
             toast.success('Welcome back, Admin')
-            router.push('/docs-admin/dashboard')
+            toast.success('Welcome back, Admin')
+            // Force full reload to ensure cookies are picked up by middleware
+            window.location.href = '/docs-admin/dashboard'
 
         } catch (error: any) {
             console.error('Login error:', error)

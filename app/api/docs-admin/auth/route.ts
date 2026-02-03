@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyMessage } from 'viem'
 import { cookies } from 'next/headers'
-
-const DOCS_ADMIN_SESSION_COOKIE = 'soci4l_docs_admin_session'
+import { DOCS_ADMIN_SESSION_COOKIE } from '@/lib/docs-auth'
 
 export async function POST(request: NextRequest) {
     try {
