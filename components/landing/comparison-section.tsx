@@ -195,7 +195,7 @@ export function ComparisonSection() {
                             transition={{ delay: 0.4 }}
                             className="mt-4 text-sm text-muted-foreground dark:text-zinc-400 leading-relaxed font-medium pr-4"
                         >
-                            Building the future of finance on Avalanche 🔺. Collector of rare abstract art & governance delegate.
+                            Building the future of finance on Avalanche 🔺. Collector of rare abstract art.
                         </motion.div>
 
                         {/* Social Signals - Micro-animations added */}

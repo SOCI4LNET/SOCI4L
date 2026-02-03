@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { isValidAddress } from '@/lib/utils'
 import { calculateScore, getScoreTier, type ScoreBreakdown } from '@/lib/score'
 import { getProfileByAddress, getFollowersCount, getProfileLinks, getSocialLinks } from '@/lib/db'
+import { getSessionAddress } from '@/lib/auth'
 
 export async function GET(
   request: NextRequest,
@@ -13,6 +14,14 @@ export async function GET(
     return NextResponse.json(
       { error: 'Invalid wallet address' },
       { status: 400 }
+    )
+  }
+
+  const sessionAddress = await getSessionAddress()
+  if (!sessionAddress) {
+    return NextResponse.json(
+      { error: 'Unauthorized' },
+      { status: 401 }
     )
   }
 
@@ -29,7 +38,7 @@ export async function GET(
 
     // Calculate score
     const isClaimed = Boolean(
-      profile && 
+      profile &&
       (profile.claimedAt || profile.displayName || profile.slug || profile.status === 'CLAIMED')
     )
 

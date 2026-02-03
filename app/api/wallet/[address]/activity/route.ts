@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isValidAddress } from '@/lib/utils'
 import { fetchActivity, type ActivityTransaction } from '@/lib/activity/fetchActivity'
+import { getSessionAddress } from '@/lib/auth'
 
 /**
  * Activity API Route
@@ -18,7 +19,7 @@ export async function GET(
   try {
     const address = params.address
     const searchParams = request.nextUrl.searchParams
-    
+
     // Query parameters
     const dateRange = (searchParams.get('dateRange') || 'all') as '24h' | '7d' | '30d' | 'all'
     const type = (searchParams.get('type') || 'all') as 'all' | 'transfer' | 'contract' | 'swap'
@@ -35,6 +36,14 @@ export async function GET(
       )
     }
 
+    const sessionAddress = await getSessionAddress()
+    if (!sessionAddress) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
     const normalizedAddress = address.toLowerCase()
 
     // Log the address being used for debugging
@@ -42,7 +51,7 @@ export async function GET(
 
     // Fetch transactions with caching
     // Cache for 30 seconds unless manual refresh is requested
-    const cacheOptions = cacheBust 
+    const cacheOptions = cacheBust
       ? { cache: 'no-store' as const }
       : { next: { revalidate: 30 } }
 
@@ -84,7 +93,7 @@ export async function GET(
       address: params.address,
     })
     return NextResponse.json(
-      { 
+      {
         error: 'An error occurred while fetching activity data',
         details: process.env.NODE_ENV === 'development' ? error.message : undefined,
       },

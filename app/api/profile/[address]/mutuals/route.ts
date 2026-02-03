@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { isValidAddress } from '@/lib/utils'
+import { getSessionAddress } from '@/lib/auth'
 
 export async function GET(
     request: NextRequest,
@@ -14,6 +15,14 @@ export async function GET(
             return NextResponse.json(
                 { error: 'Invalid address' },
                 { status: 400 }
+            )
+        }
+
+        const sessionAddress = await getSessionAddress()
+        if (!sessionAddress) {
+            return NextResponse.json(
+                { error: 'Unauthorized' },
+                { status: 401 }
             )
         }
 

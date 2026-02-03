@@ -39,9 +39,7 @@ export function CTASection() {
                     </div>
                 </div>
 
-                <p className="text-xs text-muted-foreground/60 pt-4 font-normal">
-                    No transactions. No gas. Read-only demo.
-                </p>
+
             </div>
         </section>
     )

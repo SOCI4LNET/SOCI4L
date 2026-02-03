@@ -26,10 +26,18 @@ export async function GET(
       )
     }
 
+    const sessionAddress = await getSessionAddress()
+    if (!sessionAddress) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
     const normalizedAddress = address.toLowerCase()
 
     // Check for blocks
-    const sessionAddress = await getSessionAddress()
+    // sessionAddress is already verified at the top
     if (sessionAddress) {
       const normalizedSession = sessionAddress.toLowerCase()
       if (normalizedSession !== normalizedAddress) {
@@ -84,7 +92,7 @@ export async function GET(
       }
     } else {
       // Production: use session if available (normalize for DB lookup)
-      const sessionAddress = await getSessionAddress()
+      // sessionAddress is already available
       if (sessionAddress) {
         const normalizedSession = sessionAddress.toLowerCase()
         const follow = await prisma.follow.findUnique({

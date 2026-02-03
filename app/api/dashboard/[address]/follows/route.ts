@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { isValidAddress } from '@/lib/utils'
+import { getSessionAddress } from '@/lib/auth'
 
 export async function GET(
   request: NextRequest,
@@ -33,10 +34,37 @@ export async function GET(
 
     const normalizedAddress = address.toLowerCase()
 
-    // Note: Follower/following lists are public information
-    // No authentication required
+    const sessionAddress = await getSessionAddress()
+    if (!sessionAddress) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
 
-    let follows: Array<{ address: string; createdAt: Date; displayName?: string | null; score?: number; reason?: string }> = []
+    if (sessionAddress.toLowerCase() !== normalizedAddress) {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403 }
+      )
+    }
+
+    // Note: Follower/following lists are public information
+    // BUT this is the DASHBOARD route, which might be intended for owner only?
+    // The user request explicitly listed this route as exposed.
+    // So we secured it.
+
+    let follows: Array<{
+      address: string
+      createdAt: Date
+      displayName?: string | null
+      slug?: string | null
+      updatedAt?: Date | null
+      primaryRole?: string | null
+      statusMessage?: string | null
+      score?: number
+      reason?: string
+    }> = []
 
     // Calculate date thresholds for filters
     const now = new Date()

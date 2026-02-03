@@ -32,7 +32,7 @@ export function MockProfileVisual() {
             setClicks({ portfolio: 0, twitter: 0, youtube: 0, linkedin: 0 })
             setLinks([
                 { id: 'portfolio', title: 'Portfolio Website', subtitle: 'My personal work', icon: ArrowUpRight, color: 'text-muted-foreground', bg: 'bg-background' },
-                { id: 'twitter', title: 'X', subtitle: '@avalanche', icon: Link2, color: 'text-muted-foreground', bg: 'bg-background' },
+                { id: 'twitter', title: 'X', subtitle: '@avax', icon: Link2, color: 'text-muted-foreground', bg: 'bg-background' },
                 { id: 'linkedin', title: 'LinkedIn', subtitle: 'Professional network', icon: Link2, color: 'text-muted-foreground', bg: 'bg-background' }
             ])
             setCursorPos({ x: 400, y: 400, opacity: 0 })
