@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { RichMDXEditor } from '@/components/docs-admin/rich-mdx-editor'
+import { EditorShell } from '@/components/docs-admin/mdx-editor/editor-shell'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -20,6 +20,7 @@ export default function ArticleEditorPage({ params }: { params: { id: string } }
     const [slug, setSlug] = useState('')
     const [category, setCategory] = useState("General")
     const [content, setContent] = useState('')
+    const [initialContent, setInitialContent] = useState('') // Separate initial state to prevent loop
 
     // Fetch existing article
     useEffect(() => {
@@ -35,6 +36,7 @@ export default function ArticleEditorPage({ params }: { params: { id: string } }
                     setSlug(data.article.slug)
                     setCategory(data.article.category)
                     setContent(data.article.content)
+                    setInitialContent(data.article.content)
                 }
             } catch (error) {
                 toast.error('Failed to load article')
@@ -137,8 +139,8 @@ export default function ArticleEditorPage({ params }: { params: { id: string } }
             {/* Editor */}
             <div className="space-y-2">
                 <Label>Content (MDX)</Label>
-                <RichMDXEditor
-                    initialContent={content}
+                <EditorShell
+                    initialContent={initialContent}
                     onChange={setContent}
                 />
             </div>

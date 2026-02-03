@@ -57,41 +57,22 @@ export default function DocsAdminLogin() {
     }
 
     return (
-        <div className="min-h-screen grid lg:grid-cols-2">
-            {/* Left: Branding */}
-            <div className="hidden lg:flex flex-col bg-zinc-900 border-r border-white/5 p-12 text-white justify-between relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
-                <div className="relative z-10">
-                    <Soci4LLogo variant="combination" className="invert-0" width={140} />
-                </div>
+        <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-4 relative overflow-hidden">
+            <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5" />
 
-                <div className="relative z-10 space-y-4">
-                    <div className="h-12 w-12 rounded-lg bg-white/10 flex items-center justify-center backdrop-blur-sm border border-white/10">
-                        <Terminal className="h-6 w-6" />
-                    </div>
-                    <h2 className="text-3xl font-semibold tracking-tight">Documentation CMS</h2>
-                    <p className="text-zinc-400 max-w-sm">
-                        Manage articles, guides, and API references for the SOCI4L ecosystem.
-                        Restricted access for authorized editors only.
-                    </p>
-                </div>
-
-                <div className="text-sm text-zinc-600 font-mono">
-                    v1.0.0-beta
-                </div>
-            </div>
-
-            {/* Right: Login Form */}
-            <div className="flex items-center justify-center p-8 bg-background">
-                <div className="w-full max-w-md space-y-8">
-                    <div className="text-center lg:text-left">
-                        <h1 className="text-2xl font-bold tracking-tight">Admin Authentication</h1>
-                        <p className="text-sm text-muted-foreground mt-2">
-                            Connect your authorized wallet to access the panel.
+            <Card className="w-full max-w-md relative z-10 overflow-hidden shadow-xl border-zinc-200 dark:border-zinc-800">
+                <div className="p-8 space-y-8">
+                    <div className="flex flex-col items-center text-center space-y-2">
+                        <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                            <Terminal className="h-6 w-6 text-primary" />
+                        </div>
+                        <h1 className="text-2xl font-bold tracking-tight">Docs Admin</h1>
+                        <p className="text-sm text-muted-foreground max-w-xs">
+                            Manage articles and guides for the SOCI4L ecosystem.
                         </p>
                     </div>
 
-                    <div className="space-y-4 pt-4">
+                    <div className="space-y-4">
                         <Button
                             size="lg"
                             className="w-full gap-2"
@@ -107,11 +88,14 @@ export default function DocsAdminLogin() {
                         </Button>
 
                         <p className="text-xs text-center text-muted-foreground">
-                            Only whitelisted addresses can access this area.
+                            Restricted access for authorized editors only.
                         </p>
                     </div>
                 </div>
-            </div>
+                <div className="bg-muted/50 p-4 text-center border-t text-xs text-muted-foreground font-mono">
+                    v1.0.0-beta
+                </div>
+            </Card>
         </div>
     )
 }

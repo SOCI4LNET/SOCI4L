@@ -59,10 +59,7 @@ export default function SiteFooter({ className }: SiteFooterProps = {}) {
 
     const currentYear = new Date().getFullYear()
 
-    // Hide footer on docs pages
-    if (pathname?.startsWith('/docs')) {
-        return null
-    }
+
 
     const handleEmailSubmit = async (e: React.FormEvent) => {
         e.preventDefault()

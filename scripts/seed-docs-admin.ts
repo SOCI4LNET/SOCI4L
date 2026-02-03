@@ -2,7 +2,14 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
-    const adminAddress = '0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1' // Using the example address or user's connected wallet if known
+    const args = process.argv.slice(2)
+    const rawAddress = args[0] || '0xbf...'
+    const adminAddress = rawAddress.toLowerCase()
+
+    if (!adminAddress || !adminAddress.startsWith('0x')) {
+        console.error('Usage: npx tsx scripts/seed-docs-admin.ts <wallet_address>')
+        process.exit(1)
+    }
 
     console.log(`Seeding Docs Admin for address: ${adminAddress}`)
 
@@ -11,7 +18,7 @@ async function main() {
         update: {},
         create: {
             address: adminAddress,
-            name: 'Master Admin',
+            name: 'Admin User',
             role: 'SUPER_ADMIN'
         }
     })

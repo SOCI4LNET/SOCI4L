@@ -33,79 +33,73 @@ import { Button } from "@/components/ui/button"
 const data = {
     navMain: [
         {
-            title: "Getting Started",
-            url: "#",
-            icon: BookOpen,
-            isActive: true,
+            title: "Introduction",
             items: [
                 {
-                    title: "Introduction",
+                    title: "Overview",
                     url: "/docs",
+                    icon: BookOpen,
                 },
                 {
-                    title: "Installation",
-                    url: "/docs/getting-started/installation",
+                    title: "Quick Start",
+                    url: "/docs/quick-start",
+                    icon: Terminal,
                 },
+                {
+                    title: "Brand Assets",
+                    url: "/brand",
+                    icon: FileText,
+                }
+            ],
+        },
+        {
+            title: "Architecture",
+            items: [
                 {
                     title: "Project Structure",
-                    url: "/docs/getting-started/project-structure",
+                    url: "/docs/project-structure",
+                },
+                {
+                    title: "Authentication",
+                    url: "/docs/auth",
+                },
+                {
+                    title: "Database Schema",
+                    url: "/docs/database",
                 },
             ],
         },
         {
             title: "Core Concepts",
-            url: "#",
-            icon: FileText,
             items: [
                 {
-                    title: "Wallet Strategy",
-                    url: "/docs/core-concepts/wallet-strategy",
+                    title: "Smart Contracts",
+                    url: "/docs/smart-contracts",
                 },
                 {
-                    title: "Authentication",
-                    url: "/docs/core-concepts/authentication",
+                    title: "Oracles",
+                    url: "/docs/oracles",
                 },
                 {
-                    title: "Privacy Model",
-                    url: "/docs/core-concepts/privacy",
-                },
-                {
-                    title: "SOCI4L Score System",
-                    url: "/docs/core-concepts/score-system",
+                    title: "Social Graph",
+                    url: "/docs/social-graph",
                 },
             ],
         },
         {
-            title: "API Reference",
-            url: "#",
-            icon: Terminal,
+            title: "Reference",
             items: [
                 {
-                    title: "Profile Endpoints",
-                    url: "/docs/api/profile",
+                    title: "API Reference",
+                    url: "/docs/api",
                 },
                 {
-                    title: "Analytics Data",
-                    url: "/docs/api/analytics",
-                },
-            ],
-        },
-        {
-            title: "Settings",
-            url: "#",
-            icon: Settings,
-            items: [
-                {
-                    title: "General",
-                    url: "/docs/settings/general",
+                    title: "SDK",
+                    url: "/docs/sdk",
                 },
                 {
-                    title: "Team",
-                    url: "/docs/settings/team",
-                },
-                {
-                    title: "Billing",
-                    url: "/docs/settings/billing",
+                    title: "CLI",
+                    url: "/docs/cli",
                 },
             ],
         },
@@ -132,52 +126,28 @@ export function DocsSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
                 </div>
             </SidebarHeader>
 
-            <SidebarContent>
-                <SidebarGroup>
-                    <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Platform</SidebarGroupLabel>
-                    <SidebarGroupContent>
-                        <SidebarMenu>
-                            {data.navMain.map((item) => {
-                                // Check if any child item matches current path to open category
-                                const isCategoryActive = item.items?.some(subItem => pathname === subItem.url)
-
-
-
-                                return (
-                                    <Collapsible
-                                        key={item.title}
-                                        asChild
-                                        defaultOpen={isCategoryActive || item.isActive}
-                                        className="group/collapsible"
-                                    >
-                                        <SidebarMenuItem>
-                                            <CollapsibleTrigger asChild>
-                                                <SidebarMenuButton tooltip={item.title} isActive={isCategoryActive}>
-                                                    {item.icon && <item.icon />}
-                                                    <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
-                                                    <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" />
-                                                </SidebarMenuButton>
-                                            </CollapsibleTrigger>
-                                            <CollapsibleContent className="group-data-[collapsible=icon]:hidden">
-                                                <SidebarMenuSub>
-                                                    {item.items?.map((subItem) => (
-                                                        <SidebarMenuSubItem key={subItem.title}>
-                                                            <SidebarMenuSubButton asChild isActive={pathname === subItem.url}>
-                                                                <a href={subItem.url}>
-                                                                    <span className="group-data-[collapsible=icon]:hidden">{subItem.title}</span>
-                                                                </a>
-                                                            </SidebarMenuSubButton>
-                                                        </SidebarMenuSubItem>
-                                                    ))}
-                                                </SidebarMenuSub>
-                                            </CollapsibleContent>
-                                        </SidebarMenuItem>
-                                    </Collapsible>
-                                )
-                            })}
-                        </SidebarMenu>
-                    </SidebarGroupContent>
-                </SidebarGroup>
+            <SidebarContent className="px-2">
+                {data.navMain.map((group) => (
+                    <SidebarGroup key={group.title} className="py-2">
+                        <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider mb-2 px-2">
+                            {group.title}
+                        </SidebarGroupLabel>
+                        <SidebarGroupContent>
+                            <SidebarMenu>
+                                {group.items.map((item: any) => (
+                                    <SidebarMenuItem key={item.title}>
+                                        <SidebarMenuButton asChild isActive={pathname === item.url} className="h-8 text-sm font-medium text-muted-foreground data-[active=true]:text-foreground data-[active=true]:bg-primary/5 hover:text-foreground">
+                                            <a href={item.url} className="flex items-center gap-2">
+                                                {item.icon && <item.icon className="h-4 w-4" />}
+                                                <span>{item.title}</span>
+                                            </a>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                ))}
+                            </SidebarMenu>
+                        </SidebarGroupContent>
+                    </SidebarGroup>
+                ))}
             </SidebarContent>
 
             <SidebarFooter>

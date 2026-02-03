@@ -102,7 +102,7 @@ function EditorPane({ content, onChange }: { content: string, onChange: (e: Reac
         <Textarea
             value={content}
             onChange={onChange}
-            className="w-full h-full resize-none p-4 font-mono text-sm border-0 focus-visible:ring-0 rounded-none bg-zinc-950 text-zinc-100"
+            className="w-full h-full resize-none p-4 font-mono text-sm border-0 focus-visible:ring-0 rounded-none bg-background text-foreground"
             placeholder="# Start writing your article..."
         />
     )
