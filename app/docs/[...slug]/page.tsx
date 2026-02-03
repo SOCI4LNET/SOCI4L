@@ -1,25 +1,12 @@
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
-import ReactMarkdown from 'react-markdown'
-import { Card } from '@/components/ui/card'
+import { MDXRemote } from 'next-mdx-remote/rsc'
+import { components } from '@/components/docs/mdx-components'
 import { Badge } from '@/components/ui/badge'
 
 export default async function DocPage({ params }: { params: { slug: string[] } }) {
-    // Catch all route logic - for example /docs/something
-    // Next.js app router dynamic segment
-    const slug = params.slug ? params.slug[0] : ''
-
-    // If root /docs, render index (or find a 'index' slug article)
-    if (!slug) {
-        return (
-            <div className="space-y-6">
-                <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">Documentation</h1>
-                <p className="leading-7 [&:not(:first-child)]:mt-6">
-                    Welcome to the SOCI4L documentation. Here you will find everything you need to build on top of our social identity protocol.
-                </p>
-            </div>
-        )
-    }
+    // Join slug array to support nested paths (e.g. docs/advanced/setup)
+    const slug = params.slug.join('/')
 
     const article = await prisma.docsArticle.findUnique({
         where: { slug },
@@ -31,8 +18,8 @@ export default async function DocPage({ params }: { params: { slug: string[] } }
     }
 
     return (
-        <div className="space-y-6 mb-20">
-            <div className="space-y-2">
+        <div className="space-y-6 mb-20 max-w-4xl mx-auto">
+            <div className="space-y-2 border-b pb-4">
                 <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">{article.title}</h1>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Badge variant="outline">{article.category}</Badge>
@@ -44,7 +31,7 @@ export default async function DocPage({ params }: { params: { slug: string[] } }
             </div>
 
             <div className="prose prose-zinc dark:prose-invert max-w-none">
-                <ReactMarkdown>{article.content}</ReactMarkdown>
+                <MDXRemote source={article.content} components={components} />
             </div>
         </div>
     )

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { RichMDXEditor } from '@/components/docs-admin/rich-mdx-editor'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -20,6 +20,28 @@ export default function ArticleEditorPage({ params }: { params: { id: string } }
     const [slug, setSlug] = useState('')
     const [category, setCategory] = useState("General")
     const [content, setContent] = useState('')
+
+    // Fetch existing article
+    useEffect(() => {
+        if (isNew) return
+
+        const fetchArticle = async () => {
+            try {
+                const res = await fetch(`/api/docs-admin/articles/${params.id}`)
+                if (!res.ok) throw new Error('Failed to fetch')
+                const data = await res.json()
+                if (data.article) {
+                    setTitle(data.article.title)
+                    setSlug(data.article.slug)
+                    setCategory(data.article.category)
+                    setContent(data.article.content)
+                }
+            } catch (error) {
+                toast.error('Failed to load article')
+            }
+        }
+        fetchArticle()
+    }, [isNew, params.id])
 
     // Auto-generate slug from title if new
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

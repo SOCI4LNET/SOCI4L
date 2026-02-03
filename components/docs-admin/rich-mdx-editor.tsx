@@ -108,18 +108,12 @@ function EditorPane({ content, onChange }: { content: string, onChange: (e: Reac
     )
 }
 
+import { MarkdownRenderer } from '@/components/docs/markdown-renderer'
+
 function PreviewPane({ content }: { content: string }) {
     return (
-        <div className="w-full h-full overflow-y-auto p-8 prose prose-zinc dark:prose-invert max-w-none bg-background">
-            {/* Basic MD preview for admin - fully realized MDX will happen on frontend */}
-            <ReactMarkdown>{content}</ReactMarkdown>
-
-            {/* Hint for custom components */}
-            {content.includes('<CodeGroup>') && (
-                <div className="mt-4 p-4 border border-blue-500/20 bg-blue-500/10 rounded-md text-sm text-blue-400">
-                    ℹ️ Custom MDX components like &lt;CodeGroup&gt; will be rendered interactively on the live site.
-                </div>
-            )}
+        <div className="w-full h-full overflow-y-auto p-8 bg-background">
+            <MarkdownRenderer content={content} />
         </div>
     )
 }

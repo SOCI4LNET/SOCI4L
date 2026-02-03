@@ -3,7 +3,35 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowRight, Book, Key, Layers, Shield } from "lucide-react"
 
-export default function DocsPage() {
+import { prisma } from "@/lib/prisma"
+import { MDXRemote } from 'next-mdx-remote/rsc'
+import { components } from '@/components/docs/mdx-components'
+import { Button } from "@/components/ui/button"
+import { ArrowRight } from "lucide-react"
+
+export default async function DocsPage() {
+    // Fetch the 'home' article
+    const homeArticle = await prisma.docsArticle.findUnique({
+        where: { slug: 'home' }
+    })
+
+    if (homeArticle) {
+        return (
+            <div className="max-w-4xl space-y-10 pb-10">
+                <div className="space-y-4 border-b pb-8">
+                    <div className="inline-flex items-center rounded-lg bg-muted px-3 py-1 text-sm font-medium">
+                        <span className="flex h-2 w-2 rounded-full bg-primary mr-2"></span>
+                        Documentation v1.0
+                    </div>
+                </div>
+                <div className="prose prose-zinc dark:prose-invert max-w-none">
+                    <MDXRemote source={homeArticle.content} components={components} />
+                </div>
+            </div>
+        )
+    }
+
+    // Fallback if not migrated yet
     return (
         <div className="max-w-4xl space-y-10 pb-10">
             {/* Hero Section */}
@@ -34,78 +62,47 @@ export default function DocsPage() {
                     Quick Start
                 </h2>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <Card className="hover:border-primary/50 transition-colors cursor-pointer group">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Book className="size-5 text-primary group-hover:scale-110 transition-transform" />
-                                Introduction
-                            </CardTitle>
-                            <CardDescription>
-                                Learn the basics of SOCI4L architecture.
-                            </CardDescription>
-                        </CardHeader>
-                    </Card>
-                    <Card className="hover:border-primary/50 transition-colors cursor-pointer group">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Layers className="size-5 text-blue-500 group-hover:scale-110 transition-transform" />
-                                Project Structure
-                            </CardTitle>
-                            <CardDescription>
-                                Understand the codebase and components.
-                            </CardDescription>
-                        </CardHeader>
-                    </Card>
-                    <Card className="hover:border-primary/50 transition-colors cursor-pointer group">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Key className="size-5 text-amber-500 group-hover:scale-110 transition-transform" />
-                                Authentication
-                            </CardTitle>
-                            <CardDescription>
-                                Deep dive into wallet-based auth.
-                            </CardDescription>
-                        </CardHeader>
-                    </Card>
+                    <Link href="/docs/introduction">
+                        <Card className="hover:border-primary/50 transition-colors cursor-pointer group h-full">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Book className="size-5 text-primary group-hover:scale-110 transition-transform" />
+                                    Introduction
+                                </CardTitle>
+                                <CardDescription>
+                                    Learn the basics of SOCI4L architecture.
+                                </CardDescription>
+                            </CardHeader>
+                        </Card>
+                    </Link>
+                    <Link href="/docs/project-structure">
+                        <Card className="hover:border-primary/50 transition-colors cursor-pointer group h-full">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Layers className="size-5 text-blue-500 group-hover:scale-110 transition-transform" />
+                                    Project Structure
+                                </CardTitle>
+                                <CardDescription>
+                                    Understand the codebase and components.
+                                </CardDescription>
+                            </CardHeader>
+                        </Card>
+                    </Link>
+                    <Link href="/docs/auth">
+                        <Card className="hover:border-primary/50 transition-colors cursor-pointer group h-full">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Key className="size-5 text-amber-500 group-hover:scale-110 transition-transform" />
+                                    Authentication
+                                </CardTitle>
+                                <CardDescription>
+                                    Deep dive into wallet-based auth.
+                                </CardDescription>
+                            </CardHeader>
+                        </Card>
+                    </Link>
                 </div>
             </section>
-
-            {/* Core Features */}
-            <section className="space-y-4">
-                <h2 className="scroll-m-20 border-b pb-2 text-2xl font-semibold tracking-tight">
-                    Core Concepts
-                </h2>
-                <div className="grid md:grid-cols-2 gap-8">
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold flex items-center gap-2">
-                            <Shield className="size-5 text-green-500" />
-                            Privacy First
-                        </h3>
-                        <p className="text-muted-foreground">
-                            We believe your data belongs to you. SOCI4L is built with privacy as a foundational pillar, ensuring you have granular control over what you share.
-                        </p>
-                    </div>
-                    <div className="space-y-2">
-                        <h3 className="text-xl font-semibold flex items-center gap-2">
-                            <Layers className="size-5 text-purple-500" />
-                            Modular Design
-                        </h3>
-                        <p className="text-muted-foreground">
-                            Built on top of refined shadcn/ui components, our system is designed to be easily extensible and customizable for any Web3 need.
-                        </p>
-                    </div>
-                </div>
-            </section>
-
-            {/* Helper */}
-            <div className="rounded-lg border bg-muted/30 p-8 text-center mt-8">
-                <p className="text-muted-foreground mb-4">
-                    Need help integrating? Check out our community resources.
-                </p>
-                <span className="text-primary font-medium hover:underline cursor-pointer">
-                    Join our Discord Community &rarr;
-                </span>
-            </div>
         </div>
     )
 }
