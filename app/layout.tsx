@@ -5,7 +5,6 @@ import "./globals.css"
 import { Providers } from "./providers"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
-import SiteFooter from "@/components/app-shell/site-footer"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import Script from "next/script"
 
@@ -40,7 +39,6 @@ export default function RootLayout({
           <Providers>
             <div className="flex min-h-screen flex-col bg-background text-foreground">
               {children}
-              <SiteFooter className="mt-auto" />
             </div>
             <Toaster />
             <SpeedInsights />
