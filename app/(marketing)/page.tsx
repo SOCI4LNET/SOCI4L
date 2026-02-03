@@ -23,6 +23,7 @@ import { RoadmapSection } from '@/components/landing/roadmap-section'
 import { DifferentiationSection } from '@/components/landing/differentiation-section'
 import { SignalsSection } from '@/components/landing/signals-section'
 import { ProfileWallSection } from '@/components/landing/profile-wall-section'
+import { WalletSearchSection } from '@/components/landing/wallet-search-section'
 
 const EXAMPLE_PROFILE_ADDRESS = '0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1'
 
@@ -128,8 +129,13 @@ export default function HomePage() {
             {/* Galaxy Orbit Animation (Anchored to Bottom via Flex) */}
             <div className="relative w-full z-0 pointer-events-none mt-auto">
               <OrbitConnection />
+              {/* Fade out mask at the bottom */}
+              <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-background to-transparent z-10" />
             </div>
           </section>
+
+          {/* Wallet Search Section */}
+          <WalletSearchSection />
 
 
 

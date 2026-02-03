@@ -1,4 +1,5 @@
 import { Callout } from '@/components/docs/ui/callout'
+import { DocsTabs, DocsTab } from '@/components/docs/ui/docs-tabs'
 import { DocsCard } from '@/components/docs/ui/card'
 import {
     DocsTitle,
@@ -90,6 +91,8 @@ export const components = {
     ),
     // Custom Components
     Callout,
+    Tabs: DocsTabs,
+    Tab: DocsTab,
     Card: DocsCard,
     Step: ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
         <div className={cn("step ml-4 mb-4 border-l pl-8 relative before:content-[''] before:absolute before:w-3 before:h-3 before:bg-background before:border-2 before:border-primary before:rounded-full before:-left-[6.5px] before:top-1", className)} {...props} />
