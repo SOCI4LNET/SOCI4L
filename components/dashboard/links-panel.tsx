@@ -517,12 +517,19 @@ export function LinksPanel() {
     const twitterAccount = user?.twitter
     if (twitterAccount) {
       const syncSocial = async () => {
-        // Prevent double sync if already verified recently
+        // Check if we are already verified in the backend
+        const twitterLink = socialLinks.find(l => l.platform === 'x' || l.platform === 'twitter')
+        const isBackendVerified = twitterLink?.verified === true
+
+        // Force sync if we have Twitter but backend says not verified
+        const forceSync = twitterLink && !isBackendVerified
+
+        // Prevent double sync if already verified recently, UNLESS we need to force sync
         const lastSync = localStorage.getItem(`soci4l_twitter_sync_${twitterAccount.username}`)
         const now = Date.now()
 
-        // Don't re-sync if synced in last 1 minute
-        if (lastSync && now - parseInt(lastSync) < 60000) return
+        // Don't re-sync if synced in last 1 minute, unless forcing
+        if (!forceSync && lastSync && now - parseInt(lastSync) < 60000) return
 
         try {
           const response = await fetch('/api/social/link', {
@@ -536,16 +543,26 @@ export function LinksPanel() {
           })
 
           if (response.ok) {
-            toast.success(`Connected as @${twitterAccount.username}`)
+            if (forceSync) {
+              console.log('[LinksPanel] Forced social sync completed')
+              // Refresh social links to update UI
+              // changing targetAddress triggers reload
+            } else {
+              toast.success(`Connected as @${twitterAccount.username}`)
+            }
             localStorage.setItem(`soci4l_twitter_sync_${twitterAccount.username}`, now.toString())
           }
         } catch (error) {
           console.error('Sync error:', error)
         }
       }
-      syncSocial()
+
+      // Delay slightly to ensure socialLinks are loaded
+      if (!socialLinksLoading) {
+        syncSocial()
+      }
     }
-  }, [user?.twitter])
+  }, [user?.twitter, socialLinks, socialLinksLoading])
 
   const [links, setLinks] = useState<LinkItem[]>([])
   const [categories, setCategories] = useState<LinkCategory[]>([])
