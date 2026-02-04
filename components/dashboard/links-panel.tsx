@@ -94,7 +94,7 @@ type LinkCategory = {
   updatedAt: string
 }
 
-type SocialLinkPlatform = 'website' | 'x' | 'instagram' | 'github' | 'youtube' | 'linkedin'
+type SocialLinkPlatform = 'website' | 'x' | 'instagram' | 'github' | 'youtube' | 'linkedin' | 'twitter'
 
 interface SocialLink {
   id: string
