@@ -27,6 +27,7 @@
         "https://twitter.com/*",
         "https://x.com/*",
         "https://soci4l.com/*",
+        "https://soci4l.net/*",
         "http://localhost:3000/*"
     ]
 }

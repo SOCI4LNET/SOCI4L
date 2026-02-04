@@ -1,7 +1,7 @@
 // SOCI4L Connector Content Script
 
-const API_BASE_URL = "http://localhost:3000"; // TODO: Switch to production URL in build
-// const API_BASE_URL = "https://soci4l.com";
+const API_BASE_URL = "https://soci4l.net";
+// const API_BASE_URL = "http://localhost:3000";
 
 console.log("[SOCI4L] Extension loaded on X.com");
 
@@ -90,10 +90,17 @@ function injectBadge(element, profile) {
         window.open(`${API_BASE_URL}/p/${profile.slug || profile.address}`, '_blank');
     };
 
-    // Find where to append. Usually after the name or handle.
-    // X structure: Name (flex) -> span -> span
-    // We try appending to the flex container key ID
-    element.appendChild(badge);
+    // Find where to append. usually after the verification badge (blue check) or name
+    // X structure: Name -> (Verified Badge) -> @handle
+    // We want to insert AFTER the verified badge if it exists, or after the name
+
+    // Try to find existing verified badge (svg with aria-label="Verified account")
+    const existingBadge = element.querySelector('svg[aria-label="Verified account"]');
+    if (existingBadge && existingBadge.parentElement) {
+        existingBadge.parentElement.insertAdjacentElement('afterend', badge);
+    } else {
+        element.appendChild(badge);
+    }
 }
 
 /**
