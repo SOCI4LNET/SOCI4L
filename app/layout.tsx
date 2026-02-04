@@ -12,13 +12,54 @@ const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfa
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" })
 
 export const metadata: Metadata = {
-  title: "SOCI4L - Web3 Profile & Link Hub",
+  metadataBase: new URL('https://soci4l.com'),
+  title: {
+    default: "SOCI4L - Web3 Profile & Link Hub",
+    template: "%s | SOCI4L"
+  },
   description: "SOCI4L turns your wallet into a measurable, privacy-first public profile. Create your Web3 profile with link analytics.",
+  keywords: ["Web3", "Profile", "Link Hub", "Crypto", "Blockchain", "Avalanche", "NFT", "DeFi"],
+  authors: [{ name: "SOCI4L" }],
+  creator: "SOCI4L",
+  publisher: "SOCI4L",
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://soci4l.com',
+    siteName: 'SOCI4L',
+    title: 'SOCI4L - Web3 Profile & Link Hub',
+    description: 'Turn your wallet into a measurable, privacy-first public profile',
+    images: [
+      {
+        url: '/api/og?displayName=SOCI4L&bio=Web3 Profile & Link Hub',
+        width: 1200,
+        height: 630,
+        alt: 'SOCI4L - Web3 Profile & Link Hub',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'SOCI4L - Web3 Profile & Link Hub',
+    description: 'Turn your wallet into a measurable, privacy-first public profile',
+    images: ['/api/og?displayName=SOCI4L&bio=Web3 Profile & Link Hub'],
+  },
   icons: {
     icon: [
       { url: "/logos/icon.png", type: "image/png" },
     ],
     apple: "/logos/icon.png",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
 }
 
