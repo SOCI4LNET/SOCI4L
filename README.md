@@ -1,4 +1,4 @@
-# SOCI4L
+# SOCI4L .
 
 Avalanche C-Chain cüzdan adreslerini arayıp profil sayfalarını görüntüleyebileceğiniz bir Next.js web uygulaması.
 
