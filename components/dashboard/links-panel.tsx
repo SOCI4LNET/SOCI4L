@@ -587,7 +587,55 @@ export function LinksPanel() {
 
   // Social Links state
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([])
-  const [socialLinksLoading, setSocialLinksLoading] = useState(true)
+  // Sync with backend when Twitter account is detected
+  useEffect(() => {
+    const twitterAccount = user?.twitter
+    if (twitterAccount) {
+      const syncSocial = async () => {
+        // Check if we are already verified in the backend
+        const twitterLink = socialLinks.find(l => l.platform === 'x' || l.platform === 'twitter')
+        const isBackendVerified = twitterLink?.verified === true
+
+        // Force sync if we have Twitter but backend says not verified
+        const forceSync = twitterLink && !isBackendVerified
+
+        // Prevent double sync if already verified recently, UNLESS we need to force sync
+        const lastSync = localStorage.getItem(`soci4l_twitter_sync_${twitterAccount.username}`)
+        const now = Date.now()
+
+        // Don't re-sync if synced in last 1 minute, unless forcing
+        if (!forceSync && lastSync && now - parseInt(lastSync) < 60000) return
+
+        try {
+          const response = await fetch('/api/social/link', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              platform: 'twitter',
+              platformUsername: twitterAccount.username,
+              platformUserId: twitterAccount.subject,
+            }),
+          })
+
+          if (response.ok) {
+            if (forceSync) {
+              console.log('[LinksPanel] Forced social sync completed')
+            } else {
+              toast.success(`Connected as @${twitterAccount.username}`)
+            }
+            localStorage.setItem(`soci4l_twitter_sync_${twitterAccount.username}`, now.toString())
+          }
+        } catch (error) {
+          console.error('Sync error:', error)
+        }
+      }
+
+      // Delay slightly to ensure socialLinks are loaded
+      if (!socialLinksLoading) {
+        syncSocial()
+      }
+    }
+  }, [user?.twitter, socialLinks, socialLinksLoading])
   const [socialLinksSaving, setSocialLinksSaving] = useState(false)
   const [socialDialogOpen, setSocialDialogOpen] = useState(false)
   const [editingSocialLink, setEditingSocialLink] = useState<SocialLink | null>(null)
