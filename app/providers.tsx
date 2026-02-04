@@ -7,6 +7,7 @@ import { avalanche } from 'viem/chains'
 import { useState, type ReactNode } from 'react'
 import { TransactionProvider } from '@/components/providers/transaction-provider'
 import { injected } from 'wagmi/connectors'
+import PrivyProviderWrapper from '@/components/providers/privy-provider'
 
 // WalletConnect v2 Project ID
 const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
@@ -66,9 +67,11 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <TransactionProvider>
-          {children}
-        </TransactionProvider>
+        <PrivyProviderWrapper>
+          <TransactionProvider>
+            {children}
+          </TransactionProvider>
+        </PrivyProviderWrapper>
       </QueryClientProvider>
     </WagmiProvider>
   )

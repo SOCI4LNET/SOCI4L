@@ -29,6 +29,14 @@ const nextConfig = {
       }
     }
 
+    // Force unique instances for Context providers to avoid duplication issues
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@tanstack/react-query': require('path').resolve(__dirname, 'node_modules/@tanstack/react-query'),
+      'wagmi': require('path').resolve(__dirname, 'node_modules/wagmi'),
+      'viem': require('path').resolve(__dirname, 'node_modules/viem'),
+    }
+
     return config
   },
   async headers() {
