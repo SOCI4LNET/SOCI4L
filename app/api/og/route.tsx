@@ -12,6 +12,16 @@ export async function GET(request: NextRequest) {
         const bio = searchParams.get('bio') || 'Web3 Profile & Link Hub'
         const slug = searchParams.get('slug') || ''
 
+        // Fetch background image
+        const backgroundImage = await fetch(
+            new URL('/og-background.png', request.url)
+        ).then((res) => res.arrayBuffer())
+
+        // Fetch logo
+        const logoImage = await fetch(
+            new URL('/logos/soci4l-logo.png', request.url)
+        ).then((res) => res.arrayBuffer())
+
         return new ImageResponse(
             (
                 <div
@@ -22,56 +32,67 @@ export async function GET(request: NextRequest) {
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        backgroundColor: '#000',
-                        backgroundImage: 'radial-gradient(circle at 25px 25px, #333 2%, transparent 0%), radial-gradient(circle at 75px 75px, #333 2%, transparent 0%)',
-                        backgroundSize: '100px 100px',
+                        position: 'relative',
                     }}
                 >
-                    {/* Logo/Brand */}
+                    {/* Background Image */}
+                    <img
+                        // @ts-ignore
+                        src={backgroundImage}
+                        style={{
+                            position: 'absolute',
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                        }}
+                    />
+
+                    {/* Logo - Top Left */}
                     <div
                         style={{
                             position: 'absolute',
-                            top: 40,
-                            left: 40,
+                            top: 60,
+                            left: 60,
                             display: 'flex',
                             alignItems: 'center',
-                            gap: 12,
                         }}
                     >
-                        <div
+                        <img
+                            // @ts-ignore
+                            src={logoImage}
+                            width={180}
+                            height={60}
                             style={{
-                                fontSize: 32,
-                                fontWeight: 700,
-                                color: '#fff',
-                                letterSpacing: '-0.02em',
+                                objectFit: 'contain',
                             }}
-                        >
-                            SOCI4L
-                        </div>
+                        />
                     </div>
 
-                    {/* Main Content */}
+                    {/* Main Content - Center */}
                     <div
                         style={{
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            padding: '0 80px',
+                            padding: '0 120px',
                             textAlign: 'center',
+                            zIndex: 10,
                         }}
                     >
                         {/* Display Name */}
                         <div
                             style={{
-                                fontSize: 72,
-                                fontWeight: 700,
+                                fontSize: 80,
+                                fontWeight: 600,
                                 color: '#fff',
                                 marginBottom: 24,
                                 maxWidth: '900px',
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
                                 whiteSpace: 'nowrap',
+                                fontFamily: 'Geist Mono, monospace',
+                                letterSpacing: '-0.02em',
                             }}
                         >
                             {displayName}
@@ -82,9 +103,10 @@ export async function GET(request: NextRequest) {
                             <div
                                 style={{
                                     fontSize: 32,
-                                    color: '#999',
+                                    color: '#a0a0a0',
                                     maxWidth: '800px',
                                     lineHeight: 1.4,
+                                    fontFamily: 'Geist Mono, monospace',
                                     display: '-webkit-box',
                                     WebkitLineClamp: 2,
                                     WebkitBoxOrient: 'vertical',
@@ -101,7 +123,8 @@ export async function GET(request: NextRequest) {
                                 style={{
                                     fontSize: 28,
                                     color: '#666',
-                                    marginTop: 32,
+                                    marginTop: 40,
+                                    fontFamily: 'Geist Mono, monospace',
                                 }}
                             >
                                 soci4l.com/p/{slug}
@@ -109,25 +132,27 @@ export async function GET(request: NextRequest) {
                         )}
                     </div>
 
-                    {/* Footer Badge */}
+                    {/* Bottom Right Badge */}
                     <div
                         style={{
                             position: 'absolute',
-                            bottom: 40,
-                            right: 40,
+                            bottom: 50,
+                            right: 60,
                             display: 'flex',
                             alignItems: 'center',
                             gap: 8,
-                            padding: '12px 24px',
-                            backgroundColor: '#111',
+                            padding: '16px 32px',
+                            backgroundColor: 'rgba(0, 0, 0, 0.6)',
                             borderRadius: 999,
-                            border: '1px solid #333',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            backdropFilter: 'blur(10px)',
                         }}
                     >
                         <div
                             style={{
                                 fontSize: 20,
                                 color: '#999',
+                                fontFamily: 'Geist Mono, monospace',
                             }}
                         >
                             Web3 Profile
