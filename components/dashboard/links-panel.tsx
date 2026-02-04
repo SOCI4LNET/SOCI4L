@@ -804,7 +804,14 @@ export function LinksPanel() {
     const loadSocialLinks = async () => {
       try {
         setSocialLinksLoading(true)
-        const response = await fetch(`/api/wallet?address=${encodeURIComponent(targetAddress)}`)
+        const cacheBust = `${Date.now()}-${Math.random().toString(36).substring(7)}`
+        const response = await fetch(`/api/wallet?address=${encodeURIComponent(targetAddress)}&_t=${cacheBust}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+          },
+        })
 
         if (!response.ok) {
           throw new Error('Failed to load profile')
