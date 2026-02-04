@@ -537,6 +537,8 @@ export function LinksPanel() {
 
   // Social Links state
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([])
+  const [socialLinksLoading, setSocialLinksLoading] = useState(true)
+
   // Sync with backend when Twitter account is detected
   useEffect(() => {
     const twitterAccount = user?.twitter
