@@ -1996,7 +1996,7 @@ export function LinksPanel() {
 
                               const linkUsername = getUsernameFromUrl(link.url)
                               const privyUsername = twitterUser?.username?.toLowerCase()
-                              const isVerified = link.verified || (twitterUser && privyUsername === linkUsername)
+                              const isVerified = link.verified
 
                               if (isVerified) {
                                 return (
