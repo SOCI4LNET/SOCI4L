@@ -494,11 +494,22 @@ function CategoryBlock({
 export function LinksPanel() {
   const params = useParams()
   const searchParams = useSearchParams()
-  const { user, linkTwitter, ready: privyReady } = usePrivy()
+  const { user, linkTwitter, ready: privyReady, authenticated, login } = usePrivy()
   const { address: connectedAddress } = useAccount()
   const { signMessageAsync } = useSignMessage()
   const { showTransactionLoader, hideTransactionLoader } = useTransaction()
   const linksListRef = useRef<HTMLDivElement>(null)
+
+  // State for triggering Twitter link after Privy authentication
+  const [pendingTwitterLink, setPendingTwitterLink] = useState(false)
+
+  // Auto-link Twitter after Privy authentication
+  useEffect(() => {
+    if (authenticated && pendingTwitterLink && privyReady) {
+      setPendingTwitterLink(false)
+      linkTwitter()
+    }
+  }, [authenticated, pendingTwitterLink, privyReady, linkTwitter])
 
   // Sync with backend when Twitter account is detected
   useEffect(() => {
@@ -1965,11 +1976,20 @@ export function LinksPanel() {
                                     variant="outline"
                                     size="sm"
                                     className="h-5 px-2 text-[10px]"
-                                    onClick={() => {
+                                    onClick={async () => {
                                       if (!privyReady) {
                                         toast.error('Twitter verification is currently unavailable. Please try again later.')
                                         return
                                       }
+
+                                      // If not authenticated, trigger Privy login first
+                                      if (!authenticated) {
+                                        setPendingTwitterLink(true)
+                                        await login()
+                                        return
+                                      }
+
+                                      // Already authenticated, link Twitter directly
                                       linkTwitter()
                                     }}
                                     disabled={!privyReady}
