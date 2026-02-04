@@ -393,40 +393,48 @@ export async function GET(request: NextRequest) {
                     // (fallback for complex URLs, though risky for "verified" status)
                     // For now, let's require username match if possible for X/Twitter
                     if (platform === 'x' || platform === 'twitter') {
-                      // Try to extract username from URL parts safely
                       try {
-                        // Handle potential invalid URLs or missing protocol
+                        // Extract username from URL using robust logic
+                        // Handles: x.com/user, twitter.com/user, http/https, trailing slashes, query params
                         const urlToParse = urlLower.startsWith('http') ? urlLower : `https://${urlLower}`
                         const urlObj = new URL(urlToParse)
-                        const pathSegments = urlObj.pathname.split('/').filter(Boolean)
-                        let urlUsername = pathSegments[pathSegments.length - 1] || '' // Last segment is usually the username
 
-                        // Strip leading @
-                        urlUsername = urlUsername.replace(/^@/, '')
-                        const dbUsername = cleanUsername.replace(/^@/, '')
+                        // Get the last segment that isn't empty
+                        const pathSegments = urlObj.pathname.split('/').filter(p => p && p.trim() !== '')
+                        let urlUsername = pathSegments[pathSegments.length - 1] || ''
 
-                        const match = urlUsername === dbUsername
-                        if (match) matchReason = `Exact match: ${urlUsername} === ${dbUsername}`
-                        return match
+                        // Clean both usernames
+                        urlUsername = urlUsername.replace(/^@/, '').toLowerCase().trim()
+                        const dbUsername = cleanUsername.replace(/^@/, '').toLowerCase().trim()
+
+                        // Check exact match
+                        if (urlUsername === dbUsername) {
+                          matchReason = `Exact match: ${urlUsername} === ${dbUsername}`
+                          return true
+                        }
+
+                        // Check includes for safety (e.g. if one has extra params or user manually entered weird URL)
+                        if (urlUsername.includes(dbUsername) || dbUsername.includes(urlUsername)) {
+                          matchReason = `Includes match: ${urlUsername} <-> ${dbUsername}`
+                          return true
+                        }
+
+                        return false
                       } catch (e) {
-                        // Fallback for simple string match if URL parsing fails
-                        const parts = urlLower.split('/').filter(Boolean)
-                        const lastPart = parts[parts.length - 1]
-                        let urlUsername = lastPart ? lastPart.split('?')[0] : ''
+                        // Fallback for simple string match if URL parsing fails completely
+                        const simpleUrlUsername = urlLower.split('/').pop()?.split('?')[0].replace(/^@/, '').toLowerCase().trim() || ''
+                        const dbUsername = cleanUsername.replace(/^@/, '').toLowerCase().trim()
 
-                        // Strip leading @
-                        urlUsername = urlUsername.replace(/^@/, '')
-                        const dbUsername = cleanUsername.replace(/^@/, '')
-
-                        const match = urlUsername === dbUsername
-                        if (match) matchReason = `Fallback match: ${urlUsername} === ${dbUsername}`
-                        return match
+                        if (simpleUrlUsername === dbUsername) {
+                          matchReason = `Simple fallback match: ${simpleUrlUsername} === ${dbUsername}`
+                          return true
+                        }
+                        return false
                       }
                     }
                   }
 
                   // Default to true if platform matches and we couldn't verify username strictly
-                  // (e.g. if we don't store username or can't parse URL)
                   return true
                 })
               }
