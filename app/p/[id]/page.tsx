@@ -918,21 +918,19 @@ export default function ProfilePage({ params }: PageProps) {
                         <TooltipProvider key={link.id || link.url}>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <div className="relative">
-                                <a
-                                  href={link.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-center justify-center h-7 w-7 rounded-full border border-border/50 bg-background hover:bg-muted hover:border-border transition-colors text-muted-foreground hover:text-foreground"
-                                >
-                                  {getSocialIcon(platform)}
-                                </a>
+                              <a
+                                href={link.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="relative flex items-center justify-center h-7 w-7 rounded-full border border-border/50 bg-background hover:bg-muted hover:border-border transition-colors text-muted-foreground hover:text-foreground"
+                              >
+                                {getSocialIcon(platform)}
                                 {link.verified && (
                                   <div className="absolute -top-1 -right-1 bg-background rounded-full p-[1px] ring-1 ring-border/20 shadow-sm">
                                     <CheckCircle className="h-2.5 w-2.5 text-blue-500 fill-blue-500/10" />
                                   </div>
                                 )}
-                              </div>
+                              </a>
                             </TooltipTrigger>
                             <TooltipContent>
                               <div className="flex items-center gap-1.5">
