@@ -198,7 +198,9 @@ export default function ProfilePage({ params }: PageProps) {
         }
 
         const data = await response.json()
-        console.log('[PublicProfile] API response data:', {
+        // Dynamically import Logger to avoid server-side issues if any
+        const { Logger } = await import('@/lib/logger')
+        Logger.info('[PublicProfile] API response data:', {
           hasLayout: !!data.layout,
           hasAppearance: !!data.appearance,
           layout: data.layout,
@@ -216,7 +218,7 @@ export default function ProfilePage({ params }: PageProps) {
           setLayoutConfig(getDefaultProfileLayout())
           setAppearanceConfig(getDefaultAppearanceConfig())
         } else {
-          console.log('[PublicProfile] Wallet data loaded:', {
+          Logger.info('[PublicProfile] Wallet data loaded:', {
             hasTokenBalances: !!data.walletData?.tokenBalances,
             tokenBalancesCount: data.walletData?.tokenBalances?.length || 0,
             hasNfts: !!data.walletData?.nfts,
@@ -287,22 +289,26 @@ export default function ProfilePage({ params }: PageProps) {
           if (data.layout) {
             // Normalize layout config to ensure consistency
             const normalizedLayout = normalizeLayoutConfig(data.layout)
-            console.log('[PublicProfile] Layout config loaded:', normalizedLayout)
+            const { Logger } = await import('@/lib/logger')
+            Logger.info('[PublicProfile] Layout config loaded:', normalizedLayout)
             setLayoutConfig(normalizedLayout)
           } else {
             // Use default if no layout config (already initialized with default, but update for consistency)
-            console.warn('[PublicProfile] No layout config in API response, using default')
+            const { Logger } = await import('@/lib/logger')
+            Logger.warn('[PublicProfile] No layout config in API response, using default')
             setLayoutConfig(getDefaultProfileLayout())
           }
 
           // Load appearance config from API response
           if (data.appearance) {
             const normalizedAppearance = normalizeAppearanceConfig(data.appearance)
-            console.log('[PublicProfile] Appearance config loaded:', normalizedAppearance)
+            const { Logger } = await import('@/lib/logger')
+            Logger.info('[PublicProfile] Appearance config loaded:', normalizedAppearance)
             setAppearanceConfig(normalizedAppearance)
           } else {
             // Use default if no appearance config (already initialized with default, but update for consistency)
-            console.warn('[PublicProfile] No appearance config in API response, using default')
+            const { Logger } = await import('@/lib/logger')
+            Logger.warn('[PublicProfile] No appearance config in API response, using default')
             setAppearanceConfig(getDefaultAppearanceConfig())
           }
 
@@ -328,7 +334,8 @@ export default function ProfilePage({ params }: PageProps) {
                 })
               }
             } catch (scoreError) {
-              console.error('[PublicProfile] Failed to fetch score:', scoreError)
+              const { Logger } = await import('@/lib/logger')
+              Logger.error('[PublicProfile] Failed to fetch score:', scoreError)
             }
           }
         }
@@ -612,9 +619,26 @@ export default function ProfilePage({ params }: PageProps) {
 
   // Debug: Log visible blocks and appearance config (only if loaded)
   if (layoutConfig && appearanceConfig) {
-    console.log('[PublicProfile] Visible blocks:', visibleBlocks)
-    console.log('[PublicProfile] Appearance theme:', effectiveAppearanceConfig.theme)
+    // Dynamic import inside the render logic is not ideal, but for debug logs it's passable
+    // Better to use an effect or just suppress these in production
+    if (process.env.NODE_ENV === 'development') {
+      // We can just keep console.log here wrapped in dev check, OR use the Logger
+      // Since Logger is async import it might be tricky in render body.
+      // Let's wrapping in simple console.log for now but STRICTLY checked.
+      // Actually user wants them GONE in production.
+      // Let's use an IIFE or just remove them if they are just debug noise.
+      // Or better: use a useEffect to log them
+    }
   }
+
+  useEffect(() => {
+    if (layoutConfig && appearanceConfig) {
+      import('@/lib/logger').then(({ Logger }) => {
+        Logger.info('[PublicProfile] Visible blocks:', visibleBlocks)
+        Logger.info('[PublicProfile] Appearance theme:', effectiveAppearanceConfig.theme)
+      })
+    }
+  }, [layoutConfig, appearanceConfig, visibleBlocks, effectiveAppearanceConfig.theme])
 
   const headerClasses = getThemeHeaderClasses(effectiveAppearanceConfig.theme)
   const titleClasses = getThemeTextClasses(effectiveAppearanceConfig.theme, 'title')
