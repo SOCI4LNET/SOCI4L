@@ -4,8 +4,11 @@ export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
 import { logAdminAction } from '@/lib/admin-audit'
 
+import { requireAdmin } from '@/lib/admin-auth'
+
 export async function GET(request: NextRequest) {
   try {
+    await requireAdmin('api')
     const subscribers = await prisma.emailSubscription.findMany({
       orderBy: { createdAt: 'desc' },
     })

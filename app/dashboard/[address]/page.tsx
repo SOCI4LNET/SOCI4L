@@ -77,6 +77,7 @@ export default function DashboardAddressPage() {
   const { connect, connectors, isPending: isConnecting } = useConnect()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [walletData, setWalletData] = useState<WalletData | null>(null)
+  const [views7d, setViews7d] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -293,6 +294,14 @@ export default function DashboardAddressPage() {
       } else {
         // If no walletData, set to null explicitly
         setWalletData(null)
+      }
+
+      if (typeof data.views7d === 'number') {
+        setViews7d(data.views7d)
+      }
+
+      if (typeof data.views7d === 'number') {
+        setViews7d(data.views7d)
       }
 
       console.log('[Overview] State resolved - loading: false, error: null')
@@ -556,6 +565,7 @@ export default function DashboardAddressPage() {
           error={error}
           onRetry={loadData}
           onClaimSuccess={handleClaimSuccess}
+          initialViews7d={views7d}
         />
       case 'assets':
         // Full-width layout: Assets page spans available width for wide tables (no max-width constraint)

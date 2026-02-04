@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { logAdminAction } from '@/lib/admin-audit'
+import { requireAdmin } from '@/lib/admin-auth'
 
 /**
  * API endpoint to log admin actions from client-side.
@@ -11,7 +12,8 @@ export async function POST(request: NextRequest) {
     const { action, targetType, targetId, metadata } = body
 
     // Get admin address from metadata (client-side passes it)
-    const adminAddress = metadata?.adminAddress || null
+    // Verify admin session
+    const adminAddress = await requireAdmin('api')
 
     await logAdminAction({
       adminAddress,

@@ -28,9 +28,10 @@ interface OverviewPanelProps {
   error?: Error | null
   onRetry?: () => void
   onClaimSuccess?: () => void
+  initialViews7d?: number | null
 }
 
-export function OverviewPanel({ walletData, profile, address, loading: propLoading, error: propError, onRetry, onClaimSuccess }: OverviewPanelProps) {
+export function OverviewPanel({ walletData, profile, address, loading: propLoading, error: propError, onRetry, onClaimSuccess, initialViews7d }: OverviewPanelProps) {
   const router = useRouter()
   const pathname = usePathname()
   const { address: connectedAddress } = useAccount()
@@ -38,7 +39,7 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
   const [quickStats, setQuickStats] = useState<QuickStats>({
     followers: null,
     following: null,
-    views7d: null,
+    views7d: initialViews7d ?? null,
     totalLinks: null,
   })
   const [isReadinessDismissed, setIsReadinessDismissed] = useState(false)
@@ -93,12 +94,14 @@ export function OverviewPanel({ walletData, profile, address, loading: propLoadi
 
     const fetchQuickStats = async () => {
       try {
-        // Fetch view count (7d) from analytics
-        const views7d = getProfileViewCount(normalizedAddress, 7)
-        setQuickStats((prev) => ({
-          ...prev,
-          views7d,
-        }))
+        // Fetch view count (7d) from analytics if not provided by server
+        if (quickStats.views7d === null) {
+          const views7d = getProfileViewCount(normalizedAddress, 7)
+          setQuickStats((prev) => ({
+            ...prev,
+            views7d,
+          }))
+        }
 
         // Fetch links count
         try {

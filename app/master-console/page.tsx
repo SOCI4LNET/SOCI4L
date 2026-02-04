@@ -6,6 +6,8 @@ import { OverviewTrends } from '@/components/admin/overview-trends'
 import { EmptyState } from '@/components/admin/empty-state'
 import { TrendingUp, TrendingDown, Minus, Eye, MousePointerClick, Users, UserPlus, Link2, Mail } from 'lucide-react'
 
+import { requireAdmin } from '@/lib/admin-auth'
+
 // Force dynamic rendering since this page uses Prisma queries
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -201,6 +203,7 @@ async function getOverviewStats() {
 }
 
 export default async function AdminOverviewPage() {
+  await requireAdmin()
   const stats = await getOverviewStats()
 
   const profileClaimRate =
@@ -250,11 +253,10 @@ export default async function AdminOverviewPage() {
                     <p className="text-xs text-muted-foreground">Total tracked</p>
                     {Math.abs(stats.profileViewsTrend) > 0.1 && (
                       <span
-                        className={`text-xs font-medium ${
-                          stats.profileViewsTrend > 0
-                            ? 'text-green-600 dark:text-green-400'
-                            : 'text-red-600 dark:text-red-400'
-                        }`}
+                        className={`text-xs font-medium ${stats.profileViewsTrend > 0
+                          ? 'text-green-600 dark:text-green-400'
+                          : 'text-red-600 dark:text-red-400'
+                          }`}
                       >
                         {stats.profileViewsTrend > 0 ? '+' : ''}
                         {stats.profileViewsTrend.toFixed(1)}% vs last week
@@ -298,11 +300,10 @@ export default async function AdminOverviewPage() {
                     <p className="text-xs text-muted-foreground">Total tracked</p>
                     {Math.abs(stats.linkClicksTrend) > 0.1 && (
                       <span
-                        className={`text-xs font-medium ${
-                          stats.linkClicksTrend > 0
-                            ? 'text-green-600 dark:text-green-400'
-                            : 'text-red-600 dark:text-red-400'
-                        }`}
+                        className={`text-xs font-medium ${stats.linkClicksTrend > 0
+                          ? 'text-green-600 dark:text-green-400'
+                          : 'text-red-600 dark:text-red-400'
+                          }`}
                       >
                         {stats.linkClicksTrend > 0 ? '+' : ''}
                         {stats.linkClicksTrend.toFixed(1)}% vs last week
