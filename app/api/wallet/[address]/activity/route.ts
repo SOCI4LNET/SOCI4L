@@ -36,13 +36,9 @@ export async function GET(
       )
     }
 
-    const sessionAddress = await getSessionAddress()
-    if (!sessionAddress) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
+    // Public API: No session required for reading on-chain activity
+    // Rate limiting is handled by middleware
+    // const sessionAddress = await getSessionAddress()
 
     const normalizedAddress = address.toLowerCase()
 

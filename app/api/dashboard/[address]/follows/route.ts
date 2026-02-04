@@ -34,20 +34,9 @@ export async function GET(
 
     const normalizedAddress = address.toLowerCase()
 
+    // Public API: No strict session check required for reading follower/following lists
+    // The previous checks blocked public access to this data
     const sessionAddress = await getSessionAddress()
-    if (!sessionAddress) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
-    if (sessionAddress.toLowerCase() !== normalizedAddress) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      )
-    }
 
     // Note: Follower/following lists are public information
     // BUT this is the DASHBOARD route, which might be intended for owner only?
@@ -190,6 +179,7 @@ export async function GET(
             slug: profile?.slug || null,
             updatedAt: profile?.updatedAt || null,
             primaryRole: profile?.primaryRole || null,
+            statusMessage: profile?.statusMessage || null,
             score: Math.min(score, 100),
             reason: reasons.length > 0 ? reasons.join(' • ') : undefined
           }

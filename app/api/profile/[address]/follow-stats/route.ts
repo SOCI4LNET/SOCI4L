@@ -26,13 +26,8 @@ export async function GET(
       )
     }
 
+    // Public API: Optional session for personalized data (isFollowing, blocks)
     const sessionAddress = await getSessionAddress()
-    if (!sessionAddress) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
 
     const normalizedAddress = address.toLowerCase()
 
