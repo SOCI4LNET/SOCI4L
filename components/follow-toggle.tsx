@@ -301,7 +301,8 @@ export function FollowToggle({ address, isBlockedByViewer: initialBlocked = fals
             followingCount: prev?.followingCount ?? 0,
             isFollowing: data.isFollowing ?? pressed,
           }
-          console.log('[FollowToggle] Cache updated:', { prev, new: newData })
+          // console.log('[FollowToggle] Cache updated:', { prev, new: newData })
+          return newData
           return newData
         }
       )
@@ -457,7 +458,19 @@ export function FollowStats({ address }: { address: string }) {
   const followersCount = stats?.followersCount || 0
   const followingCount = stats?.followingCount || 0
 
-  console.log('[FollowStats] Rendering:', { address, followersCount, followingCount, stats })
+  // console.log('[FollowStats] Rendering:', { address, followersCount, followingCount, stats })
+  // Use Logger for cleaner production logs
+  // Dynamic import in render body is not ideal, but acceptable for this debug log removal
+  if (process.env.NODE_ENV === 'development') {
+    // Checking for debug flag in localStorage or development mode
+    // If we really want to use Logger here:
+    /*
+    import('@/lib/logger').then(({ Logger }) => {
+       Logger.info('[FollowStats] Rendering:', { address, followersCount, followingCount, stats })
+    })
+    */
+    // For now, let's just comment it out as requested 'fix logs' usually means silence.
+  }
 
   return (
     <div className="flex items-center gap-3 sm:gap-5">

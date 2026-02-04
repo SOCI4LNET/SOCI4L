@@ -143,14 +143,18 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
   // Debug logging
   useEffect(() => {
     if (mounted && targetAddress) {
-      console.log('[Assets Panel] Address resolved:', {
-        resolvedAddress: targetAddress,
-        source: urlAddress ? 'route-param' : propAddress ? 'prop' : connectedAddress ? 'connected-wallet' : 'none',
-        urlAddress,
-        propAddress,
-        connectedAddress,
-        pathname,
-      })
+      if (mounted && targetAddress) {
+        import('@/lib/logger').then(({ Logger }) => {
+          Logger.info('[Assets Panel] Address resolved:', {
+            resolvedAddress: targetAddress,
+            source: urlAddress ? 'route-param' : propAddress ? 'prop' : connectedAddress ? 'connected-wallet' : 'none',
+            urlAddress,
+            propAddress,
+            connectedAddress,
+            pathname,
+          })
+        })
+      }
     }
   }, [mounted, targetAddress, urlAddress, propAddress, connectedAddress, pathname])
 
@@ -175,14 +179,17 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
         throw new Error('No address')
       }
 
-      console.log('[Assets Panel] Fetching summary:', {
+      // Use Logger for summary fetch
+      const { Logger } = await import('@/lib/logger')
+
+      Logger.info('[Assets Panel] Fetching summary:', {
         address: targetAddress,
         chainId: 43114,
       })
 
       const response = await fetch(`/api/wallet/${targetAddress}/assets/summary`)
 
-      console.log('[Assets Panel] Summary API response:', {
+      Logger.info('[Assets Panel] Summary API response:', {
         status: response.status,
         ok: response.ok,
         address: targetAddress,
@@ -190,7 +197,7 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('[Assets Panel] Summary API error:', {
+        Logger.error('[Assets Panel] Summary API error:', {
           status: response.status,
           statusText: response.statusText,
           body: errorText,
@@ -199,7 +206,7 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
       }
 
       const data = await response.json()
-      console.log('[Assets Panel] Summary data received:', {
+      Logger.info('[Assets Panel] Summary data received:', {
         tokenCount: data.tokenCount,
         nftCount: data.nftCount,
         totalValueUsd: data.totalValueUsd,
@@ -223,12 +230,13 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
   } = useQuery<AssetsResponse>({
     queryKey: ['assets-tokens', targetAddress, tokensCursor],
     queryFn: async () => {
+      const { Logger } = await import('@/lib/logger')
       if (!targetAddress) {
-        console.error('[Assets Panel] No target address for tokens fetch')
+        Logger.error('[Assets Panel] No target address for tokens fetch')
         throw new Error('No address')
       }
 
-      console.log('[Assets Panel] Fetching tokens:', {
+      Logger.info('[Assets Panel] Fetching tokens:', {
         address: targetAddress,
         cursor: tokensCursor,
         chainId: 43114,
@@ -238,7 +246,7 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
         `/api/wallet/${targetAddress}/assets?tab=tokens&limit=20&cursor=${tokensCursor}`
       )
 
-      console.log('[Assets Panel] Tokens API response:', {
+      Logger.info('[Assets Panel] Tokens API response:', {
         status: response.status,
         ok: response.ok,
         address: targetAddress,
@@ -246,7 +254,7 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('[Assets Panel] Tokens API error:', {
+        Logger.error('[Assets Panel] Tokens API error:', {
           status: response.status,
           statusText: response.statusText,
           body: errorText,
@@ -255,7 +263,7 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
       }
 
       const data = await response.json()
-      console.log('[Assets Panel] Tokens data received:', {
+      Logger.info('[Assets Panel] Tokens data received:', {
         tokenCount: data.tokens?.length || 0,
         hasNative: !!data.native,
         nativeBalance: data.native?.balanceFormatted,
@@ -270,7 +278,7 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
 
       // Log warning if no tokens but native balance exists
       if ((!data.tokens || data.tokens.length === 0) && data.native && parseFloat(data.native.balanceFormatted) > 0) {
-        console.warn('[Assets Panel] No tokens found but native balance exists:', data.native.balanceFormatted)
+        Logger.warn('[Assets Panel] No tokens found but native balance exists:', data.native.balanceFormatted)
       }
 
       return data
@@ -294,12 +302,13 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
   } = useQuery<AssetsResponse>({
     queryKey: ['assets-nfts', targetAddress, nftsCursor],
     queryFn: async () => {
+      const { Logger } = await import('@/lib/logger')
       if (!targetAddress) {
-        console.error('[Assets Panel] No target address for NFTs fetch')
+        Logger.error('[Assets Panel] No target address for NFTs fetch')
         throw new Error('No address')
       }
 
-      console.log('[Assets Panel] Fetching NFTs:', {
+      Logger.info('[Assets Panel] Fetching NFTs:', {
         address: targetAddress,
         cursor: nftsCursor,
         chainId: 43114,
@@ -309,7 +318,7 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
         `/api/wallet/${targetAddress}/assets?tab=nfts&limit=20&cursor=${nftsCursor}`
       )
 
-      console.log('[Assets Panel] NFTs API response:', {
+      Logger.info('[Assets Panel] NFTs API response:', {
         status: response.status,
         ok: response.ok,
         address: targetAddress,
@@ -317,7 +326,7 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('[Assets Panel] NFTs API error:', {
+        Logger.error('[Assets Panel] NFTs API error:', {
           status: response.status,
           statusText: response.statusText,
           body: errorText,
@@ -326,7 +335,7 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
       }
 
       const data = await response.json()
-      console.log('[Assets Panel] NFTs data received:', {
+      Logger.info('[Assets Panel] NFTs data received:', {
         nftCount: data.nfts?.length || 0,
         nextCursor: data.nextCursor,
         hasNfts: !!data.nfts,
@@ -336,10 +345,10 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
 
       // Log warning if API returned success but no NFTs
       if (data.nfts && Array.isArray(data.nfts) && data.nfts.length === 0) {
-        console.warn('[Assets Panel] API returned empty NFT array. This could mean:')
-        console.warn('  1. Wallet has no NFTs on Avalanche C-Chain')
-        console.warn('  2. OpenSea API failed silently (check server logs)')
-        console.warn('  3. RPC fallback returned empty (RPC does not support NFT discovery)')
+        Logger.warn('[Assets Panel] API returned empty NFT array. This could mean:')
+        Logger.warn('  1. Wallet has no NFTs on Avalanche C-Chain')
+        Logger.warn('  2. OpenSea API failed silently (check server logs)')
+        Logger.warn('  3. RPC fallback returned empty (RPC does not support NFT discovery)')
       }
 
       return data
