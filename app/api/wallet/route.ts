@@ -389,12 +389,22 @@ export async function GET(request: NextRequest) {
                     // (fallback for complex URLs, though risky for "verified" status)
                     // For now, let's require username match if possible for X/Twitter
                     if (platform === 'x' || platform === 'twitter') {
-                      // Try to extract username from URL parts
-                      const parts = urlLower.split('/').filter(Boolean)
-                      const lastPart = parts[parts.length - 1]
-                      // Remove query params
-                      const urlUsername = lastPart.split('?')[0]
-                      return urlUsername === cleanUsername
+                      // Try to extract username from URL parts safely
+                      try {
+                        // Handle potential invalid URLs or missing protocol
+                        const urlToParse = urlLower.startsWith('http') ? urlLower : `https://${urlLower}`
+                        const urlObj = new URL(urlToParse)
+                        const pathSegments = urlObj.pathname.split('/').filter(Boolean)
+                        const urlUsername = pathSegments[pathSegments.length - 1] // Last segment is usually the username
+
+                        return urlUsername === cleanUsername
+                      } catch (e) {
+                        // Fallback for simple string match if URL parsing fails
+                        const parts = urlLower.split('/').filter(Boolean)
+                        const lastPart = parts[parts.length - 1]
+                        const urlUsername = lastPart ? lastPart.split('?')[0] : ''
+                        return urlUsername === cleanUsername
+                      }
                     }
                   }
 

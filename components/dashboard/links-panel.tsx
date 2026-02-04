@@ -1959,7 +1959,18 @@ export function LinksPanel() {
                           {link.platform === 'x' && (
                             (() => {
                               const twitterUser = user?.twitter
-                              const linkUsername = link.url.split('/').pop()?.toLowerCase() || ''
+                              const getUsernameFromUrl = (url: string) => {
+                                try {
+                                  const urlToParse = url.startsWith('http') ? url : `https://${url}`
+                                  const urlObj = new URL(urlToParse)
+                                  const segments = urlObj.pathname.split('/').filter(Boolean)
+                                  return segments[segments.length - 1]?.toLowerCase() || ''
+                                } catch {
+                                  return url.split('/').filter(Boolean).pop()?.split('?')[0]?.toLowerCase() || ''
+                                }
+                              }
+
+                              const linkUsername = getUsernameFromUrl(link.url)
                               const privyUsername = twitterUser?.username?.toLowerCase()
                               const isVerified = link.verified || (twitterUser && privyUsername === linkUsername)
 
