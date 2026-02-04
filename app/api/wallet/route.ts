@@ -326,6 +326,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    const debugMode = searchParams.get('debug') === 'true'
+
     const responseData = {
       walletData,
       profileStatus,
@@ -355,6 +357,7 @@ export async function GET(request: NextRequest) {
 
               // Check verification
               let isVerified = false
+              let matchReason: string | null = null
 
               if (verifiedConnections.length > 0) {
                 // Try to match with connected accounts
@@ -382,6 +385,7 @@ export async function GET(request: NextRequest) {
                     // Simple check: is username in URL?
                     // This covers twitter.com/username, github.com/username etc.
                     if (urlLower.includes(cleanUsername)) {
+                      matchReason = `Includes check passed: ${cleanUsername} in ${urlLower}`
                       return true
                     }
 
@@ -401,7 +405,9 @@ export async function GET(request: NextRequest) {
                         urlUsername = urlUsername.replace(/^@/, '')
                         const dbUsername = cleanUsername.replace(/^@/, '')
 
-                        return urlUsername === dbUsername
+                        const match = urlUsername === dbUsername
+                        if (match) matchReason = `Exact match: ${urlUsername} === ${dbUsername}`
+                        return match
                       } catch (e) {
                         // Fallback for simple string match if URL parsing fails
                         const parts = urlLower.split('/').filter(Boolean)
@@ -412,7 +418,9 @@ export async function GET(request: NextRequest) {
                         urlUsername = urlUsername.replace(/^@/, '')
                         const dbUsername = cleanUsername.replace(/^@/, '')
 
-                        return urlUsername === dbUsername
+                        const match = urlUsername === dbUsername
+                        if (match) matchReason = `Fallback match: ${urlUsername} === ${dbUsername}`
+                        return match
                       }
                     }
                   }
@@ -423,12 +431,18 @@ export async function GET(request: NextRequest) {
                 })
               }
 
-              return { ...link, verified: isVerified }
+              return {
+                ...link,
+                verified: isVerified,
+                ...(debugMode ? { _debug_matchReason: matchReason, _debug_platform: platform } : {})
+              }
             })
           } catch {
             return null
           }
         })() : null,
+        onchainData: profile.onchainData ? JSON.parse(profile.onchainData) : null,
+        ...(debugMode ? { _debug_verifiedConnections: verifiedConnections } : {})
       } : null,
       links: profileLinks,
       categories: categories || [],
