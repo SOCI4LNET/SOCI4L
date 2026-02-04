@@ -395,15 +395,24 @@ export async function GET(request: NextRequest) {
                         const urlToParse = urlLower.startsWith('http') ? urlLower : `https://${urlLower}`
                         const urlObj = new URL(urlToParse)
                         const pathSegments = urlObj.pathname.split('/').filter(Boolean)
-                        const urlUsername = pathSegments[pathSegments.length - 1] // Last segment is usually the username
+                        let urlUsername = pathSegments[pathSegments.length - 1] || '' // Last segment is usually the username
 
-                        return urlUsername === cleanUsername
+                        // Strip leading @
+                        urlUsername = urlUsername.replace(/^@/, '')
+                        const dbUsername = cleanUsername.replace(/^@/, '')
+
+                        return urlUsername === dbUsername
                       } catch (e) {
                         // Fallback for simple string match if URL parsing fails
                         const parts = urlLower.split('/').filter(Boolean)
                         const lastPart = parts[parts.length - 1]
-                        const urlUsername = lastPart ? lastPart.split('?')[0] : ''
-                        return urlUsername === cleanUsername
+                        let urlUsername = lastPart ? lastPart.split('?')[0] : ''
+
+                        // Strip leading @
+                        urlUsername = urlUsername.replace(/^@/, '')
+                        const dbUsername = cleanUsername.replace(/^@/, '')
+
+                        return urlUsername === dbUsername
                       }
                     }
                   }
