@@ -29,9 +29,10 @@ export function BlockedUsersList() {
         queryKey: ["blocked-users"],
         queryFn: async () => {
             const response = await fetch("/api/me/blocked")
-            if (response.status === 401) throw new Error("Unauthorized")
+            // if (response.status === 401) throw new Error("Unauthorized") // Handled via 200 response now
             if (!response.ok) throw new Error("Failed to fetch blocked users")
             const data = await response.json()
+            if (data.unauthorized) throw new Error("Unauthorized")
             return data.blockedUsers as BlockedUser[]
         },
         retry: (failureCount, error: any) => {
@@ -182,9 +183,10 @@ export function MutedUsersList() {
         queryKey: ["muted-users"],
         queryFn: async () => {
             const response = await fetch("/api/me/muted")
-            if (response.status === 401) throw new Error("Unauthorized")
+            // if (response.status === 401) throw new Error("Unauthorized") // Handled via 200 response now
             if (!response.ok) throw new Error("Failed to fetch muted users")
             const data = await response.json()
+            if (data.unauthorized) throw new Error("Unauthorized")
             return data.mutedUsers as MutedUser[]
         },
         retry: (failureCount, error: any) => {

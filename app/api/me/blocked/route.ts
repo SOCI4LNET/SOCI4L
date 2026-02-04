@@ -9,8 +9,8 @@ export async function GET(request: NextRequest) {
         const sessionAddress = await getSessionAddress()
         if (!sessionAddress) {
             return NextResponse.json(
-                { error: 'Unauthorized' },
-                { status: 401 }
+                { unauthorized: true },
+                { status: 200 }
             )
         }
 
