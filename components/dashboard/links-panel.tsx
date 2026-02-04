@@ -27,10 +27,11 @@ import {
 } from '@dnd-kit/sortable'
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Link2, Plus, Pencil, Trash2, ExternalLink, BarChart2, Github, Linkedin, Globe, Youtube, Eye, EyeOff, ArrowUp, ArrowDown, Folder, ChevronDown, ChevronRight, MoreVertical, Loader2, Instagram } from 'lucide-react'
+import { GripVertical, Link2, Plus, Pencil, Trash2, ExternalLink, BarChart2, Github, Linkedin, Globe, Youtube, Eye, EyeOff, ArrowUp, ArrowDown, Folder, ChevronDown, ChevronRight, MoreVertical, Loader2, Instagram, CheckCircle } from 'lucide-react'
 import { XIcon } from '@/components/icons/x-icon'
 import { useRouter } from 'next/navigation'
 import { useSignMessage } from 'wagmi'
+import { usePrivy } from '@privy-io/react-auth'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 import { PageShell } from '@/components/app-shell/page-shell'
@@ -493,10 +494,47 @@ function CategoryBlock({
 export function LinksPanel() {
   const params = useParams()
   const searchParams = useSearchParams()
+  const { user, linkTwitter, ready: privyReady } = usePrivy()
   const { address: connectedAddress } = useAccount()
   const { signMessageAsync } = useSignMessage()
   const { showTransactionLoader, hideTransactionLoader } = useTransaction()
   const linksListRef = useRef<HTMLDivElement>(null)
+
+  // Sync with backend when Twitter account is detected
+  useEffect(() => {
+    const twitterAccount = user?.twitter
+    if (twitterAccount) {
+      const syncSocial = async () => {
+        // Prevent double sync if already verified recently
+        const lastSync = localStorage.getItem(`soci4l_twitter_sync_${twitterAccount.username}`)
+        const now = Date.now()
+
+        // Don't re-sync if synced in last 1 minute
+        if (lastSync && now - parseInt(lastSync) < 60000) return
+
+        try {
+          const response = await fetch('/api/social/link', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              platform: 'twitter',
+              platformUsername: twitterAccount.username,
+              platformUserId: twitterAccount.subject,
+            }),
+          })
+
+          if (response.ok) {
+            toast.success(`Connected as @${twitterAccount.username}`)
+            localStorage.setItem(`soci4l_twitter_sync_${twitterAccount.username}`, now.toString())
+          }
+        } catch (error) {
+          console.error('Sync error:', error)
+        }
+      }
+      syncSocial()
+    }
+  }, [user?.twitter])
+
   const [links, setLinks] = useState<LinkItem[]>([])
   const [categories, setCategories] = useState<LinkCategory[]>([])
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -1898,19 +1936,62 @@ export function LinksPanel() {
                     key={link.id}
                     className="flex items-center gap-3 p-3 rounded-md border border-border/60 bg-muted/5 hover:bg-muted/20 transition-colors"
                   >
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted/50">
-                      {getSocialIcon(link.platform)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium">{getSocialLabel(link.platform)}</div>
-                      <a
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-muted-foreground hover:text-primary truncate block"
-                      >
-                        {link.url}
-                      </a>
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted/50 shrink-0">
+                        {getSocialIcon(link.platform)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <div className="text-sm font-medium">{getSocialLabel(link.platform)}</div>
+                          {link.platform === 'x' && (
+                            (() => {
+                              const twitterUser = user?.twitter
+                              const linkUsername = link.url.split('/').pop()?.toLowerCase() || ''
+                              const privyUsername = twitterUser?.username?.toLowerCase()
+                              const isVerified = twitterUser && privyUsername === linkUsername
+
+                              if (isVerified) {
+                                return (
+                                  <Badge variant="outline" className="h-5 px-1.5 gap-1 text-[10px] font-normal text-green-600 border-green-600/30 bg-green-500/5">
+                                    <CheckCircle className="h-3 w-3" />
+                                    Verified
+                                  </Badge>
+                                )
+                              }
+
+                              if (!twitterUser) {
+                                return (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-5 px-2 text-[10px]"
+                                    onClick={() => {
+                                      if (!privyReady) {
+                                        toast.error('Twitter verification is currently unavailable. Please try again later.')
+                                        return
+                                      }
+                                      linkTwitter()
+                                    }}
+                                    disabled={!privyReady}
+                                  >
+                                    Verify
+                                  </Button>
+                                )
+                              }
+
+                              return null
+                            })()
+                          )}
+                        </div>
+                        <a
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-muted-foreground hover:text-primary truncate block"
+                        >
+                          {link.url}
+                        </a>
+                      </div>
                     </div>
                     <div className="flex items-center gap-1">
                       <Button
