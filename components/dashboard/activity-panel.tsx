@@ -43,7 +43,7 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
   const searchParams = useSearchParams()
   const { address: connectedAddress, isConnected } = useAccount()
   const [mounted, setMounted] = useState(false)
-  
+
   // Get address: prop > route param > connected wallet
   // IMPORTANT: Activity page should show transactions for the specific address (route param or prop)
   // This ensures we show the correct wallet's transactions, not a mix
@@ -97,19 +97,20 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
   }, [dateRange, type, direction, searchQuery])
 
   // Fetch activity data
-  const { 
-    data: activityData, 
-    isLoading, 
+  const {
+    data: activityData,
+    isLoading,
     error,
     refetch,
   } = useQuery<ActivityResponse>({
     queryKey: ['wallet-activity', targetAddress, dateRange, type, direction, searchQuery, page],
     queryFn: async () => {
       if (!targetAddress) throw new Error('No address')
-      
+
       // Log the address being used for debugging
-      console.log('[Activity Panel] Fetching transactions for address:', targetAddress)
-      
+      const { Logger } = await import('@/lib/logger')
+      Logger.info('[Activity Panel] Fetching transactions for address:', targetAddress)
+
       const params = new URLSearchParams({
         dateRange,
         type,
@@ -117,14 +118,14 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
         limit: limit.toString(),
         offset: (page * limit).toString(),
       })
-      
+
       if (searchQuery) {
         params.set('search', searchQuery)
       }
 
       const apiUrl = `/api/wallet/${targetAddress}/activity?${params.toString()}`
-      console.log('[Activity Panel] API URL:', apiUrl)
-      
+      Logger.info('[Activity Panel] API URL:', apiUrl)
+
       const response = await fetch(apiUrl)
       if (!response.ok) {
         const errorText = await response.text()
@@ -132,9 +133,9 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
         throw new Error(`Failed to fetch activity: ${response.status}`)
       }
       const data = await response.json()
-      
+
       // Log the received data for debugging
-      console.log('[Activity Panel] Received transactions:', {
+      Logger.info('[Activity Panel] Received transactions:', {
         count: data.items?.length || 0,
         address: targetAddress,
         sampleTx: data.items?.[0] ? {
@@ -144,7 +145,7 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
           direction: data.items[0].direction,
         } : null,
       })
-      
+
       setLastUpdatedAt(Date.now())
       return data
     },
@@ -165,7 +166,7 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
       offset: (page * limit).toString(),
       t: Date.now().toString(), // Cache bust
     })
-    
+
     if (searchQuery) {
       params.set('search', searchQuery)
     }
@@ -173,7 +174,7 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
     refetch()
   }
 
-  const lastUpdatedText = lastUpdatedAt 
+  const lastUpdatedText = lastUpdatedAt
     ? formatLastUpdated(Math.floor((currentTime - lastUpdatedAt) / 1000))
     : 'Not updated yet'
 
@@ -312,14 +313,14 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
           <>
             <div className="border rounded-lg bg-card overflow-hidden">
               <div className="overflow-x-auto">
-                <ActivityTable 
-                  transactions={activityData.items} 
+                <ActivityTable
+                  transactions={activityData.items}
                   address={targetAddress}
                   isLoading={isLoading}
                 />
               </div>
             </div>
-            
+
             {/* Pagination */}
             <div className="flex items-center justify-end pt-4 border-t">
               <div className="flex items-center gap-2">

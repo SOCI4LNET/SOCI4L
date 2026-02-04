@@ -177,8 +177,12 @@ export default function DashboardAddressPage() {
       return
     }
 
+    // const normalizedAddress = targetAddress.toLowerCase() // normalizedAddress declared below in fetch
     const normalizedAddress = targetAddress.toLowerCase()
-    console.log('[Overview] Starting data fetch for address:', normalizedAddress)
+
+    // Use Logger instead of console.log
+    const { Logger } = await import('@/lib/logger')
+    Logger.info('[Overview] Starting data fetch for address:', normalizedAddress)
 
     setLoading(true)
     setError(null)
