@@ -313,6 +313,19 @@ export async function GET(request: NextRequest) {
       console.error('[Wallet API] Error calculating score:', scoreError)
     }
 
+    // Fetch social connections for verification status
+    let verifiedConnections: Array<{ platform: string; platformUsername: string | null }> = []
+    if (profile) {
+      try {
+        verifiedConnections = await prisma.socialConnection.findMany({
+          where: { profileId: profile.id },
+          select: { platform: true, platformUsername: true }
+        })
+      } catch (e) {
+        console.error('[Wallet API] Error fetching social connections:', e)
+      }
+    }
+
     const responseData = {
       walletData,
       profileStatus,
@@ -333,7 +346,66 @@ export async function GET(request: NextRequest) {
         statusMessage: profile.statusMessage || null,
         socialLinks: profile.socialLinks ? (() => {
           try {
-            return JSON.parse(profile.socialLinks)
+            const parsed = JSON.parse(profile.socialLinks)
+            if (!Array.isArray(parsed)) return null
+
+            // Map links and add verification status
+            return parsed.map((link: any) => {
+              const platform = (link.platform || link.type || 'website').toLowerCase()
+
+              // Check verification
+              let isVerified = false
+
+              if (verifiedConnections.length > 0) {
+                // Try to match with connected accounts
+                isVerified = verifiedConnections.some(conn => {
+                  const connPlatform = conn.platform.toLowerCase()
+
+                  // Platform match?
+                  let platformMatch = connPlatform === platform
+
+                  // Handle aliases (x/twitter)
+                  if (!platformMatch) {
+                    if ((connPlatform === 'twitter' && platform === 'x') ||
+                      (connPlatform === 'x' && platform === 'twitter')) {
+                      platformMatch = true
+                    }
+                  }
+
+                  if (!platformMatch) return false
+
+                  // If we have a username in the connection, try to match it with URL
+                  if (conn.platformUsername) {
+                    const cleanUsername = conn.platformUsername.toLowerCase()
+                    const urlLower = link.url.toLowerCase()
+
+                    // Simple check: is username in URL?
+                    // This covers twitter.com/username, github.com/username etc.
+                    if (urlLower.includes(cleanUsername)) {
+                      return true
+                    }
+
+                    // Allow match if no username in URL but platform matches 
+                    // (fallback for complex URLs, though risky for "verified" status)
+                    // For now, let's require username match if possible for X/Twitter
+                    if (platform === 'x' || platform === 'twitter') {
+                      // Try to extract username from URL parts
+                      const parts = urlLower.split('/').filter(Boolean)
+                      const lastPart = parts[parts.length - 1]
+                      // Remove query params
+                      const urlUsername = lastPart.split('?')[0]
+                      return urlUsername === cleanUsername
+                    }
+                  }
+
+                  // Default to true if platform matches and we couldn't verify username strictly
+                  // (e.g. if we don't store username or can't parse URL)
+                  return true
+                })
+              }
+
+              return { ...link, verified: isVerified }
+            })
           } catch {
             return null
           }

@@ -98,7 +98,7 @@ export default function ProfilePage({ params }: PageProps) {
     statusMessage?: string | null
     isBanned?: boolean
     isVerified?: boolean
-    socialLinks?: Array<{ id?: string; platform?: string; type?: string; url: string; label?: string }> | null
+    socialLinks?: Array<{ id?: string; platform?: string; type?: string; url: string; label?: string; verified?: boolean }> | null
   } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -918,17 +918,32 @@ export default function ProfilePage({ params }: PageProps) {
                         <TooltipProvider key={link.id || link.url}>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <a
-                                href={link.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center justify-center h-7 w-7 rounded-full border border-border/50 bg-background hover:bg-muted hover:border-border transition-colors text-muted-foreground hover:text-foreground"
-                              >
-                                {getSocialIcon(platform)}
-                              </a>
+                              <div className="relative">
+                                <a
+                                  href={link.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center justify-center h-7 w-7 rounded-full border border-border/50 bg-background hover:bg-muted hover:border-border transition-colors text-muted-foreground hover:text-foreground"
+                                >
+                                  {getSocialIcon(platform)}
+                                </a>
+                                {link.verified && (
+                                  <div className="absolute -top-1 -right-1 bg-background rounded-full p-[1px] ring-1 ring-border/20 shadow-sm">
+                                    <CheckCircle className="h-2.5 w-2.5 text-blue-500 fill-blue-500/10" />
+                                  </div>
+                                )}
+                              </div>
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>{getSocialLabel(link)}</p>
+                              <div className="flex items-center gap-1.5">
+                                <span>{getSocialLabel(link)}</span>
+                                {link.verified && (
+                                  <span className="flex items-center gap-0.5 text-[10px] text-blue-400 font-medium bg-blue-500/10 px-1 py-0.5 rounded border border-blue-500/20">
+                                    <CheckCircle className="h-2.5 w-2.5" />
+                                    Verified
+                                  </span>
+                                )}
+                              </div>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
