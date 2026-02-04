@@ -40,11 +40,29 @@ model Profile {
   categories LinkCategory[]
   activityLogs UserActivityLog[]
 
+  socialConnections SocialConnection[]
+  
   @@index([address])
   @@index([slug])
   @@index([owner])
   @@index([ownerAddress])
   @@index([isBanned])
+}
+
+model SocialConnection {
+  id              String   @id @default(cuid())
+  profileId       String
+  profile         Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  platform        String   // 'twitter', 'github', etc.
+  platformUsername String
+  platformUserId   String?
+  accessToken      String? // Optional: if we need to make API calls on behalf of user
+  refreshToken     String? // Optional
+  verifiedAt      DateTime @default(now())
+  
+  @@unique([platform, platformUserId])
+  @@index([profileId])
+  @@index([platformUsername])
 }
 
 model UserActivityLog {

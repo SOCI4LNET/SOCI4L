@@ -28,6 +28,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { formatAddress } from "@/lib/utils"
 import { getPublicProfileHref } from "@/lib/routing"
 import { ProfileReadiness } from "@/components/dashboard/profile-readiness"
+import { SocialConnect } from "@/components/dashboard/social-connect"
 
 interface Profile {
   id: string
@@ -361,6 +362,10 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
             </div>
           </CardContent>
         </Card>
+
+        {/* Social Connection */}
+        <SocialConnect />
+
 
         {/* Custom URL Section */}
         <Card className="bg-card border border-border/60 shadow-sm">

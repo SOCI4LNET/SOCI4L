@@ -1,0 +1,57 @@
+/* SOCI4L Badge Styles */
+.soci4l-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 4px;
+  cursor: pointer;
+  vertical-align: text-bottom;
+  position: relative;
+  transition: transform 0.2s ease;
+}
+
+.soci4l-badge:hover {
+  transform: scale(1.1);
+}
+
+.soci4l-badge svg {
+  width: 18px;
+  height: 18px;
+  fill: #6CDCF7; /* Brand Cyan */
+}
+
+/* Tooltip / Mini-Profile (Simple implementation) */
+.soci4l-tooltip {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #171717;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: white;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  white-space: nowrap;
+  z-index: 9999;
+  margin-top: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.soci4l-badge:hover .soci4l-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.soci4l-verified-text {
+  font-weight: 600;
+  color: #6CDCF7;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}

@@ -25,6 +25,8 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@prisma/client": "^5.19.0",
+    "@privy-io/react-auth": "^3.13.1",
+    "@privy-io/server-auth": "^1.32.5",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-checkbox": "^1.1.0",
     "@radix-ui/react-collapsible": "^1.1.1",
