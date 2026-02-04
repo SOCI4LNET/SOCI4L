@@ -147,7 +147,7 @@ export function OverviewPanelContent({
         if (status === 'success') {
             return <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
         } else if (status === 'failed') {
-            return <CheckCircle2 className="h-3.5 w-3.5 text-red-500" />
+            return <CheckCircle2 className="h-3.5 w-3.5 text-destructive" />
         } else {
             return <CheckCircle2 className="h-3.5 w-3.5 text-yellow-500" />
         }
@@ -285,7 +285,7 @@ export function OverviewPanelContent({
                                                 return token.logoUrl
                                             }
                                             const cacheKey = getCacheKey(token.address, token.symbol)
-                                            return getCachedLogo(cacheKey)
+                                            return getCachedLogo(cacheKey) || null
                                         }
 
                                         const logoUrl = getLogoUrl()

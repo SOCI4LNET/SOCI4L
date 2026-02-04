@@ -294,7 +294,7 @@ function RowBuilder({
     <div
       ref={setNodeRef}
       style={style}
-      className={`rounded-lg border border-border/60 bg-background/40 p-4 space-y-3 transition ${isDragging ? 'ring-2 ring-primary/40 shadow-lg bg-background' : ''
+      className={`rounded-lg border border-border/60 bg-background/40 p-4 space-y-3 transition ${isDragging ? 'ring-2 ring-primary/40 shadow-xl dark:shadow-2xl bg-background' : ''
         }`}
     >
       {/* Row Header */}

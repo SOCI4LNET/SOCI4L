@@ -308,7 +308,7 @@ function DraggableLinkRow({
       ref={setNodeRef}
       style={style}
       className={`rounded-md border px-3 py-3 shadow-sm transition ${highlighted ? 'border-primary ring-2 ring-primary/20 bg-primary/5' : 'border-border/60 bg-background/60'
-        } ${!link.enabled ? 'opacity-60' : ''} ${isDragging ? 'ring-1 ring-primary/40 shadow-lg bg-background' : ''}`}
+        } ${!link.enabled ? 'opacity-60' : ''} ${isDragging ? 'ring-1 ring-primary/40 shadow-xl dark:shadow-2xl bg-background' : ''}`}
     >
       <div className="flex items-center gap-3">
         <button

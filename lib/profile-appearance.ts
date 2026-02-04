@@ -73,7 +73,7 @@ export function getThemeCardClasses(theme: ProfileTheme, blockType?: 'links' | '
     case 'default':
     default:
       // Neutral Baseline: Standard card style
-      return `${baseClasses} border-border/60 shadow-sm bg-card`
+      return `${baseClasses} border-border/60 shadow-none bg-card`
   }
 }
 

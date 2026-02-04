@@ -357,9 +357,7 @@ export function ProfileWallSection() {
                         </Button>
                     </div>
 
-                    <p className="text-xs text-muted-foreground/60 pt-2 font-normal">
-                        No transactions. No gas. Read-only demo.
-                    </p>
+
                 </motion.div>
             </div>
         </section>

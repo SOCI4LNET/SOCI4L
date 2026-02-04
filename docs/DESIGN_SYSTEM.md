@@ -43,3 +43,16 @@ Derived from `app/globals.css`.
 | Token | Variable | HSL Value | Hex (Approx) | Usage |
 | :--- | :--- | :--- | :--- | :--- |
 | **Brand Cyan** | `--accent-primary` | `188 92% 70%` | `#6CDCF7` | Brand identity, highlights |
+
+---
+
+## Shadows
+
+Adapt depth to the theme to avoid harsh contrast.
+
+| Mode | Utility Class | Description |
+| :--- | :--- | :--- |
+| **Light Mode** | `shadow-xl` | Softer shadow to prevent harsh black outlines on white. |
+| **Dark Mode** | `dark:shadow-2xl` | Stronger shadow to maintain depth on dark surfaces. |
+
+**Rule:** Always use `shadow-xl dark:shadow-2xl` for large cards/modals instead of a single `shadow-2xl`.
