@@ -1976,13 +1976,20 @@ export function LinksPanel() {
                                     variant="outline"
                                     size="sm"
                                     className="h-5 px-2 text-[10px]"
-                                    onClick={() => {
+                                    onClick={async () => {
                                       if (!privyReady) {
                                         toast.error('Twitter verification is currently unavailable. Please try again later.')
                                         return
                                       }
 
-                                      // linkTwitter() handles authentication automatically with Twitter-only flow
+                                      // If not authenticated, show Twitter-only login
+                                      if (!authenticated) {
+                                        setPendingTwitterLink(true)
+                                        await login({ loginMethods: ['twitter'] })
+                                        return
+                                      }
+
+                                      // Already authenticated, link Twitter
                                       linkTwitter()
                                     }}
                                     disabled={!privyReady}
