@@ -1000,6 +1000,7 @@ export default function ProfilePage({ params }: PageProps) {
                       type: 'social' | 'featured' | 'custom'
                       icon?: React.ReactNode
                       order: number
+                      verified?: boolean
                     }
 
                     const allLinks: UnifiedLink[] = []
@@ -1042,6 +1043,7 @@ export default function ProfilePage({ params }: PageProps) {
                           type: 'social',
                           icon: getSocialIcon(link.platform || link.type || 'website'),
                           order: 1000 + index, // Social links come after featured
+                          verified: link.verified,
                         })
                       })
                     }
@@ -1206,8 +1208,13 @@ export default function ProfilePage({ params }: PageProps) {
                                             className={getThemeLinkItemClasses(effectiveAppearanceConfig.theme)}
                                           >
                                             <div className="flex min-w-0 items-center gap-2">
-                                              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-muted/60 text-muted-foreground shrink-0">
+                                              <div className="relative flex h-7 w-7 items-center justify-center rounded-md bg-muted/60 text-muted-foreground shrink-0">
                                                 {link.icon || <Link2 className="h-3.5 w-3.5" />}
+                                                {link.verified && (
+                                                  <div className="absolute -top-1 -right-1 bg-background rounded-full p-[1px] ring-1 ring-border/20 shadow-sm z-10">
+                                                    <CheckCircle className="h-2 w-2 text-blue-500 fill-blue-500/10" />
+                                                  </div>
+                                                )}
                                               </div>
                                               <div className="min-w-0 space-y-0.5">
                                                 <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} truncate text-foreground`}>
