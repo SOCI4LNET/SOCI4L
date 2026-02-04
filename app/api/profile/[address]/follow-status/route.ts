@@ -31,10 +31,15 @@ export async function GET(
     const sessionAddress = await getSessionAddress()
 
     if (!sessionAddress) {
-      return NextResponse.json(
-        { error: 'Session not found. Please log in.' },
-        { status: 401 }
-      )
+      // If no session, user cannot be following anyone
+      return NextResponse.json({
+        isFollowing: false,
+      }, {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+          'Pragma': 'no-cache',
+        },
+      })
     }
 
     // Get connected wallet address from query param (sent by frontend)

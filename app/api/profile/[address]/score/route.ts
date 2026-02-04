@@ -17,13 +17,8 @@ export async function GET(
     )
   }
 
-  const sessionAddress = await getSessionAddress()
-  if (!sessionAddress) {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 }
-    )
-  }
+  // Public API: No restricted session check for score
+  // const sessionAddress = await getSessionAddress()
 
   const normalizedAddress = address.toLowerCase()
 
