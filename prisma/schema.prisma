@@ -20,6 +20,7 @@ model Profile {
   visibility   String   @default("PUBLIC")   // PUBLIC | PRIVATE
   isPublic     Boolean  @default(false)       // kept for backward compatibility
   isBanned     Boolean  @default(false)
+  isVerified   Boolean  @default(false)
   role         String   @default("USER")      // USER | ADMIN
   claimedAt    DateTime?
   displayName      String?  // max 32 characters

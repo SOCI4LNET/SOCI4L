@@ -12,6 +12,7 @@ const ADMIN_ADDRESSES = (process.env.NEXT_PUBLIC_ADMIN_ADDRESSES || '')
  * Checks if the given address is an authorized admin.
  */
 function isAdmin(address: string) {
+    if (!address) return false
     return ADMIN_ADDRESSES.includes(address.toLowerCase())
 }
 
@@ -122,5 +123,75 @@ export async function updateUserProfile(
     } catch (error) {
         console.error('Failed to update user profile:', error)
         throw new Error('Failed to update user profile')
+    }
+}
+
+/**
+ * Verifies a user profile (Blue Tick).
+ */
+export async function verifyUser(adminAddress: string, targetAddress: string) {
+    if (!isAdmin(adminAddress)) {
+        throw new Error('Unauthorized')
+    }
+
+    const normalizedTarget = targetAddress.toLowerCase()
+
+    try {
+        await prisma.profile.update({
+            where: { address: normalizedTarget },
+            data: { isVerified: true },
+        })
+
+        // Log action
+        await prisma.userActivityLog.create({
+            data: {
+                profileId: (await prisma.profile.findUniqueOrThrow({ where: { address: normalizedTarget } })).id,
+                action: 'verify_user',
+                metadata: JSON.stringify({ admin: adminAddress }),
+            },
+        })
+
+        revalidatePath('/master-console/users')
+        revalidatePath(`/master-console/users/${encodeURIComponent(normalizedTarget)}`)
+        revalidatePath(`/p/${normalizedTarget}`) // Revalidate public profile
+        return { success: true }
+    } catch (error) {
+        console.error('Failed to verify user:', error)
+        throw new Error('Failed to verify user')
+    }
+}
+
+/**
+ * Removes verification from a user profile.
+ */
+export async function unverifyUser(adminAddress: string, targetAddress: string) {
+    if (!isAdmin(adminAddress)) {
+        throw new Error('Unauthorized')
+    }
+
+    const normalizedTarget = targetAddress.toLowerCase()
+
+    try {
+        await prisma.profile.update({
+            where: { address: normalizedTarget },
+            data: { isVerified: false },
+        })
+
+        // Log action
+        await prisma.userActivityLog.create({
+            data: {
+                profileId: (await prisma.profile.findUniqueOrThrow({ where: { address: normalizedTarget } })).id,
+                action: 'unverify_user',
+                metadata: JSON.stringify({ admin: adminAddress }),
+            },
+        })
+
+        revalidatePath('/master-console/users')
+        revalidatePath(`/master-console/users/${encodeURIComponent(normalizedTarget)}`)
+        revalidatePath(`/p/${normalizedTarget}`) // Revalidate public profile
+        return { success: true }
+    } catch (error) {
+        console.error('Failed to unverify user:', error)
+        throw new Error('Failed to unverify user')
     }
 }

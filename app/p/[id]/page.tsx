@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import { getPublicProfileHref } from '@/lib/routing'
 import Link from 'next/link'
-import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Eye, Share2, Instagram, Youtube, Sparkles, ShieldAlert, Layers, UserX } from 'lucide-react'
+import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Eye, Share2, Instagram, Youtube, Sparkles, ShieldAlert, Layers, UserX, CheckCircle } from 'lucide-react'
 import { XIcon } from '@/components/icons/x-icon'
 import { ClaimProfileButton } from '@/components/claim-profile-button'
 import { FollowToggle, FollowStats } from '@/components/follow-toggle'
@@ -97,6 +97,7 @@ export default function ProfilePage({ params }: PageProps) {
     secondaryRoles?: string[]
     statusMessage?: string | null
     isBanned?: boolean
+    isVerified?: boolean
     socialLinks?: Array<{ id?: string; platform?: string; type?: string; url: string; label?: string }> | null
   } | null>(null)
   const [loading, setLoading] = useState(true)
@@ -241,7 +242,9 @@ export default function ProfilePage({ params }: PageProps) {
               primaryRole: data.profile.primaryRole,
               secondaryRoles: data.profile.secondaryRoles,
               statusMessage: data.profile.statusMessage,
+              statusMessage: data.profile.statusMessage,
               isBanned: data.profile.isBanned,
+              isVerified: data.profile.isVerified,
               socialLinks: data.profile.socialLinks,
             })
           }
@@ -722,8 +725,20 @@ export default function ProfilePage({ params }: PageProps) {
                     <div className="min-w-0 space-y-1 flex-1">
                       {/* 1. Identity Block */}
                       <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                        <h1 className={`${titleClasses} font-bold truncate text-foreground`}>
+                        <h1 className={`${titleClasses} font-bold truncate text-foreground flex items-center gap-1.5`}>
                           {primaryDisplayName}
+                          {profile?.isVerified && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <CheckCircle className="h-5 w-5 text-blue-500 fill-blue-500/10" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Verified Account</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
                         </h1>
 
                         {/* Roles & Ranks */}

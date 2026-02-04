@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Download, ExternalLink, Eye, Users } from 'lucide-react'
+import { AdminUserActions } from '@/components/admin/admin-user-actions'
 
 interface SearchParams {
   search?: string
@@ -405,64 +406,58 @@ export default async function AdminUsersPage({
                         <span className="text-muted-foreground/60 text-xs">—</span>
                       )}
                     </TableCell>
-                    <TableCell className="text-right py-4 align-top">
-                      <div className="flex flex-col sm:flex-row justify-end gap-2">
-                        <Button
-                          asChild
-                          variant="default"
-                          size="sm"
-                          className="h-7 text-xs font-medium gap-1.5 group-hover:scale-105"
-                        >
-                          <Link href={`/p/${profile.slug || profile.address}`}>
-                            <ExternalLink className="h-3 w-3 transition-transform duration-150 group-hover:scale-110" />
-                            View Profile
-                          </Link>
-                        </Button>
-                        <Button
-                          asChild
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 text-xs font-medium gap-1.5 text-muted-foreground hover:text-foreground"
-                        >
-                          <Link href={`/master-console/users/${encodeURIComponent(profile.address.toLowerCase())}`}>
-                            <Eye className="h-3 w-3 transition-transform duration-150 group-hover:scale-110" />
-                            Admin View
-                          </Link>
-                        </Button>
-                      </div>
+                    <Button
+                      asChild
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs font-medium gap-1.5 text-muted-foreground hover:text-foreground"
+                    >
+                      <Link href={`/master-console/users/${encodeURIComponent(profile.address.toLowerCase())}`}>
+                        <Eye className="h-3 w-3 transition-transform duration-150 group-hover:scale-110" />
+                        Admin View
+                      </Link>
+                    </Button>
+                    <AdminUserActions
+                      address={profile.address}
+                      isBanned={profile.isBanned}
+                      isVerified={profile.isVerified}
+                      currentBio={profile.bio}
+                      currentDisplayName={profile.displayName}
+                    />
+                  </div>
                     </TableCell>
-                  </TableRow>
-                )
+        </TableRow>
+        )
               })
             )}
-          </TableBody>
-          <TableCaption className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-4 pb-4 border-t border-border/60 mt-4">
-            <span className="text-xs text-muted-foreground">
-              Showing page {page} of {totalPages} • {totalCount.toLocaleString('en-US')} profiles
-            </span>
-            {totalPages > 1 && (
-              <div className="flex items-center gap-3">
-                {page > 1 && (
-                  <Link
-                    href={`/master-console/users?search=${encodeURIComponent(search)}&page=${page - 1}&sortBy=${sortBy}&status=${status}&visibility=${visibility}`}
-                    className="text-xs text-primary hover:underline whitespace-nowrap transition-colors duration-150"
-                  >
-                    Previous
-                  </Link>
-                )}
-                {page < totalPages && (
-                  <Link
-                    href={`/master-console/users?search=${encodeURIComponent(search)}&page=${page + 1}&sortBy=${sortBy}&status=${status}&visibility=${visibility}`}
-                    className="text-xs text-primary hover:underline whitespace-nowrap transition-colors duration-150"
-                  >
-                    Next
-                  </Link>
-                )}
-              </div>
+      </TableBody>
+      <TableCaption className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-4 pb-4 border-t border-border/60 mt-4">
+        <span className="text-xs text-muted-foreground">
+          Showing page {page} of {totalPages} • {totalCount.toLocaleString('en-US')} profiles
+        </span>
+        {totalPages > 1 && (
+          <div className="flex items-center gap-3">
+            {page > 1 && (
+              <Link
+                href={`/master-console/users?search=${encodeURIComponent(search)}&page=${page - 1}&sortBy=${sortBy}&status=${status}&visibility=${visibility}`}
+                className="text-xs text-primary hover:underline whitespace-nowrap transition-colors duration-150"
+              >
+                Previous
+              </Link>
             )}
-          </TableCaption>
-        </Table>
-      </div>
+            {page < totalPages && (
+              <Link
+                href={`/master-console/users?search=${encodeURIComponent(search)}&page=${page + 1}&sortBy=${sortBy}&status=${status}&visibility=${visibility}`}
+                className="text-xs text-primary hover:underline whitespace-nowrap transition-colors duration-150"
+              >
+                Next
+              </Link>
+            )}
+          </div>
+        )}
+      </TableCaption>
+    </Table>
+      </div >
     </PageShell >
   )
 }
