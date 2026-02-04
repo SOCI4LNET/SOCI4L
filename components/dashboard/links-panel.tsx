@@ -101,6 +101,7 @@ interface SocialLink {
   platform: SocialLinkPlatform
   url: string
   label?: string
+  verified?: boolean
 }
 
 type StoredLinksState = {
@@ -799,6 +800,7 @@ export function LinksPanel() {
           platform: (link.platform || link.type || 'website') as SocialLinkPlatform,
           url: link.url || '',
           label: link.label || '',
+          verified: link.verified,
         })))
       } catch (error) {
         console.error('[LinksPanel] Failed to load social links', error)
@@ -1959,7 +1961,7 @@ export function LinksPanel() {
                               const twitterUser = user?.twitter
                               const linkUsername = link.url.split('/').pop()?.toLowerCase() || ''
                               const privyUsername = twitterUser?.username?.toLowerCase()
-                              const isVerified = twitterUser && privyUsername === linkUsername
+                              const isVerified = link.verified || (twitterUser && privyUsername === linkUsername)
 
                               if (isVerified) {
                                 return (
