@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     description: 'Turn your wallet into a measurable, privacy-first public profile',
     images: [
       {
-        url: '/api/og?displayName=SOCI4L&bio=Web3 Profile & Link Hub',
+        url: '/og-background.png',
         width: 1200,
         height: 630,
         alt: 'SOCI4L - Web3 Profile & Link Hub',
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'SOCI4L - Web3 Profile & Link Hub',
     description: 'Turn your wallet into a measurable, privacy-first public profile',
-    images: ['/api/og?displayName=SOCI4L&bio=Web3 Profile & Link Hub'],
+    images: ['/og-background.png'],
   },
   icons: {
     icon: [
