@@ -551,7 +551,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
       ? formatDistanceToNow(new Date(analytics.lastClickedTs), { addSuffix: true })
       : 'Never';
 
-  const ctrLabel = analytics.ctr !== null ? String((analytics.ctr * 100).toFixed(1)) + '%' : '-'
+  const ctrLabel = analytics.ctr !== null ? String((analytics.ctr * 100).toFixed(1)) + '%' : '-';
 
 
   return (
