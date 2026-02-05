@@ -2037,7 +2037,6 @@ export function LinksPanel() {
                               }
 
                               return (
-                              return (
                                 <div className="flex flex-col gap-1 items-start">
                                   <Button
                                     variant="outline"
@@ -2086,7 +2085,6 @@ export function LinksPanel() {
                                     Wrong account? Change
                                   </button>
                                 </div>
-                              )
                               )
                             })()
                           )}

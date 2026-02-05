@@ -35,46 +35,36 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
         }
 
-        // Check if this social account is already linked to ANOTHER profile
-        const existing = await prisma.socialConnection.findUnique({
+        if (existing && existing.profileId !== profile.id) {
+            return NextResponse.json({
+                error: `This ${platform} account is already connected to another profile.`
+            }, { status: 409 })
+        }
+
+        // Create or Update the connection
+        const connection = await prisma.socialConnection.upsert({
             where: {
                 platform_platformUserId: {
                     platform,
                     platformUserId
                 }
             },
-            include: { profile: true }
+            update: {
+                platformUsername, // Update username in case it changed
+                verifiedAt: new Date(),
+            },
+            create: {
+                profileId: profile.id,
+                platform,
+                platformUsername,
+                platformUserId,
+                verifiedAt: new Date(),
+            }
         })
 
-        return NextResponse.json({
-            error: `This ${platform} account is already connected to another profile.`
-        }, { status: 409 })
+        return NextResponse.json({ success: true, connection })
+    } catch (error) {
+        console.error('[API] Social Link Error:', error)
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
     }
-
-        // Create or Update the connection
-        const connection = await prisma.socialConnection.upsert({
-        where: {
-            platform_platformUserId: {
-                platform,
-                platformUserId
-            }
-        },
-        update: {
-            platformUsername, // Update username in case it changed
-            verifiedAt: new Date(),
-        },
-        create: {
-            profileId: profile.id,
-            platform,
-            platformUsername,
-            platformUserId,
-            verifiedAt: new Date(),
-        }
-    })
-
-    return NextResponse.json({ success: true, connection })
-} catch (error) {
-    console.error('[API] Social Link Error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-}
 }
