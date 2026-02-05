@@ -66,9 +66,14 @@ export default function LinkTrackPage() {
 
     // If we are connecting/reconnecting, wait up to 800ms
     // If connected but no address (rare), also wait briefly
+    // If we are definitely connected but just waiting for address? 
+    // status === 'connected' usually means we have address.
+    // So 'connecting' and 'reconnecting' are the main ones to wait for.
+
+    // Wait up to 2500ms for wallet to initialize
     const timer = setTimeout(() => {
       performRedirect()
-    }, 800)
+    }, 2500)
 
     return () => clearTimeout(timer)
 

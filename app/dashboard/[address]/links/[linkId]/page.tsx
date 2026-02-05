@@ -180,6 +180,8 @@ export default function LinkInsightsPage({ params }: PageProps) {
   const linkId = params.linkId
   const [loading, setLoading] = useState(true)
   const [serverEvents, setServerEvents] = useState<AnalyticsEvent[] | null>(null)
+  const [clickPage, setClickPage] = useState(1)
+  const CLICKS_PER_PAGE = 20
 
   useEffect(() => {
     const loadLink = async () => {
@@ -234,6 +236,10 @@ export default function LinkInsightsPage({ params }: PageProps) {
 
     loadAnalytics()
   }, [linkId, profileId])
+
+  useEffect(() => {
+    setClickPage(1)
+  }, [range])
 
   const analytics = useMemo(() => {
     const now = Date.now()
@@ -759,47 +765,94 @@ export default function LinkInsightsPage({ params }: PageProps) {
                       const filteredEvents = (serverEvents || [])
                         .filter(e => e.type === 'link_click' && e.linkId === linkId && e.ts >= fromTs)
                         .sort((a, b) => b.ts - a.ts)
-                        .slice(0, 10) // Show last 10
 
-                      if (filteredEvents.length === 0) {
+                      const totalIds = filteredEvents.length
+                      const totalPages = Math.ceil(totalIds / CLICKS_PER_PAGE)
+                      const startIdx = (clickPage - 1) * CLICKS_PER_PAGE
+                      const paginatedEvents = filteredEvents.slice(startIdx, startIdx + CLICKS_PER_PAGE)
+
+                      if (paginatedEvents.length === 0) {
                         return (
                           <tr>
-                            <td colSpan={3} className="py-4 text-center text-muted-foreground py-2">No clicks in this time range.</td>
+                            <td colSpan={3} className="py-4 text-center text-muted-foreground py-2">{clickPage === 1 ? 'No clicks in this time range.' : 'No more clicks.'}</td>
                           </tr>
                         )
                       }
 
-                      return filteredEvents.map(event => (
-                        <tr key={`${event.ts}-${Math.random()}`} className="border-b border-border/40 last:border-0 hover:bg-muted/30">
-                          <td className="py-2 text-left text-muted-foreground">
-                            {formatDistanceToNow(new Date(event.ts), { addSuffix: true })}
-                          </td>
-                          <td className="py-2 text-left font-mono">
-                            {event.visitorWallet ? (
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-primary bg-primary/10 px-1.5 py-0.5 rounded text-[10px]">
-                                  {event.visitorWallet.slice(0, 6)}...{event.visitorWallet.slice(-4)}
-                                </span>
-                                <Button
-                                  variant="ghost"
-                                  className="h-4 w-4 p-0 hover:bg-transparent text-muted-foreground/50 hover:text-foreground"
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(event.visitorWallet!)
-                                    toast.success('Address copied')
-                                  }}
-                                >
-                                  <Copy className="h-2.5 w-2.5" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <span className="text-muted-foreground opacity-50 italic">Anonymous</span>
-                            )}
-                          </td>
-                          <td className="py-2 text-right capitalize text-muted-foreground">
-                            {event.source}
-                          </td>
-                        </tr>
-                      ))
+                      return (
+                        <>
+                          {paginatedEvents.map(event => (
+                            <tr key={`${event.ts}-${Math.random()}`} className="border-b border-border/40 last:border-0 hover:bg-muted/30">
+                              <td className="py-2 text-left text-muted-foreground">
+                                {formatDistanceToNow(new Date(event.ts), { addSuffix: true })}
+                              </td>
+                              <td className="py-2 text-left font-mono">
+                                {event.visitorWallet ? (
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-primary bg-primary/10 px-1.5 py-0.5 rounded text-[10px]">
+                                      {event.visitorWallet.slice(0, 6)}...{event.visitorWallet.slice(-4)}
+                                    </span>
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            className="h-4 w-4 p-0 hover:bg-transparent text-muted-foreground/50 hover:text-foreground"
+                                            onClick={() => {
+                                              navigator.clipboard.writeText(event.visitorWallet!)
+                                              toast.success('Address copied')
+                                            }}
+                                          >
+                                            <Copy className="h-2.5 w-2.5" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Copy address</TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  </div>
+                                ) : (
+                                  <span className="text-muted-foreground opacity-50 italic">Anonymous</span>
+                                )}
+                              </td>
+                              <td className="py-2 text-right capitalize text-muted-foreground">
+                                {event.source}
+                              </td>
+                            </tr>
+                          ))}
+                          {/* Pagination Controls */}
+                          {totalIds > CLICKS_PER_PAGE && (
+                            <tr>
+                              <td colSpan={3} className="pt-4 pb-2">
+                                <div className="flex items-center justify-between">
+                                  <div className="text-xs text-muted-foreground">
+                                    Showing {startIdx + 1}-{Math.min(startIdx + CLICKS_PER_PAGE, totalIds)} of {totalIds}
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-7 text-xs"
+                                      disabled={clickPage === 1}
+                                      onClick={() => setClickPage(p => p - 1)}
+                                    >
+                                      Previous
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-7 text-xs"
+                                      disabled={clickPage >= totalPages}
+                                      onClick={() => setClickPage(p => p + 1)}
+                                    >
+                                      Next
+                                    </Button>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </>
+                      )
                     })()}
                   </tbody>
                 </table>
