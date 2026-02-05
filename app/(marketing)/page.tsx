@@ -108,7 +108,7 @@ export default function HomePage() {
                     size="sm"
                     variant="ghost"
                     onClick={tryDemo}
-                    className="gap-2 transition-all hover:-translate-y-0.5 opacity-70 hover:opacity-100"
+                    className="gap-2 transition-all hover:-translate-y-0.5 opacity-50 hover:opacity-100"
                   >
                     Try Demo
                   </Button>
