@@ -43,43 +43,58 @@ export type AnalyticsEvent =
 
 
 
-function shouldLogProfileView(profileId: string): boolean {
+function shouldLogProfileView(profileId: string, source: AnalyticsSource): boolean {
   if (!profileId) return false
   if (typeof window === 'undefined') return false
 
   const now = Date.now()
-  const key = `soci4l:viewed:${profileId}`
-  const tsKey = `soci4l:viewed_ts:${profileId}`
+  // Include source in key to allow distinct tracking for different sources
+  // e.g. visit direct -> visit via extension should track both
+  const key = `soci4l:viewed:${profileId}:${source}`
+  const tsKey = `soci4l:viewed_ts:${profileId}:${source}`
+
+  // Also maintain a global profile view timestamp to prevent spam
+  // regardless of source, if it's within a very short window (e.g. 1s)
+  const globalTsKey = `soci4l:viewed_ts:${profileId}:any`
 
   try {
     const storage = window.sessionStorage
+
+    // 1. Check global spam protection (1s)
+    const lastGlobalTsRaw = storage.getItem(globalTsKey)
+    const lastGlobalTs = lastGlobalTsRaw ? Number(lastGlobalTsRaw) || 0 : 0
+    if (lastGlobalTs && now - lastGlobalTs < 1000) {
+      return false
+    }
+
+    // 2. Check specific source dedupe (5s)
     const lastTsRaw = storage.getItem(tsKey)
     const lastTs = lastTsRaw ? Number(lastTsRaw) || 0 : 0
-
-    // Dedupe window: 5 seconds per profile per sessionKey
     const DEDUPE_WINDOW_MS = 5 * 1000 // 5 seconds
+
     if (lastTs && now - lastTs < DEDUPE_WINDOW_MS) {
       return false
     }
 
     storage.setItem(key, '1')
     storage.setItem(tsKey, String(now))
+    storage.setItem(globalTsKey, String(now))
   } catch (error) {
-    // Fallback: best-effort TTL guard using localStorage
+    // Fallback: localStorage
     try {
-      const tsKey = `soci4l:viewed_ts:${profileId}`
+      const tsKey = `soci4l:viewed_ts:${profileId}:${source}`
+      const globalTsKey = `soci4l:viewed_ts:${profileId}:any`
       const raw = window.localStorage.getItem(tsKey)
       const lastTs = raw ? Number(raw) || 0 : 0
 
-      const DEDUPE_WINDOW_MS = 5 * 1000 // 5 seconds
+      // Dedupe logic
+      const DEDUPE_WINDOW_MS = 5 * 1000
       if (lastTs && now - lastTs < DEDUPE_WINDOW_MS) {
         return false
       }
-
       window.localStorage.setItem(tsKey, String(now))
-    } catch (innerError) {
-      // ignore
-    }
+      window.localStorage.setItem(globalTsKey, String(now))
+    } catch { }
   }
 
   return true
@@ -94,7 +109,7 @@ export function trackProfileView(
   // Normalize profileId to lowercase for consistency
   const normalizedProfileId = profileId.toLowerCase()
 
-  if (!shouldLogProfileView(normalizedProfileId)) {
+  if (!shouldLogProfileView(normalizedProfileId, source)) {
     return
   }
 
