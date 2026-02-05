@@ -75,6 +75,7 @@ export async function GET(
     // Get source from URL query params
     const searchParams = request.nextUrl.searchParams
     const source = getSourceFromUrl(searchParams)
+    const referer = request.headers.get('referer') || null
 
     // Record link_click server-side so master console total link clicks always increase
     // (client-side fetch often aborts when user is redirected)
@@ -89,6 +90,7 @@ export async function GET(
           linkUrl: link.url,
           categoryId,
           source,
+          referrer: referer,
         },
       })
       eventId = event.id
