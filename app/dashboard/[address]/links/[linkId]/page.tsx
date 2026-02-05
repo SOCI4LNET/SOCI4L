@@ -1000,7 +1000,6 @@ export default function LinkInsightsPage({ params }: PageProps) {
                               </td>
                             </tr>
                           )}
-                        </>
                       )
                     })()}
                   </tbody>
