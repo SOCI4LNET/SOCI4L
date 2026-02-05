@@ -716,6 +716,97 @@ export default function LinkInsightsPage({ params }: PageProps) {
             )}
           </CardContent>
         </Card>
+
+        {/* Recent Clicks - Identity Aware */}
+        <Card className="bg-card border border-border/60 shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Recent Clicks</CardTitle>
+            <CardDescription className="text-xs">
+              Latest recognized activity on this link.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {analytics.totalClicks === 0 ? (
+              <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-4 text-center text-xs text-muted-foreground">
+                No activity recorded yet for this link.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-border/60 text-muted-foreground">
+                      <th className="py-2 text-left font-medium">Time</th>
+                      <th className="py-2 text-left font-medium">Visitor</th>
+                      <th className="py-2 text-right font-medium">Source</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {/* Access linkEvents from filter logic (need to duplicate logic or memoize differently if not accessible) 
+                        Actually we can access 'analytics.linkEvents' if we expose it in the useMemo above.
+                        Let's check if we exposed it. We didn't. 
+                        We will rely on serverEvents filtering here since we are inside the component.
+                    */}
+                    {(() => {
+                      const now = Date.now()
+                      const fromTs = range === 'all'
+                        ? 0
+                        : range === '24h'
+                          ? now - 24 * 60 * 60 * 1000
+                          : range === '7d'
+                            ? now - 7 * 24 * 60 * 60 * 1000
+                            : now - 30 * 24 * 60 * 60 * 1000
+
+                      const filteredEvents = (serverEvents || [])
+                        .filter(e => e.type === 'link_click' && e.linkId === linkId && e.ts >= fromTs)
+                        .sort((a, b) => b.ts - a.ts)
+                        .slice(0, 10) // Show last 10
+
+                      if (filteredEvents.length === 0) {
+                        return (
+                          <tr>
+                            <td colSpan={3} className="py-4 text-center text-muted-foreground py-2">No clicks in this time range.</td>
+                          </tr>
+                        )
+                      }
+
+                      return filteredEvents.map(event => (
+                        <tr key={`${event.ts}-${Math.random()}`} className="border-b border-border/40 last:border-0 hover:bg-muted/30">
+                          <td className="py-2 text-left text-muted-foreground">
+                            {formatDistanceToNow(new Date(event.ts), { addSuffix: true })}
+                          </td>
+                          <td className="py-2 text-left font-mono">
+                            {event.visitorWallet ? (
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-primary bg-primary/10 px-1.5 py-0.5 rounded text-[10px]">
+                                  {event.visitorWallet.slice(0, 6)}...{event.visitorWallet.slice(-4)}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  className="h-4 w-4 p-0 hover:bg-transparent text-muted-foreground/50 hover:text-foreground"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(event.visitorWallet!)
+                                    toast.success('Address copied')
+                                  }}
+                                >
+                                  <Copy className="h-2.5 w-2.5" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground opacity-50 italic">Anonymous</span>
+                            )}
+                          </td>
+                          <td className="py-2 text-right capitalize text-muted-foreground">
+                            {event.source}
+                          </td>
+                        </tr>
+                      ))
+                    })()}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </PageShell>
   )

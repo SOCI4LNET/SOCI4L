@@ -29,6 +29,7 @@ export type AnalyticsData = {
         timestamp: number
         linkTitle?: string
         linkId?: string
+        visitorWallet?: string
     }>
     sourceBreakdown: Record<string, number>
     linkClickCounts: Record<string, number>

@@ -172,6 +172,7 @@ model AnalyticsEvent {
   referrer  String?
   country   String?
   device    String?
+  visitorWallet String? // Wallet address of the visitor if connected
 
   createdAt DateTime @default(now())
 

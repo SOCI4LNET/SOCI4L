@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Activity, BarChart2, Clock, Lightbulb, ArrowRight, Share2, TrendingUp, Eye, MousePointerClick } from 'lucide-react'
+import { Activity, BarChart2, Clock, Lightbulb, ArrowRight, Share2, TrendingUp, Eye, MousePointerClick, Copy } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
 import {
@@ -100,6 +100,7 @@ type RecentActivity = {
   timestamp: number
   linkTitle?: string
   linkId?: string
+  visitorWallet?: string
 }
 
 type Suggestion = {
@@ -927,9 +928,25 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   {activity.type === 'link_click' ? (
-                                    <p className="text-xs truncate">
+                                    <p className="text-xs truncate flex items-center gap-1">
                                       <span className="text-muted-foreground">Link clicked: </span>
                                       <span className="font-medium">{activity.linkTitle}</span>
+                                      {activity.visitorWallet && (
+                                        <span className="ml-1 text-[10px] text-muted-foreground font-mono bg-muted/50 px-1 py-0.5 rounded flex items-center gap-1">
+                                          {activity.visitorWallet.slice(0, 6)}...{activity.visitorWallet.slice(-4)}
+                                          <Button
+                                            variant="ghost"
+                                            className="h-3 w-3 p-0 hover:bg-transparent text-muted-foreground/50 hover:text-foreground"
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              navigator.clipboard.writeText(activity.visitorWallet!)
+                                              toast.success('Address copied')
+                                            }}
+                                          >
+                                            <Copy className="h-2 w-2" />
+                                          </Button>
+                                        </span>
+                                      )}
                                     </p>
                                   ) : (
                                     <p className="text-xs">

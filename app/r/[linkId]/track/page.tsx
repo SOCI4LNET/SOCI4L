@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { useSearchParams, useParams } from 'next/navigation'
 import { trackLinkClick, getSourceFromUrl, type AnalyticsSource } from '@/lib/analytics'
+import { useAccount } from 'wagmi'
 
 /**
  * Client-side tracking page for link clicks
@@ -21,6 +22,7 @@ export default function LinkTrackPage() {
   const searchParams = useSearchParams()
   const params = useParams()
   const linkId = params?.linkId as string | undefined
+  const { address: visitorWallet } = useAccount()
   // Guard to prevent double tracking in React Strict Mode
   const hasTrackedRef = useRef(false)
 
@@ -35,6 +37,7 @@ export default function LinkTrackPage() {
     const categoryId = searchParams.get('categoryId')
     const linkTitle = searchParams.get('title')
     const sourceParam = searchParams.get('source') || 'unknown'
+    const eventId = searchParams.get('eventId')
 
     if (!url || !profileId || !linkId) {
       console.error('[LinkTrack] Missing required parameters', { url, profileId, linkId })
@@ -64,6 +67,8 @@ export default function LinkTrackPage() {
       linkTitle,
       source,
       url,
+      eventId,
+      visitorWallet
     })
 
     // skipServer: true — click already recorded server-side in /r/[linkId] to avoid double count
@@ -77,9 +82,22 @@ export default function LinkTrackPage() {
       { skipServer: true }
     )
 
+    // If we have an eventId and a wallet address, identify the user
+    if (eventId && visitorWallet) {
+      // Non-blocking call to update identity
+      fetch('/api/analytics/identify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId,
+          walletAddress: visitorWallet
+        })
+      }).catch(err => console.error('[LinkTrack] Identify failed', err))
+    }
+
     // Immediately redirect to the actual URL
     window.location.href = url
-  }, [searchParams, linkId])
+  }, [searchParams, linkId, visitorWallet])
 
   // Show loading state while redirecting
   return (

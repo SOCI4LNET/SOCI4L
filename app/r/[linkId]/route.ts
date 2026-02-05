@@ -7,11 +7,11 @@ import { prisma } from '@/lib/prisma'
  */
 function getSourceFromUrl(searchParams: URLSearchParams): 'profile' | 'qr' | 'copy' | 'unknown' {
   const source = searchParams.get('source')
-  
+
   if (source === 'profile' || source === 'qr' || source === 'copy') {
     return source
   }
-  
+
   return 'unknown'
 }
 
@@ -78,8 +78,9 @@ export async function GET(
 
     // Record link_click server-side so master console total link clicks always increase
     // (client-side fetch often aborts when user is redirected)
+    let eventId: string | undefined
     try {
-      await prisma.analyticsEvent.create({
+      const event = await prisma.analyticsEvent.create({
         data: {
           type: 'link_click',
           profileId: profileAddress,
@@ -90,6 +91,7 @@ export async function GET(
           source,
         },
       })
+      eventId = event.id
     } catch (err) {
       console.error('[Redirect] Analytics event create failed', err)
       // Continue redirect even if analytics fails
@@ -100,6 +102,9 @@ export async function GET(
     const trackingUrl = new URL(`/r/${linkId}/track`, baseUrl)
     trackingUrl.searchParams.set('url', link.url)
     trackingUrl.searchParams.set('profileId', profileAddress)
+    if (eventId) {
+      trackingUrl.searchParams.set('eventId', eventId)
+    }
     if (categoryId) {
       trackingUrl.searchParams.set('categoryId', categoryId)
     }

@@ -256,6 +256,7 @@ export async function GET(request: NextRequest) {
       timestamp: event.createdAt.getTime(),
       linkTitle: event.linkTitle || undefined,
       linkId: event.linkId || undefined,
+      visitorWallet: event.visitorWallet || undefined,
     }))
 
     return NextResponse.json({
