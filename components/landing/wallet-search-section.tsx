@@ -160,7 +160,7 @@ export function WalletSearchSection() {
                     <div className="flex flex-wrap justify-center items-center gap-4 text-sm text-muted-foreground pt-2 relative z-10">
                         <span className="opacity-60 text-xs font-medium uppercase tracking-wider">Try:</span>
                         <div className="flex gap-2">
-                            {['0x8ab...', 'pixel-art'].map(tag => (
+                            {['0x8ab...', 'satoshi'].map(tag => (
                                 <button
                                     key={tag}
                                     onClick={() => setQuery(tag)}
