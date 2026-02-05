@@ -87,36 +87,15 @@ export async function POST(request: NextRequest) {
         utmContent,
         isBot,
       },
-      type,
-      profileId,
-      visitorWallet,
-      source,
-      referrer,
-      linkId,
-      linkTitle,
-      linkUrl,
-      categoryId,
-      country,
-      device,
-      utmSource,
-      utmMedium,
-      utmCampaign,
-      utmTerm,
-      utmContent,
-      isBot,
-    },
     })
 
-  return NextResponse.json({ ok: true })
-})
-
-return NextResponse.json({ ok: true })
-} catch (error: any) {
-  console.error('[AnalyticsEvent API] Error creating analytics event', error)
-  return NextResponse.json(
-    { error: 'Failed to create analytics event' },
-    { status: 500 },
-  )
-}
+    return NextResponse.json({ ok: true })
+  } catch (error: any) {
+    console.error('[AnalyticsEvent API] Error creating analytics event', error)
+    return NextResponse.json(
+      { error: 'Failed to create analytics event' },
+      { status: 500 },
+    )
+  }
 }
 

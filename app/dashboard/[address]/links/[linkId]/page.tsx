@@ -551,8 +551,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
       ? formatDistanceToNow(new Date(analytics.lastClickedTs), { addSuffix: true })
       : 'Never'
 
-  const ctrLabel =
-    analytics.ctr != null ? `${(analytics.ctr * 100).toFixed(1)}%` : '-'
+  const ctrLabel = analytics.ctr !== null ? `${(analytics.ctr * 100).toFixed(1)}%` : '-'
 
   return (
     <PageShell
@@ -582,8 +581,19 @@ export default function LinkInsightsPage({ params }: PageProps) {
                     <Copy className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Copy redirect link</TooltipContent>
+                <TooltipContent>
+                  <p>Copy redirect link</p>
+                </TooltipContent>
               </Tooltip>
+            </div>
+          </TooltipProvider>
+        </div>
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Copy redirect link</TooltipContent>
+              </Tooltip >
 
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -622,12 +632,12 @@ export default function LinkInsightsPage({ params }: PageProps) {
                   {link.enabled ? 'Disable link (hide on profile)' : 'Enable link (show on profile)'}
                 </TooltipContent>
               </Tooltip>
-            </div>
-          </TooltipProvider>
-        </div>
+            </div >
+          </TooltipProvider >
+        </div >
 
-        {/* Time range selector */}
-        <div className="flex items-center justify-between gap-2">
+    {/* Time range selector */ }
+    < div className = "flex items-center justify-between gap-2" >
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Clock className="h-3.5 w-3.5" />
             <span>Time range</span>
@@ -648,10 +658,10 @@ export default function LinkInsightsPage({ params }: PageProps) {
               </TabsTrigger>
             </TabsList>
           </Tabs>
-        </div>
+        </div >
 
-        {/* KPI cards */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    {/* KPI cards */ }
+    < div className = "grid gap-4 sm:grid-cols-2 lg:grid-cols-4" >
           <Card className="bg-card border border-border/60 shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-medium text-muted-foreground">
@@ -702,10 +712,10 @@ export default function LinkInsightsPage({ params }: PageProps) {
             </CardContent>
           </Card>
 
-        </div>
+        </div >
 
-        {/* Clicks over time */}
-        <Card className="bg-card border border-border/60 shadow-sm">
+    {/* Clicks over time */ }
+    < Card className = "bg-card border border-border/60 shadow-sm" >
           <CardHeader className="pb-2 flex flex-row items-center justify-between">
             <div className="space-y-1">
               <CardTitle className="text-sm font-medium">Clicks over time</CardTitle>
@@ -763,10 +773,10 @@ export default function LinkInsightsPage({ params }: PageProps) {
               </div>
             )}
           </CardContent>
-        </Card>
+        </Card >
 
-        {/* Source breakdown */}
-        <Card className="bg-card border border-border/60 shadow-sm">
+    {/* Source breakdown */ }
+    < Card className = "bg-card border border-border/60 shadow-sm" >
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Source breakdown</CardTitle>
             <CardDescription className="text-xs">
@@ -825,10 +835,10 @@ export default function LinkInsightsPage({ params }: PageProps) {
               </div>
             )}
           </CardContent>
-        </Card>
+        </Card >
 
-        {/* Recent Clicks - Identity Aware */}
-        <Card className="bg-card border border-border/60 shadow-sm">
+    {/* Recent Clicks - Identity Aware */ }
+    < Card className = "bg-card border border-border/60 shadow-sm" >
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Recent Clicks</CardTitle>
             <CardDescription className="text-xs">
@@ -998,9 +1008,9 @@ export default function LinkInsightsPage({ params }: PageProps) {
               </div>
             )}
           </CardContent>
-        </Card>
-      </div>
-    </PageShell>
+        </Card >
+      </div >
+    </PageShell >
   )
 }
 
