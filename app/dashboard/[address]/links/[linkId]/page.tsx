@@ -542,16 +542,16 @@ export default function LinkInsightsPage({ params }: PageProps) {
     return null
   }
 
-  const displayTitle = link.title || 'Untitled link'
-  const displayUrl = shortenUrl(link.url)
-  const redirectPath = getRedirectPath(link.id)
+  const displayTitle = link.title || 'Untitled link';
+  const displayUrl = shortenUrl(link.url);
+  const redirectPath = getRedirectPath(link.id);
 
   const lastClickedLabel =
     analytics.lastClickedTs != null
       ? formatDistanceToNow(new Date(analytics.lastClickedTs), { addSuffix: true })
-      : 'Never'
+      : 'Never';
 
-  const ctrLabel = analytics.ctr !== null ? `${(analytics.ctr * 100).toFixed(1)}%` : '-'
+  const ctrLabel = analytics.ctr !== null ? `${(analytics.ctr * 100).toFixed(1)}%` : '-';
 
   return (
     <PageShell
