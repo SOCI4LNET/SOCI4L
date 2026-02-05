@@ -590,8 +590,6 @@ export default function LinkInsightsPage({ params }: PageProps) {
           </TooltipProvider>
         </div>
 
-      </TooltipProvider >
-    </div >
 
         {/* Time range selector */ }
   <div className="flex items-center justify-between gap-2">
