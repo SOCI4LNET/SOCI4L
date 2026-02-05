@@ -2057,10 +2057,10 @@ export function LinksPanel() {
 
                                       if (response.ok) {
                                         toast.success('Verified!', { id: toastId })
-                                        // Force reload to update UI state
                                         window.location.reload()
                                       } else {
-                                        toast.error('Verification failed', { id: toastId })
+                                        const data = await response.json()
+                                        toast.error(data.error || 'Verification failed', { id: toastId })
                                       }
                                     } catch (e) {
                                       toast.error('Failed to connect')
