@@ -18,7 +18,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
 } from '@/components/ui/dropdown-menu'
-import { Copy, Share2, QrCode, LogOut, LayoutDashboard, User, Settings, Sparkles, Link2, BarChart2, Sun, Moon, Laptop } from 'lucide-react'
+import { Copy, Share2, QrCode, LogOut, LayoutDashboard, User, Settings, Sparkles, Link2, BarChart2, Sun, Moon, Laptop, ShieldCheck } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { formatAddress } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -26,6 +26,7 @@ import { getConnectedDashboardHref, getCurrentProfileAddressFromRoute, getPublic
 import { QRCodeModal } from '@/components/qr/qr-code-modal'
 import { useDisconnect } from 'wagmi'
 import { WalletConnectButtons } from '@/components/wallet-connect-buttons'
+import { useServerAuth } from '@/hooks/use-server-auth'
 
 export function HeaderActions() {
   const [mounted, setMounted] = useState(false)
@@ -41,6 +42,7 @@ export function HeaderActions() {
   const router = useRouter()
   const params = useParams()
   const pathname = usePathname()
+  const { ensureSession } = useServerAuth()
 
   useEffect(() => {
     setMounted(true)
@@ -303,6 +305,16 @@ export function HeaderActions() {
                   <DropdownMenuItem onClick={handleDashboard}>
                     <LayoutDashboard className="mr-2 h-4 w-4" />
                     <span>Dashboard</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={async () => {
+                    toast.promise(ensureSession(), {
+                      loading: 'Verifying session...',
+                      success: 'Session verified!',
+                      error: 'Verification failed'
+                    })
+                  }}>
+                    <ShieldCheck className="mr-2 h-4 w-4" />
+                    <span>Verify Session</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handlePublicProfile} disabled={!publicProfileHref}>
                     <User className="mr-2 h-4 w-4" />
