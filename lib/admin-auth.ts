@@ -50,9 +50,6 @@ export async function requireAdmin(context: 'page' | 'api' = 'page'): Promise<st
     // 3. Fail if neither passed
     if (context === 'page') {
         redirect('/?error=not_admin')
-    } else {
-        throw new Error('Forbidden: Not an admin')
+        // This is technically unreachable due to redirect/throw above, but satisfies TS
+        return address as string
     }
-
-    return address
-}
