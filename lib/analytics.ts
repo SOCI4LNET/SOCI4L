@@ -111,7 +111,8 @@ function shouldLogProfileView(profileId: string, source: AnalyticsSource): boole
 
 export function trackProfileView(
   profileId: string,
-  source: AnalyticsSource = 'unknown'
+  source: AnalyticsSource = 'unknown',
+  visitorWallet?: string
 ): void {
   if (!profileId) return
 
@@ -129,6 +130,7 @@ export function trackProfileView(
         type: 'profile_view',
         profileId: normalizedProfileId,
         source,
+        visitorWallet: visitorWallet || undefined,
         referrer: window.document.referrer || null,
       })
       const url = '/api/analytics/event'

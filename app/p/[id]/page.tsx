@@ -388,7 +388,7 @@ export default function ProfilePage({ params }: PageProps) {
 
     // Track view with source attribution from URL query params
     const source = getSourceFromUrl(searchParams)
-    trackProfileView(stableProfileId, source)
+    trackProfileView(stableProfileId, source, connectedAddress || undefined)
 
     // Mark as tracked for this profile ID to prevent double invoke
     trackedProfileIdRef.current = stableProfileId

@@ -32,12 +32,12 @@ export async function POST(request: NextRequest) {
     // Note: trackLinkClick and trackProfileView are client-side functions
     // that use localStorage. They cannot be called from the server.
     // This endpoint returns instructions for the client to call them.
-    
+
     return NextResponse.json({
       success: true,
       message: 'Use client-side functions to seed data',
       instructions: {
-        profileView: `trackProfileView('${address}', 'unknown')`,
+        profileView: `trackProfileView('${address}', 'unknown', '0x123...abc')`,
         linkClick: linkId ? `trackLinkClick('${address}', '${linkId}', 'unknown', null)` : 'No linkId provided',
       },
       note: 'These functions must be called from the browser console or a client component',
