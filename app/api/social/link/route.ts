@@ -79,3 +79,45 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
     }
 }
+
+export async function DELETE(req: NextRequest) {
+    try {
+        const sessionOwner = await getSessionAddress()
+
+        // Get data from query params
+        const url = new URL(req.url)
+        const platform = url.searchParams.get('platform')
+        const walletAddress = url.searchParams.get('walletAddress')
+
+        if (!platform) {
+            return NextResponse.json({ error: 'Missing platform parameter' }, { status: 400 })
+        }
+
+        const effectiveAddress = sessionOwner || walletAddress
+
+        if (!effectiveAddress) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
+        const profile = await prisma.profile.findUnique({
+            where: { address: effectiveAddress.toLowerCase() }
+        })
+
+        if (!profile) {
+            return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+        }
+
+        // Delete the connection
+        await prisma.socialConnection.deleteMany({
+            where: {
+                profileId: profile.id,
+                platform: platform
+            }
+        })
+
+        return NextResponse.json({ success: true })
+    } catch (error) {
+        console.error('[API] Social Unlink Error:', error)
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    }
+}

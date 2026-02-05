@@ -2000,92 +2000,126 @@ export function LinksPanel() {
 
                               if (isVerified) {
                                 return (
-                                  <Badge variant="outline" className="h-5 px-1.5 gap-1 text-[10px] font-normal text-green-600 border-green-600/30 bg-green-500/5">
-                                    <CheckCircle className="h-3 w-3" />
-                                    Verified
-                                  </Badge>
-                                )
-                              }
-
-                              if (!twitterUser) {
                                 return (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-5 px-2 text-[10px]"
-                                    onClick={async () => {
-                                      if (!privyReady) {
-                                        toast.error('Twitter verification is currently unavailable. Please try again later.')
-                                        return
-                                      }
+                                  <div className="flex flex-col gap-1 items-start">
+                                    <Badge variant="outline" className="h-5 px-1.5 gap-1 text-[10px] font-normal text-green-600 border-green-600/30 bg-green-500/5">
+                                      <CheckCircle className="h-3 w-3" />
+                                      Verified
+                                    </Badge>
+                                    <button
+                                      className="text-[10px] text-muted-foreground hover:text-red-500 underline ml-0.5"
+                                      onClick={async () => {
+                                        if (!confirm('Are you sure you want to remove this verification?')) return
 
-                                      // If not authenticated, show Twitter-only login
-                                      if (!authenticated) {
-                                        setPendingTwitterLink(true)
-                                        await login({ loginMethods: ['twitter'] })
-                                        return
-                                      }
+                                        try {
+                                          const toastId = toast.loading('Removing verification...')
+                                          // 1. Remove from DB
+                                          await fetch(`/api/social/link?platform=${link.platform}&walletAddress=${targetAddress}`, {
+                                            method: 'DELETE'
+                                          })
 
-                                      // Already authenticated, link Twitter
-                                      linkTwitter()
-                                    }}
-                                    disabled={!privyReady}
-                                  >
-                                    Verify
-                                  </Button>
+                                          // 2. Unlink from Privy (client-side session)
+                                          if (privyReady && authenticated && twitterUser) {
+                                            try {
+                                              await unlinkTwitter(twitterUser.subject)
+                                            } catch (e) {
+                                              console.warn('Privy unlink failed (might be already unlinked)', e)
+                                            }
+                                          }
+
+                                          toast.success('Unlinked successfully', { id: toastId })
+                                          window.location.reload()
+                                        } catch (e) {
+                                          toast.error('Failed to unlink')
+                                        }
+                                      }}
+                                    >
+                                      Unlink / Remove
+                                    </button>
+                                  </div>
+                                )
                                 )
                               }
 
-                              return (
-                                <div className="flex flex-col gap-1 items-start">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-5 px-2 text-[10px]"
-                                    onClick={async () => {
-                                      try {
-                                        const toastId = toast.loading('Verifying...')
-                                        const response = await fetch('/api/social/link', {
-                                          method: 'POST',
-                                          headers: { 'Content-Type': 'application/json' },
-                                          body: JSON.stringify({
-                                            platform: 'twitter',
-                                            platformUsername: twitterUser.username,
-                                            platformUserId: twitterUser.subject,
-                                            walletAddress: targetAddress,
-                                          }),
-                                        })
+                          if (!twitterUser) {
+                                return (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-5 px-2 text-[10px]"
+                            onClick={async () => {
+                              if (!privyReady) {
+                                toast.error('Twitter verification is currently unavailable. Please try again later.')
+                                return
+                              }
 
-                                        if (response.ok) {
-                                          toast.success('Verified!', { id: toastId })
-                                          window.location.reload()
-                                        } else {
-                                          const data = await response.json()
-                                          toast.error(data.error || 'Verification failed', { id: toastId })
-                                        }
-                                      } catch (e) {
-                                        toast.error('Failed to connect')
-                                      }
-                                    }}
-                                  >
-                                    Verify
-                                  </Button>
-                                  <button
-                                    className="text-[10px] text-muted-foreground hover:text-red-500 underline"
-                                    onClick={async () => {
-                                      try {
-                                        await unlinkTwitter(twitterUser.subject)
-                                        toast.success('Twitter disconnected. Link a new account.')
-                                        // No reload needed, usePrivy updates automatically
-                                      } catch (e) {
-                                        toast.error('Failed to disconnect')
-                                      }
-                                    }}
-                                  >
-                                    Wrong account? Change
-                                  </button>
-                                </div>
-                              )
+                              // If not authenticated, show Twitter-only login
+                              if (!authenticated) {
+                                setPendingTwitterLink(true)
+                                await login({ loginMethods: ['twitter'] })
+                                return
+                              }
+
+                              // Already authenticated, link Twitter
+                              linkTwitter()
+                            }}
+                            disabled={!privyReady}
+                          >
+                            Verify
+                          </Button>
+                          )
+                              }
+
+                          return (
+                          <div className="flex flex-col gap-1 items-start">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-5 px-2 text-[10px]"
+                              onClick={async () => {
+                                try {
+                                  const toastId = toast.loading('Verifying...')
+                                  const response = await fetch('/api/social/link', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                      platform: 'twitter',
+                                      platformUsername: twitterUser.username,
+                                      platformUserId: twitterUser.subject,
+                                      walletAddress: targetAddress,
+                                    }),
+                                  })
+
+                                  if (response.ok) {
+                                    toast.success('Verified!', { id: toastId })
+                                    window.location.reload()
+                                  } else {
+                                    const data = await response.json()
+                                    toast.error(data.error || 'Verification failed', { id: toastId })
+                                  }
+                                } catch (e) {
+                                  toast.error('Failed to connect')
+                                }
+                              }}
+                            >
+                              Verify
+                            </Button>
+                            <button
+                              className="text-[10px] text-muted-foreground hover:text-red-500 underline"
+                              onClick={async () => {
+                                try {
+                                  await unlinkTwitter(twitterUser.subject)
+                                  toast.success('Twitter disconnected. Link a new account.')
+                                  // No reload needed, usePrivy updates automatically
+                                } catch (e) {
+                                  toast.error('Failed to disconnect')
+                                }
+                              }}
+                            >
+                              Wrong account? Change
+                            </button>
+                          </div>
+                          )
                             })()
                           )}
                         </div>
