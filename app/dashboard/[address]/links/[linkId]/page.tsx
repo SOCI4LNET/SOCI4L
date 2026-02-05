@@ -817,145 +817,145 @@ export default function LinkInsightsPage({ params }: PageProps) {
                       <th className="py-2 text-right font-medium">Source</th>
                     </tr>
                   </thead>
-                    {/* Access linkEvents from filter logic (need to duplicate logic or memoize differently if not accessible) 
+                  {/* Access linkEvents from filter logic (need to duplicate logic or memoize differently if not accessible) 
                           Actually we can access 'analytics.linkEvents' if we expose it in the useMemo above.
                           Let's check if we exposed it. We didn't. 
                           We will rely on serverEvents filtering here since we are inside the component.
                       */}
-                    {(() => {
-                      const now = Date.now()
-                      const fromTs = range === 'all'
-                        ? 0
-                        : range === '24h'
-                          ? now - 24 * 60 * 60 * 1000
-                          : range === '7d'
-                            ? now - 7 * 24 * 60 * 60 * 1000
-                            : now - 30 * 24 * 60 * 60 * 1000
+                  {(() => {
+                    const now = Date.now()
+                    const fromTs = range === 'all'
+                      ? 0
+                      : range === '24h'
+                        ? now - 24 * 60 * 60 * 1000
+                        : range === '7d'
+                          ? now - 7 * 24 * 60 * 60 * 1000
+                          : now - 30 * 24 * 60 * 60 * 1000
 
-                      const filteredEvents = (serverEvents || [])
-                        .filter(e => e.type === 'link_click' && e.linkId === linkId && e.ts >= fromTs)
-                        .sort((a, b) => b.ts - a.ts)
+                    const filteredEvents = (serverEvents || [])
+                      .filter(e => e.type === 'link_click' && e.linkId === linkId && e.ts >= fromTs)
+                      .sort((a, b) => b.ts - a.ts)
 
-                      const totalIds = filteredEvents.length
-                      const totalPages = Math.ceil(totalIds / CLICKS_PER_PAGE)
-                      const startIdx = (clickPage - 1) * CLICKS_PER_PAGE
-                      const paginatedEvents = filteredEvents.slice(startIdx, startIdx + CLICKS_PER_PAGE)
+                    const totalIds = filteredEvents.length
+                    const totalPages = Math.ceil(totalIds / CLICKS_PER_PAGE)
+                    const startIdx = (clickPage - 1) * CLICKS_PER_PAGE
+                    const paginatedEvents = filteredEvents.slice(startIdx, startIdx + CLICKS_PER_PAGE)
 
-                      if (paginatedEvents.length === 0) {
-                        return (
-                          <tr>
-                            <td colSpan={5} className="py-4 text-center text-muted-foreground py-2">{clickPage === 1 ? 'No clicks in this time range.' : 'No more clicks.'}</td>
-                          </tr>
-                        )
-                      }
-
+                    if (paginatedEvents.length === 0) {
                       return (
-                        <>
-                          {paginatedEvents.map(event => (
-                            <tr key={`${event.ts}-${Math.random()}`} className="border-b border-border/40 last:border-0 hover:bg-muted/30">
-                              <td className="py-2 text-left text-muted-foreground">
-                                {formatDistanceToNow(new Date(event.ts), { addSuffix: true })}
-                              </td>
-                              <td className="py-2 text-left font-mono">
-                                {event.visitorWallet ? (
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-primary bg-primary/10 px-1.5 py-0.5 rounded text-[10px]">
-                                      {event.visitorWallet.slice(0, 6)}...{event.visitorWallet.slice(-4)}
-                                    </span>
-                                    <TooltipProvider>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button
-                                            variant="ghost"
-                                            className="h-4 w-4 p-0 hover:bg-transparent text-muted-foreground/50 hover:text-foreground"
-                                            onClick={() => {
-                                              navigator.clipboard.writeText(event.visitorWallet!)
-                                              toast.success('Address copied')
-                                            }}
-                                          >
-                                            <Copy className="h-2.5 w-2.5" />
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>Copy address</TooltipContent>
-                                      </Tooltip>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button
-                                            variant="ghost"
-                                            className="h-4 w-4 p-0 hover:bg-transparent text-muted-foreground/50 hover:text-foreground"
-                                            onClick={() => window.open(`/dashboard/${event.visitorWallet}`, '_blank')}
-                                          >
-                                            <ExternalLink className="h-2.5 w-2.5" />
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>Go to profile</TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                  </div>
-                                )}
-                              </td>
-                              <td className="py-2 text-left max-w-[120px] truncate" title={event.referrer || ''}>
-                                {event.referrer ? (
-                                  <span className="font-mono text-[10px] text-muted-foreground">
-                                    {(() => {
-                                      try {
-                                        return new URL(event.referrer).hostname.replace('www.', '')
-                                      } catch {
-                                        return event.referrer
-                                      }
-                                    })()}
+                        <tr>
+                          <td colSpan={5} className="py-4 text-center text-muted-foreground py-2">{clickPage === 1 ? 'No clicks in this time range.' : 'No more clicks.'}</td>
+                        </tr>
+                      )
+                    }
+
+                    return (
+                      <>
+                        {paginatedEvents.map(event => (
+                          <tr key={`${event.ts}-${Math.random()}`} className="border-b border-border/40 last:border-0 hover:bg-muted/30">
+                            <td className="py-2 text-left text-muted-foreground">
+                              {formatDistanceToNow(new Date(event.ts), { addSuffix: true })}
+                            </td>
+                            <td className="py-2 text-left font-mono">
+                              {event.visitorWallet ? (
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-primary bg-primary/10 px-1.5 py-0.5 rounded text-[10px]">
+                                    {event.visitorWallet.slice(0, 6)}...{event.visitorWallet.slice(-4)}
                                   </span>
-                                ) : (
-                                  <span className="text-muted-foreground/30">-</span>
-                                )}
-                              </td>
-                              <td className="py-2 text-left">
-                                <div className="flex flex-col text-[10px] leading-tight text-muted-foreground">
-                                  <span>{event.device || '-'}</span>
-                                  <span className="opacity-70">{event.country || '-'}</span>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          className="h-4 w-4 p-0 hover:bg-transparent text-muted-foreground/50 hover:text-foreground"
+                                          onClick={() => {
+                                            navigator.clipboard.writeText(event.visitorWallet!)
+                                            toast.success('Address copied')
+                                          }}
+                                        >
+                                          <Copy className="h-2.5 w-2.5" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>Copy address</TooltipContent>
+                                    </Tooltip>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          className="h-4 w-4 p-0 hover:bg-transparent text-muted-foreground/50 hover:text-foreground"
+                                          onClick={() => window.open(`/dashboard/${event.visitorWallet}`, '_blank')}
+                                        >
+                                          <ExternalLink className="h-2.5 w-2.5" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>Go to profile</TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
                                 </div>
-                              </td>
-                              <td className="py-2 text-right">
-                                <Badge variant="outline" className="text-[10px] font-normal h-5 ml-auto">
-                                  {event.source}
-                                </Badge>
-                              </td>
-                            </tr>
-                          ))}
-                          {/* Pagination Controls */}
-                          {totalIds > CLICKS_PER_PAGE && (
-                            <tr>
-                              <td colSpan={5} className="pt-4 pb-2">
-                                <div className="flex items-center justify-between">
-                                  <div className="text-xs text-muted-foreground">
-                                    Showing {startIdx + 1}-{Math.min(startIdx + CLICKS_PER_PAGE, totalIds)} of {totalIds}
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="h-7 text-xs"
-                                      disabled={clickPage === 1}
-                                      onClick={() => setClickPage(p => p - 1)}
-                                    >
-                                      Previous
-                                    </Button>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="h-7 text-xs"
-                                      disabled={clickPage >= totalPages}
-                                      onClick={() => setClickPage(p => p + 1)}
-                                    >
-                                      Next
-                                    </Button>
-                                  </div>
+                              )}
+                            </td>
+                            <td className="py-2 text-left max-w-[120px] truncate" title={event.referrer || ''}>
+                              {event.referrer ? (
+                                <span className="font-mono text-[10px] text-muted-foreground">
+                                  {(() => {
+                                    try {
+                                      return new URL(event.referrer).hostname.replace('www.', '')
+                                    } catch {
+                                      return event.referrer
+                                    }
+                                  })()}
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground/30">-</span>
+                              )}
+                            </td>
+                            <td className="py-2 text-left">
+                              <div className="flex flex-col text-[10px] leading-tight text-muted-foreground">
+                                <span>{event.device || '-'}</span>
+                                <span className="opacity-70">{event.country || '-'}</span>
+                              </div>
+                            </td>
+                            <td className="py-2 text-right">
+                              <Badge variant="outline" className="text-[10px] font-normal h-5 ml-auto">
+                                {event.source}
+                              </Badge>
+                            </td>
+                          </tr>
+                        ))}
+                        {/* Pagination Controls */}
+                        {totalIds > CLICKS_PER_PAGE && (
+                          <tr>
+                            <td colSpan={5} className="pt-4 pb-2">
+                              <div className="flex items-center justify-between">
+                                <div className="text-xs text-muted-foreground">
+                                  Showing {startIdx + 1}-{Math.min(startIdx + CLICKS_PER_PAGE, totalIds)} of {totalIds}
                                 </div>
-                              </td>
-                            </tr>
-                          )}
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-7 text-xs"
+                                    disabled={clickPage === 1}
+                                    onClick={() => setClickPage(p => p - 1)}
+                                  >
+                                    Previous
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-7 text-xs"
+                                    disabled={clickPage >= totalPages}
+                                    onClick={() => setClickPage(p => p + 1)}
+                                  >
+                                    Next
+                                  </Button>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
                     })()}
-                        </tbody >
+                      </tbody >
                 </table>
               </div>
             )}
