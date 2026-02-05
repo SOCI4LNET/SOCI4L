@@ -99,18 +99,17 @@ export default function HomePage() {
                   <Button
                     size="sm"
                     onClick={openDashboard}
-                    className="gap-2 shadow-sm transition-transform hover:-translate-y-0.5"
+                    className="gap-2 shadow-xl shadow-primary/20 transition-all hover:-translate-y-0.5"
                   >
-                    <LayoutDashboard className="h-3.5 w-3.5" />
-                    Open Dashboard
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Claim your profile
                   </Button>
                   <Button
                     size="sm"
-                    variant="outline"
+                    variant="ghost"
                     onClick={tryDemo}
-                    className="gap-2 border-border/70 bg-background/60 transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-primary/5"
+                    className="gap-2 transition-all hover:-translate-y-0.5 opacity-70 hover:opacity-100"
                   >
-                    <Wand2 className="h-3.5 w-3.5 text-primary" />
                     Try Demo
                   </Button>
                 </div>
