@@ -294,7 +294,7 @@ void main() {
                 uniforms.uBlindCount.value = Math.max(1, blindCount);
             }
 
-            if (firstResizeRef.current) {
+            if (firstResizeRef.current && rect.width > 0 && rect.height > 0) {
                 firstResizeRef.current = false;
                 const cx = gl.drawingBufferWidth / 2;
                 const cy = gl.drawingBufferHeight / 2;

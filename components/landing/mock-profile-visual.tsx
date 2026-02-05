@@ -160,7 +160,7 @@ export function MockProfileVisual() {
     }, [])
 
     return (
-        <div className="w-full max-w-[600px] bg-card/95 backdrop-blur-sm rounded-xl border border-border/60 shadow-xl p-6 relative overflow-hidden font-sans select-none">
+        <div className="w-full max-w-[600px] bg-card/95 backdrop-blur-sm rounded-xl border border-border/60 shadow-xl dark:shadow-none p-6 relative overflow-hidden font-sans select-none">
 
             {/* Custom Cursor Overlay */}
             <motion.div

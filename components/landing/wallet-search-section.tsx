@@ -92,7 +92,7 @@ export function WalletSearchSection() {
 
                     <div className="relative max-w-xl mx-auto w-full group z-20">
                         {/* Premium Gradient Border Wrapper */}
-                        <div className="relative p-[1px] rounded-xl bg-gradient-to-b from-border/50 to-border/10 shadow-2xl overflow-visible transition-all duration-300 hover:from-primary/50 hover:to-primary/10">
+                        <div className="relative p-[1px] rounded-xl bg-gradient-to-b from-border/50 to-border/10 shadow-2xl dark:shadow-none overflow-visible transition-all duration-300 hover:from-primary/50 hover:to-primary/10">
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl" />
 
                             <Command
@@ -116,7 +116,7 @@ export function WalletSearchSection() {
 
                                 <div className="relative">
                                     {open && results.length > 0 && (
-                                        <div className="absolute top-2 left-0 right-0 bg-popover border border-border rounded-xl overflow-hidden shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-200 text-popover-foreground">
+                                        <div className="absolute top-2 left-0 right-0 bg-popover border border-border rounded-xl overflow-hidden shadow-2xl dark:shadow-none z-50 animate-in fade-in zoom-in-95 duration-200 text-popover-foreground">
                                             <CommandList>
                                                 <CommandGroup heading="Results">
                                                     {results.map((result) => (
@@ -164,7 +164,7 @@ export function WalletSearchSection() {
                                 <button
                                     key={tag}
                                     onClick={() => setQuery(tag)}
-                                    className="px-4 py-1.5 rounded-full bg-muted/50 border border-border/50 hover:border-primary/40 hover:bg-primary/5 hover:text-primary transition-all font-mono text-xs shadow-sm text-muted-foreground"
+                                    className="px-4 py-1.5 rounded-full bg-muted/50 border border-border/50 hover:border-primary/40 hover:bg-primary/5 hover:text-primary transition-all font-mono text-xs shadow-sm dark:shadow-none text-muted-foreground"
                                 >
                                     {tag}
                                 </button>
