@@ -44,12 +44,21 @@ export async function requireAdmin(context: 'page' | 'api' = 'page'): Promise<st
         console.error('[AdminAuth] DB check failed:', error)
         if (context === 'page') {
             redirect('/?error=admin_db_fail')
+        } else {
+            throw new Error('Internal Server Error: Admin DB check failed')
         }
     }
 
     // 3. Fail if neither passed
     if (context === 'page') {
         redirect('/?error=not_admin')
-        // This is technically unreachable due to redirect/throw above, but satisfies TS
-        return address as string
+    } else {
+        throw new Error('Forbidden: Not an admin')
     }
+
+    // This line is technically unreachable due to redirect/throw above, but satisfies TS
+    // if the function were to somehow continue execution without redirecting or throwing.
+    // However, given the logic, it will always exit before this point if not an admin.
+    return address as string
+}
+```
