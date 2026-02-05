@@ -2005,36 +2005,52 @@ export function LinksPanel() {
                                       <CheckCircle className="h-3 w-3" />
                                       Verified
                                     </Badge>
-                                    <button
-                                      className="text-[10px] text-muted-foreground hover:text-red-500 underline ml-0.5"
-                                      onClick={async () => {
-                                        if (!confirm('Are you sure you want to remove this verification?')) return
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <button className="text-[10px] text-muted-foreground hover:text-red-500 underline ml-0.5">
+                                          Unlink / Remove
+                                        </button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>Remove Verification?</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            This will disconnect your {link.platform === 'x' ? 'Twitter/X' : link.platform} account from your profile. You can reconnect it at any time.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                          <AlertDialogAction
+                                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                            onClick={async () => {
+                                              try {
+                                                const toastId = toast.loading('Removing verification...')
+                                                // 1. Remove from DB
+                                                await fetch(`/api/social/link?platform=${link.platform}&walletAddress=${targetAddress}`, {
+                                                  method: 'DELETE'
+                                                })
 
-                                        try {
-                                          const toastId = toast.loading('Removing verification...')
-                                          // 1. Remove from DB
-                                          await fetch(`/api/social/link?platform=${link.platform}&walletAddress=${targetAddress}`, {
-                                            method: 'DELETE'
-                                          })
+                                                // 2. Unlink from Privy (client-side session)
+                                                if (privyReady && authenticated && twitterUser) {
+                                                  try {
+                                                    await unlinkTwitter(twitterUser.subject)
+                                                  } catch (e) {
+                                                    console.warn('Privy unlink failed', e)
+                                                  }
+                                                }
 
-                                          // 2. Unlink from Privy (client-side session)
-                                          if (privyReady && authenticated && twitterUser) {
-                                            try {
-                                              await unlinkTwitter(twitterUser.subject)
-                                            } catch (e) {
-                                              console.warn('Privy unlink failed (might be already unlinked)', e)
-                                            }
-                                          }
-
-                                          toast.success('Unlinked successfully', { id: toastId })
-                                          window.location.reload()
-                                        } catch (e) {
-                                          toast.error('Failed to unlink')
-                                        }
-                                      }}
-                                    >
-                                      Unlink / Remove
-                                    </button>
+                                                toast.success('Unlinked successfully', { id: toastId })
+                                                window.location.reload()
+                                              } catch (e) {
+                                                toast.error('Failed to unlink')
+                                              }
+                                            }}
+                                          >
+                                            Remove
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
                                   </div>
                                 )
                               }
