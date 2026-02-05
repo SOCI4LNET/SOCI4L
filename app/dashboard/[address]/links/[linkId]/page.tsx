@@ -589,52 +589,46 @@ export default function LinkInsightsPage({ params }: PageProps) {
             </div>
           </TooltipProvider>
         </div>
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Copy redirect link</TooltipContent>
-              </Tooltip >
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={handleBackToLinks}
-                    aria-label="Edit link in Links page"
-                  >
-                    <BarChart2 className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Edit link in Links page</TooltipContent>
-              </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={handleBackToLinks}
+              aria-label="Edit link in Links page"
+            >
+              <BarChart2 className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Edit link in Links page</TooltipContent>
+        </Tooltip>
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    variant={link.enabled ? 'default' : 'outline'}
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={handleToggleEnabled}
-                    aria-label={link.enabled ? 'Disable link' : 'Enable link'}
-                  >
-                    {link.enabled ? (
-                      <ToggleRight className="h-4 w-4" />
-                    ) : (
-                      <ToggleLeft className="h-4 w-4" />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {link.enabled ? 'Disable link (hide on profile)' : 'Enable link (show on profile)'}
-                </TooltipContent>
-              </Tooltip>
-            </div >
-          </TooltipProvider >
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant={link.enabled ? 'default' : 'outline'}
+              size="icon"
+              className="h-8 w-8"
+              onClick={handleToggleEnabled}
+              aria-label={link.enabled ? 'Disable link' : 'Enable link'}
+            >
+              {link.enabled ? (
+                <ToggleRight className="h-4 w-4" />
+              ) : (
+                <ToggleLeft className="h-4 w-4" />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {link.enabled ? 'Disable link (hide on profile)' : 'Enable link (show on profile)'}
+          </TooltipContent>
+        </Tooltip>
+      </div >
+    </TooltipProvider >
         </div >
 
     {/* Time range selector */ }
