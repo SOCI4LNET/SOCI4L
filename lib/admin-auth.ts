@@ -61,4 +61,4 @@ export async function requireAdmin(context: 'page' | 'api' = 'page'): Promise<st
     // However, given the logic, it will always exit before this point if not an admin.
     return address as string
 }
-```
+
