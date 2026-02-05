@@ -167,46 +167,47 @@ export function trackLinkClick(
   if (options?.skipServer) return
 
   // Best-effort server-side analytics (sendBeacon survives redirect; fetch is often aborted)
-  if (typeof window !== 'undefined') {
-    // Parse UTM parameters
-    const params = new URLSearchParams(window.location.search)
-    const utmSource = params.get('utm_source')
-    const utmMedium = params.get('utm_medium')
-    const utmCampaign = params.get('utm_campaign')
-    const utmTerm = params.get('utm_term')
-    const utmContent = params.get('utm_content')
+  try {
+    if (typeof window !== 'undefined') {
+      // Parse UTM parameters
+      const params = new URLSearchParams(window.location.search)
+      const utmSource = params.get('utm_source')
+      const utmMedium = params.get('utm_medium')
+      const utmCampaign = params.get('utm_campaign')
+      const utmTerm = params.get('utm_term')
+      const utmContent = params.get('utm_content')
 
-    const payload = JSON.stringify({
-      type: 'link_click',
-      profileId: normalizedProfileId,
-      linkId,
-      linkTitle: linkTitle || undefined,
-      linkUrl: linkUrl || undefined,
-      categoryId: categoryId || undefined,
-      source,
-      visitorWallet: visitorWallet || undefined,
-      referrer: window.document.referrer || null,
-      utmSource,
-      utmMedium,
-      utmCampaign,
-      utmTerm,
-      utmContent,
-    })
-    const url = '/api/analytics/event'
-    if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
-      const blob = new Blob([payload], { type: 'application/json' })
-      navigator.sendBeacon(url, blob)
-    } else {
-      fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: payload,
-      }).catch(() => { })
+      const payload = JSON.stringify({
+        type: 'link_click',
+        profileId: normalizedProfileId,
+        linkId,
+        linkTitle: linkTitle || undefined,
+        linkUrl: linkUrl || undefined,
+        categoryId: categoryId || undefined,
+        source,
+        visitorWallet: visitorWallet || undefined,
+        referrer: window.document.referrer || null,
+        utmSource,
+        utmMedium,
+        utmCampaign,
+        utmTerm,
+        utmContent,
+      })
+      const url = '/api/analytics/event'
+      if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+        const blob = new Blob([payload], { type: 'application/json' })
+        navigator.sendBeacon(url, blob)
+      } else {
+        fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+        }).catch(() => { })
+      }
     }
+  } catch (error) {
+    // ignore
   }
-} catch {
-  // ignore
-}
 }
 
 // Deprecated getters - always return empty/zero as local storage is no longer used for logs
