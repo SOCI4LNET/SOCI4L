@@ -11,6 +11,8 @@ import { ArrowLeft, Calendar, Copy, ExternalLink, Globe, LayoutGrid, Loader2, Mo
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 import { getEventsForProfile, type AnalyticsEvent } from '@/lib/analytics'
+import { useAccount, useSignMessage } from 'wagmi'
+import { useTransaction } from '@/components/providers/transaction-provider'
 
 type LinkItem = {
   id: string
@@ -19,6 +21,8 @@ type LinkItem = {
   enabled: boolean
   createdAt: string
   updatedAt: string
+  type?: 'custom' | 'social'
+  platform?: string
 }
 
 type StoredLinksState = {
@@ -172,6 +176,8 @@ function buildBuckets(now: number, events: AnalyticsEvent[], range: TimeRange): 
 
 export default function LinkInsightsPage({ params }: PageProps) {
   const router = useRouter()
+  const { signMessageAsync } = useSignMessage()
+  const { showTransactionLoader, hideTransactionLoader } = useTransaction()
   const [link, setLink] = useState<LinkItem | null>(null)
   const [linksLoaded, setLinksLoaded] = useState(false)
   const [range, setRange] = useState<TimeRange>('7d')
@@ -187,12 +193,14 @@ export default function LinkInsightsPage({ params }: PageProps) {
     const loadLink = async () => {
       try {
         setLoading(true)
+        // 1. Try fetching regular links
         const response = await fetch(`/api/profile/links?address=${encodeURIComponent(profileId)}`)
         if (!response.ok) {
           throw new Error('Failed to load links')
         }
         const data = await response.json()
         const found = (data.links || []).find((item: any) => item.id === linkId) || null
+
         if (found) {
           setLink({
             id: found.id,
@@ -201,7 +209,35 @@ export default function LinkInsightsPage({ params }: PageProps) {
             enabled: found.enabled,
             createdAt: found.createdAt || new Date().toISOString(),
             updatedAt: found.updatedAt || new Date().toISOString(),
+            type: 'custom',
           })
+        } else {
+          // 2. Try fetching social links (from wallet/profile endpoint)
+          const cacheBust = `${Date.now()}-${Math.random().toString(36).substring(7)}`
+          const profileResponse = await fetch(`/api/wallet?address=${encodeURIComponent(profileId)}&_t=${cacheBust}`, {
+            cache: 'no-store',
+          })
+
+          if (profileResponse.ok) {
+            const profileData = await profileResponse.json()
+            const socialLinks = profileData.profile?.socialLinks || []
+            const foundSocial = socialLinks.find((l: any) =>
+              l.id === linkId || `social-${l.url}` === linkId
+            )
+
+            if (foundSocial) {
+              setLink({
+                id: linkId, // Keep the ID from params
+                title: foundSocial.label || foundSocial.platform || 'Social Link',
+                url: foundSocial.url,
+                enabled: foundSocial.enabled !== false,
+                createdAt: new Date().toISOString(), // Social links don't have stored timestamps usually
+                updatedAt: new Date().toISOString(),
+                type: 'social',
+                platform: foundSocial.platform,
+              })
+            }
+          }
         }
       } catch (error) {
         console.error('[LinkDetail] Failed to load link from API', error)
@@ -338,6 +374,68 @@ export default function LinkInsightsPage({ params }: PageProps) {
   const handleToggleEnabled = async () => {
     if (!link) return
 
+    if (link.type === 'social') {
+      try {
+        // Social Link Toggle Logic
+        // 1. Get nonce
+        const nonceResponse = await fetch('/api/auth/nonce')
+        if (!nonceResponse.ok) throw new Error('Failed to get nonce')
+        const { nonce } = await nonceResponse.json()
+
+        // 2. Sign message
+        showTransactionLoader("Confirm in Wallet...")
+        const message = `Update social profile for ${profileId}. Nonce: ${nonce}`
+        const signature = await signMessageAsync({ message })
+
+        showTransactionLoader("Saving changes...")
+
+        // 3. Get current social links to ensure we update the latest state
+        const cacheBust = `${Date.now()}-${Math.random().toString(36).substring(7)}`
+        const profileResponse = await fetch(`/api/wallet?address=${encodeURIComponent(profileId)}&_t=${cacheBust}`, {
+          cache: 'no-store',
+        })
+        if (!profileResponse.ok) throw new Error('Failed to load profile')
+        const profileData = await profileResponse.json()
+        const currentSocialLinks = profileData.profile?.socialLinks || []
+
+        // 4. Update the specific link
+        const updatedLinks = currentSocialLinks.map((l: any) =>
+          (l.id === link.id || `social-${l.url}` === link.id)
+            ? { ...l, enabled: !link.enabled }
+            : l
+        )
+
+        // 5. Save
+        const response = await fetch('/api/profile/social', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            address: profileId,
+            socialLinks: updatedLinks,
+            signature
+          })
+        })
+
+        if (!response.ok) throw new Error('Failed to save social links')
+
+        // 6. Update local state
+        setLink({ ...link, enabled: !link.enabled })
+        toast.success(link.enabled ? 'Link disabled' : 'Link enabled')
+
+      } catch (error: any) {
+        console.error('[LinkDetail] Failed to toggle social link', error)
+        if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
+          toast.error('Transaction rejected')
+        } else {
+          toast.error('Failed to update link')
+        }
+      } finally {
+        hideTransactionLoader()
+      }
+      return
+    }
+
+    // Custom Link Toggle Logic (Existing)
     try {
       // Load all links
       const response = await fetch(`/api/profile/links?address=${encodeURIComponent(profileId)}`)
@@ -379,6 +477,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
       }
 
       const saveData = await saveResponse.json()
+      // For custom links, we look for the updated item in response
       const updated = (saveData.links || []).find((item: any) => item.id === link.id) || null
       if (updated) {
         setLink({
@@ -388,9 +487,13 @@ export default function LinkInsightsPage({ params }: PageProps) {
           enabled: updated.enabled,
           createdAt: updated.createdAt || new Date().toISOString(),
           updatedAt: updated.updatedAt || new Date().toISOString(),
+          type: 'custom',
         })
+      } else {
+        // Fallback if API doesn't return the item clearly or we are just updating state optimistically/based on input
+        setLink({ ...link, enabled: !link.enabled })
       }
-      toast.success(updated?.enabled ? 'Link enabled' : 'Link disabled')
+      toast.success(link.enabled ? 'Link disabled' : 'Link enabled')
     } catch (error) {
       console.error('[LinkDetail] Failed to toggle link enabled', error)
       toast.error('Failed to update link')

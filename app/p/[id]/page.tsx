@@ -98,7 +98,7 @@ export default function ProfilePage({ params }: PageProps) {
     statusMessage?: string | null
     isBanned?: boolean
     isVerified?: boolean
-    socialLinks?: Array<{ id?: string; platform?: string; type?: string; url: string; label?: string; verified?: boolean }> | null
+    socialLinks?: Array<{ id?: string; platform?: string; type?: string; url: string; label?: string; verified?: boolean; enabled?: boolean }> | null
   } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -242,7 +242,7 @@ export default function ProfilePage({ params }: PageProps) {
               primaryRole: data.profile.primaryRole,
               secondaryRoles: data.profile.secondaryRoles,
               statusMessage: data.profile.statusMessage,
-              statusMessage: data.profile.statusMessage,
+
               isBanned: data.profile.isBanned,
               isVerified: data.profile.isVerified,
               socialLinks: data.profile.socialLinks,
@@ -1032,6 +1032,7 @@ export default function ProfilePage({ params }: PageProps) {
                     // Add social links to "Socials" category (keep as special category)
                     if (profile?.socialLinks && profile.socialLinks.length > 0) {
                       profile.socialLinks.forEach((link, index) => {
+                        if (link.enabled === false) return
                         allLinks.push({
                           id: link.id || `social-${link.url}`,
                           title: getSocialLabel(link),

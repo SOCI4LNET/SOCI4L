@@ -39,6 +39,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Toggle } from '@/components/ui/toggle'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -60,7 +61,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
-import { Toggle } from '@/components/ui/toggle'
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -102,6 +103,7 @@ interface SocialLink {
   url: string
   label?: string
   verified?: boolean
+  enabled?: boolean
 }
 
 type StoredLinksState = {
@@ -494,6 +496,7 @@ function CategoryBlock({
 
 export function LinksPanel() {
   const params = useParams()
+  const router = useRouter()
   const searchParams = useSearchParams()
   const { user, linkTwitter, unlinkTwitter, ready: privyReady, authenticated, login } = usePrivy()
   const { address: connectedAddress } = useAccount()
@@ -825,6 +828,7 @@ export function LinksPanel() {
           url: link.url || '',
           label: link.label || '',
           verified: link.verified,
+          enabled: link.enabled !== false,
         })))
       } catch (error) {
         console.error('[LinksPanel] Failed to load social links', error)
@@ -891,6 +895,8 @@ export function LinksPanel() {
         platform: (link.platform || link.type || 'website') as SocialLinkPlatform,
         url: link.url || '',
         label: link.label || '',
+        verified: link.verified,
+        enabled: link.enabled !== false,
       })))
       return true
     } catch (error: any) {
@@ -905,6 +911,14 @@ export function LinksPanel() {
       setSocialLinksSaving(false)
       hideTransactionLoader()
     }
+  }
+
+  const handleToggleSocialEnabled = async (id: string, enabled: boolean) => {
+    const updated = socialLinks.map((link) =>
+      link.id === id ? { ...link, enabled } : link
+    )
+    setSocialLinks(updated)
+    await saveSocialLinks(updated)
   }
 
   const saveCategories = async (categoriesToSave: (Omit<LinkCategory, 'id' | 'createdAt' | 'updatedAt' | 'linkCount'> & { id?: string })[]) => {
@@ -1971,7 +1985,10 @@ export function LinksPanel() {
                 {sortSocialLinks(socialLinks).map((link) => (
                   <div
                     key={link.id}
-                    className="flex items-center gap-3 p-3 rounded-md border border-border/60 bg-muted/5 hover:bg-muted/20 transition-colors"
+                    className={`flex items-center gap-3 p-3 rounded-md border transition-colors ${link.enabled !== false
+                      ? 'border-border/60 bg-muted/5 hover:bg-muted/20'
+                      : 'border-border/40 bg-muted/5 opacity-60'
+                      }`}
                   >
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted/50 shrink-0">
@@ -1980,6 +1997,11 @@ export function LinksPanel() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <div className="text-sm font-medium">{getSocialLabel(link.platform)}</div>
+                          {!link.enabled && (
+                            <Badge variant="outline" className="text-[10px] h-4 px-1 text-muted-foreground border-border/40">
+                              Off
+                            </Badge>
+                          )}
                           {link.platform === 'x' && (
                             (() => {
                               const twitterUser = user?.twitter
@@ -2148,6 +2170,31 @@ export function LinksPanel() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
+                      <Toggle
+                        aria-label={`Toggle ${getSocialLabel(link.platform)}`}
+                        size="sm"
+                        variant="outline"
+                        pressed={link.enabled !== false}
+                        onPressedChange={(pressed) => handleToggleSocialEnabled(link.id, pressed)}
+                        className="h-8 px-2"
+                      >
+                        {link.enabled !== false ? 'On' : 'Off'}
+                      </Toggle>
+
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => {
+                          const id = link.id || `social-${link.url}`
+                          router.push(`/dashboard/${targetAddress}/links/${id}`)
+                        }}
+                        aria-label="View link details"
+                      >
+                        <BarChart2 className="h-3.5 w-3.5" />
+                      </Button>
+
                       <Button
                         type="button"
                         variant="ghost"
