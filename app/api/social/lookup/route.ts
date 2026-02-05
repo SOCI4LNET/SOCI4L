@@ -18,17 +18,17 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-        // 1. Find social connection by username/handle
-        // Note: platformUsername in DB should match the handle we are querying (case-insensitive search is better)
+        const cleanHandle = handle.startsWith('@') ? handle.slice(1) : handle
 
-        // Prisma case-insensitive search involves mode: 'insensitive'
+        // 1. Find social connection by username/handle
+        // Try to match both with and without '@' prefix for maximum compatibility
         const socialConnection = await prisma.socialConnection.findFirst({
             where: {
                 platform: platform,
-                platformUsername: {
-                    equals: handle,
-                    mode: 'insensitive'
-                }
+                OR: [
+                    { platformUsername: { equals: cleanHandle, mode: 'insensitive' } },
+                    { platformUsername: { equals: `@${cleanHandle}`, mode: 'insensitive' } }
+                ]
             },
             include: {
                 profile: true
@@ -42,19 +42,14 @@ export async function GET(req: NextRequest) {
         // 2. Return profile data if found
         const { profile } = socialConnection
 
-        // Privacy check? 
-        // If the profile is verified, we generally want to show it. 
-        // But if profile.visibility is PRIVATE, maybe we mask details?
-        // For now, let's return basic badge info regardless, as the purpose is verification.
-
         return NextResponse.json({
             isVerified: true,
             profile: {
                 displayName: profile.displayName,
                 slug: profile.slug,
                 address: profile.address,
-                bio: profile.bio, // Optional
-                avatarUrl: `https://effigy.im/a/${profile.address}.svg`, // Helper for extension
+                bio: profile.bio,
+                avatarUrl: `https://effigy.im/a/${profile.address}.svg`,
                 verifiedAt: socialConnection.verifiedAt
             }
         }, { status: 200, headers })
@@ -64,7 +59,6 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: 'Internal server error' }, { status: 500, headers })
     }
 }
-
 export async function OPTIONS(req: NextRequest) {
     return NextResponse.json({}, {
         headers: {

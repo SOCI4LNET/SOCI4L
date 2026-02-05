@@ -17,10 +17,9 @@ const verifiedHandles = new Map(); // handle -> profile data
 
 // Config
 const SELECTORS = {
-    // X.com selectors are tricky and obfuscated. We target robust attributes where possible
-    // Targeting the user name in the profile header and tweet headers
-    userName: '[data-testid="User-Name"]',
-    userLink: 'a[href*="/"]', // simplified
+    // X.com uses UserName and User-Name in different places
+    userName: '[data-testid="UserName"], [data-testid="User-Name"]',
+    userLink: 'a[href*="/"]',
 };
 
 /**
@@ -29,6 +28,13 @@ const SELECTORS = {
 function extractHandle(element) {
     // Logic to find @username inside the element
     // On X, the handle is usually in a span starting with @
+    const spans = element.querySelectorAll('span');
+    for (const span of spans) {
+        const text = span.innerText;
+        const match = text.match(/@([a-zA-Z0-9_]+)/);
+        if (match) return match[1];
+    }
+
     const text = element.innerText;
     const match = text.match(/@([a-zA-Z0-9_]+)/);
     if (match) return match[1];
@@ -38,7 +44,10 @@ function extractHandle(element) {
     if (anchor) {
         const href = anchor.getAttribute('href');
         if (href && href.startsWith('/') && !href.includes('/status/')) {
-            return href.substring(1);
+            const handle = href.substring(1);
+            if (!['home', 'explore', 'notifications', 'messages', 'i', 'settings'].includes(handle.toLowerCase())) {
+                return handle;
+            }
         }
     }
     return null;
@@ -50,20 +59,22 @@ function extractHandle(element) {
 async function checkVerification(handle) {
     if (processedHandles.has(handle)) return verifiedHandles.get(handle);
 
-    processedHandles.add(handle);
-
     try {
         const response = await fetch(`${API_BASE_URL}/api/social/lookup?platform=twitter&handle=${handle}`);
         if (response.ok) {
             const data = await response.json();
             if (data.isVerified) {
                 verifiedHandles.set(handle, data.profile);
+                processedHandles.add(handle);
                 return data.profile;
             }
         }
     } catch (err) {
         console.error("[SOCI4L] Lookup failed:", err);
     }
+
+    // If not verified, we still add to processed to skip repeated failed requests
+    processedHandles.add(handle);
     return null;
 }
 
@@ -71,16 +82,17 @@ async function checkVerification(handle) {
  * Inject Badge
  */
 function injectBadge(element, profile) {
-    if (element.querySelector('.soci4l-badge')) return; // Already injected
+    if (element.querySelector('.soci4l-badge') || element.closest('.soci4l-badge-container')) return; // Already injected
 
     const badge = document.createElement('span');
     badge.className = 'soci4l-badge';
+    badge.title = `SOCI4L Verified Profile: ${profile.displayName || profile.address}`;
     badge.innerHTML = BADGE_ICON + `
     <div class="soci4l-tooltip">
       <div class="soci4l-verified-text">
         <span>✓ SOCI4L Verified</span>
       </div>
-      <div>${profile.displayName || profile.address.slice(0, 6)}</div>
+      <div class="soci4l-profile-info">${profile.displayName || profile.address.slice(0, 6)}</div>
     </div>
   `;
 
@@ -90,15 +102,24 @@ function injectBadge(element, profile) {
         window.open(`${API_BASE_URL}/p/${profile.slug || profile.address}`, '_blank');
     };
 
-    // Find where to append. usually after the verification badge (blue check) or name
-    // X structure: Name -> (Verified Badge) -> @handle
-    // We want to insert AFTER the verified badge if it exists, or after the name
+    // We want to insert next to the display name, but after any existing verification badge
+    // X's structure: <span>DisplayName</span> <svgBadge />
 
-    // Try to find existing verified badge (svg with aria-label="Verified account")
-    const existingBadge = element.querySelector('svg[aria-label="Verified account"]');
-    if (existingBadge && existingBadge.parentElement) {
-        existingBadge.parentElement.insertAdjacentElement('afterend', badge);
+    // Look for verified badge near the element
+    const container = element.parentElement || element;
+    const existingBadge = container.querySelector('svg[aria-label*="Verified"], svg[aria-label*="doğrulanmış"], [data-testid="icon-verified"]');
+
+    if (existingBadge) {
+        // Find the outermost wrapper of the checkmark to insert next to it
+        let badgeWrapper = existingBadge;
+        while (badgeWrapper.parentElement &&
+            badgeWrapper.parentElement !== container &&
+            (badgeWrapper.parentElement.tagName === 'DIV' || badgeWrapper.parentElement.tagName === 'SPAN')) {
+            badgeWrapper = badgeWrapper.parentElement;
+        }
+        badgeWrapper.insertAdjacentElement('afterend', badge);
     } else {
+        // Fallback: search deeper if the element itself is just a span
         element.appendChild(badge);
     }
 }
@@ -110,22 +131,21 @@ function scanPage() {
     const userNameElements = document.querySelectorAll(SELECTORS.userName);
 
     userNameElements.forEach(async (el) => {
+        // Avoid re-processing same element too often
+        if (el.hasAttribute('data-soci4l-processed')) return;
+        el.setAttribute('data-soci4l-processed', 'true');
+
         const handle = extractHandle(el);
         if (!handle) return;
 
-        // Check cache or API
         const profile = await checkVerification(handle);
 
         if (profile) {
-            // Inject badge
-            // We look for the "Name" part specifically to append next to it, 
-            // avoiding the handle (@username) line if possible, or appending to the container
-
-            // X.com DOM is nested. We want to append next to the display name.
-            // Usually the first child of User-Name container has the display name.
-            const namePart = el.querySelector('div:first-child a span:first-child') || el.firstChild;
-            if (namePart) {
-                injectBadge(namePart.parentElement || el, profile);
+            // Target the display name specifically
+            // It's usually a span inside the first div/a
+            const nameWrapper = el.querySelector('span'); // First span is usually display name
+            if (nameWrapper) {
+                injectBadge(nameWrapper.parentElement || nameWrapper, profile);
             } else {
                 injectBadge(el, profile);
             }
@@ -133,15 +153,15 @@ function scanPage() {
     });
 }
 
-// Run scanner using MutationObserver
+// Run scanner using MutationObserver with debouncing
+let timeout = null;
 const observer = new MutationObserver((mutations) => {
-    // Debounce or just run? X is heavy, let's throttle slightly if needed
-    // For V1, just running scanPage is fine as it's efficient with Set checks
-    scanPage();
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(scanPage, 100);
 });
 
 observer.observe(document.body, { childList: true, subtree: true });
 
 // Initial scan
-setTimeout(scanPage, 1000);
+setTimeout(scanPage, 500);
 console.log("[SOCI4L] Observer started");
