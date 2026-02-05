@@ -591,7 +591,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
         </div>
 
 
-        {/* Time range selector */ }
+        {/* Time range selector */}
   <div className="flex items-center justify-between gap-2">
     <div className="flex items-center gap-2 text-xs text-muted-foreground">
       <Clock className="h-3.5 w-3.5" />
