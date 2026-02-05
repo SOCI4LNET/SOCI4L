@@ -33,20 +33,21 @@ export function DegenMatrix() {
         for (let i = 0; i < columns; i++) drops[i] = 1
 
         const draw = () => {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)' // Stronger fade for cleaner look
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)' // Fade effect
             ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-            ctx.fillStyle = '#333' // Dark Grey text for depth
+            // Hacker Green
+            ctx.fillStyle = '#0F0'
             ctx.font = `${fontSize}px monospace`
 
             for (let i = 0; i < drops.length; i++) {
                 const text = chars.charAt(Math.floor(Math.random() * chars.length))
 
-                // Randomly highlight characters in white
+                // Randomly highlight characters in bright white for glitch effect
                 if (Math.random() > 0.98) {
                     ctx.fillStyle = '#FFF'
                 } else {
-                    ctx.fillStyle = '#333'
+                    ctx.fillStyle = '#0F0' // Standard Matrix Green
                 }
 
                 ctx.fillText(text, i * fontSize, drops[i] * fontSize)
@@ -63,35 +64,35 @@ export function DegenMatrix() {
     }, [])
 
     return (
-        <div className="relative w-full h-[300px] rounded-xl bg-black border border-white/10 overflow-hidden flex flex-col items-center justify-center overflow-hidden group">
+        <div className="relative w-full h-[300px] rounded-[24px] bg-black border border-green-500/20 overflow-hidden flex flex-col items-center justify-center group hover:border-green-500/40 transition-colors">
 
             {/* Matrix Canvas Background */}
-            <canvas ref={canvasRef} className="absolute inset-0 opacity-30 z-0" />
+            <canvas ref={canvasRef} className="absolute inset-0 opacity-25 z-0" />
 
             {/* Glitch Overlay */}
-            <div className="absolute inset-0 z-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay" />
+            <div className="absolute inset-0 z-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay pointer-events-none" />
 
             {/* Floating Content */}
             <div className="relative z-10 text-center space-y-6">
 
                 <div className="relative inline-block group/icon">
-                    <div className="absolute inset-0 bg-white rounded-full blur-2xl opacity-5 group-hover/icon:opacity-20 transition-opacity animate-pulse" />
-                    <div className="w-16 h-16 bg-black rounded-full border border-white/20 flex items-center justify-center relative shadow-2xl">
-                        <Skull className="w-6 h-6 text-white" />
+                    <div className="absolute inset-0 bg-green-500 rounded-full blur-2xl opacity-10 group-hover/icon:opacity-30 transition-opacity animate-pulse" />
+                    <div className="w-16 h-16 bg-black rounded-full border border-green-500/30 flex items-center justify-center relative backdrop-blur-sm">
+                        <Skull className="w-6 h-6 text-green-500" />
                     </div>
                 </div>
 
                 <div className="space-y-2">
-                    <h2 className="text-5xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-neutral-700 drop-shadow-sm">
+                    <h2 className="text-5xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-green-400 drop-shadow-[0_2px_10px_rgba(34,197,94,0.5)]">
                         DEGEN MODE
                     </h2>
-                    <p className="text-neutral-500 font-mono text-[10px] tracking-[0.3em] uppercase">Phase 3 // Classified</p>
+                    <p className="text-green-500/80 font-mono text-[10px] tracking-[0.3em] uppercase animate-pulse">System Override // Active</p>
                 </div>
 
                 <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="px-8 py-3 bg-white hover:bg-neutral-200 text-black font-bold font-mono text-xs tracking-widest uppercase rounded-sm border-0 relative overflow-hidden transition-colors"
+                    className="px-8 py-3 bg-green-500 text-black font-bold font-mono text-xs tracking-widest uppercase rounded-sm hover:bg-green-400 transition-colors"
                 >
                     <span className="relative z-10 flex items-center gap-2">
                         Join Waitlist <Rocket className="w-3 h-3" />
@@ -99,8 +100,8 @@ export function DegenMatrix() {
                 </motion.button>
             </div>
 
-            {/* Vignette */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle,transparent_20%,black_120%)] z-10 pointer-events-none" />
+            {/* Vignette - Stronger for focus */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle,transparent_30%,black_100%)] z-10 pointer-events-none" />
         </div>
     )
 }

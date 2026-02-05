@@ -39,18 +39,18 @@ export function AnalyticsPulse() {
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
-                    <div className="h-8 w-1 bg-white rounded-full" /> {/* Minimalist indicator */}
+                    <div className="h-8 w-1 bg-green-500 rounded-full shadow-[0_0_10px_rgba(34,197,94,0.5)]" /> {/* Alive indicator */}
                     <div>
                         <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-widest">Active Users</p>
                         <h4 className="text-xl font-medium tracking-tight text-white tabular-nums">12,842</h4>
                     </div>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <span className="relative flex h-1.5 w-1.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
+                    <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                     </span>
-                    <span className="text-[10px] font-medium text-neutral-400 uppercase tracking-wider">Live</span>
+                    <span className="text-[10px] font-medium text-green-500 uppercase tracking-wider">Live</span>
                 </div>
             </div>
 
@@ -60,8 +60,8 @@ export function AnalyticsPulse() {
                     {/* Gradient Definition */}
                     <defs>
                         <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="rgb(255, 255, 255)" stopOpacity="0.1" />
-                            <stop offset="100%" stopColor="rgb(255, 255, 255)" stopOpacity="0" />
+                            <stop offset="0%" stopColor="rgb(34, 197, 94)" stopOpacity="0.2" />
+                            <stop offset="100%" stopColor="rgb(34, 197, 94)" stopOpacity="0" />
                         </linearGradient>
                     </defs>
 
@@ -74,15 +74,15 @@ export function AnalyticsPulse() {
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     />
 
-                    {/* Line Stroke */}
+                    {/* Line Stroke - Vibrant Green */}
                     <motion.path
                         d={`M ${points.split(' ')[0]} L ${points.split(' ').slice(1).join(' ')}`}
                         fill="none"
-                        stroke="white"
-                        strokeWidth="1.5"
+                        stroke="#22c55e"
+                        strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        // filter="drop-shadow(0 0 2px rgba(255, 255, 255, 0.3))" 
+                        filter="drop-shadow(0 0 4px rgba(34, 197, 94, 0.4))"
                         animate={{ d: `M ${points.split(' ')[0]} L ${points.split(' ').slice(1).join(' ')}` }}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     />
@@ -92,8 +92,8 @@ export function AnalyticsPulse() {
                         cx={width}
                         cy={height - (dataPoints[dataPoints.length - 1] / 100) * height}
                         r="3"
-                        fill="black"
-                        stroke="white"
+                        fill="white"
+                        stroke="#22c55e"
                         strokeWidth="2"
                         animate={{
                             cy: height - (dataPoints[dataPoints.length - 1] / 100) * height,
@@ -101,7 +101,6 @@ export function AnalyticsPulse() {
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     />
                 </svg>
-            </div>
-        </div>
+            </div>         </div>
     )
 }

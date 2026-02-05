@@ -51,38 +51,38 @@ export function IdentityHolocard() {
                     rotateY,
                     transformStyle: 'preserve-3d',
                 }}
-                className="relative w-full h-full rounded-[24px] bg-neutral-950 border border-white/5 shadow-2xl overflow-hidden"
+                className="relative w-full h-full rounded-[24px] bg-black border border-white/10 overflow-hidden"
             >
-                {/* Abstract Background - Subtle Monochrome */}
-                <div className="absolute inset-0 bg-gradient-to-b from-neutral-900 via-neutral-950 to-neutral-950 z-0" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.03),transparent_40%)] z-0" />
+                {/* Deep Atmospheric Background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/40 via-black to-black z-0" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(120,119,198,0.2),transparent_70%)] z-0" />
 
                 {/* Content Layer */}
                 <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-8 space-y-8 [transform:translateZ(30px)]">
 
-                    {/* Avatar Ring - Minimalist */}
+                    {/* Avatar Ring - Holographic & Premium */}
                     <div className="relative">
-                        {/* Outer Ring */}
+                        {/* Outer Rings */}
                         <motion.div
                             animate={{ rotate: 360 }}
                             transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-                            className="absolute -inset-6 rounded-full border border-white/5"
+                            className="absolute -inset-6 rounded-full border border-white/5 opacity-50"
                         />
                         <motion.div
                             animate={{ rotate: -360 }}
                             transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
-                            className="absolute -inset-3 rounded-full border border-dashed border-white/10"
+                            className="absolute -inset-3 rounded-full border border-dashed border-indigo-500/20"
                         />
 
                         {/* Core Avatar */}
-                        <div className="w-24 h-24 rounded-full bg-neutral-900 border border-white/10 p-1 relative shadow-inner">
+                        <div className="w-24 h-24 rounded-full bg-neutral-900 border border-white/10 p-1 relative shadow-[0_0_30px_-5px_rgba(99,102,241,0.3)]">
                             <div className="w-full h-full rounded-full bg-black flex items-center justify-center overflow-hidden relative">
-                                <div className="absolute inset-0 bg-gradient-to-tr from-transparent to-white/10" />
+                                <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 to-transparent" />
                                 <span className="text-2xl font-medium tracking-tighter text-white">S4</span>
                             </div>
 
-                            {/* Verified Badge - Monochrome */}
-                            <div className="absolute -bottom-1 -right-1 bg-white text-black rounded-full p-1 border-4 border-neutral-950">
+                            {/* Verified Badge - Premium Blue */}
+                            <div className="absolute -bottom-1 -right-1 bg-blue-500 text-white rounded-full p-1 border-4 border-black">
                                 <Check className="w-3 h-3" strokeWidth={3} />
                             </div>
                         </div>
