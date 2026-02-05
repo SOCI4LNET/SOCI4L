@@ -495,7 +495,7 @@ function CategoryBlock({
 export function LinksPanel() {
   const params = useParams()
   const searchParams = useSearchParams()
-  const { user, linkTwitter, ready: privyReady, authenticated, login } = usePrivy()
+  const { user, linkTwitter, unlinkTwitter, ready: privyReady, authenticated, login } = usePrivy()
   const { address: connectedAddress } = useAccount()
   const { signMessageAsync } = useSignMessage()
   const { showTransactionLoader, hideTransactionLoader } = useTransaction()
@@ -2037,38 +2037,56 @@ export function LinksPanel() {
                               }
 
                               return (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-5 px-2 text-[10px]"
-                                  onClick={async () => {
-                                    try {
-                                      const toastId = toast.loading('Verifying...')
-                                      const response = await fetch('/api/social/link', {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({
-                                          platform: 'twitter',
-                                          platformUsername: twitterUser.username,
-                                          platformUserId: twitterUser.subject,
-                                          walletAddress: targetAddress,
-                                        }),
-                                      })
+                              return (
+                                <div className="flex flex-col gap-1 items-start">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-5 px-2 text-[10px]"
+                                    onClick={async () => {
+                                      try {
+                                        const toastId = toast.loading('Verifying...')
+                                        const response = await fetch('/api/social/link', {
+                                          method: 'POST',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({
+                                            platform: 'twitter',
+                                            platformUsername: twitterUser.username,
+                                            platformUserId: twitterUser.subject,
+                                            walletAddress: targetAddress,
+                                          }),
+                                        })
 
-                                      if (response.ok) {
-                                        toast.success('Verified!', { id: toastId })
-                                        window.location.reload()
-                                      } else {
-                                        const data = await response.json()
-                                        toast.error(data.error || 'Verification failed', { id: toastId })
+                                        if (response.ok) {
+                                          toast.success('Verified!', { id: toastId })
+                                          window.location.reload()
+                                        } else {
+                                          const data = await response.json()
+                                          toast.error(data.error || 'Verification failed', { id: toastId })
+                                        }
+                                      } catch (e) {
+                                        toast.error('Failed to connect')
                                       }
-                                    } catch (e) {
-                                      toast.error('Failed to connect')
-                                    }
-                                  }}
-                                >
-                                  Verify
-                                </Button>
+                                    }}
+                                  >
+                                    Verify
+                                  </Button>
+                                  <button
+                                    className="text-[10px] text-muted-foreground hover:text-red-500 underline"
+                                    onClick={async () => {
+                                      try {
+                                        await unlinkTwitter(twitterUser.subject)
+                                        toast.success('Twitter disconnected. Link a new account.')
+                                        // No reload needed, usePrivy updates automatically
+                                      } catch (e) {
+                                        toast.error('Failed to disconnect')
+                                      }
+                                    }}
+                                  >
+                                    Wrong account? Change
+                                  </button>
+                                </div>
+                              )
                               )
                             })()
                           )}
