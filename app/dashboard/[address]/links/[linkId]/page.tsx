@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { PageShell } from '@/components/app-shell/page-shell'
-import { Copy, ArrowLeft, Link2, BarChart2, Clock, Activity, Info, ToggleLeft, ToggleRight } from 'lucide-react'
+import { ArrowLeft, Calendar, Copy, ExternalLink, Globe, LayoutGrid, Loader2, MousePointerClick, Smartphone, User, Link2, BarChart2, Clock, Activity, Info, ToggleLeft, ToggleRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 import { getEventsForProfile, type AnalyticsEvent } from '@/lib/analytics'
@@ -807,6 +807,18 @@ export default function LinkInsightsPage({ params }: PageProps) {
                                           </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>Copy address</TooltipContent>
+                                      </Tooltip>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            className="h-4 w-4 p-0 hover:bg-transparent text-muted-foreground/50 hover:text-foreground"
+                                            onClick={() => window.open(`/dashboard/${event.visitorWallet}`, '_blank')}
+                                          >
+                                            <ExternalLink className="h-2.5 w-2.5" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Go to profile</TooltipContent>
                                       </Tooltip>
                                     </TooltipProvider>
                                   </div>
