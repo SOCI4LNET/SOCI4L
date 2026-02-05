@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { PageShell } from '@/components/app-shell/page-shell'
+import { PageShell as LayoutShell } from '@/components/app-shell/page-shell'
 import { ArrowLeft, Calendar, Copy, ExternalLink, Globe, LayoutGrid, Loader2, MousePointerClick, Smartphone, User, Link2, BarChart2, Clock, Activity, Info, ToggleLeft, ToggleRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
@@ -554,7 +554,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
   const ctrLabel = analytics.ctr !== null ? `${(analytics.ctr * 100).toFixed(1)}%` : '-';
 
   return (
-    <PageShell
+    <LayoutShell
       title={displayTitle}
       subtitle={
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
