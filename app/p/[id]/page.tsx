@@ -371,8 +371,10 @@ export default function ProfilePage({ params }: PageProps) {
       return
     }
 
-    // Guard: already tracked for this profile ID in this render cycle (React Strict Mode protection)
-    if (trackedProfileIdRef.current === stableProfileId) {
+    // 3. Status Check: Wait for wallet connection to stabilize (max 2s wait via subsequent effect runs or timeouts)
+    // If status is 'connecting' or 'reconnecting', we wait for it to settle to 'connected' or 'disconnected'
+    // to ensure we capture the visitor wallet if it's there.
+    if (status === 'connecting' || status === 'reconnecting') {
       return
     }
 
@@ -391,8 +393,14 @@ export default function ProfilePage({ params }: PageProps) {
     trackProfileView(stableProfileId, source, connectedAddress || undefined)
 
     // Mark as tracked for this profile ID to prevent double invoke
-    trackedProfileIdRef.current = stableProfileId
-  }, [stableProfileId, searchParams, connectedAddress])
+    // Note: If they connect or disconnect later, we've already tracked 'this' session.
+    // If they were anonymous and then connect, 'status' change above will trigger this again,
+    // so we need a more sophisticated guard if we want to allow "re-tracking" with identity.
+
+    // For now, let's allow re-tracking if connectedAddress was previously null and now it's not.
+    // We'll store what we tracked in the ref.
+    trackedProfileIdRef.current = `${stableProfileId}:${connectedAddress || 'anon'}`
+  }, [stableProfileId, searchParams, connectedAddress, status])
 
 
 
@@ -922,7 +930,7 @@ export default function ProfilePage({ params }: PageProps) {
                                 <a
                                   href={link.url}
                                   target="_blank"
-                                  rel="noopener noreferrer"
+                                  rel="noopener"
                                   className="flex items-center justify-center h-7 w-7 rounded-full border border-border/50 bg-background hover:bg-muted hover:border-border transition-colors text-muted-foreground hover:text-foreground"
                                 >
                                   {getSocialIcon(platform)}
@@ -1189,7 +1197,7 @@ export default function ProfilePage({ params }: PageProps) {
                                             key={link.id}
                                             href={redirectUrl}
                                             target="_blank"
-                                            rel="noopener noreferrer"
+                                            rel="noopener"
                                             onClick={() => {
                                               if (stableProfileId) {
                                                 const source = getSourceFromUrl(searchParams)
@@ -1292,7 +1300,7 @@ export default function ProfilePage({ params }: PageProps) {
                                   <a
                                     href={`https://snowtrace.io/tx/${tx.hash}`}
                                     target="_blank"
-                                    rel="noopener noreferrer"
+                                    rel="noopener"
                                     className="text-muted-foreground hover:text-foreground shrink-0"
                                   >
                                     <ExternalLink className={isFull ? 'h-4 w-4' : 'h-3 w-3'} />
@@ -1440,7 +1448,7 @@ export default function ProfilePage({ params }: PageProps) {
                                             <a
                                               href={`https://snowtrace.io/token/${nft.contractAddress}?a=${nft.tokenId}`}
                                               target="_blank"
-                                              rel="noopener noreferrer"
+                                              rel="noopener"
                                             >
                                               <ExternalLink className="h-3 w-3" />
                                             </a>
@@ -1457,7 +1465,7 @@ export default function ProfilePage({ params }: PageProps) {
                                             <a
                                               href={`https://snowtrace.io/token/${nft.contractAddress}`}
                                               target="_blank"
-                                              rel="noopener noreferrer"
+                                              rel="noopener"
                                             >
                                               <Layers className="h-3 w-3" />
                                             </a>
@@ -1479,7 +1487,7 @@ export default function ProfilePage({ params }: PageProps) {
                                 <a
                                   href={`https://snowtrace.io/address/${walletData.address}`}
                                   target="_blank"
-                                  rel="noopener noreferrer"
+                                  rel="noopener"
                                 >
                                   View all assets on Snowtrace
                                 </a>
