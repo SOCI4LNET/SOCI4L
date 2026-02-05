@@ -932,10 +932,7 @@ export default function ProfilePage({ params }: PageProps) {
                                 <div className="flex items-center gap-1.5">
                                   <span>{getSocialLabel(link)}</span>
                                   {link.verified && (
-                                    <span className="flex items-center gap-0.5 text-[10px] text-blue-400 font-medium bg-blue-500/10 px-1 py-0.5 rounded border border-blue-500/20">
-                                      <CheckCircle className="h-2.5 w-2.5" />
-                                      Verified
-                                    </span>
+                                    <CheckCircle className="h-3.5 w-3.5 text-blue-500 shrink-0" />
                                   )}
                                 </div>
                               </TooltipContent>
