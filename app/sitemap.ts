@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 3600 // Revalidate every hour
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    const baseUrl = 'https://soci4l.com'
+    const baseUrl = 'https://soci4l.net'
 
     // Static pages
     const staticPages: MetadataRoute.Sitemap = [
@@ -41,6 +41,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             where: {
                 slug: { not: null },
                 isBanned: false,
+                // Only include claimed and public profiles
+                // We use ownerAddress check or status check depending on schema migration state
+                // Schema shows: status defaults to "UNCLAIMED", visibility defaults to "PUBLIC"
+                status: { not: 'UNCLAIMED' },
+                visibility: 'PUBLIC',
             },
             select: {
                 slug: true,
