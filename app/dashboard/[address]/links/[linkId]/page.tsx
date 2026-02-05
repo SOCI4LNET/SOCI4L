@@ -4,10 +4,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { PageShell as LayoutShell } from '@/components/app-shell/page-shell'
+import { PageShell } from '@/components/app-shell/page-shell'
 import { ArrowLeft, Calendar, Copy, ExternalLink, Globe, LayoutGrid, Loader2, MousePointerClick, Smartphone, User, Link2, BarChart2, Clock, Activity, Info, ToggleLeft, ToggleRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
@@ -507,19 +506,19 @@ export default function LinkInsightsPage({ params }: PageProps) {
 
   if (loading) {
     return (
-      <LayoutShell title="Loading..." subtitle="Loading link details">
+      <PageShell title="Loading..." subtitle="Loading link details">
         <Card className="bg-card border border-border/60 shadow-sm">
           <CardContent className="py-8 flex flex-col items-center gap-4">
             <p className="text-sm text-muted-foreground">Loading link details...</p>
           </CardContent>
         </Card>
-      </LayoutShell>
+      </PageShell>
     )
   }
 
   if (linksLoaded && !link) {
     return (
-      <LayoutShell
+      <PageShell
         title="Link not found"
         subtitle="This link does not exist in your profile."
       >
@@ -534,7 +533,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
             </Button>
           </CardContent>
         </Card>
-      </LayoutShell>
+      </PageShell>
     )
   }
 
@@ -542,20 +541,20 @@ export default function LinkInsightsPage({ params }: PageProps) {
     return null
   }
 
-  const displayTitle = link.title || 'Untitled link';
-  const displayUrl = shortenUrl(link.url);
-  const redirectPath = getRedirectPath(link.id);
+  const displayTitle = link.title || 'Untitled link'
+  const displayUrl = shortenUrl(link.url)
+  const redirectPath = getRedirectPath(link.id)
 
   const lastClickedLabel =
     analytics.lastClickedTs != null
       ? formatDistanceToNow(new Date(analytics.lastClickedTs), { addSuffix: true })
-      : 'Never';
+      : 'Never'
 
-  const ctrLabel = analytics.ctr !== null ? String((analytics.ctr * 100).toFixed(1)) + '%' : '-';
-
+  const ctrLabel =
+    analytics.ctr != null ? `${(analytics.ctr * 100).toFixed(1)}%` : '—'
 
   return (
-    <LayoutShell
+    <PageShell
       title={displayTitle}
       subtitle={
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -582,14 +581,49 @@ export default function LinkInsightsPage({ params }: PageProps) {
                     <Copy className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
+                <TooltipContent>Copy redirect link</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={handleBackToLinks}
+                    aria-label="Edit link in Links page"
+                  >
+                    <BarChart2 className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Edit link in Links page</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant={link.enabled ? 'default' : 'outline'}
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={handleToggleEnabled}
+                    aria-label={link.enabled ? 'Disable link' : 'Enable link'}
+                  >
+                    {link.enabled ? (
+                      <ToggleRight className="h-4 w-4" />
+                    ) : (
+                      <ToggleLeft className="h-4 w-4" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
                 <TooltipContent>
-                  <p>Copy redirect link</p>
+                  {link.enabled ? 'Disable link (hide on profile)' : 'Enable link (show on profile)'}
                 </TooltipContent>
               </Tooltip>
             </div>
           </TooltipProvider>
         </div>
-
 
         {/* Time range selector */}
         <div className="flex items-center justify-between gap-2">
@@ -613,10 +647,10 @@ export default function LinkInsightsPage({ params }: PageProps) {
               </TabsTrigger>
             </TabsList>
           </Tabs>
-        </div >
+        </div>
 
         {/* KPI cards */}
-        < div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" >
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card className="bg-card border border-border/60 shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-medium text-muted-foreground">
@@ -667,10 +701,10 @@ export default function LinkInsightsPage({ params }: PageProps) {
             </CardContent>
           </Card>
 
-        </div >
+        </div>
 
         {/* Clicks over time */}
-        < Card className="bg-card border border-border/60 shadow-sm" >
+        <Card className="bg-card border border-border/60 shadow-sm">
           <CardHeader className="pb-2 flex flex-row items-center justify-between">
             <div className="space-y-1">
               <CardTitle className="text-sm font-medium">Clicks over time</CardTitle>
@@ -728,10 +762,10 @@ export default function LinkInsightsPage({ params }: PageProps) {
               </div>
             )}
           </CardContent>
-        </Card >
+        </Card>
 
         {/* Source breakdown */}
-        < Card className="bg-card border border-border/60 shadow-sm" >
+        <Card className="bg-card border border-border/60 shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Source breakdown</CardTitle>
             <CardDescription className="text-xs">
@@ -790,10 +824,10 @@ export default function LinkInsightsPage({ params }: PageProps) {
               </div>
             )}
           </CardContent>
-        </Card >
+        </Card>
 
         {/* Recent Clicks - Identity Aware */}
-        < Card className="bg-card border border-border/60 shadow-sm" >
+        <Card className="bg-card border border-border/60 shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Recent Clicks</CardTitle>
             <CardDescription className="text-xs">
@@ -812,155 +846,137 @@ export default function LinkInsightsPage({ params }: PageProps) {
                     <tr className="border-b border-border/60 text-muted-foreground">
                       <th className="py-2 text-left font-medium">Time</th>
                       <th className="py-2 text-left font-medium">Visitor</th>
-                      <th className="py-2 text-left font-medium">Referrer</th>
-                      <th className="py-2 text-left font-medium">Device/Loc</th>
                       <th className="py-2 text-right font-medium">Source</th>
                     </tr>
                   </thead>
-                  {/* Access linkEvents from filter logic (need to duplicate logic or memoize differently if not accessible) 
-                          Actually we can access 'analytics.linkEvents' if we expose it in the useMemo above.
-                          Let's check if we exposed it. We didn't. 
-                          We will rely on serverEvents filtering here since we are inside the component.
-                      */}
-                  {(() => {
-                    const now = Date.now()
-                    const fromTs = range === 'all'
-                      ? 0
-                      : range === '24h'
-                        ? now - 24 * 60 * 60 * 1000
-                        : range === '7d'
-                          ? now - 7 * 24 * 60 * 60 * 1000
-                          : now - 30 * 24 * 60 * 60 * 1000
+                  <tbody>
+                    {/* Access linkEvents from filter logic (need to duplicate logic or memoize differently if not accessible) 
+                        Actually we can access 'analytics.linkEvents' if we expose it in the useMemo above.
+                        Let's check if we exposed it. We didn't. 
+                        We will rely on serverEvents filtering here since we are inside the component.
+                    */}
+                    {(() => {
+                      const now = Date.now()
+                      const fromTs = range === 'all'
+                        ? 0
+                        : range === '24h'
+                          ? now - 24 * 60 * 60 * 1000
+                          : range === '7d'
+                            ? now - 7 * 24 * 60 * 60 * 1000
+                            : now - 30 * 24 * 60 * 60 * 1000
 
-                    const filteredEvents = (serverEvents || [])
-                      .filter(e => e.type === 'link_click' && e.linkId === linkId && e.ts >= fromTs)
-                      .sort((a, b) => b.ts - a.ts)
+                      const filteredEvents = (serverEvents || [])
+                        .filter(e => e.type === 'link_click' && e.linkId === linkId && e.ts >= fromTs)
+                        .sort((a, b) => b.ts - a.ts)
 
-                    const totalIds = filteredEvents.length
-                    const totalPages = Math.ceil(totalIds / CLICKS_PER_PAGE)
-                    const startIdx = (clickPage - 1) * CLICKS_PER_PAGE
-                    const paginatedEvents = filteredEvents.slice(startIdx, startIdx + CLICKS_PER_PAGE)
+                      const totalIds = filteredEvents.length
+                      const totalPages = Math.ceil(totalIds / CLICKS_PER_PAGE)
+                      const startIdx = (clickPage - 1) * CLICKS_PER_PAGE
+                      const paginatedEvents = filteredEvents.slice(startIdx, startIdx + CLICKS_PER_PAGE)
 
-                    if (paginatedEvents.length === 0) {
-                      return (
-                        <tr>
-                          <td colSpan={5} className="py-4 text-center text-muted-foreground py-2">{clickPage === 1 ? 'No clicks in this time range.' : 'No more clicks.'}</td>
-                        </tr>
-                      )
-                    }
-
-                    return (
-                      <>
-                        {paginatedEvents.map(event => (
-                          <tr key={`${event.ts}-${Math.random()}`} className="border-b border-border/40 last:border-0 hover:bg-muted/30">
-                            <td className="py-2 text-left text-muted-foreground">
-                              {formatDistanceToNow(new Date(event.ts), { addSuffix: true })}
-                            </td>
-                            <td className="py-2 text-left font-mono">
-                              {event.visitorWallet ? (
-                                <div className="flex items-center gap-1.5">
-                                  <span className="text-primary bg-primary/10 px-1.5 py-0.5 rounded text-[10px]">
-                                    {event.visitorWallet.slice(0, 6)}...{event.visitorWallet.slice(-4)}
-                                  </span>
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          className="h-4 w-4 p-0 hover:bg-transparent text-muted-foreground/50 hover:text-foreground"
-                                          onClick={() => {
-                                            navigator.clipboard.writeText(event.visitorWallet!)
-                                            toast.success('Address copied')
-                                          }}
-                                        >
-                                          <Copy className="h-2.5 w-2.5" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>Copy address</TooltipContent>
-                                    </Tooltip>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          className="h-4 w-4 p-0 hover:bg-transparent text-muted-foreground/50 hover:text-foreground"
-                                          onClick={() => window.open(`/dashboard/${event.visitorWallet}`, '_blank')}
-                                        >
-                                          <ExternalLink className="h-2.5 w-2.5" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>Go to profile</TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                </div>
-                              )}
-                            </td>
-                            <td className="py-2 text-left max-w-[120px] truncate" title={event.referrer || ''}>
-                              {event.referrer ? (
-                                <span className="font-mono text-[10px] text-muted-foreground">
-                                  {(() => {
-                                    try {
-                                      return new URL(event.referrer).hostname.replace('www.', '')
-                                    } catch {
-                                      return event.referrer
-                                    }
-                                  })()}
-                                </span>
-                              ) : (
-                                <span className="text-muted-foreground/30">-</span>
-                              )}
-                            </td>
-                            <td className="py-2 text-left">
-                              <div className="flex flex-col text-[10px] leading-tight text-muted-foreground">
-                                <span>{event.device || '-'}</span>
-                                <span className="opacity-70">{event.country || '-'}</span>
-                              </div>
-                            </td>
-                            <td className="py-2 text-right">
-                              <Badge variant="outline" className="text-[10px] font-normal h-5 ml-auto">
-                                {event.source}
-                              </Badge>
-                            </td>
-                          </tr>
-                        ))}
-                        {/* Pagination Controls */}
-                        {totalIds > CLICKS_PER_PAGE && (
+                      if (paginatedEvents.length === 0) {
+                        return (
                           <tr>
-                            <td colSpan={5} className="pt-4 pb-2">
-                              <div className="flex items-center justify-between">
-                                <div className="text-xs text-muted-foreground">
-                                  Showing {startIdx + 1}-{Math.min(startIdx + CLICKS_PER_PAGE, totalIds)} of {totalIds}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-7 text-xs"
-                                    disabled={clickPage === 1}
-                                    onClick={() => setClickPage(p => p - 1)}
-                                  >
-                                    Previous
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-7 text-xs"
-                                    disabled={clickPage >= totalPages}
-                                    onClick={() => setClickPage(p => p + 1)}
-                                  >
-                                    Next
-                                  </Button>
-                                </div>
-                              </div>
-                            </td>
+                            <td colSpan={3} className="py-4 text-center text-muted-foreground py-2">{clickPage === 1 ? 'No clicks in this time range.' : 'No more clicks.'}</td>
                           </tr>
-                        )}
+                        )
+                      }
+
+                      return (
+                        <>
+                          {paginatedEvents.map(event => (
+                            <tr key={`${event.ts}-${Math.random()}`} className="border-b border-border/40 last:border-0 hover:bg-muted/30">
+                              <td className="py-2 text-left text-muted-foreground">
+                                {formatDistanceToNow(new Date(event.ts), { addSuffix: true })}
+                              </td>
+                              <td className="py-2 text-left font-mono">
+                                {event.visitorWallet ? (
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-primary bg-primary/10 px-1.5 py-0.5 rounded text-[10px]">
+                                      {event.visitorWallet.slice(0, 6)}...{event.visitorWallet.slice(-4)}
+                                    </span>
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            className="h-4 w-4 p-0 hover:bg-transparent text-muted-foreground/50 hover:text-foreground"
+                                            onClick={() => {
+                                              navigator.clipboard.writeText(event.visitorWallet!)
+                                              toast.success('Address copied')
+                                            }}
+                                          >
+                                            <Copy className="h-2.5 w-2.5" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Copy address</TooltipContent>
+                                      </Tooltip>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            variant="ghost"
+                                            className="h-4 w-4 p-0 hover:bg-transparent text-muted-foreground/50 hover:text-foreground"
+                                            onClick={() => window.open(`/dashboard/${event.visitorWallet}`, '_blank')}
+                                          >
+                                            <ExternalLink className="h-2.5 w-2.5" />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>Go to profile</TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  </div>
+                                ) : (
+                                  <span className="text-muted-foreground opacity-50 italic">Anonymous</span>
+                                )}
+                              </td>
+                              <td className="py-2 text-right capitalize text-muted-foreground">
+                                {event.source}
+                              </td>
+                            </tr>
+                          ))}
+                          {/* Pagination Controls */}
+                          {totalIds > CLICKS_PER_PAGE && (
+                            <tr>
+                              <td colSpan={3} className="pt-4 pb-2">
+                                <div className="flex items-center justify-between">
+                                  <div className="text-xs text-muted-foreground">
+                                    Showing {startIdx + 1}-{Math.min(startIdx + CLICKS_PER_PAGE, totalIds)} of {totalIds}
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-7 text-xs"
+                                      disabled={clickPage === 1}
+                                      onClick={() => setClickPage(p => p - 1)}
+                                    >
+                                      Previous
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-7 text-xs"
+                                      disabled={clickPage >= totalPages}
+                                      onClick={() => setClickPage(p => p + 1)}
+                                    >
+                                      Next
+                                    </Button>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </>
+                      )
                     })()}
-                      </tbody >
+                  </tbody>
                 </table>
               </div>
             )}
           </CardContent>
-        </Card >
-        )
+        </Card>
+      </div>
+    </PageShell>
+  )
 }
 
