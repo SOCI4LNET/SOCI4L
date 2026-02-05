@@ -46,36 +46,35 @@ export async function POST(req: NextRequest) {
             include: { profile: true }
         })
 
-        if (existing && existing.profileId !== profile.id) {
-            return NextResponse.json({
-                error: `This ${platform} account is already connected to another profile (${existing.profile.address})`
-            }, { status: 409 })
-        }
+        return NextResponse.json({
+            error: `This ${platform} account is already connected to another profile.`
+        }, { status: 409 })
+    }
 
         // Create or Update the connection
         const connection = await prisma.socialConnection.upsert({
-            where: {
-                platform_platformUserId: {
-                    platform,
-                    platformUserId
-                }
-            },
-            update: {
-                platformUsername, // Update username in case it changed
-                verifiedAt: new Date(),
-            },
-            create: {
-                profileId: profile.id,
+        where: {
+            platform_platformUserId: {
                 platform,
-                platformUsername,
-                platformUserId,
-                verifiedAt: new Date(),
+                platformUserId
             }
-        })
+        },
+        update: {
+            platformUsername, // Update username in case it changed
+            verifiedAt: new Date(),
+        },
+        create: {
+            profileId: profile.id,
+            platform,
+            platformUsername,
+            platformUserId,
+            verifiedAt: new Date(),
+        }
+    })
 
-        return NextResponse.json({ success: true, connection })
-    } catch (error) {
-        console.error('[API] Social Link Error:', error)
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-    }
+    return NextResponse.json({ success: true, connection })
+} catch (error) {
+    console.error('[API] Social Link Error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+}
 }
