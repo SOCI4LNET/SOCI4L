@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const visitorWallet = (body.visitorWallet as string | undefined) || null
     const source = (body.source as string | undefined) || 'unknown'
     const referrer = (body.referrer as string | undefined) || null
     const linkId = (body.linkId as string | undefined) || null
@@ -41,6 +42,7 @@ export async function POST(request: NextRequest) {
       data: {
         type,
         profileId,
+        visitorWallet,
         source,
         referrer,
         linkId,

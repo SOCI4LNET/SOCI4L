@@ -201,7 +201,11 @@ export function getSourceFromUrl(searchParams: URLSearchParams | string): Analyt
     ? new URLSearchParams(searchParams)
     : searchParams
 
-  const source = params.get('source')?.toLowerCase()
+  const source = (
+    params.get('source') ||
+    params.get('Source') ||
+    params.get('utm_source')
+  )?.toLowerCase()
 
   if (source === 'profile' || source === 'qr' || source === 'copy' || source === 'extension') {
     return source as AnalyticsSource
