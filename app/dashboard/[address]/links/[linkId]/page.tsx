@@ -817,7 +817,6 @@ export default function LinkInsightsPage({ params }: PageProps) {
                       <th className="py-2 text-right font-medium">Source</th>
                     </tr>
                   </thead>
-                  <tbody>
                     {/* Access linkEvents from filter logic (need to duplicate logic or memoize differently if not accessible) 
                           Actually we can access 'analytics.linkEvents' if we expose it in the useMemo above.
                           Let's check if we exposed it. We didn't. 
