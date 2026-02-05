@@ -23,12 +23,31 @@ export async function requireAdmin(context: 'page' | 'api' = 'page'): Promise<st
         .map((addr: string) => addr.trim().toLowerCase())
         .filter(Boolean)
 
-    if (!ADMIN_ADDRESSES.includes(address)) {
-        if (context === 'page') {
-            redirect('/')
-        } else {
-            throw new Error('Forbidden: Not an admin')
+    // 1. Check strict whitelist from ENV
+    if (ADMIN_ADDRESSES.includes(address)) {
+        return address
+    }
+
+    // 2. Fallback: Check Role in Database
+    try {
+        const { prisma } = await import('@/lib/prisma')
+        const profile = await prisma.profile.findUnique({
+            where: { address },
+            select: { role: true }
+        })
+
+        if (profile?.role === 'ADMIN') {
+            return address
         }
+    } catch (error) {
+        console.error('[AdminAuth] DB check failed:', error)
+    }
+
+    // 3. Fail if neither passed
+    if (context === 'page') {
+        redirect('/')
+    } else {
+        throw new Error('Forbidden: Not an admin')
     }
 
     return address
