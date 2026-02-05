@@ -11,7 +11,7 @@ export default function DesignLabPage() {
         <PageShell
             title="Design Lab"
             subtitle="A private showcase of premium interactive components."
-            mode="default"
+            mode="constrained"
         >
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 
