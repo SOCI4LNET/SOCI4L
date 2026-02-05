@@ -37,6 +37,19 @@ export async function GET(
       },
       take: limit > 0 ? (limit > 500 ? 500 : limit) : 100,
       skip: offset >= 0 ? offset : 0,
+      select: {
+        id: true,
+        type: true,
+        profileId: true,
+        linkId: true,
+        linkTitle: true,
+        linkUrl: true,
+        categoryId: true,
+        source: true,
+        referrer: true,
+        createdAt: true,
+        visitorWallet: true
+      }
     })
 
     const mapped = events.map((event) => ({
@@ -50,8 +63,9 @@ export async function GET(
       source:
         event.source === 'profile' ||
           event.source === 'qr' ||
-          event.source === 'copy'
-          ? (event.source as 'profile' | 'qr' | 'copy')
+          event.source === 'copy' ||
+          event.source === 'extension'
+          ? (event.source as 'profile' | 'qr' | 'copy' | 'extension')
           : ('unknown' as const),
       visitorWallet: event.visitorWallet ?? undefined,
     }))

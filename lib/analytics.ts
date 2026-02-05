@@ -11,7 +11,7 @@
  * Standardized analytics source attribution
  * Used consistently across all analytics events
  */
-export type AnalyticsSource = 'profile' | 'qr' | 'copy' | 'unknown'
+export type AnalyticsSource = 'profile' | 'qr' | 'copy' | 'extension' | 'unknown'
 
 // Legacy type aliases for backward compatibility
 export type ProfileViewSource = AnalyticsSource
@@ -182,7 +182,7 @@ export function getProfileViewCountBySource(
   profileId: string,
   days: number = 7
 ): Record<AnalyticsSource, number> {
-  return { profile: 0, qr: 0, copy: 0, unknown: 0 }
+  return { profile: 0, qr: 0, copy: 0, extension: 0, unknown: 0 }
 }
 
 export function getTotalLinkClicks(profileId: string, days: number = 7): number {
@@ -201,7 +201,7 @@ export function getSourceFromUrl(searchParams: URLSearchParams | string): Analyt
 
   const source = params.get('source')
 
-  if (source === 'profile' || source === 'qr' || source === 'copy') {
+  if (source === 'profile' || source === 'qr' || source === 'copy' || source === 'extension') {
     return source
   }
 

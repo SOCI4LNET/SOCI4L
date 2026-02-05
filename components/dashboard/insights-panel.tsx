@@ -101,6 +101,7 @@ type RecentActivity = {
   linkTitle?: string
   linkId?: string
   visitorWallet?: string
+  source?: AnalyticsSource
 }
 
 type Suggestion = {
@@ -534,7 +535,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
           <CardContent className="px-6 pb-6">
             {analytics.totalProfileViews > 0 ? (
               <div className="space-y-4">
-                {(['profile', 'qr', 'copy', 'unknown'] as AnalyticsSource[]).map((src) => {
+                {(['profile', 'qr', 'copy', 'extension', 'unknown'] as AnalyticsSource[]).map((src) => {
                   const count = analytics.sourceBreakdown[src] || 0
                   const percentage = analytics.totalProfileViews > 0
                     ? (count / analytics.totalProfileViews) * 100
@@ -544,6 +545,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                     profile: 'Direct',
                     qr: 'QR Code',
                     copy: 'Ref',
+                    extension: 'Extension',
                     unknown: 'Unknown'
                   }
 
@@ -551,6 +553,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                     profile: null,
                     qr: 'Use on physical assets',
                     copy: 'Best for social bios',
+                    extension: 'Browser Extension',
                     unknown: null
                   }
 
@@ -947,10 +950,20 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                                       )}
                                       <span className="text-muted-foreground">Link clicked: </span>
                                       <span className="font-medium">{activity.linkTitle}</span>
+                                      {activity.source === 'extension' && (
+                                        <Badge variant="outline" className="ml-2 text-[9px] h-4 px-1 text-primary/80 border-primary/20 bg-primary/5">
+                                          via Extension
+                                        </Badge>
+                                      )}
                                     </p>
                                   ) : (
-                                    <p className="text-xs">
+                                    <p className="text-xs flex items-center gap-1">
                                       <span className="font-medium">Profile viewed</span>
+                                      {activity.source === 'extension' && (
+                                        <Badge variant="outline" className="ml-2 text-[9px] h-4 px-1 text-primary/80 border-primary/20 bg-primary/5">
+                                          via Extension
+                                        </Badge>
+                                      )}
                                     </p>
                                   )}
                                 </div>
