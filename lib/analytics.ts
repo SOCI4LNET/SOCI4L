@@ -35,14 +35,11 @@ export type AnalyticsEvent =
     source: AnalyticsSource
   }
 
-type StoredEventsV1 = {
-  version: 1
-  updatedAt: string
-  events: AnalyticsEvent[]
-}
+// Local storage event logging removed in favor of server-side analytics
+// This file now acts as a client-side wrapper for the analytics API
+// and handles session-based deduplication.
 
-const EVENTS_STORAGE_KEY = 'soci4l.events.v1'
-const MAX_EVENTS = 1000
+
 
 function shouldLogProfileView(profileId: string): boolean {
   if (!profileId) return false
@@ -54,14 +51,8 @@ function shouldLogProfileView(profileId: string): boolean {
 
   try {
     const storage = window.sessionStorage
-    const seen = storage.getItem(key)
     const lastTsRaw = storage.getItem(tsKey)
     const lastTs = lastTsRaw ? Number(lastTsRaw) || 0 : 0
-
-    // Per-tab session dedupe
-    // if (seen) {
-    //   return false
-    // }
 
     // Dedupe window: 5 seconds per profile per sessionKey
     const DEDUPE_WINDOW_MS = 5 * 1000 // 5 seconds
@@ -72,15 +63,12 @@ function shouldLogProfileView(profileId: string): boolean {
     storage.setItem(key, '1')
     storage.setItem(tsKey, String(now))
   } catch (error) {
-    console.error('[analytics] Failed to access sessionStorage for profile view dedupe', error)
-
     // Fallback: best-effort TTL guard using localStorage
     try {
       const tsKey = `soci4l:viewed_ts:${profileId}`
       const raw = window.localStorage.getItem(tsKey)
       const lastTs = raw ? Number(raw) || 0 : 0
 
-      // Dedupe window: 5 seconds per profile per sessionKey (for testing/real-time updates)
       const DEDUPE_WINDOW_MS = 5 * 1000 // 5 seconds
       if (lastTs && now - lastTs < DEDUPE_WINDOW_MS) {
         return false
@@ -88,74 +76,11 @@ function shouldLogProfileView(profileId: string): boolean {
 
       window.localStorage.setItem(tsKey, String(now))
     } catch (innerError) {
-      console.error('[analytics] Failed to access localStorage for profile view dedupe', innerError)
+      // ignore
     }
   }
 
   return true
-}
-
-function safeParseEvents(raw: string | null): AnalyticsEvent[] {
-  if (!raw) return []
-
-  try {
-    const parsed = JSON.parse(raw) as Partial<StoredEventsV1> | null
-    if (!parsed || parsed.version !== 1 || !Array.isArray(parsed.events)) {
-      return []
-    }
-
-    return parsed.events
-  } catch (error) {
-    console.error('[analytics] Failed to parse events from localStorage', error)
-    return []
-  }
-}
-
-function readEventsFromStorage(): AnalyticsEvent[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const raw = window.localStorage.getItem(EVENTS_STORAGE_KEY)
-    return safeParseEvents(raw)
-  } catch (error) {
-    console.error('[analytics] Failed to read events from localStorage', error)
-    return []
-  }
-}
-
-function writeEventsToStorage(events: AnalyticsEvent[]): void {
-  if (typeof window === 'undefined') return
-
-  try {
-    const trimmed =
-      events.length > MAX_EVENTS ? events.slice(events.length - MAX_EVENTS) : events
-
-    const payload: StoredEventsV1 = {
-      version: 1,
-      updatedAt: new Date().toISOString(),
-      events: trimmed,
-    }
-
-    window.localStorage.setItem(EVENTS_STORAGE_KEY, JSON.stringify(payload))
-  } catch (error) {
-    console.error('[analytics] Failed to write events to localStorage', error)
-  }
-}
-
-const ANALYTICS_UPDATE_EVENT = 'soci4l:analytics-update'
-
-function writeEvent(event: AnalyticsEvent): void {
-  try {
-    const existing = readEventsFromStorage()
-    writeEventsToStorage([...existing, event])
-
-    // Dispatch event for real-time UI updates
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new Event(ANALYTICS_UPDATE_EVENT))
-      window.dispatchEvent(new Event('storage')) // Also trigger storage for good measure
-    }
-  } catch (error) {
-    console.error('[analytics] Failed to append analytics event', error)
-  }
 }
 
 export function trackProfileView(
@@ -170,16 +95,6 @@ export function trackProfileView(
   if (!shouldLogProfileView(normalizedProfileId)) {
     return
   }
-
-  const event: AnalyticsEvent = {
-    type: 'profile_view',
-    profileId: normalizedProfileId,
-    ts: Date.now(),
-    source,
-  }
-
-  console.log('[analytics] trackProfileView', { profileId: normalizedProfileId, source, ts: event.ts })
-  writeEvent(event)
 
   // Best-effort server-side analytics (sendBeacon survives page unload; fetch is often aborted)
   try {
@@ -199,7 +114,7 @@ export function trackProfileView(
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: payload,
-        }).catch(() => {})
+        }).catch(() => { })
       }
     }
   } catch {
@@ -220,20 +135,6 @@ export function trackLinkClick(
 
   // Normalize profileId to lowercase for consistency
   const normalizedProfileId = profileId.toLowerCase()
-
-  const event: AnalyticsEvent = {
-    type: 'link_click',
-    profileId: normalizedProfileId,
-    linkId,
-    linkTitle: linkTitle || undefined,
-    linkUrl: linkUrl || undefined,
-    categoryId: categoryId || null,
-    ts: Date.now(),
-    source,
-  }
-
-  console.log('[analytics] trackLinkClick', { profileId: normalizedProfileId, linkId, linkTitle, source, categoryId, ts: event.ts })
-  writeEvent(event)
 
   // Skip API when click already recorded server-side (e.g. /r/[linkId] redirect) to avoid double count
   if (options?.skipServer) return
@@ -260,7 +161,7 @@ export function trackLinkClick(
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: payload,
-        }).catch(() => {})
+        }).catch(() => { })
       }
     }
   } catch {
@@ -268,85 +169,24 @@ export function trackLinkClick(
   }
 }
 
+// Deprecated getters - always return empty/zero as local storage is no longer used for logs
 export function getEventsForProfile(profileId: string): AnalyticsEvent[] {
-  if (!profileId) return []
-  const all = readEventsFromStorage()
-  // Normalize addresses for comparison (case-insensitive)
-  const normalizedProfileId = profileId.toLowerCase()
-  return all.filter((event) => event.profileId.toLowerCase() === normalizedProfileId)
+  return []
 }
 
-/**
- * Get profile view count for a specific time range
- * @param profileId - Profile address or ID
- * @param days - Number of days to look back (default: 7)
- * @returns Count of profile views in the specified time range
- */
 export function getProfileViewCount(profileId: string, days: number = 7): number {
-  if (!profileId) return 0
-  const events = getEventsForProfile(profileId)
-  const now = Date.now()
-  const fromTs = now - days * 24 * 60 * 60 * 1000
-
-  return events.filter(
-    (e): e is Extract<AnalyticsEvent, { type: 'profile_view' }> =>
-      e.type === 'profile_view' && e.ts >= fromTs
-  ).length
+  return 0
 }
 
-/**
- * Get profile view count breakdown by source for a specific time range
- * @param profileId - Profile address or ID
- * @param days - Number of days to look back (default: 7)
- * @returns Map of source to count
- */
 export function getProfileViewCountBySource(
   profileId: string,
   days: number = 7
 ): Record<AnalyticsSource, number> {
-  if (!profileId) {
-    return { profile: 0, qr: 0, copy: 0, unknown: 0 }
-  }
-
-  const events = getEventsForProfile(profileId)
-  const now = Date.now()
-  const fromTs = now - days * 24 * 60 * 60 * 1000
-
-  const views = events.filter(
-    (e): e is Extract<AnalyticsEvent, { type: 'profile_view' }> =>
-      e.type === 'profile_view' && e.ts >= fromTs
-  )
-
-  const breakdown: Record<AnalyticsSource, number> = {
-    profile: 0,
-    qr: 0,
-    copy: 0,
-    unknown: 0,
-  }
-
-  for (const view of views) {
-    breakdown[view.source] = (breakdown[view.source] || 0) + 1
-  }
-
-  return breakdown
+  return { profile: 0, qr: 0, copy: 0, unknown: 0 }
 }
 
-/**
- * Get total link clicks for a profile in a specific time range
- * @param profileId - Profile address or ID
- * @param days - Number of days to look back (default: 7)
- * @returns Count of link clicks in the specified time range
- */
 export function getTotalLinkClicks(profileId: string, days: number = 7): number {
-  if (!profileId) return 0
-  const events = getEventsForProfile(profileId)
-  const now = Date.now()
-  const fromTs = now - days * 24 * 60 * 60 * 1000
-
-  return events.filter(
-    (e): e is Extract<AnalyticsEvent, { type: 'link_click' }> =>
-      e.type === 'link_click' && e.ts >= fromTs
-  ).length
+  return 0
 }
 
 /**

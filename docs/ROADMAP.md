@@ -20,9 +20,10 @@ SOCI4L is the identity and link intelligence layer for Web3. We turn wallet addr
 - Client-side analytics (views, clicks)
 - Profile layout customization
 - Theme/appearance settings
+- **Admin Panel (v1)**: User management, platform metrics (`/master-console`)
+- **Server-Side Analytics**: Database-backed view and click tracking
 
 ### ⚠️ Partially Complete
-- Server-side analytics (localStorage only)
 - NFT display (names only, no images)
 
 ---
@@ -31,36 +32,7 @@ SOCI4L is the identity and link intelligence layer for Web3. We turn wallet addr
 
 ### 🎯 High Priority (Q1-Q2)
 
-#### 1. Admin Panel
-**Status:** Planned  
-**Effort:** Medium  
-**Value:** High (operations)
-
-- Platform-wide analytics dashboard
-- User management and search
-- Content moderation tools
-- Email subscriber management
-- System health monitoring
-
-See: [ADMIN_PANEL.md](./ADMIN_PANEL.md)
-
----
-
-#### 2. Server-Side Analytics
-**Status:** Planned  
-**Effort:** Medium  
-**Value:** High (data integrity)
-
-- Move from localStorage to database
-- Accurate view/click counts
-- Source attribution tracking
-- Geographic insights (anonymized)
-
-See: [DATA_STRATEGY.md](./DATA_STRATEGY.md)
-
----
-
-#### 3. OpenSea API Integration
+#### 1. OpenSea API Integration
 **Status:** Planned (needs API key)  
 **Effort:** Low  
 **Value:** High (visual appeal)
@@ -265,7 +237,32 @@ Sell SOCI4L as a service to DAOs/projects.
 - Integrated with project's ecosystem
 - Managed hosting
 
+
+#### 15. Web3 Social Integration (Lens / Farcaster)
+**Effort:** High  
+**Value:** High (network effect)  
+
+Import social graph and content from decentralized social protocols.
+
+- "Import from Lens/Farcaster" on onboarding
+- Cross-posting content
+- Sync profile picture and bio
+- Display social graph (followers) on profile
+
 ---
+
+#### 16. Degen Mode / Pro Themes
+**Effort:** Medium  
+**Value:** High (engagement/fun)  
+
+Profile personalization for power users.
+
+- **Themes:** "Whale" (Gold), "Degen" (Matrix/Dark), "Builder" (Minimal)
+- Custom fonts and background effects
+- Unlockable via achievements or "Pro" status
+
+---
+
 
 ### 💡 Ideas (Backlog)
 

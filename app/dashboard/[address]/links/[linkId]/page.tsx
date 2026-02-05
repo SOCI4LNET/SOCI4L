@@ -215,7 +215,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
 
     loadLink()
 
-    // Load analytics events from server (with fallback to localStorage)
+    // Load analytics events from server
     const loadAnalytics = async () => {
       try {
         const response = await fetch(
@@ -229,7 +229,6 @@ export default function LinkInsightsPage({ params }: PageProps) {
         }
       } catch (error) {
         console.error('[LinkDetail] Failed to load analytics from API', error)
-        // Fallback is handled in useMemo via getEventsForProfile
       }
     }
 
@@ -239,11 +238,8 @@ export default function LinkInsightsPage({ params }: PageProps) {
   const analytics = useMemo(() => {
     const now = Date.now()
 
-    // Prefer server-side analytics if available, otherwise fall back to localStorage
-    const allEvents =
-      serverEvents && serverEvents.length > 0
-        ? serverEvents
-        : getEventsForProfile(profileId)
+    // Use server-side analytics (empty array if not loaded yet)
+    const allEvents = serverEvents || []
 
     const fromTs =
       range === 'all'

@@ -221,13 +221,13 @@ Response: {
 ## Implementation Checklist
 
 ### Immediate (Before Launch)
-- [ ] Add `AnalyticsEvent` to Prisma schema
-- [ ] Create `/api/analytics/event` endpoint
-- [ ] Update public profile to POST view events
-- [ ] Update link redirect to POST click events
+- [x] Add `AnalyticsEvent` to Prisma schema
+- [x] Create `/api/analytics/event` endpoint
+- [x] Update public profile to POST view events
+- [x] Update link redirect to POST click events
 
 ### Short-term (Post-Launch)
-- [ ] Admin analytics dashboard
+- [x] Admin analytics dashboard
 - [ ] Insights panel reads from API
 - [ ] Remove localStorage dependency
 
