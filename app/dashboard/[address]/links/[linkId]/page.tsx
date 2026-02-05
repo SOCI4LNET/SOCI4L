@@ -552,7 +552,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
       : 'Never'
 
   const ctrLabel =
-    analytics.ctr != null ? `${(analytics.ctr * 100).toFixed(1)}%` : '—'
+    analytics.ctr != null ? `${(analytics.ctr * 100).toFixed(1)}%` : '-'
 
   return (
     <PageShell
