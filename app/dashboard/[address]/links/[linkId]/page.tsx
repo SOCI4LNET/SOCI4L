@@ -955,16 +955,12 @@ export default function LinkInsightsPage({ params }: PageProps) {
                         </td>
                       </tr>
                     )}
-                    )
                     })()}
-                  </tbody >
                 </table>
         </div>
       )}
     </CardContent>
   </Card >
-      </div >
-    </LayoutShell >
   )
 }
 
