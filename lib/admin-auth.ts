@@ -10,7 +10,8 @@ import { getSessionAddress } from '@/lib/auth'
 export async function requireAdmin(context: 'page' | 'api' = 'page'): Promise<string> {
     const address = await getSessionAddress()
 
-    if (!address) {
+    // Ensure strict string return type for TS
+    if (!address || typeof address !== 'string') {
         if (context === 'page') {
             redirect('/')
         } else {
