@@ -29,7 +29,6 @@ export async function GET(request: NextRequest) {
                 OR: [
                     { slug: { contains: lowerQuery, mode: 'insensitive' } },
                     { displayName: { contains: lowerQuery, mode: 'insensitive' } },
-                    { primaryRole: { contains: lowerQuery, mode: 'insensitive' } },
                     { address: { contains: lowerQuery, mode: 'insensitive' } } // Partial address match
                 ]
             },

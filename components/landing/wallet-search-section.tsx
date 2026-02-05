@@ -86,7 +86,7 @@ export function WalletSearchSection() {
                             The Social Layer of Avalanche
                         </h2>
                         <p className="max-w-xl mx-auto text-sm text-muted-foreground">
-                            Search by role, behavior, or address.
+                            Search by wallet address or username.
                         </p>
                     </div>
 
@@ -109,7 +109,7 @@ export function WalletSearchSection() {
                                         }}
                                         onKeyDown={handleKeyDown}
                                         className="flex h-14 w-full bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
-                                        placeholder="Search by role or address..."
+                                        placeholder="Search address or username..."
                                     />
                                     {loading && <Loader2 className="h-4 w-4 animate-spin opacity-50 ml-2" />}
                                 </div>
@@ -143,11 +143,6 @@ export function WalletSearchSection() {
                                                                     <span className="text-xs text-muted-foreground/60 font-mono truncate">
                                                                         {result.address}
                                                                     </span>
-                                                                    {result.primaryRole && (
-                                                                        <span className="text-[10px] text-primary/70 font-medium">
-                                                                            • {result.primaryRole}
-                                                                        </span>
-                                                                    )}
                                                                 </div>
                                                             </div>
                                                             <ArrowRight className="w-4 h-4 opacity-50 ml-auto" />
@@ -165,7 +160,7 @@ export function WalletSearchSection() {
                     <div className="flex flex-wrap justify-center items-center gap-4 text-sm text-muted-foreground pt-2 relative z-10">
                         <span className="opacity-60 text-xs font-medium uppercase tracking-wider">Try:</span>
                         <div className="flex gap-2">
-                            {['whale', 'grant-recipient', 'brokkr'].map(tag => (
+                            {['0x8ab...', 'pixel-art'].map(tag => (
                                 <button
                                     key={tag}
                                     onClick={() => setQuery(tag)}
