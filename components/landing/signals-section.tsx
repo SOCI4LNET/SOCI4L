@@ -67,26 +67,26 @@ export function SignalsSection() {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true, margin: "-50px" }}
                                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                                className="group relative p-6 rounded-xl border border-border bg-card/50 hover:bg-card/80 transition-all duration-300 shadow-sm hover:shadow-md"
+                                className="group relative p-8 rounded-xl border border-border/50 bg-card shadow-xl dark:shadow-2xl hover:border-primary/20 hover:shadow-2xl transition-all duration-500"
                             >
-                                <div className="flex items-start gap-4">
-                                    <div className="p-2.5 rounded-lg bg-background border border-border text-muted-foreground transition-colors group-hover:text-foreground group-hover:border-primary/20">
-                                        <item.icon className="w-5 h-5" />
-                                    </div>
-                                    <div className="flex-1 space-y-2">
-                                        <div className="flex items-center justify-between">
-                                            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{item.title}</div>
+                                <div className="flex flex-col gap-6">
+                                    <div className="flex items-start justify-between">
+                                        <div className="p-3 rounded-lg bg-secondary/50 border border-border/50 text-foreground transition-colors group-hover:bg-primary/5 group-hover:border-primary/20 group-hover:text-primary">
+                                            <item.icon className="w-5 h-5" />
                                         </div>
+                                        <div className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                                            <ArrowRight className="w-5 h-5 text-primary" />
+                                        </div>
+                                    </div>
 
+                                    <div className="space-y-3">
+                                        <div className="text-xs font-mono font-medium text-muted-foreground uppercase tracking-widest">{item.title}</div>
                                         <div>
-                                            <h4 className="text-lg font-semibold text-foreground mb-1">{item.value}</h4>
-                                            <p className="text-sm text-muted-foreground leading-relaxed">
+                                            <h4 className="text-xl font-semibold text-foreground mb-2">{item.value}</h4>
+                                            <p className="text-sm text-muted-foreground leading-relaxed max-w-[90%]">
                                                 {item.description}
                                             </p>
                                         </div>
-                                    </div>
-                                    <div className="self-center opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                                        <ArrowRight className="w-4 h-4 text-primary" />
                                     </div>
                                 </div>
                             </motion.div>
