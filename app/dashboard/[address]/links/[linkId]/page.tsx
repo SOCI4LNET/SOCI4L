@@ -507,19 +507,19 @@ export default function LinkInsightsPage({ params }: PageProps) {
 
   if (loading) {
     return (
-      <PageShell title="Loading..." subtitle="Loading link details">
+      <LayoutShell title="Loading..." subtitle="Loading link details">
         <Card className="bg-card border border-border/60 shadow-sm">
           <CardContent className="py-8 flex flex-col items-center gap-4">
             <p className="text-sm text-muted-foreground">Loading link details...</p>
           </CardContent>
         </Card>
-      </PageShell>
+      </LayoutShell>
     )
   }
 
   if (linksLoaded && !link) {
     return (
-      <PageShell
+      <LayoutShell
         title="Link not found"
         subtitle="This link does not exist in your profile."
       >
@@ -534,7 +534,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
             </Button>
           </CardContent>
         </Card>
-      </PageShell>
+      </LayoutShell>
     )
   }
 
@@ -1010,7 +1010,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
           </CardContent>
         </Card >
       </div >
-    </PageShell >
+    </LayoutShell >
   )
 }
 
