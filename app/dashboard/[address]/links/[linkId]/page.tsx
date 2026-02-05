@@ -885,7 +885,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
 
                       return (
                         <>
-                          {paginatedEvents.map(event => (
+                          {paginatedEvents.map((event: any) => (
                             <tr key={`${event.ts}-${Math.random()}`} className="border-b border-border/40 last:border-0 hover:bg-muted/30">
                               <td className="py-2 text-left text-muted-foreground">
                                 {formatDistanceToNow(new Date(event.ts), { addSuffix: true })}
