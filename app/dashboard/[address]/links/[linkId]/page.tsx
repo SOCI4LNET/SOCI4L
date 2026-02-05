@@ -846,6 +846,8 @@ export default function LinkInsightsPage({ params }: PageProps) {
                     <tr className="border-b border-border/60 text-muted-foreground">
                       <th className="py-2 text-left font-medium">Time</th>
                       <th className="py-2 text-left font-medium">Visitor</th>
+                      <th className="py-2 text-left font-medium">Referrer</th>
+                      <th className="py-2 text-left font-medium">Device/Loc</th>
                       <th className="py-2 text-right font-medium">Source</th>
                     </tr>
                   </thead>
@@ -877,7 +879,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
                       if (paginatedEvents.length === 0) {
                         return (
                           <tr>
-                            <td colSpan={3} className="py-4 text-center text-muted-foreground py-2">{clickPage === 1 ? 'No clicks in this time range.' : 'No more clicks.'}</td>
+                            <td colSpan={5} className="py-4 text-center text-muted-foreground py-2">{clickPage === 1 ? 'No clicks in this time range.' : 'No more clicks.'}</td>
                           </tr>
                         )
                       }
@@ -929,6 +931,27 @@ export default function LinkInsightsPage({ params }: PageProps) {
                                   <span className="text-muted-foreground opacity-50 italic">Anonymous</span>
                                 )}
                               </td>
+                              <td className="py-2 text-left max-w-[120px] truncate" title={event.referrer || ''}>
+                                {event.referrer ? (
+                                  <span className="font-mono text-[10px] text-muted-foreground">
+                                    {(() => {
+                                      try {
+                                        return new URL(event.referrer).hostname.replace('www.', '')
+                                      } catch {
+                                        return event.referrer
+                                      }
+                                    })()}
+                                  </span>
+                                ) : (
+                                  <span className="text-muted-foreground/30">-</span>
+                                )}
+                              </td>
+                              <td className="py-2 text-left">
+                                <div className="flex flex-col text-[10px] leading-tight text-muted-foreground">
+                                  <span>{event.device || '-'}</span>
+                                  <span className="opacity-70">{event.country || '-'}</span>
+                                </div>
+                              </td>
                               <td className="py-2 text-right capitalize text-muted-foreground">
                                 {event.source}
                               </td>
@@ -937,7 +960,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
                           {/* Pagination Controls */}
                           {totalIds > CLICKS_PER_PAGE && (
                             <tr>
-                              <td colSpan={3} className="pt-4 pb-2">
+                              <td colSpan={5} className="pt-4 pb-2">
                                 <div className="flex items-center justify-between">
                                   <div className="text-xs text-muted-foreground">
                                     Showing {startIdx + 1}-{Math.min(startIdx + CLICKS_PER_PAGE, totalIds)} of {totalIds}
