@@ -930,42 +930,44 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                                   )}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  {activity.type === 'link_click' ? (
-                                    <p className="text-xs truncate flex items-center gap-1">
-                                      {activity.visitorWallet && (
-                                        <span className="mr-1 text-[10px] text-muted-foreground font-mono bg-muted/50 px-1 py-0.5 rounded flex items-center gap-1">
-                                          {activity.visitorWallet.slice(0, 6)}...{activity.visitorWallet.slice(-4)}
-                                          <Button
-                                            variant="ghost"
-                                            className="h-3 w-3 p-0 hover:bg-transparent text-muted-foreground/50 hover:text-foreground"
-                                            onClick={(e) => {
-                                              e.stopPropagation()
-                                              navigator.clipboard.writeText(activity.visitorWallet!)
-                                              toast.success('Address copied')
-                                            }}
-                                          >
-                                            <Copy className="h-2 w-2" />
-                                          </Button>
-                                        </span>
-                                      )}
-                                      <span className="text-muted-foreground">Link clicked: </span>
-                                      <span className="font-medium">{activity.linkTitle}</span>
-                                      {activity.source === 'extension' && (
-                                        <Badge variant="outline" className="ml-2 text-[9px] h-4 px-1 text-primary/80 border-primary/20 bg-primary/5">
-                                          via Extension
-                                        </Badge>
-                                      )}
-                                    </p>
-                                  ) : (
-                                    <p className="text-xs flex items-center gap-1">
-                                      <span className="font-medium">Profile viewed</span>
-                                      {activity.source === 'extension' && (
-                                        <Badge variant="outline" className="ml-2 text-[9px] h-4 px-1 text-primary/80 border-primary/20 bg-primary/5">
-                                          via Extension
-                                        </Badge>
-                                      )}
-                                    </p>
-                                  )}
+                                  <div className="flex items-center gap-1.5 mb-1">
+                                    {activity.visitorWallet && (
+                                      <span className="text-[10px] text-muted-foreground font-mono bg-muted/50 px-1 py-0.5 rounded flex items-center gap-1 shrink-0">
+                                        {activity.visitorWallet.slice(0, 6)}...{activity.visitorWallet.slice(-4)}
+                                        <Button
+                                          variant="ghost"
+                                          className="h-3 w-3 p-0 hover:bg-transparent text-muted-foreground/50 hover:text-foreground"
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            navigator.clipboard.writeText(activity.visitorWallet!)
+                                            toast.success('Address copied')
+                                          }}
+                                        >
+                                          <Copy className="h-2 w-2" />
+                                        </Button>
+                                      </span>
+                                    )}
+                                    {activity.type === 'link_click' ? (
+                                      <p className="text-xs truncate">
+                                        <span className="text-muted-foreground">Link clicked: </span>
+                                        <span className="font-medium">{activity.linkTitle}</span>
+                                        {activity.source === 'extension' && (
+                                          <Badge variant="outline" className="ml-2 text-[9px] h-4 px-1 text-primary/80 border-primary/20 bg-primary/5">
+                                            via Extension
+                                          </Badge>
+                                        )}
+                                      </p>
+                                    ) : (
+                                      <p className="text-xs flex items-center gap-1">
+                                        <span className="font-medium">Profile viewed</span>
+                                        {activity.source === 'extension' && (
+                                          <Badge variant="outline" className="ml-2 text-[9px] h-4 px-1 text-primary/80 border-primary/20 bg-primary/5">
+                                            via Extension
+                                          </Badge>
+                                        )}
+                                      </p>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                               <div className="text-[11px] text-muted-foreground whitespace-nowrap shrink-0">

@@ -63,6 +63,8 @@ interface PublicInsightsData {
       timestamp: number
       linkTitle?: string
       linkId?: string
+      visitorWallet?: string
+      source?: 'profile' | 'qr' | 'copy' | 'extension' | 'unknown'
     }>
   }
 }
@@ -173,6 +175,8 @@ export default function PublicInsightsPage({ params }: PageProps) {
           timestamp: event.ts,
           linkTitle: event.linkTitle,
           linkId: event.linkId,
+          visitorWallet: event.visitorWallet,
+          source: event.source,
         }))
 
         setPaginatedActivity(prev => [...prev, ...mapped])
@@ -450,16 +454,33 @@ export default function PublicInsightsPage({ params }: PageProps) {
                                       )}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                      {activity.type === 'link_click' ? (
-                                        <p className="text-xs truncate">
-                                          <span className="text-muted-foreground">Link clicked: </span>
-                                          <span className="font-medium">{activity.linkTitle || 'Untitled link'}</span>
-                                        </p>
-                                      ) : (
-                                        <p className="text-xs">
-                                          <span className="font-medium">Profile viewed</span>
-                                        </p>
-                                      )}
+                                      <div className="flex items-center gap-1.5 mb-1">
+                                        {activity.visitorWallet && (
+                                          <span className="text-[10px] text-muted-foreground font-mono bg-muted/50 px-1 py-0.5 rounded flex items-center gap-1 shrink-0">
+                                            {activity.visitorWallet.slice(0, 6)}...{activity.visitorWallet.slice(-4)}
+                                          </span>
+                                        )}
+                                        {activity.type === 'link_click' ? (
+                                          <p className="text-xs truncate">
+                                            <span className="text-muted-foreground">Link clicked: </span>
+                                            <span className="font-medium">{activity.linkTitle || 'Untitled link'}</span>
+                                            {activity.source === 'extension' && (
+                                              <Badge variant="outline" className="ml-2 text-[9px] h-4 px-1 text-primary/80 border-primary/20 bg-primary/5">
+                                                via Extension
+                                              </Badge>
+                                            )}
+                                          </p>
+                                        ) : (
+                                          <p className="text-xs flex items-center gap-1">
+                                            <span className="font-medium">Profile viewed</span>
+                                            {activity.source === 'extension' && (
+                                              <Badge variant="outline" className="ml-2 text-[9px] h-4 px-1 text-primary/80 border-primary/20 bg-primary/5">
+                                                via Extension
+                                              </Badge>
+                                            )}
+                                          </p>
+                                        )}
+                                      </div>
                                     </div>
                                   </div>
                                   <div className="text-[10px] text-muted-foreground whitespace-nowrap shrink-0">
