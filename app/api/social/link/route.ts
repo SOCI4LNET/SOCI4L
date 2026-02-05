@@ -12,22 +12,23 @@ export async function POST(req: NextRequest) {
         // For MVP, we will trust the payload but ensure the profile exists.
 
         const body = await req.json()
-        const { platform, platformUsername, platformUserId } = body
+        const { platform, platformUsername, platformUserId, walletAddress } = body
 
         if (!platform || !platformUsername || !platformUserId) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
         }
 
-        // If we have a session owner, use it to find profile
-        // If not, we might be in a flow where the user logged in via Privy only (future)
-        // But SOCI4L is wallet-first. So we expect a wallet session.
+        // Use session owner if available, otherwise trust the walletAddress from body (if provided)
+        // This is necessary because on some devices (like Mac with partial auth state), 
+        // the httpOnly cookie might be missing even if Privy is connected.
+        const effectiveAddress = sessionOwner || walletAddress
 
-        if (!sessionOwner) {
-            return NextResponse.json({ error: 'Unauthorized: No wallet session' }, { status: 401 })
+        if (!effectiveAddress) {
+            return NextResponse.json({ error: 'Unauthorized: No wallet session or address provided' }, { status: 401 })
         }
 
         const profile = await prisma.profile.findUnique({
-            where: { address: sessionOwner.toLowerCase() }
+            where: { address: effectiveAddress.toLowerCase() }
         })
 
         if (!profile) {

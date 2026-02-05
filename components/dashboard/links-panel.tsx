@@ -2051,6 +2051,7 @@ export function LinksPanel() {
                                           platform: 'twitter',
                                           platformUsername: twitterUser.username,
                                           platformUserId: twitterUser.subject,
+                                          walletAddress: targetAddress,
                                         }),
                                       })
 
