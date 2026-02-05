@@ -23,6 +23,7 @@ export type AnalyticsEvent =
     profileId: string
     ts: number
     source: AnalyticsSource
+    visitorWallet?: string
   }
   | {
     type: 'link_click'
@@ -33,6 +34,7 @@ export type AnalyticsEvent =
     categoryId?: string | null
     ts: number
     source: AnalyticsSource
+    visitorWallet?: string
   }
 
 // Local storage event logging removed in favor of server-side analytics
@@ -199,10 +201,10 @@ export function getSourceFromUrl(searchParams: URLSearchParams | string): Analyt
     ? new URLSearchParams(searchParams)
     : searchParams
 
-  const source = params.get('source')
+  const source = params.get('source')?.toLowerCase()
 
   if (source === 'profile' || source === 'qr' || source === 'copy' || source === 'extension') {
-    return source
+    return source as AnalyticsSource
   }
 
   return 'unknown'
