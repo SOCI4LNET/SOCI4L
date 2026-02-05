@@ -2036,7 +2036,39 @@ export function LinksPanel() {
                                 )
                               }
 
-                              return null
+                              return (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-5 px-2 text-[10px]"
+                                  onClick={async () => {
+                                    try {
+                                      const toastId = toast.loading('Verifying...')
+                                      const response = await fetch('/api/social/link', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                          platform: 'twitter',
+                                          platformUsername: twitterUser.username,
+                                          platformUserId: twitterUser.subject,
+                                        }),
+                                      })
+
+                                      if (response.ok) {
+                                        toast.success('Verified!', { id: toastId })
+                                        // Force reload to update UI state
+                                        window.location.reload()
+                                      } else {
+                                        toast.error('Verification failed', { id: toastId })
+                                      }
+                                    } catch (e) {
+                                      toast.error('Failed to connect')
+                                    }
+                                  }}
+                                >
+                                  Verify
+                                </Button>
+                              )
                             })()
                           )}
                         </div>
