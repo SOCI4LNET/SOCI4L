@@ -13,7 +13,7 @@ export async function requireAdmin(context: 'page' | 'api' = 'page'): Promise<st
     // Ensure strict string return type for TS
     if (!address || typeof address !== 'string') {
         if (context === 'page') {
-            redirect('/')
+            redirect('/?error=admin_no_session')
         } else {
             throw new Error('Unauthorized: No session')
         }
@@ -42,11 +42,14 @@ export async function requireAdmin(context: 'page' | 'api' = 'page'): Promise<st
         }
     } catch (error) {
         console.error('[AdminAuth] DB check failed:', error)
+        if (context === 'page') {
+            redirect('/?error=admin_db_fail')
+        }
     }
 
     // 3. Fail if neither passed
     if (context === 'page') {
-        redirect('/')
+        redirect('/?error=not_admin')
     } else {
         throw new Error('Forbidden: Not an admin')
     }
