@@ -241,6 +241,28 @@ export async function GET(request: NextRequest) {
       }
     })
 
+    // Source breakdown
+    const sourceStats = await prisma.analyticsEvent.groupBy({
+      by: ['source'],
+      where: {
+        profileId: resolvedAddress,
+        type: 'profile_view', // Focus on profile view sources for now, or remove for all traffic
+      },
+      _count: {
+        _all: true
+      },
+      orderBy: {
+        _count: {
+          source: 'desc'
+        }
+      }
+    })
+
+    const sourceBreakdown: Record<string, number> = {}
+    sourceStats.forEach(stat => {
+      sourceBreakdown[stat.source] = stat._count._all
+    })
+
     const recentEvents = await prisma.analyticsEvent.findMany({
       where: {
         profileId: resolvedAddress,
@@ -292,6 +314,7 @@ export async function GET(request: NextRequest) {
         topLinks,
         topCategories,
         recentActivity,
+        sourceBreakdown,
       },
     })
   } catch (error) {
