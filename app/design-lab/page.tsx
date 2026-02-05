@@ -9,6 +9,9 @@ import { LinkIntelligenceNode } from '@/components/showcase/link-intelligence-no
 import { OnChainReputationMeter } from '@/components/showcase/on-chain-reputation-meter'
 import { SmartContractVerdict } from '@/components/showcase/smart-contract-verdict'
 import { AssetPortfolioPrism } from '@/components/showcase/asset-portfolio-prism'
+import { QuantumCodeScanner } from '@/components/showcase/quantum-code-scanner'
+import { DidVault } from '@/components/showcase/did-vault'
+import { SocialEchoRadar } from '@/components/showcase/social-echo-radar'
 import { GlobalNetworkMap } from '@/components/showcase/global-network-map'
 
 export default function DesignLabPage() {
@@ -119,10 +122,43 @@ export default function DesignLabPage() {
                     </div>
                 </div>
 
-                {/* Component 10: Global Network Map */}
+                {/* Component 10: Quantum Code Scanner */}
+                <div className="col-span-1 min-h-[400px] flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                        <h3 className="font-mono text-sm uppercase tracking-wider text-muted-foreground">10. Quantum QR</h3>
+                        <Badge variant="outline">Sharing</Badge>
+                    </div>
+                    <div className="flex-1 rounded-xl border border-dashed border-border p-6 flex items-center justify-center bg-muted/10 relative overflow-hidden">
+                        <QuantumCodeScanner />
+                    </div>
+                </div>
+
+                {/* Component 11: DID Vault */}
+                <div className="col-span-1 min-h-[400px] flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                        <h3 className="font-mono text-sm uppercase tracking-wider text-muted-foreground">11. DID Vault</h3>
+                        <Badge variant="outline">Privacy</Badge>
+                    </div>
+                    <div className="flex-1 rounded-xl border border-dashed border-border p-6 flex items-center justify-center bg-muted/10 relative overflow-hidden">
+                        <DidVault />
+                    </div>
+                </div>
+
+                {/* Component 12: Social Echo Radar */}
+                <div className="col-span-1 min-h-[400px] flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                        <h3 className="font-mono text-sm uppercase tracking-wider text-muted-foreground">12. Echo Radar</h3>
+                        <Badge variant="outline">Discovery</Badge>
+                    </div>
+                    <div className="flex-1 rounded-xl border border-dashed border-border p-6 flex items-center justify-center bg-muted/10 relative overflow-hidden">
+                        <SocialEchoRadar />
+                    </div>
+                </div>
+
+                {/* Component 13: Global Network Map */}
                 <div className="col-span-1 md:col-span-2 lg:col-span-3 min-h-[500px] flex flex-col gap-4">
                     <div className="flex items-center justify-between">
-                        <h3 className="font-mono text-sm uppercase tracking-wider text-muted-foreground">10. Global Network Map</h3>
+                        <h3 className="font-mono text-sm uppercase tracking-wider text-muted-foreground">13. Global Network Map</h3>
                         <Badge variant="outline">Ecosystem</Badge>
                     </div>
                     <div className="flex-1 rounded-xl border border-dashed border-border p-6 flex items-center justify-center bg-black relative overflow-hidden">
