@@ -67,7 +67,7 @@ export function SignalsSection() {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true, margin: "-50px" }}
                                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                                className="group relative p-8 rounded-xl border border-border/50 bg-card shadow-xl dark:shadow-2xl hover:border-primary/20 hover:shadow-2xl transition-all duration-500"
+                                className="group relative p-8 rounded-xl border border-border/50 bg-card shadow-xl dark:shadow-none hover:border-primary/20 hover:shadow-2xl dark:hover:shadow-none transition-all duration-500"
                             >
                                 <div className="flex flex-col gap-6">
                                     <div className="flex items-start justify-between">
