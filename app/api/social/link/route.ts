@@ -35,6 +35,17 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
         }
 
+        // Check if this social account is already linked to ANOTHER profile
+        const existing = await prisma.socialConnection.findUnique({
+            where: {
+                platform_platformUserId: {
+                    platform,
+                    platformUserId
+                }
+            },
+            include: { profile: true }
+        })
+
         if (existing && existing.profileId !== profile.id) {
             return NextResponse.json({
                 error: `This ${platform} account is already connected to another profile.`
