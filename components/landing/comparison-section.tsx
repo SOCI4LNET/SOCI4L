@@ -41,7 +41,7 @@ export function ComparisonSection() {
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5 }}
-                    className="relative group rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm overflow-hidden flex flex-col h-[480px] shadow-xl dark:shadow-none"
+                    className="relative group rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm overflow-hidden flex flex-col h-[480px] shadow-xl dark:shadow-2xl"
                 >
                     {/* Fake Browser Header */}
                     <div className="h-10 border-b border-border/10 bg-muted/40 flex items-center px-4 gap-2">
@@ -142,7 +142,7 @@ export function ComparisonSection() {
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 0.1 }}
-                    className="relative group rounded-2xl border border-border bg-card text-card-foreground flex flex-col h-[480px] overflow-hidden shadow-xl dark:shadow-none"
+                    className="relative group rounded-2xl border border-border bg-card text-card-foreground flex flex-col h-[480px] overflow-hidden shadow-xl dark:shadow-2xl"
                 >
                     {/* Profile Header (Cover) */}
                     <div className="h-32 w-full relative bg-muted/40">
@@ -166,7 +166,7 @@ export function ComparisonSection() {
                                 transition={{ delay: 0.3, type: "spring" }}
                                 className="relative group/avatar cursor-pointer"
                             >
-                                <div className="w-24 h-24 rounded-2xl border-[4px] border-card bg-muted overflow-hidden shadow-xl dark:shadow-none">
+                                <div className="w-24 h-24 rounded-2xl border-[4px] border-card bg-muted overflow-hidden shadow-xl">
                                     <AvatarImage src="https://effigy.im/a/0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1.svg" className="object-cover w-full h-full" />
                                 </div>
                                 <div className="absolute bottom-0 -right-1 w-6 h-6 bg-emerald-500 border-4 border-card rounded-full" />
@@ -222,7 +222,7 @@ export function ComparisonSection() {
                             transition={{ delay: 0.8 }}
                             className="flex gap-3"
                         >
-                            <Button className="flex-1 gap-2 font-semibold shadow-lg shadow-black/5 dark:shadow-none bg-primary text-primary-foreground hover:bg-primary/90 h-10 transition-transform active:scale-95">
+                            <Button className="flex-1 gap-2 font-semibold shadow-lg shadow-black/5 bg-primary text-primary-foreground hover:bg-primary/90 h-10 transition-transform active:scale-95">
                                 Follow Profile
                             </Button>
                             <Button variant="outline" size="icon" className="h-10 w-10 border-border bg-background/50 text-foreground hover:bg-muted rounded-lg transition-transform active:scale-95">

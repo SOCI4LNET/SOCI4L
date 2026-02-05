@@ -20,7 +20,7 @@ export function UseCaseSection() {
             colSpan: 'md:col-span-2',
             // Mock Visual: Code Snippet - Adjusted for Light/Dark
             visual: (
-                <div className="absolute right-6 top-1/2 -translate-y-[40%] translate-x-12 w-[280px] bg-card backdrop-blur-md rounded-lg border border-border p-3 shadow-2xl dark:shadow-none opacity-60 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500 rotate-1 group-hover:rotate-0 hidden md:block z-20">
+                <div className="absolute right-6 top-1/2 -translate-y-[40%] translate-x-12 w-[280px] bg-card backdrop-blur-md rounded-lg border border-border p-3 shadow-2xl opacity-60 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500 rotate-1 group-hover:rotate-0 hidden md:block z-20">
                     <div className="flex items-center justify-between border-b border-border pb-2 mb-2">
                         <div className="flex gap-1.5">
                             <div className="w-2 h-2 rounded-full bg-red-500/20" />
@@ -56,14 +56,14 @@ export function UseCaseSection() {
 
                     {/* Back Card */}
                     <div className="absolute -bottom-10 -right-4 opacity-40 group-hover:opacity-60 transition-all duration-500 group-hover:-translate-y-2 group-hover:-translate-x-1 z-0">
-                        <div className="w-36 h-48 bg-card border border-border rounded-2xl rotate-[5deg] overflow-hidden relative shadow-xl dark:shadow-none">
+                        <div className="w-36 h-48 bg-card border border-border rounded-2xl rotate-[5deg] overflow-hidden relative shadow-xl">
                             <div className="absolute inset-0 bg-gradient-to-bl from-blue-500/10 via-indigo-500/10 to-purple-500/10" />
                         </div>
                     </div>
 
                     {/* Front Card */}
                     <div className="absolute -bottom-8 -right-8 opacity-90 group-hover:opacity-100 transition-all duration-500 group-hover:-translate-y-4 group-hover:-translate-x-4 z-10">
-                        <div className="w-40 h-52 bg-card/90 backdrop-blur-md border border-border rounded-2xl rotate-[-6deg] overflow-hidden shadow-2xl dark:shadow-none relative flex flex-col">
+                        <div className="w-40 h-52 bg-card/90 backdrop-blur-md border border-border rounded-2xl rotate-[-6deg] overflow-hidden shadow-2xl relative flex flex-col">
                             {/* Image Placeholder */}
                             <div className="h-32 w-full bg-gradient-to-tr from-pink-500/20 via-rose-500/10 to-transparent relative overflow-hidden">
                                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mixed-blend-overlay" />
@@ -97,7 +97,7 @@ export function UseCaseSection() {
             // Mock Visual: Real Avatars with hover expansion
             visual: (
                 <div className="absolute right-10 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-6 opacity-60 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0">
-                    <div className="flex items-center gap-3 bg-card/80 border border-border rounded-full px-4 py-2 backdrop-blur-md shadow-xl dark:shadow-none hover:scale-105 transition-transform duration-300">
+                    <div className="flex items-center gap-3 bg-card/80 border border-border rounded-full px-4 py-2 backdrop-blur-md shadow-xl hover:scale-105 transition-transform duration-300">
                         <div className="flex -space-x-3">
                             <img src="https://effigy.im/a/0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1.svg" className="w-8 h-8 rounded-full border-2 border-background bg-muted" alt="Member" />
                             <img src="https://effigy.im/a/0xd8da6bf26964af9d7eed9e03e53415d37aa96045.svg" className="w-8 h-8 rounded-full border-2 border-background bg-muted" alt="Member" />
@@ -146,7 +146,7 @@ export function UseCaseSection() {
                             onMouseLeave={() => setHoveredIndex(null)}
                             className={cn(
                                 "relative group rounded-2xl overflow-hidden min-h-[220px] flex flex-col bg-card/40 hover:bg-card/60 border border-border/40 transition-all duration-500",
-                                isHovered ? "shadow-lg dark:shadow-none border-border/60" : "shadow-sm dark:shadow-none",
+                                isHovered ? "shadow-lg border-border/60" : "shadow-sm",
                                 item.colSpan
                             )}
                         >

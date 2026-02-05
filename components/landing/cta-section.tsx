@@ -24,7 +24,7 @@ export function CTASection() {
                     <Button
                         size="lg"
                         onClick={() => router.push('/demo')}
-                        className="w-full sm:w-auto gap-2 text-base font-semibold shadow-lg shadow-primary/20 dark:shadow-none transition-all hover:-translate-y-0.5"
+                        className="w-full sm:w-auto gap-2 text-base font-semibold shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5"
                     >
                         <Sparkles className="h-4 w-4" />
                         Try Demo

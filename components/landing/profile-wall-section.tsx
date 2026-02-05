@@ -94,7 +94,7 @@ function ProfileCard({ data, index }: { data: ProfileData; index: number }) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.4, delay: index * 0.05 }}
-                className="group relative w-full rounded-2xl bg-card border border-border/50 shadow-sm dark:shadow-none flex flex-col hover:shadow-2xl dark:hover:shadow-none hover:border-border/80 hover:-translate-y-1 transition-all duration-300 overflow-visible"
+                className="group relative w-full rounded-2xl bg-card border border-border/50 shadow-sm flex flex-col hover:shadow-2xl hover:border-border/80 hover:-translate-y-1 transition-all duration-300 overflow-visible"
             >
                 {/* Cover / Header Area */}
                 <div className={cn("h-24 w-full relative rounded-t-2xl overflow-hidden border-b", data.headerColor)}>
@@ -109,7 +109,7 @@ function ProfileCard({ data, index }: { data: ProfileData; index: number }) {
                 <div className={cn("flex-1 px-6 pt-2 relative flex flex-col rounded-b-2xl", data.hasButtons ? "pb-6" : "pb-8")}>
                     {/* Avatar - Overlapping Header */}
                     <div className="absolute -top-8 left-6 z-10">
-                        <Avatar className="h-16 w-16 border-4 border-card shadow-sm dark:shadow-none group-hover:scale-105 transition-transform duration-300">
+                        <Avatar className="h-16 w-16 border-4 border-card shadow-sm group-hover:scale-105 transition-transform duration-300">
                             <AvatarImage src={data.avatar} />
                             <AvatarFallback>0x</AvatarFallback>
                         </Avatar>
@@ -194,7 +194,7 @@ function ProfileCard({ data, index }: { data: ProfileData; index: number }) {
                             {/* Private Overlay */}
                             {data.isPrivate && (
                                 <div className="absolute inset-0 flex items-center justify-center z-10">
-                                    <span className="text-xs font-semibold text-foreground bg-background/80 px-3 py-1 rounded-full border border-border/50 backdrop-blur-sm shadow-sm dark:shadow-none">
+                                    <span className="text-xs font-semibold text-foreground bg-background/80 px-3 py-1 rounded-full border border-border/50 backdrop-blur-sm shadow-sm">
                                         This profile is private
                                     </span>
                                 </div>
@@ -330,7 +330,7 @@ export function ProfileWallSection() {
                         <Button
                             size="lg"
                             variant="default"
-                            className="w-full sm:w-auto gap-2 text-base font-semibold shadow-lg shadow-primary/20 dark:shadow-none transition-all hover:-translate-y-0.5"
+                            className="w-full sm:w-auto gap-2 text-base font-semibold shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5"
                             onClick={() => router.push('/demo')}
                         >
                             <Sparkles className="h-4 w-4" />

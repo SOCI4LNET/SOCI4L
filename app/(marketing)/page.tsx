@@ -99,7 +99,7 @@ export default function HomePage() {
                   <Button
                     size="sm"
                     onClick={openDashboard}
-                    className="gap-2 shadow-xl shadow-primary/20 dark:shadow-none transition-all hover:-translate-y-0.5"
+                    className="gap-2 shadow-xl shadow-primary/20 transition-all hover:-translate-y-0.5"
                   >
                     <Sparkles className="h-3.5 w-3.5" />
                     Claim your profile

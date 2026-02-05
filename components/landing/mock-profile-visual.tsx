@@ -160,7 +160,7 @@ export function MockProfileVisual() {
     }, [])
 
     return (
-        <div className="w-full max-w-[600px] bg-card/95 backdrop-blur-sm rounded-xl border border-border/60 shadow-xl dark:shadow-none p-6 relative overflow-hidden font-sans select-none">
+        <div className="w-full max-w-[600px] bg-card/95 backdrop-blur-sm rounded-xl border border-border/60 shadow-xl p-6 relative overflow-hidden font-sans select-none">
 
             {/* Custom Cursor Overlay */}
             <motion.div
@@ -179,7 +179,7 @@ export function MockProfileVisual() {
                 <div className="relative">
                     <MousePointer2
                         className={cn(
-                            "w-6 h-6 text-foreground fill-foreground drop-shadow-md dark:drop-shadow-none transition-transform duration-200",
+                            "w-6 h-6 text-foreground fill-foreground drop-shadow-md transition-transform duration-200",
                             isGrabbing && "scale-90 -rotate-12"
                         )}
                     />
@@ -191,7 +191,7 @@ export function MockProfileVisual() {
                                 initial={{ opacity: 0, scale: 0.5 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.5 }}
-                                className="absolute -top-2 -left-2 w-64 p-3 rounded-lg bg-card border border-border/60 shadow-xl dark:shadow-none flex items-center gap-3"
+                                className="absolute -top-2 -left-2 w-64 p-3 rounded-lg bg-card border border-border/60 shadow-xl flex items-center gap-3"
                             >
                                 <GripVertical className="w-4 h-4 text-muted-foreground/30" />
                                 <div className="w-9 h-9 rounded-md bg-red-500/10 flex items-center justify-center shrink-0">
@@ -210,7 +210,7 @@ export function MockProfileVisual() {
             {/* HEADER */}
             <div className="flex items-start justify-between mb-8 relative z-10">
                 <div className="flex items-center gap-4">
-                    <Avatar className="h-14 w-14 border-2 border-background shadow-sm dark:shadow-none">
+                    <Avatar className="h-14 w-14 border-2 border-background shadow-sm">
                         <AvatarImage src={`https://effigy.im/a/0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1.svg`} />
                         <AvatarFallback>0x</AvatarFallback>
                     </Avatar>
@@ -276,7 +276,7 @@ export function MockProfileVisual() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: step >= 1 ? 1 : 0, y: step >= 1 ? 0 : 10 }}
                     transition={{ duration: 0.5 }}
-                    className="p-4 rounded-xl bg-card border border-border/40 shadow-sm dark:shadow-none flex items-center"
+                    className="p-4 rounded-xl bg-card border border-border/40 shadow-sm flex items-center"
                 >
                     <div className="flex-1 flex items-center gap-3">
                         <div className="p-2.5 rounded-lg bg-primary/10 text-primary">
@@ -330,7 +330,7 @@ export function MockProfileVisual() {
                                 <motion.div
                                     initial={{ opacity: 0, scale: 0.9 }}
                                     animate={{ opacity: !isPrivate && step >= 6 ? 1 : 0, scale: !isPrivate && step >= 6 ? 1 : 0.9 }}
-                                    className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-background border border-border/50 shadow-sm dark:shadow-none"
+                                    className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-background border border-border/50 shadow-sm"
                                 >
                                     <Activity className="w-3 h-3 text-muted-foreground" />
                                     <span className="text-xs font-mono font-medium text-foreground">
