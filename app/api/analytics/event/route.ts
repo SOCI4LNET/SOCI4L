@@ -38,6 +38,35 @@ export async function POST(request: NextRequest) {
     const linkUrl = (body.linkUrl as string | undefined) || null
     const categoryId = (body.categoryId as string | undefined) || null
 
+    // UTM params
+    const utmSource = (body.utmSource as string | undefined) || null
+    const utmMedium = (body.utmMedium as string | undefined) || null
+    const utmCampaign = (body.utmCampaign as string | undefined) || null
+    const utmTerm = (body.utmTerm as string | undefined) || null
+    const utmContent = (body.utmContent as string | undefined) || null
+
+    const userAgent = request.headers.get('user-agent') || ''
+    const country =
+      request.headers.get('x-vercel-ip-country') ||
+      request.headers.get('cf-ipcountry') ||
+      null
+
+    // Bot detection regex
+    const botRegex = /bot|crawl|spider|mediapartners|slurp|patrol|facebookexternalhit|whatsapp|telegrambot|twitterbot|pinterest|googlebot|bingbot|yandexbot|duckduckbot/i
+    const isBot = botRegex.test(userAgent)
+
+    // Simple device detection
+    let device = 'Desktop'
+    if (/mobile/i.test(userAgent)) {
+      device = 'Mobile'
+    } else if (/tablet|ipad/i.test(userAgent)) {
+      device = 'Tablet'
+    } else if (/android/i.test(userAgent)) {
+      device = 'Android'
+    } else if (/iphone|ipod/i.test(userAgent)) {
+      device = 'iPhone'
+    }
+
     await prisma.analyticsEvent.create({
       data: {
         type,
@@ -49,16 +78,45 @@ export async function POST(request: NextRequest) {
         linkTitle,
         linkUrl,
         categoryId,
+        country,
+        device,
+        utmSource,
+        utmMedium,
+        utmCampaign,
+        utmTerm,
+        utmContent,
+        isBot,
       },
+      type,
+      profileId,
+      visitorWallet,
+      source,
+      referrer,
+      linkId,
+      linkTitle,
+      linkUrl,
+      categoryId,
+      country,
+      device,
+      utmSource,
+      utmMedium,
+      utmCampaign,
+      utmTerm,
+      utmContent,
+      isBot,
+    },
     })
 
-    return NextResponse.json({ ok: true })
-  } catch (error: any) {
-    console.error('[AnalyticsEvent API] Error creating analytics event', error)
-    return NextResponse.json(
-      { error: 'Failed to create analytics event' },
-      { status: 500 },
-    )
-  }
+  return NextResponse.json({ ok: true })
+})
+
+return NextResponse.json({ ok: true })
+} catch (error: any) {
+  console.error('[AnalyticsEvent API] Error creating analytics event', error)
+  return NextResponse.json(
+    { error: 'Failed to create analytics event' },
+    { status: 500 },
+  )
+}
 }
 

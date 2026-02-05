@@ -30,6 +30,9 @@ async function getAnalytics() {
     totalLinkClicks,
     topViewedRaw,
     topClickedRaw,
+    totalBotEvents,
+    topUtmSources,
+    topUtmCampaigns,
   ] = await Promise.all([
     prisma.profile.count(),
     prisma.profile.count({
@@ -64,6 +67,23 @@ async function getAnalytics() {
       orderBy: { _count: { linkId: 'desc' } },
       take: 10,
     }),
+    prisma.analyticsEvent.count({
+      where: { isBot: true } as any,
+    }),
+    prisma.analyticsEvent.groupBy({
+      by: ['utmSource'] as any,
+      where: { utmSource: { not: null } } as any,
+      _count: { utmSource: true } as any,
+      orderBy: { _count: { utmSource: 'desc' } } as any,
+      take: 5,
+    }),
+    prisma.analyticsEvent.groupBy({
+      by: ['utmCampaign'] as any,
+      where: { utmCampaign: { not: null } } as any,
+      _count: { utmCampaign: true } as any,
+      orderBy: { _count: { utmCampaign: 'desc' } } as any,
+      take: 5,
+    }),
   ])
 
   const topViewedAddresses = topViewedRaw.map((row) => row.profileId.toLowerCase())
@@ -78,8 +98,8 @@ async function getAnalytics() {
     }),
     topClickedProfileIds.length > 0
       ? prisma.profile.findMany({
-          where: { address: { in: topClickedProfileIds } },
-        })
+        where: { address: { in: topClickedProfileIds } },
+      })
       : Promise.resolve([]),
   ])
 
@@ -207,6 +227,9 @@ async function getAnalytics() {
     trends,
     profileViewsTrend,
     linkClicksTrend,
+    totalBotEvents,
+    topUtmSources,
+    topUtmCampaigns,
   }
 }
 
@@ -252,11 +275,10 @@ export default async function AdminAnalyticsPage() {
                 <p className="text-xs text-muted-foreground">Total tracked</p>
                 {Math.abs(analytics.profileViewsTrend) > 0.1 && (
                   <span
-                    className={`text-xs font-medium ${
-                      analytics.profileViewsTrend > 0
-                        ? 'text-green-600 dark:text-green-400'
-                        : 'text-red-600 dark:text-red-400'
-                    }`}
+                    className={`text-xs font-medium ${analytics.profileViewsTrend > 0
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-red-600 dark:text-red-400'
+                      }`}
                   >
                     {analytics.profileViewsTrend > 0 ? '+' : ''}
                     {analytics.profileViewsTrend.toFixed(1)}% vs last week
@@ -288,11 +310,10 @@ export default async function AdminAnalyticsPage() {
                 <p className="text-xs text-muted-foreground">Total tracked</p>
                 {Math.abs(analytics.linkClicksTrend) > 0.1 && (
                   <span
-                    className={`text-xs font-medium ${
-                      analytics.linkClicksTrend > 0
-                        ? 'text-green-600 dark:text-green-400'
-                        : 'text-red-600 dark:text-red-400'
-                    }`}
+                    className={`text-xs font-medium ${analytics.linkClicksTrend > 0
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-red-600 dark:text-red-400'
+                      }`}
                   >
                     {analytics.linkClicksTrend > 0 ? '+' : ''}
                     {analytics.linkClicksTrend.toFixed(1)}% vs last week
@@ -377,35 +398,35 @@ export default async function AdminAnalyticsPage() {
                       </TableHead>
                     </TableRow>
                   </TableHeader>
-                <TableBody>
-                  {analytics.topViewed.map((row) => (
-                    <TableRow
-                      key={row.address}
-                      className="group transition-all duration-150 ease-out hover:bg-muted/60 hover:shadow-sm border-b border-border/40"
-                    >
-                      <TableCell className="py-4 align-top">
-                        <div className="flex flex-col gap-1.5">
-                          <Link
-                            href={`/p/${row.slug || row.address}`}
-                            className="text-sm font-semibold hover:underline transition-colors duration-150 hover:text-primary flex items-center gap-1.5"
-                          >
-                            {row.displayName || row.address}
-                            <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                          </Link>
-                          <span className="text-xs text-muted-foreground font-mono">
-                            {row.address.slice(0, 10)}...{row.address.slice(-6)}
+                  <TableBody>
+                    {analytics.topViewed.map((row) => (
+                      <TableRow
+                        key={row.address}
+                        className="group transition-all duration-150 ease-out hover:bg-muted/60 hover:shadow-sm border-b border-border/40"
+                      >
+                        <TableCell className="py-4 align-top">
+                          <div className="flex flex-col gap-1.5">
+                            <Link
+                              href={`/p/${row.slug || row.address}`}
+                              className="text-sm font-semibold hover:underline transition-colors duration-150 hover:text-primary flex items-center gap-1.5"
+                            >
+                              {row.displayName || row.address}
+                              <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </Link>
+                            <span className="text-xs text-muted-foreground font-mono">
+                              {row.address.slice(0, 10)}...{row.address.slice(-6)}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right py-4 align-top">
+                          <span className="text-sm font-bold">
+                            {row.views.toLocaleString('en-US')}
                           </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right py-4 align-top">
-                        <span className="text-sm font-bold">
-                          {row.views.toLocaleString('en-US')}
-                        </span>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             )}
           </CardContent>
@@ -437,54 +458,54 @@ export default async function AdminAnalyticsPage() {
                       </TableHead>
                     </TableRow>
                   </TableHeader>
-                <TableBody>
-                  {analytics.topClicked.map((row, idx) => (
-                    <TableRow
-                      key={row.linkId || `link-${idx}`}
-                      className="group transition-all duration-150 ease-out hover:bg-muted/60 hover:shadow-sm border-b border-border/40"
-                    >
-                      <TableCell className="py-4 align-top">
-                        <div className="flex flex-col gap-1.5">
-                          <div className="text-sm font-semibold">
-                            {row.linkTitle}
-                          </div>
-                          {row.linkUrl && (
-                            <a
-                              href={row.linkUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs text-muted-foreground hover:text-foreground hover:underline truncate max-w-xs transition-colors duration-150 flex items-center gap-1"
-                            >
-                              {row.linkUrl.length > 50 ? row.linkUrl.slice(0, 50) + '...' : row.linkUrl}
-                              <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </a>
-                          )}
-                          {row.profileAddress && (
-                            <div className="text-xs text-muted-foreground mt-0.5">
-                              by{' '}
-                              {row.displayName || row.slug ? (
-                                <Link
-                                  href={`/p/${row.slug || row.profileAddress}`}
-                                  className="hover:underline hover:text-foreground transition-colors duration-150 font-medium"
-                                >
-                                  {row.displayName || row.slug || row.profileAddress}
-                                </Link>
-                              ) : (
-                                <span className="font-mono">{row.profileAddress.slice(0, 10)}...</span>
-                              )}
+                  <TableBody>
+                    {analytics.topClicked.map((row, idx) => (
+                      <TableRow
+                        key={row.linkId || `link-${idx}`}
+                        className="group transition-all duration-150 ease-out hover:bg-muted/60 hover:shadow-sm border-b border-border/40"
+                      >
+                        <TableCell className="py-4 align-top">
+                          <div className="flex flex-col gap-1.5">
+                            <div className="text-sm font-semibold">
+                              {row.linkTitle}
                             </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right py-4 align-top">
-                        <span className="text-sm font-bold">
-                          {row.clicks.toLocaleString('en-US')}
-                        </span>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                            {row.linkUrl && (
+                              <a
+                                href={row.linkUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-muted-foreground hover:text-foreground hover:underline truncate max-w-xs transition-colors duration-150 flex items-center gap-1"
+                              >
+                                {row.linkUrl.length > 50 ? row.linkUrl.slice(0, 50) + '...' : row.linkUrl}
+                                <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </a>
+                            )}
+                            {row.profileAddress && (
+                              <div className="text-xs text-muted-foreground mt-0.5">
+                                by{' '}
+                                {row.displayName || row.slug ? (
+                                  <Link
+                                    href={`/p/${row.slug || row.profileAddress}`}
+                                    className="hover:underline hover:text-foreground transition-colors duration-150 font-medium"
+                                  >
+                                    {row.displayName || row.slug || row.profileAddress}
+                                  </Link>
+                                ) : (
+                                  <span className="font-mono">{row.profileAddress.slice(0, 10)}...</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right py-4 align-top">
+                          <span className="text-sm font-bold">
+                            {row.clicks.toLocaleString('en-US')}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             )}
           </CardContent>

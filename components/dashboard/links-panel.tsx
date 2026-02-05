@@ -823,7 +823,8 @@ export function LinksPanel() {
         const data = await response.json()
         const links = data.profile?.socialLinks || []
         setSocialLinks(links.map((link: any) => ({
-          id: link.id || crypto.randomUUID(),
+          // Use deterministic ID if missing to match public profile behavior
+          id: link.id || `social-${link.url}`,
           platform: (link.platform || link.type || 'website') as SocialLinkPlatform,
           url: link.url || '',
           label: link.label || '',
@@ -832,6 +833,7 @@ export function LinksPanel() {
         })))
       } catch (error) {
         console.error('[LinksPanel] Failed to load social links', error)
+        // Ensure even empty/failed state doesn't break ID expectations if defaults used
         setSocialLinks([])
       } finally {
         setSocialLinksLoading(false)
@@ -873,7 +875,10 @@ export function LinksPanel() {
         },
         body: JSON.stringify({
           address: targetAddress,
-          socialLinks: linksToSave.length > 0 ? linksToSave : null,
+          socialLinks: linksToSave.map(l => ({
+            ...l,
+            id: l.id && !l.id.startsWith('social-') ? l.id : `social-${l.url}`
+          })),
           signature,
         }),
       })
@@ -891,7 +896,7 @@ export function LinksPanel() {
 
       const savedLinks = data.profile?.socialLinks || []
       setSocialLinks(savedLinks.map((link: any) => ({
-        id: link.id || crypto.randomUUID(),
+        id: link.id || `social-${link.url}`,
         platform: (link.platform || link.type || 'website') as SocialLinkPlatform,
         url: link.url || '',
         label: link.label || '',
@@ -2187,8 +2192,8 @@ export function LinksPanel() {
                         size="sm"
                         className="h-8 w-8 p-0"
                         onClick={() => {
-                          const id = link.id || `social-${link.url}`
-                          router.push(`/dashboard/${targetAddress}/links/${id}`)
+                          // ID is now guaranteed to be consistent
+                          router.push(`/dashboard/${targetAddress}/links/${link.id}`)
                         }}
                         aria-label="View link details"
                       >

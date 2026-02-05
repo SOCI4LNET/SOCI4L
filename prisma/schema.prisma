@@ -173,6 +173,14 @@ model AnalyticsEvent {
   country   String?
   device    String?
   visitorWallet String? // Wallet address of the visitor if connected
+  
+  // Advanced Analytics
+  utmSource     String?
+  utmMedium     String?
+  utmCampaign   String?
+  utmTerm       String?
+  utmContent    String?
+  isBot         Boolean  @default(false)
 
   createdAt DateTime @default(now())
 

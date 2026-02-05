@@ -1192,13 +1192,15 @@ export default function ProfilePage({ params }: PageProps) {
                                             rel="noopener noreferrer"
                                             onClick={() => {
                                               if (stableProfileId) {
+                                                const source = getSourceFromUrl(searchParams)
                                                 trackLinkClick(
                                                   stableProfileId,
                                                   link.id,
-                                                  getSourceFromUrl(searchParams),
+                                                  source === 'unknown' ? 'profile' : source,
                                                   link.categoryId || null,
                                                   link.title,
                                                   link.url,
+                                                  connectedAddress || undefined,
                                                   { skipServer: link.type !== 'social' }
                                                 )
                                               }
