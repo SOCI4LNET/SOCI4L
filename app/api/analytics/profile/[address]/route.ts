@@ -53,6 +53,7 @@ export async function GET(
           event.source === 'copy'
           ? (event.source as 'profile' | 'qr' | 'copy')
           : ('unknown' as const),
+      visitorWallet: event.visitorWallet ?? undefined,
     }))
 
     return NextResponse.json({

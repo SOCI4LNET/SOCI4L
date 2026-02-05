@@ -929,10 +929,8 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                                 <div className="flex-1 min-w-0">
                                   {activity.type === 'link_click' ? (
                                     <p className="text-xs truncate flex items-center gap-1">
-                                      <span className="text-muted-foreground">Link clicked: </span>
-                                      <span className="font-medium">{activity.linkTitle}</span>
                                       {activity.visitorWallet && (
-                                        <span className="ml-1 text-[10px] text-muted-foreground font-mono bg-muted/50 px-1 py-0.5 rounded flex items-center gap-1">
+                                        <span className="mr-1 text-[10px] text-muted-foreground font-mono bg-muted/50 px-1 py-0.5 rounded flex items-center gap-1">
                                           {activity.visitorWallet.slice(0, 6)}...{activity.visitorWallet.slice(-4)}
                                           <Button
                                             variant="ghost"
@@ -947,6 +945,8 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                                           </Button>
                                         </span>
                                       )}
+                                      <span className="text-muted-foreground">Link clicked: </span>
+                                      <span className="font-medium">{activity.linkTitle}</span>
                                     </p>
                                   ) : (
                                     <p className="text-xs">
