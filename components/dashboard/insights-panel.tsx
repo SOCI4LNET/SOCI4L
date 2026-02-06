@@ -133,6 +133,7 @@ type GlobalAnalytics = {
   recentActivity: RecentActivity[]
   sourceBreakdown: Record<AnalyticsSource, number>
   linkClickCounts: Record<string, number>
+  topReferrers: Array<{ name: string; count: number }>
 }
 
 type InsightsPanelProps = {
@@ -234,12 +235,14 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
         maxCategoryClicks: 0,
         recentActivity: [],
         sourceBreakdown: { profile: 0, qr: 0, copy: 0, unknown: 0 } as any,
-        linkClickCounts: {}
+        linkClickCounts: {},
+        topReferrers: []
       }
     }
 
     return {
       ...analyticsData,
+      topReferrers: analyticsData.topReferrers || [],
       // Ensure strictly typed fields match what UI expects
       hasAnyLinkClicksEver: analyticsData.totalLinkClicks > 0,
       maxCategoryClicks: Math.max(...analyticsData.topCategories.map(c => c.clicks), 0),
@@ -402,17 +405,27 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
 
   // Prepare chart data from analytics
   const chartData = useMemo(() => {
-    // For now, we'll create placeholder data structure
-    // In the future, this can be enhanced with time-series data
-    const sourceData = Object.entries(analytics.sourceBreakdown)
-      .filter(([_, count]) => count > 0)
-      .map(([source, count]) => ({
-        name: source === 'profile' ? 'Profile'
-          : source === 'qr' ? 'QR Code'
-            : source === 'copy' ? 'Copy Link'
-              : 'Unknown',
-        value: count,
+    const sourceData = [
+      ...Object.entries(analytics.sourceBreakdown)
+        .filter(([source, count]) => count > 0 && source !== 'unknown')
+        .map(([source, count]) => ({
+          name: source === 'profile' ? 'Direct'
+            : source === 'qr' ? 'QR Code'
+              : source === 'copy' ? 'Ref Link'
+                : 'System',
+          value: count,
+        })),
+      ...analytics.topReferrers.map(ref => ({
+        name: (() => {
+          try {
+            return ref.name.startsWith('http') ? new URL(ref.name).hostname : ref.name
+          } catch {
+            return ref.name
+          }
+        })(),
+        value: ref.count
       }))
+    ].sort((a, b) => b.value - a.value).slice(0, 5)
 
     const categoryChartData = analytics.categoryRows
       .filter((row) => row.totalClicks > 0)
@@ -424,11 +437,9 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
       }))
 
     // Check if source data should show empty state
-    // Show empty state if: no views, no source data, or only Unknown with 100%
+    // Show empty state if: no views AND no source data
     const shouldShowSourceEmptyState =
-      analytics.totalProfileViews === 0 ||
-      sourceData.length === 0 ||
-      (sourceData.length === 1 && sourceData[0].name === 'Unknown')
+      analytics.totalProfileViews === 0 || sourceData.length === 0
 
     return {
       sourceData,
@@ -547,52 +558,87 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
           <CardContent className="px-6 pb-6">
             {analytics.totalProfileViews > 0 ? (
               <div className="space-y-4">
-                {(['profile', 'qr', 'copy', 'extension', 'unknown'] as AnalyticsSource[]).map((src) => {
-                  const count = analytics.sourceBreakdown[src] || 0
-                  const percentage = analytics.totalProfileViews > 0
-                    ? (count / analytics.totalProfileViews) * 100
-                    : 0
+                {(() => {
+                  // Internal sources that have data
+                  const internalSources = (['profile', 'qr', 'copy', 'extension'] as AnalyticsSource[])
+                    .filter(src => (analytics.sourceBreakdown[src] || 0) > 0)
+                    .map(src => {
+                      const count = analytics.sourceBreakdown[src] || 0
+                      const labels: Record<string, string> = {
+                        profile: 'Direct',
+                        qr: 'QR Code',
+                        copy: 'Ref Link',
+                        extension: 'Extension'
+                      }
+                      return {
+                        name: labels[src] || src,
+                        count,
+                        percentage: (count / (analytics.totalProfileViews || 1)) * 100,
+                        isInternal: true
+                      }
+                    })
 
-                  const sourceLabels: Record<AnalyticsSource, string> = {
-                    profile: 'Direct',
-                    qr: 'QR Code',
-                    copy: 'Ref',
-                    extension: 'Extension',
-                    unknown: 'Unknown'
+                  // External referrers (domains)
+                  const externalReferrers = analytics.topReferrers.map(ref => {
+                    let cleanName = ref.name
+                    try {
+                      if (ref.name.startsWith('http')) {
+                        cleanName = new URL(ref.name).hostname
+                      }
+                    } catch { }
+
+                    return {
+                      name: cleanName,
+                      count: ref.count,
+                      percentage: (ref.count / (analytics.totalProfileViews || 1)) * 100,
+                      isInternal: false
+                    }
+                  })
+
+                  // Combine and sort by count
+                  const allSources = [...internalSources, ...externalReferrers]
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 6) // Top 6 sources
+
+                  // If total is 0 or no sources found, show unknown
+                  if (allSources.length === 0) {
+                    return (
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-medium text-muted-foreground">Direct/Unknown</span>
+                          <span className="font-mono text-foreground/80">100%</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                          <div className="h-full bg-primary/60 rounded-full" style={{ width: '100%' }} />
+                        </div>
+                      </div>
+                    )
                   }
 
-                  const sourceHints: Record<AnalyticsSource, string | null> = {
-                    profile: null,
-                    qr: 'Use on physical assets',
-                    copy: 'Best for social bios',
-                    extension: 'Browser Extension',
-                    unknown: null
-                  }
-
-                  if (count === 0 && src !== 'unknown') return null
-
-                  return (
-                    <div key={src} className="space-y-1.5">
+                  return allSources.map((item, idx) => (
+                    <div key={`${item.name}-${idx}`} className="space-y-1.5">
                       <div className="flex items-center justify-between text-xs">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-muted-foreground">{sourceLabels[src]}</span>
-                          {sourceHints[src] && (
-                            <Badge variant="outline" className="text-[9px] px-1 h-4 font-normal text-muted-foreground/70 border-border/40">
-                              {sourceHints[src]}
+                          <span className="font-medium text-muted-foreground break-all truncate max-w-[180px]">
+                            {item.name}
+                          </span>
+                          {item.isInternal && (
+                            <Badge variant="outline" className="text-[9px] px-1 h-3.5 font-normal opacity-50 shrink-0">
+                              System
                             </Badge>
                           )}
                         </div>
-                        <span className="font-mono text-foreground/80">{percentage.toFixed(0)}%</span>
+                        <span className="font-mono text-foreground/80 shrink-0">{item.percentage.toFixed(0)}%</span>
                       </div>
                       <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                         <div
                           className="h-full bg-primary/60 rounded-full transition-all duration-500"
-                          style={{ width: `${percentage}%` }}
+                          style={{ width: `${item.percentage}%` }}
                         />
                       </div>
                     </div>
-                  )
-                })}
+                  ))
+                })()}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-6 text-center">

@@ -284,6 +284,48 @@ export async function GET(request: NextRequest) {
       sourceBreakdown[stat.source] = stat._count._all
     })
 
+    // Top external referrers
+    const referrerStats = await prisma.analyticsEvent.groupBy({
+      by: ['referrer'],
+      where: {
+        profileId: resolvedAddress,
+        type: 'profile_view',
+        referrer: { not: null },
+        ...selfActivityFilter,
+      },
+      _count: {
+        _all: true
+      },
+      orderBy: {
+        _count: {
+          referrer: 'desc'
+        }
+      },
+      take: 10
+    })
+
+    const topReferrersRaw = referrerStats.map(stat => ({
+      name: stat.referrer || 'Unknown',
+      count: stat._count._all
+    }))
+
+    // Merge by domain to avoid multiple entries from the same site
+    const referrerMap = new Map<string, number>()
+    topReferrersRaw.forEach(ref => {
+      let domain = ref.name
+      try {
+        if (domain.startsWith('http')) {
+          domain = new URL(domain).hostname
+        }
+      } catch { }
+      referrerMap.set(domain, (referrerMap.get(domain) || 0) + ref.count)
+    })
+
+    const topReferrers = Array.from(referrerMap.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10)
+
     const recentEvents = await prisma.analyticsEvent.findMany({
       where: {
         profileId: resolvedAddress,
@@ -338,6 +380,7 @@ export async function GET(request: NextRequest) {
         topCategories,
         recentActivity,
         sourceBreakdown,
+        topReferrers,
       },
     })
   } catch (error) {

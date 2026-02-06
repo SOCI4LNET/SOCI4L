@@ -35,6 +35,7 @@ export type AnalyticsData = {
     }>
     sourceBreakdown: Record<string, number>
     linkClickCounts: Record<string, number>
+    topReferrers: Array<{ name: string; count: number }>
 }
 
 export function useInsights(targetAddress?: string) {
@@ -73,7 +74,12 @@ export function useInsights(targetAddress?: string) {
             '1': 342,
             '2': 215,
             '3': 108
-        }
+        },
+        topReferrers: [
+            { name: 'x.com', count: 450 },
+            { name: 'google.com', count: 120 },
+            { name: 'linkedin.com', count: 80 }
+        ]
     }), [])
 
     // --- Real API ---
