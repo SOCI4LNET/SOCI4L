@@ -11,7 +11,7 @@ import { Loader2, CheckCircle, ExternalLink } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export function SocialConnect() {
-    const { user, linkTwitter, unlinkTwitter, authenticated, ready } = usePrivy()
+    const { user, linkTwitter, unlinkTwitter, linkWallet, authenticated, ready } = usePrivy()
     const { address: connectedAddress } = useAccount()
     const [isLinking, setIsLinking] = useState(false)
     const [isSyncing, setIsSyncing] = useState(false)
@@ -31,6 +31,18 @@ export function SocialConnect() {
         }
     }
 
+    const performDbUnlink = async () => {
+        const walletAddress = user?.wallet?.address || connectedAddress
+        if (walletAddress) {
+            const response = await fetch(`/api/social/link?platform=twitter&walletAddress=${walletAddress}`, {
+                method: 'DELETE'
+            })
+            if (!response.ok) {
+                console.warn('Backend social unlink failed, but Privy unlink succeeded')
+            }
+        }
+    }
+
     const handleUnlinkTwitter = async () => {
         if (!twitterAccount?.subject) {
             toast.error('No Twitter account found to disconnect')
@@ -44,19 +56,35 @@ export function SocialConnect() {
             await unlinkTwitter(twitterAccount.subject)
 
             // 2. Remove from our database
-            const walletAddress = user?.wallet?.address || connectedAddress
-            if (walletAddress) {
-                const response = await fetch(`/api/social/link?platform=twitter&walletAddress=${walletAddress}`, {
-                    method: 'DELETE'
-                })
-                if (!response.ok) {
-                    console.warn('Backend social unlink failed, but Privy unlink succeeded')
-                }
-            }
+            await performDbUnlink()
 
             toast.success('Twitter account disconnected')
         } catch (error: any) {
             console.error('Failed to unlink Twitter:', error)
+
+            // Handle "Last Account" Error
+            if (error?.message?.toLowerCase().includes('only one account') || error?.message?.toLowerCase().includes('last linked account')) {
+                toast.info('To disconnect your last account, you must verify your wallet.', {
+                    duration: 5000
+                })
+
+                try {
+                    // Force link wallet first
+                    await linkWallet()
+
+                    // Retry unlink after successful link
+                    await unlinkTwitter(twitterAccount.subject)
+                    await performDbUnlink()
+
+                    toast.success('Twitter account disconnected')
+                    return
+                } catch (linkError: any) {
+                    console.error('Failed to fallback link wallet:', linkError)
+                    // If user cancelled or failed linking, we stop here
+                    return
+                }
+            }
+
             // Check if it's already unlinked in Privy but still in our DB
             if (error?.message?.includes('not linked') || error?.message?.includes('not found')) {
                 const walletAddress = user?.wallet?.address || connectedAddress
