@@ -13,7 +13,7 @@ export async function requireAdmin(context: 'page' | 'api' = 'page'): Promise<st
     // Ensure strict string return type for TS
     if (!address || typeof address !== 'string') {
         if (context === 'page') {
-            redirect('/?error=admin_no_session')
+            redirect('/admin-login?error=admin_no_session')
         } else {
             throw new Error('Unauthorized: No session')
         }

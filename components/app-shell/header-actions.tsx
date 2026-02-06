@@ -34,6 +34,7 @@ export function HeaderActions() {
   const [profile, setProfile] = useState<{ slug?: string | null; displayName?: string | null } | null>(null)
   const [qrModalOpen, setQrModalOpen] = useState(false)
   const { setTheme, theme } = useTheme()
+  const [isAdmin, setIsAdmin] = useState(false)
 
   // Wagmi hooks - will be safe once component mounts (client-side only)
   // These hooks internally check for browser APIs, but we guard usage with mounted state
@@ -78,6 +79,13 @@ export function HeaderActions() {
     }
 
     fetchProfile()
+
+    // Admin check
+    const ADMIN_ADDRESSES = (process.env.NEXT_PUBLIC_ADMIN_ADDRESSES || '')
+      .split(',')
+      .map((addr) => addr.trim().toLowerCase())
+      .filter(Boolean)
+    setIsAdmin(connectedAddress ? ADMIN_ADDRESSES.includes(connectedAddress.toLowerCase()) : false)
   }, [mounted, isConnected, connectedAddress])
 
   // Handle wallet not connected - show Connect Wallet button
@@ -212,6 +220,14 @@ export function HeaderActions() {
     }
   }
 
+  const handleMasterConsole = async () => {
+    if (!isAdmin) return
+    const success = await ensureSession()
+    if (success) {
+      router.push('/master-console')
+    }
+  }
+
   const handleDisconnect = async () => {
     try {
       await disconnectAsync()
@@ -306,16 +322,12 @@ export function HeaderActions() {
                     <LayoutDashboard className="mr-2 h-4 w-4" />
                     <span>Dashboard</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={async () => {
-                    toast.promise(ensureSession(), {
-                      loading: 'Verifying session...',
-                      success: 'Session verified!',
-                      error: 'Verification failed'
-                    })
-                  }}>
-                    <ShieldCheck className="mr-2 h-4 w-4" />
-                    <span>Verify Session</span>
-                  </DropdownMenuItem>
+                  {isAdmin && (
+                    <DropdownMenuItem onClick={handleMasterConsole} className="text-primary focus:text-primary">
+                      <ShieldCheck className="mr-2 h-4 w-4" />
+                      <span>Master Console</span>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={handlePublicProfile} disabled={!publicProfileHref}>
                     <User className="mr-2 h-4 w-4" />
                     <span>View Profile</span>

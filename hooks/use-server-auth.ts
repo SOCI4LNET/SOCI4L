@@ -44,19 +44,20 @@ export function useServerAuth(): UseServerAuthReturn {
             // Let's probe /api/profile/[address]/score or similar light endpoint.
             // Actually, let's probe /api/auth/verify (GET) if it exists? No.
 
-            // Let's assume we need to verify session.
-            // We can try to fetch our own "follow-stats" with credentials.
-            const normalizedAddress = connectedAddress.toLowerCase()
-            const probe = await fetch(`/api/profile/${normalizedAddress}/follow-status?connectedAddress=${normalizedAddress}`, {
+            // Probe: Check if we have a valid session
+            const probe = await fetch('/api/auth/session', {
                 cache: 'no-store',
                 credentials: 'include'
             })
 
-            if (probe.status !== 401) {
+            if (probe.status === 200) {
+                // Double check it matches connected address if needed? 
+                // But mostly we just care if ANY session exists that the server trusts.
                 return true
             }
 
-            // If 401, start authentication flow
+            // If not 200, start authentication flow
+            const normalizedAddress = connectedAddress.toLowerCase()
 
             // 1. Get Nonce
             const nonceResponse = await fetch('/api/auth/nonce', {
@@ -93,12 +94,12 @@ export function useServerAuth(): UseServerAuthReturn {
             for (let attempt = 0; attempt < 3; attempt++) {
                 await new Promise(resolve => setTimeout(resolve, 200 + (attempt * 100)))
 
-                const verifyProbe = await fetch(`/api/profile/${normalizedAddress}/follow-status?connectedAddress=${normalizedAddress}`, {
+                const verifyProbe = await fetch('/api/auth/session', {
                     cache: 'no-store',
                     credentials: 'include',
                 })
 
-                if (verifyProbe.status !== 401) {
+                if (verifyProbe.status === 200) {
                     hideTransactionLoader()
                     return true
                 }
