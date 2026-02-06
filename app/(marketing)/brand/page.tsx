@@ -6,7 +6,7 @@ import { ArrowRight, Download, Check, X, ShieldAlert, Copy } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { toast } from 'sonner' // Using sonner for toasts
+import { toast } from 'sonner'
 
 export default function BrandPage() {
     const container = {
@@ -66,9 +66,9 @@ export default function BrandPage() {
                                 borderColor="border-black/5"
                                 downloadLink="/logos/icon.svg"
                             >
-                                {/* Light BG -> Black Logo. Force Invert (White -> Black). 
-                                    Using style filter to ensure override reliability. */}
-                                <div style={{ filter: 'invert(1)' }}>
+                                {/* Light BG -> #0A0A0A Logo. 
+                                    invert(0.96) transforms White to ~#0A0A0A. */}
+                                <div style={{ filter: 'invert(0.96)' }}>
                                     <Soci4LLogo variant="icon" width={120} className="!filter-none" />
                                 </div>
                             </LogoCard>
@@ -123,7 +123,7 @@ export default function BrandPage() {
                                 borderColor="border-black/5"
                                 downloadLink="/logos/combination.svg"
                             >
-                                <div style={{ filter: 'invert(1)' }}>
+                                <div style={{ filter: 'invert(0.96)' }}>
                                     <Soci4LLogo variant="combination" width={240} className="!filter-none" />
                                 </div>
                             </LogoCard>
@@ -222,8 +222,10 @@ export default function BrandPage() {
                                         <p className="font-mono text-lg leading-relaxed">
                                             0123456789 { } [] () / * & % $ # @ !
                                         </p>
-                                        <div className="font-mono text-sm text-muted-foreground bg-muted/30 p-4 rounded-lg border border-border/50">
-                                            <span className="text-brand-500">const</span> <span className="text-foreground">SOCI4L</span> = <span className="text-green-500">true</span>;
+                                        <div className="font-mono text-sm text-foreground bg-muted/30 p-4 rounded-lg border border-border/50">
+                                            <span className="opacity-50">// Example Usage</span>
+                                            <br />
+                                            <span className="text-brand-500">npm</span> install soci4l@latest
                                         </div>
                                         <p className="text-sm text-muted-foreground">
                                             Used for data visualization, code snippets, addresses, and technical details.
