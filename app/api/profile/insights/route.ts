@@ -301,6 +301,7 @@ export async function GET(request: NextRequest) {
       linkTitle: event.linkTitle || undefined,
       linkId: event.linkId || undefined,
       visitorWallet: event.visitorWallet || undefined,
+      referrer: event.referrer || undefined,
       source:
         event.source === 'profile' ||
           event.source === 'qr' ||

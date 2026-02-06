@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Activity, BarChart2, Clock, Lightbulb, ArrowRight, Share2, TrendingUp, Eye, MousePointerClick, Copy } from 'lucide-react'
+import { Activity, BarChart2, Clock, Lightbulb, ArrowRight, Share2, TrendingUp, Eye, MousePointerClick, Copy, User, Link as LinkIcon } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
 import {
@@ -16,7 +16,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   Legend,
   ResponsiveContainer,
 } from 'recharts'
@@ -35,6 +35,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import {
   Sheet,
   SheetContent,
@@ -101,6 +108,7 @@ type RecentActivity = {
   linkTitle?: string
   linkId?: string
   visitorWallet?: string
+  referrer?: string
   source?: AnalyticsSource
 }
 
@@ -235,6 +243,10 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
       // Ensure strictly typed fields match what UI expects
       hasAnyLinkClicksEver: analyticsData.totalLinkClicks > 0,
       maxCategoryClicks: Math.max(...analyticsData.topCategories.map(c => c.clicks), 0),
+      recentActivity: analyticsData.recentActivity.map(a => ({
+        ...a,
+        source: a.source as AnalyticsSource || 'unknown'
+      })),
       categoryRows: analyticsData.topCategories.map(c => ({
         id: c.id,
         name: c.name,
@@ -629,7 +641,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                         <YAxis
                           {...chartAxisProps}
                         />
-                        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--foreground))', fillOpacity: 0.04 }} />
+                        <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--foreground))', fillOpacity: 0.04 }} />
                         <Bar dataKey="value" fill="hsl(var(--primary))" {...chartBarProps} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -668,7 +680,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                         <YAxis
                           {...chartAxisProps}
                         />
-                        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--foreground))', fillOpacity: 0.04 }} />
+                        <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--foreground))', fillOpacity: 0.04 }} />
                         <Bar dataKey="clicks" fill="hsl(var(--primary))" {...chartBarProps} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -902,7 +914,6 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                     {/* Vertical timeline line */}
                     <div className="absolute left-[11px] top-0 bottom-0 w-0.5 bg-border/40" />
 
-                    {/* Activity items */}
                     <div className="space-y-3">
                       {paginatedActivity.map((activity, idx) => {
                         const timeAgo = formatDistanceToNow(new Date(activity.timestamp), {
@@ -914,64 +925,107 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                             key={`${activity.type}-${activity.timestamp}-${idx}`}
                             className="relative flex items-center gap-3"
                           >
-                            {/* Timeline dot - centered with card */}
-                            <div className="relative z-10 flex items-center justify-center w-6 shrink-0">
-                              <div className="w-2 h-2 rounded-full bg-muted-foreground/60 border-2 border-background" />
+                            {/* Timeline dot - shifted to align with avatar top */}
+                            <div className="relative z-10 flex items-center justify-center w-6 shrink-0 mt-3">
+                              <div className="w-2 h-2 rounded-full bg-primary/40 border-2 border-background" />
                             </div>
 
-                            {/* Activity card */}
-                            <div className="flex-1 flex items-center gap-3 rounded-md border border-border/40 bg-background/60 px-3 py-2.5 min-w-0">
-                              <div className="flex items-center gap-2 flex-1 min-w-0">
-                                <div className="flex h-5 w-5 items-center justify-center rounded-md bg-muted/60 text-muted-foreground shrink-0">
-                                  {activity.type === 'link_click' ? (
-                                    <BarChart2 className="h-3 w-3" />
+                            {/* Activity item info */}
+                            <div className="flex-1 flex items-start gap-4 rounded-xl border border-border/40 bg-background/40 p-4 transition-all hover:bg-background/60 group">
+                              {/* Visitor Identity */}
+                              <div className="relative shrink-0">
+                                <Avatar className="h-9 w-9 border border-border/20 shadow-sm">
+                                  {activity.visitorWallet ? (
+                                    <>
+                                      <AvatarImage src={`https://effigy.im/a/${activity.visitorWallet}.svg`} />
+                                      <AvatarFallback className="text-[10px] font-mono">
+                                        {activity.visitorWallet.slice(2, 4).toUpperCase()}
+                                      </AvatarFallback>
+                                    </>
                                   ) : (
-                                    <Activity className="h-3 w-3" />
+                                    <AvatarFallback className="bg-muted">
+                                      <User className="h-4 w-4 text-muted-foreground/60" />
+                                    </AvatarFallback>
+                                  )}
+                                </Avatar>
+                                {activity.type === 'link_click' ? (
+                                  <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-blue-500 flex items-center justify-center text-[8px] text-white border-2 border-background shadow-xs">
+                                    <MousePointerClick className="h-2 w-2" />
+                                  </div>
+                                ) : (
+                                  <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-emerald-500 flex items-center justify-center text-[8px] text-white border-2 border-background shadow-xs">
+                                    <Eye className="h-2 w-2" />
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Action Content */}
+                              <div className="flex-1 min-w-0 space-y-1.5">
+                                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                  {activity.visitorWallet ? (
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <button
+                                            onClick={() => {
+                                              navigator.clipboard.writeText(activity.visitorWallet!)
+                                              toast.success('Address copied')
+                                            }}
+                                            className="font-mono text-[10px] font-medium bg-muted/80 hover:bg-muted px-1.5 py-0.5 rounded transition-colors text-foreground/80 hover:text-foreground inline-flex items-center gap-1"
+                                          >
+                                            {activity.visitorWallet.slice(0, 6)}...{activity.visitorWallet.slice(-4)}
+                                            <Copy className="h-2 w-2 opacity-40" />
+                                          </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top">Copy wallet address</TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  ) : (
+                                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                                      Anonymous
+                                    </span>
+                                  )}
+
+                                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                    {activity.type === 'link_click' ? (
+                                      <>clicked your <span className="text-foreground font-semibold">"{activity.linkTitle}"</span> link</>
+                                    ) : (
+                                      <>viewed your <span className="text-foreground font-semibold">Profile</span></>
+                                    )}
+                                  </span>
+                                </div>
+
+                                {/* Metadata & Source Row */}
+                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-muted-foreground/80">
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="h-2.5 w-2.5" />
+                                    {timeAgo}
+                                  </span>
+
+                                  {activity.referrer && (
+                                    <span className="flex items-center gap-1 bg-muted/30 px-1.5 py-0.5 rounded italic">
+                                      <LinkIcon className="h-2.5 w-2.5" />
+                                      from {(() => {
+                                        try {
+                                          return new URL(activity.referrer).hostname
+                                        } catch {
+                                          return activity.referrer
+                                        }
+                                      })()}
+                                    </span>
+                                  )}
+
+                                  {activity.source && activity.source !== 'unknown' && (
+                                    <Badge variant="outline" className="text-[9px] h-4 px-1 uppercase tracking-tighter border-primary/20 bg-primary/5 text-primary/70">
+                                      via {activity.source}
+                                    </Badge>
                                   )}
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-1.5 mb-1">
-                                    {activity.visitorWallet && (
-                                      <span className="text-[10px] text-muted-foreground font-mono bg-muted/50 px-1 py-0.5 rounded flex items-center gap-1 shrink-0">
-                                        {activity.visitorWallet.slice(0, 6)}...{activity.visitorWallet.slice(-4)}
-                                        <Button
-                                          variant="ghost"
-                                          className="h-3 w-3 p-0 hover:bg-transparent text-muted-foreground/50 hover:text-foreground"
-                                          onClick={(e) => {
-                                            e.stopPropagation()
-                                            navigator.clipboard.writeText(activity.visitorWallet!)
-                                            toast.success('Address copied')
-                                          }}
-                                        >
-                                          <Copy className="h-2 w-2" />
-                                        </Button>
-                                      </span>
-                                    )}
-                                    {activity.type === 'link_click' ? (
-                                      <p className="text-xs truncate">
-                                        <span className="text-muted-foreground">Link clicked: </span>
-                                        <span className="font-medium">{activity.linkTitle}</span>
-                                        {activity.source === 'extension' && (
-                                          <Badge variant="outline" className="ml-2 text-[9px] h-4 px-1 text-primary/80 border-primary/20 bg-primary/5">
-                                            via Extension
-                                          </Badge>
-                                        )}
-                                      </p>
-                                    ) : (
-                                      <p className="text-xs flex items-center gap-1">
-                                        <span className="font-medium">Profile viewed</span>
-                                        {activity.source === 'extension' && (
-                                          <Badge variant="outline" className="ml-2 text-[9px] h-4 px-1 text-primary/80 border-primary/20 bg-primary/5">
-                                            via Extension
-                                          </Badge>
-                                        )}
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
                               </div>
-                              <div className="text-[11px] text-muted-foreground whitespace-nowrap shrink-0">
-                                {timeAgo}
+
+                              {/* Secondary indicator */}
+                              <div className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/40" />
                               </div>
                             </div>
                           </div>
@@ -1057,7 +1111,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
           router={router}
         />
       </div>
-    </PageShell>
+    </PageShell >
   )
 }
 

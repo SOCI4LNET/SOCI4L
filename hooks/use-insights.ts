@@ -30,6 +30,7 @@ export type AnalyticsData = {
         linkTitle?: string
         linkId?: string
         visitorWallet?: string
+        referrer?: string
         source?: 'profile' | 'qr' | 'copy' | 'extension' | 'unknown'
     }>
     sourceBreakdown: Record<string, number>
