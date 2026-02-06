@@ -103,7 +103,7 @@ export default function BrandPage() {
                                     </div>
 
                                     {/* Logo Combination Mark */}
-                                    <Soci4LLogo variant="combination" width={180} className="relative z-10 !invert-0 dark:!invert-0" />
+                                    <Soci4LLogo variant="combination" width={180} className="relative z-10 invert dark:invert-0" />
                                 </div>
                             </div>
                             <p className="text-sm text-muted-foreground mt-16 text-center max-w-lg mx-auto leading-relaxed relative z-10">
@@ -500,8 +500,8 @@ export default function BrandPage() {
                                     description="Always use High Contrast. White Button = Black Text. Black Button = White Text."
                                 >
                                     <div className="flex gap-2">
-                                        <div className="px-3 py-1 bg-white text-black text-xs font-medium rounded">Correct</div>
-                                        <div className="px-3 py-1 bg-white text-zinc-300 text-xs font-medium rounded border border-zinc-200/20 opacity-50 relative overflow-hidden">
+                                        <div className="px-3 py-1 bg-black text-white text-xs font-medium rounded">Correct</div>
+                                        <div className="px-3 py-1 bg-black text-zinc-600 text-xs font-medium rounded border border-white/10 opacity-50 relative overflow-hidden">
                                             <div className="absolute inset-0 flex items-center justify-center">
                                                 <div className="w-full h-px bg-red-500 rotate-12" />
                                             </div>
