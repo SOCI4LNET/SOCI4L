@@ -2,7 +2,7 @@
 
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Download, Check, X, ShieldAlert, Copy, Sparkles, MoreVertical, FileImage, FileCode } from 'lucide-react'
+import { ArrowRight, Download, Check, X, ShieldAlert, Copy, Sparkles, MoreVertical, FileImage, FileCode, ArrowUpRight, LayoutDashboard } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -214,54 +214,195 @@ export default function BrandPage() {
                     <section>
                         <SectionHeader number="04" title="Typography" />
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                            <div className="space-y-8">
-                                <div className="pb-4 border-b border-border/20 flex justify-between items-baseline">
-                                    <span className="text-sm font-mono text-muted-foreground">Primary Font</span>
-                                    <h3 className="text-2xl font-semibold">Geist Sans</h3>
+                        <div className="space-y-12">
+                            {/* Font Families */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                <div className="space-y-8">
+                                    <div className="pb-4 border-b border-border/20 flex justify-between items-baseline">
+                                        <span className="text-sm font-mono text-muted-foreground">Primary Font</span>
+                                        <h3 className="text-2xl font-semibold">Geist Sans</h3>
+                                    </div>
+                                    <div className="space-y-6">
+                                        <div className="flex items-end gap-4">
+                                            <span className="text-6xl font-bold leading-none font-sans">Aa</span>
+                                            <span className="text-sm font-mono text-muted-foreground mb-1">Bold (700)</span>
+                                        </div>
+                                        <div className="flex items-end gap-4">
+                                            <span className="text-6xl font-medium leading-none font-sans">Aa</span>
+                                            <span className="text-sm font-mono text-muted-foreground mb-1">Medium (500)</span>
+                                        </div>
+                                        <div className="space-y-1 pt-4">
+                                            <p className="text-2xl font-sans">The quick brown fox jumps over the lazy dog.</p>
+                                            <p className="text-lg text-muted-foreground">
+                                                Used for all headlines, UI text, and clear communication.
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="space-y-6">
-                                    <div className="flex items-end gap-4">
-                                        <span className="text-6xl font-bold leading-none font-sans">Aa</span>
-                                        <span className="text-sm font-mono text-muted-foreground mb-1">Bold</span>
+
+                                <div className="space-y-8">
+                                    <div className="pb-4 border-b border-border/20 flex justify-between items-baseline">
+                                        <span className="text-sm font-mono text-muted-foreground">Monospace Font</span>
+                                        <h3 className="text-2xl font-mono">Geist Mono</h3>
                                     </div>
-                                    <div className="flex items-end gap-4">
-                                        <span className="text-6xl font-medium leading-none font-sans">Aa</span>
-                                        <span className="text-sm font-mono text-muted-foreground mb-1">Medium</span>
-                                    </div>
-                                    <div className="space-y-1 pt-4">
-                                        <p className="text-2xl font-sans">The quick brown fox jumps over the lazy dog.</p>
-                                        <p className="text-lg text-muted-foreground">
-                                            Used for all headlines, UI text, and clear communication.
-                                            Designed for readability and modern aesthetics.
-                                        </p>
+                                    <div className="space-y-6">
+                                        <div className="flex items-end gap-4">
+                                            <span className="text-6xl font-medium leading-none font-mono">Aa</span>
+                                            <span className="text-sm font-mono text-muted-foreground mb-1">Regular (400)</span>
+                                        </div>
+                                        <div className="space-y-4 pt-4">
+                                            <p className="font-mono text-lg leading-relaxed">
+                                                0123456789 { } [] () / * & % $ # @ !
+                                            </p>
+                                            <div className="font-mono text-sm text-foreground bg-muted/30 p-4 rounded-lg border border-border/50">
+                                                <span className="opacity-50">// Example Usage</span>
+                                                <br />
+                                                <span className="text-brand-500">npm</span> install soci4l@latest
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="space-y-8">
-                                <div className="pb-4 border-b border-border/20 flex justify-between items-baseline">
-                                    <span className="text-sm font-mono text-muted-foreground">Monospace Font</span>
-                                    <h3 className="text-2xl font-mono">Geist Mono</h3>
+                            {/* Type Scale & Hierarchy */}
+                            <div className="rounded-3xl border border-border/50 bg-card overflow-hidden">
+                                <div className="p-8 border-b border-border/10 bg-muted/20">
+                                    <h3 className="text-lg font-medium">Type Hierarchy (Web)</h3>
+                                    <p className="text-sm text-muted-foreground mt-1">Global font sizes for landing pages and dashboard.</p>
                                 </div>
-                                <div className="space-y-6">
-                                    <div className="flex items-end gap-4">
-                                        <span className="text-6xl font-medium leading-none font-mono">Aa</span>
-                                        <span className="text-sm font-mono text-muted-foreground mb-1">Regular</span>
-                                    </div>
-                                    <div className="space-y-4 pt-4">
-                                        <p className="font-mono text-lg leading-relaxed">
-                                            0123456789 { } [] () / * & % $ # @ !
-                                        </p>
-                                        <div className="font-mono text-sm text-foreground bg-muted/30 p-4 rounded-lg border border-border/50">
-                                            <span className="opacity-50">// Example Usage</span>
-                                            <br />
-                                            <span className="text-brand-500">npm</span> install soci4l@latest
+                                <div className="divide-y divide-border/10">
+
+                                    {/* H1 */}
+                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-8 items-center hover:bg-muted/10 transition-colors">
+                                        <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
+                                            <div className="font-bold text-foreground">H1 Display</div>
+                                            <div>text-4xl (MD) / text-3xl (SM)</div>
+                                            <div className="opacity-60">36px / 30px</div>
+                                            <div className="text-brand-500 mt-2">Weight: Semibold (600)</div>
                                         </div>
-                                        <p className="text-sm text-muted-foreground">
-                                            Used for data visualization, code snippets, addresses, and technical details.
-                                        </p>
+                                        <div className="md:col-span-9">
+                                            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
+                                                Turn your Avalanche wallet into a measurable public identity.
+                                            </h1>
+                                        </div>
                                     </div>
+
+                                    {/* H2 */}
+                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-8 items-center hover:bg-muted/10 transition-colors">
+                                        <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
+                                            <div className="font-bold text-foreground">H2 Section</div>
+                                            <div>text-3xl (MD) / text-2xl (SM)</div>
+                                            <div className="opacity-60">30px / 24px</div>
+                                            <div className="text-brand-500 mt-2">Weight: Semibold (600)</div>
+                                        </div>
+                                        <div className="md:col-span-9">
+                                            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
+                                                Everything you need to grow on-chain.
+                                            </h2>
+                                        </div>
+                                    </div>
+
+                                    {/* H3 */}
+                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-8 items-center hover:bg-muted/10 transition-colors">
+                                        <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
+                                            <div className="font-bold text-foreground">H3 Card Title</div>
+                                            <div>text-xl</div>
+                                            <div className="opacity-60">20px</div>
+                                            <div className="text-brand-500 mt-2">Weight: Semibold (600)</div>
+                                        </div>
+                                        <div className="md:col-span-9">
+                                            <h3 className="text-xl font-semibold">
+                                                Smart Contract Verification
+                                            </h3>
+                                        </div>
+                                    </div>
+
+                                    {/* Body Lead */}
+                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-8 items-center hover:bg-muted/10 transition-colors">
+                                        <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
+                                            <div className="font-bold text-foreground">Body Large</div>
+                                            <div>text-base</div>
+                                            <div className="opacity-60">16px</div>
+                                            <div className="text-brand-500 mt-2">Weight: Regular (400)</div>
+                                        </div>
+                                        <div className="md:col-span-9">
+                                            <p className="text-base text-muted-foreground">
+                                                Showcase on-chain assets, add links, and share everything as one public page with full control and built-in insights.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Body Default */}
+                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-8 items-center hover:bg-muted/10 transition-colors">
+                                        <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
+                                            <div className="font-bold text-foreground">Body Default</div>
+                                            <div>text-sm</div>
+                                            <div className="opacity-60">14px</div>
+                                            <div className="text-brand-500 mt-2">Weight: Regular (400)</div>
+                                        </div>
+                                        <div className="md:col-span-9">
+                                            <p className="text-sm text-muted-foreground">
+                                                Standard text used for descriptions, card content, and general UI elements.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Caption / Label */}
+                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-8 items-center hover:bg-muted/10 transition-colors">
+                                        <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
+                                            <div className="font-bold text-foreground">Caption / Label</div>
+                                            <div>text-xs</div>
+                                            <div className="opacity-60">12px</div>
+                                            <div className="text-brand-500 mt-2">Weight: Medium (500)</div>
+                                        </div>
+                                        <div className="md:col-span-9">
+                                            <div className="flex gap-4">
+                                                <span className="text-xs text-muted-foreground uppercase tracking-widest">Uppercase Label</span>
+                                                <span className="text-xs font-medium px-2 py-1 bg-muted rounded">Badge Text</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Spacing Guide */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="p-8 rounded-3xl border border-border/50 bg-card">
+                                    <div className="flex items-center gap-2 mb-6">
+                                        <ArrowUpRight className="w-5 h-5 text-brand-500" />
+                                        <h3 className="font-medium">Headings Spacing</h3>
+                                    </div>
+                                    <div className="bg-muted/30 rounded-xl p-6 border border-border/50 space-y-2 relative">
+                                        <div className="h-4 w-32 bg-brand-500/20 rounded"></div>
+                                        {/* Spacing indicator */}
+                                        <div className="h-3 w-full flex items-center justify-center">
+                                            <div className="h-px bg-red-400 w-full relative">
+                                                <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] text-red-500 font-mono">12px (space-y-3)</span>
+                                            </div>
+                                        </div>
+                                        <div className="h-2 w-full bg-zinc-500/20 rounded"></div>
+                                        <div className="h-2 w-4/5 bg-zinc-500/20 rounded"></div>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-4">
+                                        Standard vertical spacing between Headings and Description text is <strong>12px</strong> (`space-y-3` or `gap-3`).
+                                    </p>
+                                </div>
+
+                                <div className="p-8 rounded-3xl border border-border/50 bg-card">
+                                    <div className="flex items-center gap-2 mb-6">
+                                        <LayoutDashboard className="w-5 h-5 text-brand-500" />
+                                        <h3 className="font-medium">Section Spacing</h3>
+                                    </div>
+                                    <div className="space-y-8 bg-muted/10 p-6 rounded-xl border border-dashed border-border/50">
+                                        <div className="h-8 bg-card border border-border rounded flex items-center justify-center text-[10px] text-muted-foreground">Section A</div>
+                                        <div className="h-8 flex items-center justify-center">
+                                            <span className="text-xs font-mono text-brand-500">gap-24 (96px)</span>
+                                        </div>
+                                        <div className="h-8 bg-card border border-border rounded flex items-center justify-center text-[10px] text-muted-foreground">Section B</div>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-4">
+                                        Major sections on landing pages are separated by <strong>96px</strong> (`gap-24` or `py-24`) to give content room to breathe.
+                                    </p>
                                 </div>
                             </div>
                         </div>
