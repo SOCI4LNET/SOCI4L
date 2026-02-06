@@ -1174,14 +1174,16 @@ export default function ProfilePage({ params }: PageProps) {
                                 return (
                                   <div key={category} className="space-y-2">
                                     {shouldShowCategoryHeaders && (
-                                      <>
-                                        <h3 className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>
+                                      <div className="mb-3">
+                                        <h3 className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} font-bold text-foreground`}>
                                           {category}
                                         </h3>
                                         {categoryData?.description && (
-                                          <p className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>{categoryData.description}</p>
+                                          <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')} mt-1`}>
+                                            {categoryData.description}
+                                          </p>
                                         )}
-                                      </>
+                                      </div>
                                     )}
                                     <div className="space-y-2">
                                       {categoryLinks.map((link) => {
