@@ -55,40 +55,49 @@ export default function BrandPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <LogoCard
-                                label="Icon Dark"
+                                label="On Dark Background"
                                 bg="bg-[#0A0A0A]"
                                 textColor="text-zinc-500"
                                 downloadLink="/logos/icon.svg"
                             >
-                                <Soci4LLogo variant="icon" width={120} className="invert-0" />
+                                <Soci4LLogo variant="icon" width={120} className="!invert-0 !filter-none" />
                             </LogoCard>
                             <LogoCard
-                                label="Icon Light"
+                                label="On Light Background"
                                 bg="bg-[#FAFAFA]"
                                 textColor="text-zinc-400"
                                 borderColor="border-black/5"
                                 downloadLink="/logos/icon.svg"
                             >
-                                <Soci4LLogo variant="icon" width={120} className="invert" />
+                                <Soci4LLogo variant="icon" width={120} className="!invert !brightness-0" />
                             </LogoCard>
                         </div>
 
                         {/* Safe Zone */}
-                        <div className="mt-8 p-8 md:p-12 rounded-3xl border border-border/50 bg-card overflow-hidden">
-                            <h3 className="text-lg font-medium mb-8">Clearspace & Safe Zones</h3>
-                            <div className="flex flex-col md:flex-row gap-12 items-center justify-center py-8">
-                                <div className="relative group">
-                                    <div className="absolute inset-0 bg-brand-500/10 -m-8 border border-brand-500/20 border-dashed rounded-lg flex items-start justify-start">
-                                        <span className="text-[10px] font-mono text-brand-500 p-1">x</span>
+                        <div className="mt-8 p-12 rounded-3xl border border-border/50 bg-card overflow-hidden">
+                            <h3 className="text-lg font-medium mb-12 text-center md:text-left">Clearspace & Safe Zones</h3>
+                            <div className="flex flex-col items-center justify-center py-4">
+                                <div className="relative inline-flex items-center justify-center">
+                                    {/* Safe Zone Box */}
+                                    <div className="absolute -inset-12 border border-brand-500/30 border-dashed rounded-xl bg-brand-500/5">
+                                        <div className="absolute top-0 left-0 w-12 h-12 flex items-center justify-center border-r border-b border-brand-500/20">
+                                            <span className="text-sm font-mono text-brand-500 font-bold">x</span>
+                                        </div>
                                     </div>
-                                    <Soci4LLogo variant="icon" width={120} className="relative z-10 invert dark:invert-0" />
-                                    <div className="absolute -right-8 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center border-l border-brand-500/30">
-                                        <span className="text-xs font-mono text-muted-foreground rotate-90 whitespace-nowrap">x = width</span>
+
+                                    {/* Logo */}
+                                    <Soci4LLogo variant="icon" width={120} className="relative z-10 !invert-0 dark:!invert-0" />
+
+                                    {/* Measurement Indicator */}
+                                    <div className="absolute -right-20 top-0 bottom-0 flex items-center">
+                                        <div className="h-12 border-l-2 border-brand-500/40 w-4"></div>
+                                        <span className="text-xs font-mono text-muted-foreground ml-2">x = 1/2 Width</span>
                                     </div>
                                 </div>
                             </div>
-                            <p className="text-sm text-muted-foreground mt-12 text-center max-w-md mx-auto">
-                                Maintain a minimum clearspace equivalent to the width of the logo icon.
+                            <p className="text-sm text-muted-foreground mt-16 text-center max-w-lg mx-auto leading-relaxed">
+                                The Clearspace (x) is defined as half the width of the logomark.
+                                Keep this area free from other elements to ensure maximum visibility and impact.
                             </p>
                         </div>
                     </section>
@@ -99,21 +108,21 @@ export default function BrandPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <LogoCard
-                                label="Primary Dark"
+                                label="On Dark Background"
                                 bg="bg-[#0A0A0A]"
                                 textColor="text-zinc-500"
                                 downloadLink="/logos/combination.svg"
                             >
-                                <Soci4LLogo variant="combination" width={240} className="invert-0" />
+                                <Soci4LLogo variant="combination" width={240} className="!invert-0 !filter-none" />
                             </LogoCard>
                             <LogoCard
-                                label="Primary Light"
+                                label="On Light Background"
                                 bg="bg-[#FAFAFA]"
                                 textColor="text-zinc-400"
                                 borderColor="border-black/5"
                                 downloadLink="/logos/combination.svg"
                             >
-                                <Soci4LLogo variant="combination" width={240} className="invert" />
+                                <Soci4LLogo variant="combination" width={240} className="!invert !brightness-0" />
                             </LogoCard>
                         </div>
                     </section>
