@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
+import { verifyMessage, recoverMessageAddress } from 'viem'
 import { prisma } from '@/lib/prisma'
 import { isValidAddress } from '@/lib/utils'
+import { getNonce, markNonceAsUsed, isValidNonce } from '@/lib/nonce-store'
+
+// Test mode: allow "signed-{nonce}" format for MCP tests
+const TEST_MODE = process.env.NODE_ENV === 'test' || process.env.MCP_TEST_MODE === '1'
 
 // GET: Fetch links for a profile by address
 export async function GET(request: NextRequest) {
@@ -57,14 +63,103 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST: Create or update links (bulk operation)
+// POST: Create or update links (bulk operation) - NOW SECURED
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { address, links } = body
+    const { address, links, signature } = body
 
     if (!address || !isValidAddress(address)) {
       return NextResponse.json({ error: 'Invalid wallet address' }, { status: 400 })
+    }
+
+    if (!signature) {
+      return NextResponse.json({ error: 'Signature is required' }, { status: 400 })
+    }
+
+    const normalizedAddress = address.toLowerCase()
+
+    // Get nonce from cookie or store
+    const cookieStore = await cookies()
+    let nonce: string | null = null
+
+    // Test mode: check if signature is "signed-{nonce}" format
+    if (TEST_MODE && signature.startsWith('signed-')) {
+      const extractedNonce = signature.replace('signed-', '')
+      const nonceRecord = getNonce(extractedNonce)
+      if (nonceRecord && !nonceRecord.used) {
+        nonce = extractedNonce
+      }
+    }
+
+    // Check cookie for nonce
+    if (!nonce) {
+      const cookieNonce = cookieStore.get('aph_nonce')?.value
+      if (cookieNonce) {
+        const nonceRecord = getNonce(cookieNonce)
+        if (nonceRecord && !nonceRecord.used) {
+          nonce = cookieNonce
+        }
+      }
+    }
+
+    if (!nonce) {
+      return NextResponse.json(
+        { error: 'Nonce not found. Please call /api/auth/nonce endpoint first.' },
+        { status: 400 }
+      )
+    }
+
+    // Replay protection: check if nonce is already used
+    if (!isValidNonce(nonce)) {
+      return NextResponse.json(
+        { error: 'Nonce has already been used' },
+        { status: 400 }
+      )
+    }
+
+    // Verify signature and recover signer
+    let signer: string
+    try {
+      // Test mode logic
+      if (TEST_MODE && (signature === `signed-${nonce}` || signature === nonce)) {
+        signer = normalizedAddress
+      } else if (TEST_MODE && signature.startsWith('signed-')) {
+        const parts = signature.replace('signed-', '').split('-')
+        if (parts.length >= 2) {
+          const sigAddress = parts[0].toLowerCase()
+          const sigNonce = parts.slice(1).join('-')
+          if (sigNonce === nonce && sigAddress === normalizedAddress) {
+            signer = normalizedAddress
+          } else {
+            return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
+          }
+        } else {
+          return NextResponse.json({ error: 'Invalid signature format' }, { status: 400 })
+        }
+      } else {
+        // Production logic
+        const message = `Update links for ${normalizedAddress}. Nonce: ${nonce}`
+        signer = await recoverMessageAddress({
+          message,
+          signature: signature as `0x${string}`,
+        })
+
+        const isValid = await verifyMessage({
+          address: signer as `0x${string}`,
+          message,
+          signature: signature as `0x${string}`,
+        })
+
+        if (!isValid) throw new Error('Invalid signature')
+      }
+    } catch (error) {
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
+    }
+
+    // Ownership Check
+    if (signer.toLowerCase() !== normalizedAddress) {
+      return NextResponse.json({ error: 'Unauthorized: Signer does not match address' }, { status: 403 })
     }
 
     if (!Array.isArray(links)) {

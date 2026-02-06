@@ -1,15 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getSessionAddress } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
 import { logAdminAction } from '@/lib/admin-audit'
-// No changes needed for imports as they are relative or lib. 
-// However, I should check if there are any hardcoded links in the export routes redirects or similar. 
-// Based on grep, there were no hardcoded redirects in export routes, just imports.
-// I will just update the log message in the export routes if they exist to be accurate.
 
 export async function GET(request: NextRequest) {
   try {
+    // 1. Verify Admin Auth
+    const sessionAddress = await getSessionAddress()
+    if (!sessionAddress) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const adminProfile = await prisma.profile.findUnique({
+      where: { address: sessionAddress.toLowerCase() },
+    })
+
+    if (!adminProfile || adminProfile.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 })
+    }
+
     const searchParams = request.nextUrl.searchParams
     const limit = parseInt(searchParams.get('limit') || '10000', 10)
 
