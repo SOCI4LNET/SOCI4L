@@ -32,7 +32,7 @@ export function SocialConnect() {
     const handleLinkTwitter = async () => {
         if (!authenticated) {
             setPendingTwitterLink(true)
-            login()
+            login({ loginMethods: ['twitter'] })
             return
         }
 
@@ -190,7 +190,7 @@ export function SocialConnect() {
                             <XIcon className="h-5 w-5" />
                         </div>
                         <div>
-                            <p className="font-medium text-sm">X (Twitter)</p>
+                            <p className="font-medium text-sm">X</p>
                             {twitterAccount ? (
                                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                     <span className="text-green-500 flex items-center gap-1">

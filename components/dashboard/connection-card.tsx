@@ -39,6 +39,8 @@ interface ConnectionCardProps {
     onBlock?: (address: string) => void
     onMute?: (address: string) => void
     onAddToList?: (address: string) => void
+    showRemoveFollower?: boolean
+    onRemoveFollower?: (address: string) => void
 }
 
 export function ConnectionCard({

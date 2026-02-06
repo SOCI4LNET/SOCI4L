@@ -605,6 +605,7 @@ export function LinksPanel() {
   const getSocialIcon = (platform: SocialLinkPlatform) => {
     switch (platform) {
       case 'x':
+      case 'twitter':
         return <XIcon className="h-4 w-4" />
       case 'github':
         return <Github className="h-4 w-4" />
@@ -623,6 +624,7 @@ export function LinksPanel() {
   const getSocialLabel = (platform: SocialLinkPlatform) => {
     switch (platform) {
       case 'x':
+      case 'twitter':
         return 'X'
       case 'github':
         return 'GitHub'

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Users, UserPlus, Share2, Copy, Twitter, QrCode } from 'lucide-react'
+import { Users, UserPlus, Share2, Copy, Twitter, QrCode, Search } from 'lucide-react'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import { toast } from 'sonner'
 import Link from 'next/link'
@@ -39,10 +39,12 @@ interface FollowItem {
   slug?: string | null
   score?: number
   reason?: string
-  primaryRole?: string | null
+  primaryRole?: RoleTag
   statusMessage?: string | null
   isBlocked?: boolean
 }
+
+import { RoleTag } from '@/components/dashboard/connection-card'
 
 export function SocialPanel({ address }: SocialPanelProps) {
   const router = useRouter()
@@ -54,6 +56,9 @@ export function SocialPanel({ address }: SocialPanelProps) {
   const [following, setFollowing] = useState<FollowItem[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const [globalSearchQuery, setGlobalSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<FollowItem[]>([])
+  const [isSearching, setIsSearching] = useState(false)
   const [qrModalOpen, setQrModalOpen] = useState(false)
   const [filter, setFilter] = useState<FilterType>('all')
   const [sort, setSort] = useState<SortType>('recent')
@@ -64,8 +69,8 @@ export function SocialPanel({ address }: SocialPanelProps) {
   // Get active tab from URL query param 'subtab' (to avoid conflict with dashboard's 'tab' param)
   // Default to 'following'
   const subtabParam = searchParams.get('subtab')
-  const [activeTab, setActiveTab] = useState<'followers' | 'following' | 'mutuals'>(
-    (subtabParam === 'followers' || subtabParam === 'following' || subtabParam === 'mutuals')
+  const [activeTab, setActiveTab] = useState<'followers' | 'following' | 'mutuals' | 'explore'>(
+    (subtabParam === 'followers' || subtabParam === 'following' || subtabParam === 'mutuals' || subtabParam === 'explore')
       ? subtabParam
       : 'following'
   )
@@ -73,7 +78,7 @@ export function SocialPanel({ address }: SocialPanelProps) {
   // Sync with URL on mount and when subtab param changes
   useEffect(() => {
     const subtab = searchParams.get('subtab')
-    if (subtab === 'followers' || subtab === 'following' || subtab === 'mutuals') {
+    if (subtab === 'followers' || subtab === 'following' || subtab === 'mutuals' || subtab === 'explore') {
       setActiveTab(subtab)
     } else {
       // If subtab param is missing, set default to 'following' and update URL
@@ -268,9 +273,71 @@ export function SocialPanel({ address }: SocialPanelProps) {
     fetchFollows()
   }, [mounted, address, filter, sort]) // Re-fetch when filter or sort changes
 
+  // Global Search Effect
+  useEffect(() => {
+    if (!globalSearchQuery || globalSearchQuery.length < 2) {
+      setSearchResults([])
+      return
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearching(true)
+      try {
+        const response = await fetch(`/api/search?q=${encodeURIComponent(globalSearchQuery)}`)
+        if (response.ok) {
+          const data = await response.json()
+          // Map results to FollowItem format
+          const mappedResults: FollowItem[] = (data.results || []).map((p: any) => ({
+            address: p.address,
+            createdAt: new Date().toISOString(), // No follow date for search results
+            displayName: p.displayName,
+            slug: p.slug,
+            primaryRole: p.primaryRole,
+            // Check if already following
+            reason: following.some(f => f.address.toLowerCase() === p.address.toLowerCase())
+              ? 'Following'
+              : undefined
+          }))
+          setSearchResults(mappedResults)
+        }
+      } catch (error) {
+        console.error('Search failed', error)
+      } finally {
+        setIsSearching(false)
+      }
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [globalSearchQuery, following])
+
+  const handleFollow = async (targetAddress: string) => {
+    try {
+      const normalizedTargetAddress = targetAddress.toLowerCase()
+      const response = await fetch(`/api/profile/${normalizedTargetAddress}/follow`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+      if (response.ok) {
+        toast.success('Followed successfully')
+        // Refresh following list
+        const updatedFollowingRes = await fetch(`/api/dashboard/${address.toLowerCase()}/follows?type=following`, {
+          credentials: 'include',
+        })
+        if (updatedFollowingRes.ok) {
+          const data = await updatedFollowingRes.json()
+          setFollowing(Array.isArray(data) ? data : [])
+        }
+      } else {
+        toast.error('Failed to follow')
+      }
+    } catch (e) {
+      toast.error('Failed to follow')
+    }
+  }
+
 
   const handleTabChange = (value: string) => {
-    const newTab = value as 'followers' | 'following'
+    const newTab = value as 'followers' | 'following' | 'explore'
 
     // Update local state immediately - no navigation, just state change
     setActiveTab(newTab)
@@ -566,16 +633,25 @@ export function SocialPanel({ address }: SocialPanelProps) {
                     {mutualsData?.count || 0}
                   </span>
                 </TabsTrigger>
+                <TabsTrigger
+                  value="explore"
+                  className="gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground rounded-md px-3 py-1.5"
+                >
+                  <Search className="h-4 w-4" />
+                  <span className="text-sm">Explore</span>
+                </TabsTrigger>
               </TabsList>
-              {/* Replace Input with SocialFilterBar */}
-              <SocialFilterBar
-                filter={filter}
-                onFilterChange={setFilter}
-                sort={sort}
-                onSortChange={setSort}
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-              />
+
+              {activeTab !== 'explore' && (
+                <SocialFilterBar
+                  filter={filter}
+                  onFilterChange={setFilter}
+                  sort={sort}
+                  onSortChange={setSort}
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                />
+              )}
             </div>
 
             <TabsContent value="followers" className="mt-4">
@@ -609,6 +685,71 @@ export function SocialPanel({ address }: SocialPanelProps) {
                 suggestionsData?.suggestions, // Pass suggestions
                 'Followed on'
               )}
+            </TabsContent>
+
+            <TabsContent value="explore" className="mt-4">
+              <div className="space-y-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search users by name or address..."
+                    className="pl-9"
+                    value={globalSearchQuery}
+                    onChange={(e) => setGlobalSearchQuery(e.target.value)}
+                  />
+                </div>
+
+                {isSearching ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-16 w-full" />
+                    ))}
+                  </div>
+                ) : searchResults.length > 0 ? (
+                  <div className="space-y-0">
+                    {searchResults.map((item) => {
+                      const isFollowing = following.some(f => f.address.toLowerCase() === item.address.toLowerCase())
+                      const isSelf = item.address.toLowerCase() === address.toLowerCase()
+
+                      return (
+                        <div key={item.address} className="relative group">
+                          <ConnectionCard
+                            address={item.address}
+                            displayName={item.displayName}
+                            avatarUrl={`https://effigy.im/a/${item.address.toLowerCase()}.svg`}
+                            primaryRole={item.primaryRole}
+                            followedAt={new Date()} // Not really followed, just for display
+                            dateLabel="Joined" // Since we don't know join date from search, maybe just hide or use dummy
+                          // Custom action to replace View/More with Follow
+                          />
+                          {!isSelf && (
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                              {isFollowing ? (
+                                <Button size="sm" variant="secondary" disabled>Following</Button>
+                              ) : (
+                                <Button size="sm" onClick={() => handleFollow(item.address)}>Follow</Button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : globalSearchQuery.length > 2 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    No users found
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    Type to search...
+                    {suggestionsData?.suggestions && suggestionsData.suggestions.length > 0 && (
+                      <div className="mt-8">
+                        {renderList(suggestionsData.suggestions, '', '', false, [], 'Joined')}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </TabsContent>
           </Tabs>
         </CardContent>

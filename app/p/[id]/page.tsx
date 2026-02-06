@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import { getPublicProfileHref } from '@/lib/routing'
 import Link from 'next/link'
-import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Eye, Share2, Instagram, Youtube, Sparkles, ShieldAlert, Layers, UserX, CheckCircle } from 'lucide-react'
+import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Eye, Share2, Instagram, Youtube, Sparkles, ShieldAlert, Layers, UserX, CheckCircle, MoreVertical, Ban } from 'lucide-react'
 import { XIcon } from '@/components/icons/x-icon'
 import { ClaimProfileButton } from '@/components/claim-profile-button'
 import { FollowToggle, FollowStats } from '@/components/follow-toggle'
@@ -22,6 +22,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
 import { trackProfileView, trackLinkClick, getSourceFromUrl, getProfileViewCount } from '@/lib/analytics'
@@ -119,42 +120,32 @@ export default function ProfilePage({ params }: PageProps) {
 
   // ... (keep existing code)
 
-  const handleUnblock = async () => {
+  const handleBlock = async () => {
     if (!profile?.address) return
     try {
-      // API uses POST to toggle block status (if blocked, it unblocks)
       const response = await fetch(`/api/profile/${profile.address.toLowerCase()}/block`, {
         method: 'POST',
       })
       if (response.ok) {
         const data = await response.json()
-        // If unblocked, data.blocked will be false
-        if (data.blocked === false) {
-          setIsBlockedByViewer(false)
-          toast.success('User unblocked')
-          // Refresh data to show content
+        if (data.blocked) {
+          setIsBlockedByViewer(true)
+          toast.success('User blocked')
           router.refresh()
         } else {
-          // This presumably shouldn't happen if we strictly want to unblock, 
-          // but since it's a toggle, we might have accidentally blocked again? 
-          // Ideally the API should be idempotent for "unblock", but for now POST toggles.
-          // If we were blocked and call POST, we become unblocked.
-          // Let's assume the user was indeed blocked before clicking "Unblock".
-          setIsBlockedByViewer(data.blocked)
-          if (!data.blocked) {
-            toast.success('User unblocked')
-            router.refresh()
-          } else {
-            toast.error('Failed to unblock')
-          }
+          setIsBlockedByViewer(false)
+          toast.success('User unblocked')
+          router.refresh()
         }
       } else {
-        toast.error('Failed to unblock')
+        toast.error('Failed to toggle block')
       }
-    } catch (error) {
-      toast.error('Failed to unblock')
+    } catch (e) {
+      toast.error('Failed to toggle block')
     }
   }
+
+  const handleUnblock = handleBlock // Reuse logic since API toggles
 
   const addressFromProfile = profile?.address && isValidAddress(profile.address)
     ? profile.address.toLowerCase()
@@ -878,34 +869,34 @@ export default function ProfilePage({ params }: PageProps) {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={handleCopyProfileLink}>
                             <Copy className="mr-2 h-4 w-4" />
-                            <span>Copy profile link</span>
+                            Copy Link
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => {
-                            // ... existing share logic ...
-                            const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
-                            const profilePath = getPublicProfileHref(resolvedAddress, profile?.slug)
-                            const profileUrl = `${baseUrl}${profilePath}`
-                            const isOwnProfile = connectedAddress && resolvedAddress && resolvedAddress.toLowerCase() === connectedAddress.toLowerCase()
-                            let shareText: string
-                            if (isOwnProfile) {
-                              shareText = 'Just claimed my SOCI4L profile on Avalanche.\n\nTrack my on-chain identity and links in one place.\n\n' + profileUrl
-                            } else {
-                              const profileName = profile?.displayName || formatAddress(resolvedAddress, 4)
-                              shareText = `Check out this SOCI4L profile on Avalanche: ${profileName}\n\nTrack on-chain identity and links in one place.\n\n` + profileUrl
-                            }
-                            const text = encodeURIComponent(shareText)
-                            window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank', 'noopener')
-                          }}>
-                            <XIcon className="mr-2 h-4 w-4" />
-                            <span>Share on X</span>
-                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => setQrModalOpen(true)}>
                             <QrCode className="mr-2 h-4 w-4" />
-                            <span>Show QR code</span>
+                            Show QR Code
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     )}
+
+                    {/* Block/Report Menu */}
+                    {resolvedAddress && isValidAddress(resolvedAddress) && !isOwnProfile && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:bg-muted">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={handleBlock} className="text-destructive focus:text-destructive">
+                            <Ban className="h-4 w-4 mr-2" />
+                            {isBlockedByViewer ? 'Unblock User' : 'Block User'}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+
 
                     {profileStatus === 'UNCLAIMED' && profile?.address && !profile?.isBanned && (
                       <ClaimProfileButton address={profile.address} onSuccess={handleClaimSuccess} />
@@ -915,665 +906,672 @@ export default function ProfilePage({ params }: PageProps) {
               </CardHeader>
 
               {/* Card Content: Only Social Links (Bio/Status is moved up) */}
-              {!profile?.isBanned && profile?.socialLinks && profile.socialLinks.length > 0 && (
-                <CardContent className="pt-0 pb-4">
-                  <div className="flex items-center gap-2 flex-wrap pl-[calc(3rem+1rem)]"> {/* Indent to align with text */}
-                    {profile.socialLinks.map((link) => {
-                      const platform = link.platform || link.type || 'website'
-                      return (
-                        <div key={link.id || link.url} className="relative inline-block">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <a
-                                  href={link.url}
-                                  target="_blank"
-                                  rel="noopener"
-                                  className="flex items-center justify-center h-7 w-7 rounded-full border border-border/50 bg-background hover:bg-muted hover:border-border transition-colors text-muted-foreground hover:text-foreground"
-                                >
-                                  {getSocialIcon(platform)}
-                                </a>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <div className="flex items-center gap-1.5">
-                                  <span>{getSocialLabel(link)}</span>
-                                  {link.verified && (
-                                    <CheckCircle className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-                                  )}
-                                </div>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          {link.verified && (
-                            <div className="absolute -top-1 -right-1 pointer-events-none bg-background rounded-full p-[1px] ring-1 ring-border/20 shadow-sm z-10">
-                              <CheckCircle className="h-2.5 w-2.5 text-blue-500 fill-blue-500/10" />
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </CardContent>
-              )}
-            </Card>
-          )}
-
-          {isBlockedByViewer ? (
-            <Card className={`${getThemeCardClasses(effectiveAppearanceConfig.theme)} border-destructive/30 bg-destructive/5`}>
-              <CardContent className="pt-12 pb-12">
-                <div className="text-center">
-                  <UserX className="h-10 w-10 mx-auto text-destructive mb-3" />
-                  <p className="text-base font-semibold mb-1 text-destructive">You have blocked this user</p>
-                  <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
-                    You cannot see their activity or assets while they are blocked. Unblock them to view their profile content.
-                  </p>
-                  <Button
-                    variant="outline"
-                    className="border-destructive/30 hover:bg-destructive/10 text-destructive hover:text-destructive"
-                    onClick={handleUnblock}
-                    size="sm"
-                  >
-                    Unblock User
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ) : !profile?.isBanned && useRowLayout ? (
-            // Row-based layout
-            <div className="space-y-6 w-full">
-              {layoutRows.map((row) => {
-                // Helper function to render a block by sectionId
-                const renderBlockBySectionId = (sectionId: SectionId | null, colSpan: string) => {
-                  if (!sectionId) return null
-                  const block = blockMap.get(sectionId)
-                  if (!block || !block.enabled) return null
-                  const variant = block.variant || 'compact'
-
-                  // Determine grid column span based on row type
-                  const gridColSpan = colSpan === 'full' ? 'md:col-span-12' : 'md:col-span-6'
-
-                  if (sectionId === 'links') {
-                    // Unified Link Hub: Merge social links and custom links into single system
-                    type UnifiedLink = {
-                      id: string
-                      title: string
-                      url: string
-                      category: string
-                      categoryId?: string
-                      type: 'social' | 'featured' | 'custom'
-                      icon?: React.ReactNode
-                      order: number
-                      verified?: boolean
-                    }
-
-                    const allLinks: UnifiedLink[] = []
-
-                    // Create category map for quick lookup
-                    const categoryMap = new Map<string, { id: string; name: string; order: number }>()
-                    linkCategories.forEach((cat) => {
-                      categoryMap.set(cat.id, { id: cat.id, name: cat.name, order: cat.order })
-                    })
-
-                    // Find default category (usually "General")
-                    const defaultCategory = linkCategories.find(cat => cat.slug === 'general') || linkCategories[0]
-                    const defaultCategoryName = defaultCategory?.name || 'Links'
-
-                    // Add custom profile links with their categories
-                    // IMPORTANT: Sort by categoryId first, then by link.order within each category
-                    enabledProfileLinks.forEach((link, index) => {
-                      // Links without category go to "Uncategorized"
-                      const category = link.categoryId && categoryMap.has(link.categoryId)
-                        ? categoryMap.get(link.categoryId)!.name
-                        : 'Uncategorized'
-                      allLinks.push({
-                        id: link.id,
-                        title: link.title || link.url,
-                        url: link.url,
-                        category,
-                        type: 'featured',
-                        order: (link as any).order ?? index, // Use explicit order from database
-                      })
-                    })
-
-                    // Add social links to "Socials" category (keep as special category)
-                    if (profile?.socialLinks && profile.socialLinks.length > 0) {
-                      profile.socialLinks.forEach((link, index) => {
-                        if (link.enabled === false) return
-                        allLinks.push({
-                          id: link.id || `social-${link.url}`,
-                          title: getSocialLabel(link),
-                          url: getSocialUrl(link),
-                          category: 'Socials',
-                          type: 'social',
-                          icon: getSocialIcon(link.platform || link.type || 'website'),
-                          order: 1000 + index, // Social links come after featured
-                          verified: link.verified,
-                        })
-                      })
-                    }
-
-                    // Group links by category FIRST (before sorting)
-                    const linksByCategory = new Map<string, UnifiedLink[]>()
-                    allLinks.forEach((link) => {
-                      if (!linksByCategory.has(link.category)) {
-                        linksByCategory.set(link.category, [])
-                      }
-                      linksByCategory.get(link.category)!.push(link)
-                    })
-
-                    // Sort links WITHIN each category by order (deterministic ordering)
-                    linksByCategory.forEach((links, categoryName) => {
-                      links.sort((a, b) => {
-                        // Primary sort: order field
-                        if (a.order !== b.order) {
-                          return a.order - b.order
-                        }
-                        // Fallback: sort by id for stability
-                        return a.id.localeCompare(b.id)
-                      })
-                    })
-
-                    // Sort categories: Use category order from database (STRICT ordering by category.order)
-                    // Build category order map from database categories
-                    const categoryOrderMap = new Map<string, number>()
-                    linkCategories.forEach((cat) => {
-                      categoryOrderMap.set(cat.name, cat.order ?? 0) // Use explicit order from database
-                    })
-
-                    const categories = Array.from(linksByCategory.keys())
-                      .filter(cat => {
-                        // Only show categories that have links
-                        const categoryLinks = linksByCategory.get(cat) || []
-                        if (categoryLinks.length === 0) return false
-
-                        // "Uncategorized" and "Socials" are always visible (they're virtual categories)
-                        if (cat === 'Uncategorized' || cat === 'Socials') return true
-
-                        // Check visibility for database categories
-                        const categoryData = linkCategories.find(c => c.name === cat)
-                        // If category exists in database, check visibility. If not found, show it (might be a new category)
-                        if (categoryData) {
-                          return categoryData.isVisible !== false // Default to true if undefined
-                        }
-
-                        // If category not found in database, show it (might be a legacy category)
-                        return true
-                      })
-                      .sort((a, b) => {
-                        // Deterministic ordering: Uncategorized always comes last
-                        if (a === 'Uncategorized') return 1
-                        if (b === 'Uncategorized') return -1
-                        // Socials comes before Uncategorized but after all database categories
-                        if (a === 'Socials') {
-                          // Socials should come after all database categories (order >= 1000)
-                          return 1
-                        }
-                        if (b === 'Socials') {
-                          return -1
-                        }
-
-                        // For database categories: use strict order from database
-                        const orderA = categoryOrderMap.get(a) ?? 999
-                        const orderB = categoryOrderMap.get(b) ?? 999
-                        if (orderA !== orderB) {
-                          return orderA - orderB // Strict ordering by category.order
-                        }
-                        // If order is same, sort alphabetically for stability
-                        return a.localeCompare(b)
-                      })
-
-                    const totalLinks = allLinks.length
-
-                    // Show category headers if more than one category, or if the only category is not "Uncategorized"
-                    const shouldShowCategoryHeaders = categories.length > 1 || (categories.length === 1 && categories[0] !== 'Uncategorized')
-
-                    return (
-                      <Card
-                        key="links"
-                        ref={linksBlockRef}
-                        className={`${getThemeCardClasses(effectiveAppearanceConfig.theme, 'links')} ${gridColSpan} w-full`}
-                      >
-                        <CardHeader>
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="space-y-1">
-                              <CardTitle className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'title')}>
-                                Links
-                              </CardTitle>
-                              <CardDescription>
-                                Curated destinations (trackable)
-                              </CardDescription>
-                            </div>
-                            {/* Optional stats placeholder */}
-                            {totalLinks > 0 && (
-                              <div className="text-right">
-                                <p className="text-xs text-muted-foreground">
-                                  {totalLinks} {totalLinks === 1 ? 'link' : 'links'}
-                                </p>
-                                {/* Placeholder for future stats */}
-                                {/* <p className="text-[10px] text-muted-foreground mt-0.5">
-                              Views · Clicks (7d)
-                            </p> */}
+              {
+                !profile?.isBanned && profile?.socialLinks && profile.socialLinks.length > 0 && (
+                  <CardContent className="pt-0 pb-4">
+                    <div className="flex items-center gap-2 flex-wrap pl-[calc(3rem+1rem)]"> {/* Indent to align with text */}
+                      {profile.socialLinks.map((link) => {
+                        const platform = link.platform || link.type || 'website'
+                        return (
+                          <div key={link.id || link.url} className="relative inline-block">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <a
+                                    href={link.url}
+                                    target="_blank"
+                                    rel="noopener"
+                                    className="flex items-center justify-center h-7 w-7 rounded-full border border-border/50 bg-background hover:bg-muted hover:border-border transition-colors text-muted-foreground hover:text-foreground"
+                                  >
+                                    {getSocialIcon(platform)}
+                                  </a>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <div className="flex items-center gap-1.5">
+                                    <span>{getSocialLabel(link)}</span>
+                                    {link.verified && (
+                                      <CheckCircle className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+                                    )}
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            {link.verified && (
+                              <div className="absolute -top-1 -right-1 pointer-events-none bg-background rounded-full p-[1px] ring-1 ring-border/20 shadow-sm z-10">
+                                <CheckCircle className="h-2.5 w-2.5 text-blue-500 fill-blue-500/10" />
                               </div>
                             )}
                           </div>
-                        </CardHeader>
-                        <CardContent>
-                          {totalLinks === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-8 text-center">
-                              <Link2 className="h-8 w-8 text-muted-foreground mb-2" />
-                              <p className="text-sm text-muted-foreground">
-                                This profile hasn&apos;t shared any links yet.
-                              </p>
+                        )
+                      })}
+                    </div>
+                  </CardContent>
+                )
+              }
+            </Card >
+          )
+          }
+
+          {
+            isBlockedByViewer ? (
+              <Card className={`${getThemeCardClasses(effectiveAppearanceConfig.theme)} border-destructive/30 bg-destructive/5`}>
+                <CardContent className="pt-12 pb-12">
+                  <div className="text-center">
+                    <UserX className="h-10 w-10 mx-auto text-destructive mb-3" />
+                    <p className="text-base font-semibold mb-1 text-destructive">You have blocked this user</p>
+                    <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
+                      You cannot see their activity or assets while they are blocked. Unblock them to view their profile content.
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="border-destructive/30 hover:bg-destructive/10 text-destructive hover:text-destructive"
+                      onClick={handleUnblock}
+                      size="sm"
+                    >
+                      Unblock User
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : !profile?.isBanned && useRowLayout ? (
+              // Row-based layout
+              <div className="space-y-6 w-full">
+                {layoutRows.map((row) => {
+                  // Helper function to render a block by sectionId
+                  const renderBlockBySectionId = (sectionId: SectionId | null, colSpan: string) => {
+                    if (!sectionId) return null
+                    const block = blockMap.get(sectionId)
+                    if (!block || !block.enabled) return null
+                    const variant = block.variant || 'compact'
+
+                    // Determine grid column span based on row type
+                    const gridColSpan = colSpan === 'full' ? 'md:col-span-12' : 'md:col-span-6'
+
+                    if (sectionId === 'links') {
+                      // Unified Link Hub: Merge social links and custom links into single system
+                      type UnifiedLink = {
+                        id: string
+                        title: string
+                        url: string
+                        category: string
+                        categoryId?: string
+                        type: 'social' | 'featured' | 'custom'
+                        icon?: React.ReactNode
+                        order: number
+                        verified?: boolean
+                      }
+
+                      const allLinks: UnifiedLink[] = []
+
+                      // Create category map for quick lookup
+                      const categoryMap = new Map<string, { id: string; name: string; order: number }>()
+                      linkCategories.forEach((cat) => {
+                        categoryMap.set(cat.id, { id: cat.id, name: cat.name, order: cat.order })
+                      })
+
+                      // Find default category (usually "General")
+                      const defaultCategory = linkCategories.find(cat => cat.slug === 'general') || linkCategories[0]
+                      const defaultCategoryName = defaultCategory?.name || 'Links'
+
+                      // Add custom profile links with their categories
+                      // IMPORTANT: Sort by categoryId first, then by link.order within each category
+                      enabledProfileLinks.forEach((link, index) => {
+                        // Links without category go to "Uncategorized"
+                        const category = link.categoryId && categoryMap.has(link.categoryId)
+                          ? categoryMap.get(link.categoryId)!.name
+                          : 'Uncategorized'
+                        allLinks.push({
+                          id: link.id,
+                          title: link.title || link.url,
+                          url: link.url,
+                          category,
+                          type: 'featured',
+                          order: (link as any).order ?? index, // Use explicit order from database
+                        })
+                      })
+
+                      // Add social links to "Socials" category (keep as special category)
+                      if (profile?.socialLinks && profile.socialLinks.length > 0) {
+                        profile.socialLinks.forEach((link, index) => {
+                          if (link.enabled === false) return
+                          allLinks.push({
+                            id: link.id || `social-${link.url}`,
+                            title: getSocialLabel(link),
+                            url: getSocialUrl(link),
+                            category: 'Socials',
+                            type: 'social',
+                            icon: getSocialIcon(link.platform || link.type || 'website'),
+                            order: 1000 + index, // Social links come after featured
+                            verified: link.verified,
+                          })
+                        })
+                      }
+
+                      // Group links by category FIRST (before sorting)
+                      const linksByCategory = new Map<string, UnifiedLink[]>()
+                      allLinks.forEach((link) => {
+                        if (!linksByCategory.has(link.category)) {
+                          linksByCategory.set(link.category, [])
+                        }
+                        linksByCategory.get(link.category)!.push(link)
+                      })
+
+                      // Sort links WITHIN each category by order (deterministic ordering)
+                      linksByCategory.forEach((links, categoryName) => {
+                        links.sort((a, b) => {
+                          // Primary sort: order field
+                          if (a.order !== b.order) {
+                            return a.order - b.order
+                          }
+                          // Fallback: sort by id for stability
+                          return a.id.localeCompare(b.id)
+                        })
+                      })
+
+                      // Sort categories: Use category order from database (STRICT ordering by category.order)
+                      // Build category order map from database categories
+                      const categoryOrderMap = new Map<string, number>()
+                      linkCategories.forEach((cat) => {
+                        categoryOrderMap.set(cat.name, cat.order ?? 0) // Use explicit order from database
+                      })
+
+                      const categories = Array.from(linksByCategory.keys())
+                        .filter(cat => {
+                          // Only show categories that have links
+                          const categoryLinks = linksByCategory.get(cat) || []
+                          if (categoryLinks.length === 0) return false
+
+                          // "Uncategorized" and "Socials" are always visible (they're virtual categories)
+                          if (cat === 'Uncategorized' || cat === 'Socials') return true
+
+                          // Check visibility for database categories
+                          const categoryData = linkCategories.find(c => c.name === cat)
+                          // If category exists in database, check visibility. If not found, show it (might be a new category)
+                          if (categoryData) {
+                            return categoryData.isVisible !== false // Default to true if undefined
+                          }
+
+                          // If category not found in database, show it (might be a legacy category)
+                          return true
+                        })
+                        .sort((a, b) => {
+                          // Deterministic ordering: Uncategorized always comes last
+                          if (a === 'Uncategorized') return 1
+                          if (b === 'Uncategorized') return -1
+                          // Socials comes before Uncategorized but after all database categories
+                          if (a === 'Socials') {
+                            // Socials should come after all database categories (order >= 1000)
+                            return 1
+                          }
+                          if (b === 'Socials') {
+                            return -1
+                          }
+
+                          // For database categories: use strict order from database
+                          const orderA = categoryOrderMap.get(a) ?? 999
+                          const orderB = categoryOrderMap.get(b) ?? 999
+                          if (orderA !== orderB) {
+                            return orderA - orderB // Strict ordering by category.order
+                          }
+                          // If order is same, sort alphabetically for stability
+                          return a.localeCompare(b)
+                        })
+
+                      const totalLinks = allLinks.length
+
+                      // Show category headers if more than one category, or if the only category is not "Uncategorized"
+                      const shouldShowCategoryHeaders = categories.length > 1 || (categories.length === 1 && categories[0] !== 'Uncategorized')
+
+                      return (
+                        <Card
+                          key="links"
+                          ref={linksBlockRef}
+                          className={`${getThemeCardClasses(effectiveAppearanceConfig.theme, 'links')} ${gridColSpan} w-full`}
+                        >
+                          <CardHeader>
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="space-y-1">
+                                <CardTitle className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'title')}>
+                                  Links
+                                </CardTitle>
+                                <CardDescription>
+                                  Curated destinations (trackable)
+                                </CardDescription>
+                              </div>
+                              {/* Optional stats placeholder */}
+                              {totalLinks > 0 && (
+                                <div className="text-right">
+                                  <p className="text-xs text-muted-foreground">
+                                    {totalLinks} {totalLinks === 1 ? 'link' : 'links'}
+                                  </p>
+                                  {/* Placeholder for future stats */}
+                                  {/* <p className="text-[10px] text-muted-foreground mt-0.5">
+                              Views · Clicks (7d)
+                            </p> */}
+                                </div>
+                              )}
                             </div>
-                          ) : (
-                            <div className="space-y-4">
-                              {categories.map((category) => {
-                                const categoryLinks = linksByCategory.get(category) || []
-                                const categoryData = linkCategories.find(cat => cat.name === category)
-                                return (
-                                  <div key={category} className="space-y-2">
-                                    {shouldShowCategoryHeaders && (
-                                      <div className="mb-3">
-                                        <h3 className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} font-bold text-foreground`}>
-                                          {category}
-                                        </h3>
-                                        {categoryData?.description && (
-                                          <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')} mt-1`}>
-                                            {categoryData.description}
+                          </CardHeader>
+                          <CardContent>
+                            {totalLinks === 0 ? (
+                              <div className="flex flex-col items-center justify-center py-8 text-center">
+                                <Link2 className="h-8 w-8 text-muted-foreground mb-2" />
+                                <p className="text-sm text-muted-foreground">
+                                  This profile hasn&apos;t shared any links yet.
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="space-y-4">
+                                {categories.map((category) => {
+                                  const categoryLinks = linksByCategory.get(category) || []
+                                  const categoryData = linkCategories.find(cat => cat.name === category)
+                                  return (
+                                    <div key={category} className="space-y-2">
+                                      {shouldShowCategoryHeaders && (
+                                        <div className="mb-3">
+                                          <h3 className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} font-bold text-foreground`}>
+                                            {category}
+                                          </h3>
+                                          {categoryData?.description && (
+                                            <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')} mt-1`}>
+                                              {categoryData.description}
+                                            </p>
+                                          )}
+                                        </div>
+                                      )}
+                                      <div className="space-y-2">
+                                        {categoryLinks.map((link) => {
+                                          // Use redirect endpoint for tracking custom links (DB records)
+                                          // Use direct URL for social links (JSON records, no DB ID for redirector)
+                                          const redirectUrl = link.type === 'social'
+                                            ? link.url
+                                            : `/r/${link.id}?source=profile`
+
+                                          // Format displayed URL (strip protocol and www)
+                                          let displayUrl = link.url
+                                            .replace(/^https?:\/\//, '')
+                                            .replace(/^www\./, '')
+                                            // Optional: strip trailing slash
+                                            .replace(/\/$/, '')
+
+                                          return (
+                                            <a
+                                              key={link.id}
+                                              href={redirectUrl}
+                                              target="_blank"
+                                              rel="noopener"
+                                              onClick={() => {
+                                                if (stableProfileId) {
+                                                  const source = getSourceFromUrl(searchParams)
+                                                  trackLinkClick(
+                                                    stableProfileId,
+                                                    link.id,
+                                                    source === 'unknown' ? 'profile' : source,
+                                                    link.categoryId || null,
+                                                    link.title,
+                                                    link.url,
+                                                    connectedAddress || undefined,
+                                                    { skipServer: link.type !== 'social' }
+                                                  )
+                                                }
+                                              }}
+                                              className={getThemeLinkItemClasses(effectiveAppearanceConfig.theme)}
+                                            >
+                                              <div className="flex min-w-0 items-center gap-2">
+                                                <div className="relative flex h-7 w-7 items-center justify-center rounded-md bg-muted/60 text-muted-foreground shrink-0">
+                                                  {link.icon || <Link2 className="h-3.5 w-3.5" />}
+                                                  {link.verified && (
+                                                    <div className="absolute -top-1 -right-1 bg-background rounded-full p-[1px] ring-1 ring-border/20 shadow-sm z-10">
+                                                      <CheckCircle className="h-2 w-2 text-blue-500 fill-blue-500/10" />
+                                                    </div>
+                                                  )}
+                                                </div>
+                                                <div className="min-w-0 space-y-0.5">
+                                                  <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} truncate text-foreground`}>
+                                                    {link.title}
+                                                  </p>
+                                                  <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')} truncate flex items-center gap-1.5`}>
+                                                    {displayUrl}
+                                                    {link.url.startsWith('http://') && (
+                                                      <TooltipProvider>
+                                                        <Tooltip>
+                                                          <TooltipTrigger>
+                                                            <ShieldAlert className="h-3 w-3 text-red-500/80 hover:text-red-500 transition-colors" />
+                                                          </TooltipTrigger>
+                                                          <TooltipContent>
+                                                            <p>Insecure connection (HTTP)</p>
+                                                          </TooltipContent>
+                                                        </Tooltip>
+                                                      </TooltipProvider>
+                                                    )}
+                                                  </p>
+                                                </div>
+                                              </div>
+                                              <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
+                                            </a>
+                                          )
+                                        })}
+                                      </div>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      )
+                    }
+
+                    if (sectionId === 'activity') {
+                      const showAmounts = variant !== 'hiddenAmounts'
+                      const isCompact = variant === 'compact'
+                      const isFull = variant === 'full'
+                      const maxItems = isFull ? 20 : (isCompact ? 5 : 10)
+
+                      return (
+                        <Card key="activity" className={`${getThemeCardClasses(effectiveAppearanceConfig.theme, 'activity')} ${gridColSpan} w-full`}>
+                          <CardHeader>
+                            <CardTitle className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'title')}>Activity</CardTitle>
+                            <CardDescription className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>Recent transactions</CardDescription>
+                          </CardHeader>
+                          <CardContent className={isFull ? 'space-y-4' : 'space-y-3'}>
+                            {walletData.transactions && walletData.transactions.length > 0 ? (
+                              walletData.transactions.slice(0, maxItems).map((tx, idx) => (
+                                <div
+                                  key={idx}
+                                  className={`${isFull ? 'space-y-2 p-3 rounded-md border bg-muted/30' : 'space-y-1 border-b pb-2'} last:border-0`}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      {isFull && (
+                                        <div className="flex h-6 w-6 items-center justify-center rounded bg-primary/10 shrink-0">
+                                          <Activity className="h-3 w-3 text-primary" />
+                                        </div>
+                                      )}
+                                      <div className="min-w-0">
+                                        <p className={`font-mono ${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} truncate`}>
+                                          {isFull ? tx.hash : formatAddress(tx.hash)}
+                                        </p>
+                                        {isFull && (
+                                          <p className="text-xs text-muted-foreground mt-0.5">
+                                            Block #{tx.blockNumber}
                                           </p>
                                         )}
                                       </div>
-                                    )}
-                                    <div className="space-y-2">
-                                      {categoryLinks.map((link) => {
-                                        // Use redirect endpoint for tracking custom links (DB records)
-                                        // Use direct URL for social links (JSON records, no DB ID for redirector)
-                                        const redirectUrl = link.type === 'social'
-                                          ? link.url
-                                          : `/r/${link.id}?source=profile`
-
-                                        // Format displayed URL (strip protocol and www)
-                                        let displayUrl = link.url
-                                          .replace(/^https?:\/\//, '')
-                                          .replace(/^www\./, '')
-                                          // Optional: strip trailing slash
-                                          .replace(/\/$/, '')
-
-                                        return (
-                                          <a
-                                            key={link.id}
-                                            href={redirectUrl}
-                                            target="_blank"
-                                            rel="noopener"
-                                            onClick={() => {
-                                              if (stableProfileId) {
-                                                const source = getSourceFromUrl(searchParams)
-                                                trackLinkClick(
-                                                  stableProfileId,
-                                                  link.id,
-                                                  source === 'unknown' ? 'profile' : source,
-                                                  link.categoryId || null,
-                                                  link.title,
-                                                  link.url,
-                                                  connectedAddress || undefined,
-                                                  { skipServer: link.type !== 'social' }
-                                                )
-                                              }
-                                            }}
-                                            className={getThemeLinkItemClasses(effectiveAppearanceConfig.theme)}
-                                          >
-                                            <div className="flex min-w-0 items-center gap-2">
-                                              <div className="relative flex h-7 w-7 items-center justify-center rounded-md bg-muted/60 text-muted-foreground shrink-0">
-                                                {link.icon || <Link2 className="h-3.5 w-3.5" />}
-                                                {link.verified && (
-                                                  <div className="absolute -top-1 -right-1 bg-background rounded-full p-[1px] ring-1 ring-border/20 shadow-sm z-10">
-                                                    <CheckCircle className="h-2 w-2 text-blue-500 fill-blue-500/10" />
-                                                  </div>
-                                                )}
-                                              </div>
-                                              <div className="min-w-0 space-y-0.5">
-                                                <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} truncate text-foreground`}>
-                                                  {link.title}
-                                                </p>
-                                                <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')} truncate flex items-center gap-1.5`}>
-                                                  {displayUrl}
-                                                  {link.url.startsWith('http://') && (
-                                                    <TooltipProvider>
-                                                      <Tooltip>
-                                                        <TooltipTrigger>
-                                                          <ShieldAlert className="h-3 w-3 text-red-500/80 hover:text-red-500 transition-colors" />
-                                                        </TooltipTrigger>
-                                                        <TooltipContent>
-                                                          <p>Insecure connection (HTTP)</p>
-                                                        </TooltipContent>
-                                                      </Tooltip>
-                                                    </TooltipProvider>
-                                                  )}
-                                                </p>
-                                              </div>
-                                            </div>
-                                            <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
-                                          </a>
-                                        )
-                                      })}
                                     </div>
+                                    <a
+                                      href={`https://snowtrace.io/tx/${tx.hash}`}
+                                      target="_blank"
+                                      rel="noopener"
+                                      className="text-muted-foreground hover:text-foreground shrink-0"
+                                    >
+                                      <ExternalLink className={isFull ? 'h-4 w-4' : 'h-3 w-3'} />
+                                    </a>
                                   </div>
-                                )
-                              })}
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    )
-                  }
-
-                  if (sectionId === 'activity') {
-                    const showAmounts = variant !== 'hiddenAmounts'
-                    const isCompact = variant === 'compact'
-                    const isFull = variant === 'full'
-                    const maxItems = isFull ? 20 : (isCompact ? 5 : 10)
-
-                    return (
-                      <Card key="activity" className={`${getThemeCardClasses(effectiveAppearanceConfig.theme, 'activity')} ${gridColSpan} w-full`}>
-                        <CardHeader>
-                          <CardTitle className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'title')}>Activity</CardTitle>
-                          <CardDescription className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>Recent transactions</CardDescription>
-                        </CardHeader>
-                        <CardContent className={isFull ? 'space-y-4' : 'space-y-3'}>
-                          {walletData.transactions && walletData.transactions.length > 0 ? (
-                            walletData.transactions.slice(0, maxItems).map((tx, idx) => (
-                              <div
-                                key={idx}
-                                className={`${isFull ? 'space-y-2 p-3 rounded-md border bg-muted/30' : 'space-y-1 border-b pb-2'} last:border-0`}
-                              >
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    {isFull && (
-                                      <div className="flex h-6 w-6 items-center justify-center rounded bg-primary/10 shrink-0">
-                                        <Activity className="h-3 w-3 text-primary" />
+                                  {isFull && (
+                                    <div className="grid grid-cols-2 gap-2 text-xs">
+                                      <div>
+                                        <p className="text-muted-foreground">From</p>
+                                        <p className="font-mono truncate">{formatAddress(tx.from)}</p>
                                       </div>
-                                    )}
-                                    <div className="min-w-0">
-                                      <p className={`font-mono ${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} truncate`}>
-                                        {isFull ? tx.hash : formatAddress(tx.hash)}
-                                      </p>
-                                      {isFull && (
-                                        <p className="text-xs text-muted-foreground mt-0.5">
-                                          Block #{tx.blockNumber}
-                                        </p>
-                                      )}
+                                      <div>
+                                        <p className="text-muted-foreground">To</p>
+                                        <p className="font-mono truncate">{formatAddress(tx.to)}</p>
+                                      </div>
                                     </div>
-                                  </div>
-                                  <a
-                                    href={`https://snowtrace.io/tx/${tx.hash}`}
-                                    target="_blank"
-                                    rel="noopener"
-                                    className="text-muted-foreground hover:text-foreground shrink-0"
-                                  >
-                                    <ExternalLink className={isFull ? 'h-4 w-4' : 'h-3 w-3'} />
-                                  </a>
-                                </div>
-                                {isFull && (
-                                  <div className="grid grid-cols-2 gap-2 text-xs">
-                                    <div>
-                                      <p className="text-muted-foreground">From</p>
-                                      <p className="font-mono truncate">{formatAddress(tx.from)}</p>
-                                    </div>
-                                    <div>
-                                      <p className="text-muted-foreground">To</p>
-                                      <p className="font-mono truncate">{formatAddress(tx.to)}</p>
-                                    </div>
-                                  </div>
-                                )}
-                                {showAmounts && (
-                                  <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} font-semibold`}>
-                                    {parseFloat(tx.value).toFixed(4)} AVAX
+                                  )}
+                                  {showAmounts && (
+                                    <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} font-semibold`}>
+                                      {parseFloat(tx.value).toFixed(4)} AVAX
+                                    </p>
+                                  )}
+                                  <p className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>
+                                    {new Date(tx.timestamp * 1000).toLocaleString('tr-TR')}
                                   </p>
-                                )}
-                                <p className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>
-                                  {new Date(tx.timestamp * 1000).toLocaleString('tr-TR')}
+                                </div>
+                              ))
+                            ) : (
+                              <div className="flex flex-col items-center justify-center py-6 text-center">
+                                <Activity className="h-8 w-8 text-muted-foreground mb-2" />
+                                <p className="text-sm text-muted-foreground">
+                                  No recent transactions
                                 </p>
                               </div>
-                            ))
-                          ) : (
-                            <div className="flex flex-col items-center justify-center py-6 text-center">
-                              <Activity className="h-8 w-8 text-muted-foreground mb-2" />
-                              <p className="text-sm text-muted-foreground">
-                                No recent transactions
-                              </p>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    )
-                  }
-
-                  if (sectionId === 'assets') {
-                    const showAmounts = variant !== 'hiddenAmounts'
-                    const isCompact = variant === 'compact'
-                    const isFull = variant === 'full'
-                    // Full variant shows more items, compact shows fewer
-                    const maxItems = isFull ? 20 : (isCompact ? 5 : 10)
-
-                    return (
-                      <Card key="assets" className={`${getThemeCardClasses(effectiveAppearanceConfig.theme, 'assets')} ${gridColSpan} w-full`}>
-                        <CardHeader>
-                          <CardTitle className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'title')}>Assets</CardTitle>
-                          <CardDescription className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>Tokens and NFTs</CardDescription>
-                        </CardHeader>
-                        <CardContent className={effectiveAppearanceConfig.theme === 'dense' ? 'p-3 space-y-2' : 'p-6 space-y-4'}>
-                          <div className="space-y-2">
-                            <p className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>Tokens</p>
-                            {/* Native AVAX Balance */}
-                            {walletData.nativeBalance && parseFloat(walletData.nativeBalance) > 0 && (
-                              <div className="flex justify-between items-center px-1">
-                                <div className="min-w-0">
-                                  <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} truncate uppercase`}>AVAX</p>
-                                  <p className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>Avalanche</p>
-                                </div>
-                                {showAmounts && (
-                                  <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} font-mono`}>
-                                    {parseFloat(walletData.nativeBalance).toLocaleString('tr-TR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
-                                  </p>
-                                )}
-                              </div>
                             )}
-                            {walletData.tokenBalances && walletData.tokenBalances.length > 0 ? (
-                              walletData.tokenBalances.slice(0, maxItems).map((token, idx) => (
-                                <div key={idx} className="flex justify-between items-center px-1">
+                          </CardContent>
+                        </Card>
+                      )
+                    }
+
+                    if (sectionId === 'assets') {
+                      const showAmounts = variant !== 'hiddenAmounts'
+                      const isCompact = variant === 'compact'
+                      const isFull = variant === 'full'
+                      // Full variant shows more items, compact shows fewer
+                      const maxItems = isFull ? 20 : (isCompact ? 5 : 10)
+
+                      return (
+                        <Card key="assets" className={`${getThemeCardClasses(effectiveAppearanceConfig.theme, 'assets')} ${gridColSpan} w-full`}>
+                          <CardHeader>
+                            <CardTitle className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'title')}>Assets</CardTitle>
+                            <CardDescription className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>Tokens and NFTs</CardDescription>
+                          </CardHeader>
+                          <CardContent className={effectiveAppearanceConfig.theme === 'dense' ? 'p-3 space-y-2' : 'p-6 space-y-4'}>
+                            <div className="space-y-2">
+                              <p className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>Tokens</p>
+                              {/* Native AVAX Balance */}
+                              {walletData.nativeBalance && parseFloat(walletData.nativeBalance) > 0 && (
+                                <div className="flex justify-between items-center px-1">
                                   <div className="min-w-0">
-                                    <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} truncate uppercase`}>{token.symbol}</p>
-                                    <p className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>{token.name}</p>
+                                    <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} truncate uppercase`}>AVAX</p>
+                                    <p className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>Avalanche</p>
                                   </div>
                                   {showAmounts && (
                                     <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} font-mono`}>
-                                      {parseFloat(token.balance).toLocaleString('tr-TR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
+                                      {parseFloat(walletData.nativeBalance).toLocaleString('tr-TR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
                                     </p>
                                   )}
                                 </div>
-                              ))
-                            ) : (
-                              !walletData.nativeBalance || parseFloat(walletData.nativeBalance) === 0 ? (
-                                <p className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>—</p>
-                              ) : null
-                            )}
-                          </div>
-                          <div className={`pt-3 border-t ${effectiveAppearanceConfig.theme === 'dense' ? 'space-y-1' : 'space-y-2'}`}>
-                            <p className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>NFTs</p>
-                            {walletData.nfts && walletData.nfts.length > 0 ? (
-                              walletData.nfts.slice(0, maxItems).map((nft, idx) => (
-                                <div key={idx} className="flex items-center gap-3 mb-2 group">
-                                  {nft.image ? (
-                                    <div className="relative h-10 w-10 overflow-hidden rounded-md border bg-muted">
-                                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                                      <img
-                                        src={nft.image}
-                                        alt={nft.name || 'NFT'}
-                                        className="h-full w-full object-cover"
-                                        onError={(e) => {
-                                          (e.target as HTMLImageElement).style.display = 'none'
-                                        }}
-                                      />
+                              )}
+                              {walletData.tokenBalances && walletData.tokenBalances.length > 0 ? (
+                                walletData.tokenBalances.slice(0, maxItems).map((token, idx) => (
+                                  <div key={idx} className="flex justify-between items-center px-1">
+                                    <div className="min-w-0">
+                                      <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} truncate uppercase`}>{token.symbol}</p>
+                                      <p className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>{token.name}</p>
                                     </div>
-                                  ) : (
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-md border bg-muted">
-                                      <span className="text-xs text-muted-foreground">#</span>
-                                    </div>
-                                  )}
-                                  <div className="min-w-0 flex-1">
-                                    <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} truncate`}>
-                                      {nft.name || 'Unnamed NFT'}
-                                    </p>
-                                    <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')} font-mono truncate`}>
-                                      {formatAddress(nft.contractAddress)} #{nft.tokenId}
-                                    </p>
+                                    {showAmounts && (
+                                      <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} font-mono`}>
+                                        {parseFloat(token.balance).toLocaleString('tr-TR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}
+                                      </p>
+                                    )}
                                   </div>
-                                  <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <TooltipProvider>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                                            onClick={() => {
-                                              navigator.clipboard.writeText(nft.contractAddress)
-                                              toast.success('Address copied')
-                                            }}
-                                          >
-                                            <Copy className="h-3 w-3" />
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>Copy contract</TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-
-                                    <TooltipProvider>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" asChild>
-                                            <a
-                                              href={`https://snowtrace.io/token/${nft.contractAddress}?a=${nft.tokenId}`}
-                                              target="_blank"
-                                              rel="noopener"
-                                            >
-                                              <ExternalLink className="h-3 w-3" />
-                                            </a>
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>View on explorer</TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-
-                                    <TooltipProvider>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" asChild>
-                                            <a
-                                              href={`https://snowtrace.io/token/${nft.contractAddress}`}
-                                              target="_blank"
-                                              rel="noopener"
-                                            >
-                                              <Layers className="h-3 w-3" />
-                                            </a>
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>View collection</TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                  </div>
-                                </div>
-                              ))
-                            ) : (
-                              <p className="text-xs text-muted-foreground">—</p>
-                            )}
-                          </div>
-                          {walletData.address && (
-                            <div className="pt-3 border-t">
-                              <Button variant="outline" size="sm" asChild className="w-full">
-                                <a
-                                  href={`https://snowtrace.io/address/${walletData.address}`}
-                                  target="_blank"
-                                  rel="noopener"
-                                >
-                                  View all assets on Snowtrace
-                                </a>
-                              </Button>
+                                ))
+                              ) : (
+                                !walletData.nativeBalance || parseFloat(walletData.nativeBalance) === 0 ? (
+                                  <p className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>—</p>
+                                ) : null
+                              )}
                             </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    )
-                  }
+                            <div className={`pt-3 border-t ${effectiveAppearanceConfig.theme === 'dense' ? 'space-y-1' : 'space-y-2'}`}>
+                              <p className={getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')}>NFTs</p>
+                              {walletData.nfts && walletData.nfts.length > 0 ? (
+                                walletData.nfts.slice(0, maxItems).map((nft, idx) => (
+                                  <div key={idx} className="flex items-center gap-3 mb-2 group">
+                                    {nft.image ? (
+                                      <div className="relative h-10 w-10 overflow-hidden rounded-md border bg-muted">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                          src={nft.image}
+                                          alt={nft.name || 'NFT'}
+                                          className="h-full w-full object-cover"
+                                          onError={(e) => {
+                                            (e.target as HTMLImageElement).style.display = 'none'
+                                          }}
+                                        />
+                                      </div>
+                                    ) : (
+                                      <div className="flex h-10 w-10 items-center justify-center rounded-md border bg-muted">
+                                        <span className="text-xs text-muted-foreground">#</span>
+                                      </div>
+                                    )}
+                                    <div className="min-w-0 flex-1">
+                                      <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} truncate`}>
+                                        {nft.name || 'Unnamed NFT'}
+                                      </p>
+                                      <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')} font-mono truncate`}>
+                                        {formatAddress(nft.contractAddress)} #{nft.tokenId}
+                                      </p>
+                                    </div>
+                                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                                              onClick={() => {
+                                                navigator.clipboard.writeText(nft.contractAddress)
+                                                toast.success('Address copied')
+                                              }}
+                                            >
+                                              <Copy className="h-3 w-3" />
+                                            </Button>
+                                          </TooltipTrigger>
+                                          <TooltipContent>Copy contract</TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
 
-                  // Summary block is deprecated
-                  if (sectionId === 'summary') {
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" asChild>
+                                              <a
+                                                href={`https://snowtrace.io/token/${nft.contractAddress}?a=${nft.tokenId}`}
+                                                target="_blank"
+                                                rel="noopener"
+                                              >
+                                                <ExternalLink className="h-3 w-3" />
+                                              </a>
+                                            </Button>
+                                          </TooltipTrigger>
+                                          <TooltipContent>View on explorer</TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+
+                                      <TooltipProvider>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" asChild>
+                                              <a
+                                                href={`https://snowtrace.io/token/${nft.contractAddress}`}
+                                                target="_blank"
+                                                rel="noopener"
+                                              >
+                                                <Layers className="h-3 w-3" />
+                                              </a>
+                                            </Button>
+                                          </TooltipTrigger>
+                                          <TooltipContent>View collection</TooltipContent>
+                                        </Tooltip>
+                                      </TooltipProvider>
+                                    </div>
+                                  </div>
+                                ))
+                              ) : (
+                                <p className="text-xs text-muted-foreground">—</p>
+                              )}
+                            </div>
+                            {walletData.address && (
+                              <div className="pt-3 border-t">
+                                <Button variant="outline" size="sm" asChild className="w-full">
+                                  <a
+                                    href={`https://snowtrace.io/address/${walletData.address}`}
+                                    target="_blank"
+                                    rel="noopener"
+                                  >
+                                    View all assets on Snowtrace
+                                  </a>
+                                </Button>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      )
+                    }
+
+                    // Summary block is deprecated
+                    if (sectionId === 'summary') {
+                      return null
+                    }
+
                     return null
                   }
 
-                  return null
-                }
-
-                // Render row based on type
-                if (row.type === 'single') {
-                  return (
-                    <div key={row.id} className="w-full">
-                      {renderBlockBySectionId(row.left, 'full')}
-                    </div>
-                  )
-                } else {
-                  return (
-                    <div key={row.id} className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full">
-                      {renderBlockBySectionId(row.left, 'half')}
-                      {renderBlockBySectionId(row.right, 'half')}
-                    </div>
-                  )
-                }
-              })}
-            </div>
-          ) : (
-            // Fallback to grid-based layout
-            !profile?.isBanned && (
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full">
-                {blocksWithComputedSpan.map((block) => {
-                  const variant = block.variant || 'compact'
-                  const computedSpan = block.computedSpan || 'half'
-                  const gridColSpan = computedSpan === 'full' ? 'md:col-span-12' : 'md:col-span-6'
-
-                  if (block.key === 'links') {
-                    // Links block rendering - same as row-based
-                    return null // Will be implemented with full block rendering
+                  // Render row based on type
+                  if (row.type === 'single') {
+                    return (
+                      <div key={row.id} className="w-full">
+                        {renderBlockBySectionId(row.left, 'full')}
+                      </div>
+                    )
+                  } else {
+                    return (
+                      <div key={row.id} className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full">
+                        {renderBlockBySectionId(row.left, 'half')}
+                        {renderBlockBySectionId(row.right, 'half')}
+                      </div>
+                    )
                   }
-
-                  if (block.key === 'activity') {
-                    return null // Will be implemented with full block rendering
-                  }
-
-                  if (block.key === 'assets') {
-                    return null // Will be implemented with full block rendering
-                  }
-
-                  return null
                 })}
               </div>
+            ) : (
+              // Fallback to grid-based layout
+              !profile?.isBanned && (
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full">
+                  {blocksWithComputedSpan.map((block) => {
+                    const variant = block.variant || 'compact'
+                    const computedSpan = block.computedSpan || 'half'
+                    const gridColSpan = computedSpan === 'full' ? 'md:col-span-12' : 'md:col-span-6'
+
+                    if (block.key === 'links') {
+                      // Links block rendering - same as row-based
+                      return null // Will be implemented with full block rendering
+                    }
+
+                    if (block.key === 'activity') {
+                      return null // Will be implemented with full block rendering
+                    }
+
+                    if (block.key === 'assets') {
+                      return null // Will be implemented with full block rendering
+                    }
+
+                    return null
+                  })}
+                </div>
+              )
             )
-          )}
-        </div>
+          }
+        </div >
       ) : null}
 
       {/* QR Code Modal for current profile */}
-      {resolvedAddress && isValidAddress(resolvedAddress) && (
-        <QRCodeModal
-          open={qrModalOpen}
-          onOpenChange={setQrModalOpen}
-          profile={{
-            address: resolvedAddress,
-            slug: profile?.slug || null,
-            displayName: profile?.displayName || null,
-            avatarUrl: `https://effigy.im/a/${resolvedAddress}.svg`,
-          }}
-        />
-      )}
-    </div>
+      {
+        resolvedAddress && isValidAddress(resolvedAddress) && (
+          <QRCodeModal
+            open={qrModalOpen}
+            onOpenChange={setQrModalOpen}
+            profile={{
+              address: resolvedAddress,
+              slug: profile?.slug || null,
+              displayName: profile?.displayName || null,
+              avatarUrl: `https://effigy.im/a/${resolvedAddress}.svg`,
+            }}
+          />
+        )
+      }
+    </div >
   )
 }

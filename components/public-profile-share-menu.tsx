@@ -13,7 +13,8 @@ import {
   DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Share2, Twitter, Copy, QrCode } from 'lucide-react'
+import { Share2, Copy, QrCode } from 'lucide-react'
+import { XIcon } from '@/components/icons/x-icon'
 import { toast } from 'sonner'
 import { isValidAddress, formatAddress } from '@/lib/utils'
 import { getPublicProfileHref } from '@/lib/routing'
@@ -184,7 +185,7 @@ export function PublicProfileShareMenu({ address, slug, onOpenQR }: PublicProfil
                 <span>Copy profile link</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleShareOnX}>
-                <Twitter className="mr-2 h-4 w-4" />
+                <XIcon className="mr-2 h-4 w-4" />
                 <span>Share on X</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleOpenQR}>
