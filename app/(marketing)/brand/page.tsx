@@ -2,10 +2,11 @@
 
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Download, Check, X, ShieldAlert } from 'lucide-react'
+import { ArrowRight, Download, Check, X, ShieldAlert, Copy } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner' // Using sonner for toasts
 
 export default function BrandPage() {
     const container = {
@@ -16,11 +17,6 @@ export default function BrandPage() {
                 staggerChildren: 0.1
             }
         }
-    }
-
-    const item = {
-        hidden: { opacity: 0, y: 20 },
-        show: { opacity: 1, y: 0 }
     }
 
     return (
@@ -60,6 +56,7 @@ export default function BrandPage() {
                                 textColor="text-zinc-500"
                                 downloadLink="/logos/icon.svg"
                             >
+                                {/* Dark BG -> White Logo. Force no filter (white source) */}
                                 <Soci4LLogo variant="icon" width={120} className="!invert-0 !filter-none" />
                             </LogoCard>
                             <LogoCard
@@ -69,34 +66,38 @@ export default function BrandPage() {
                                 borderColor="border-black/5"
                                 downloadLink="/logos/icon.svg"
                             >
-                                <Soci4LLogo variant="icon" width={120} className="!invert !brightness-0" />
+                                {/* Light BG -> Black Logo. Force Invert (White -> Black). 
+                                    Using style filter to ensure override reliability. */}
+                                <div style={{ filter: 'invert(1)' }}>
+                                    <Soci4LLogo variant="icon" width={120} className="!filter-none" />
+                                </div>
                             </LogoCard>
                         </div>
 
                         {/* Safe Zone */}
                         <div className="mt-8 p-12 rounded-3xl border border-border/50 bg-card overflow-hidden">
                             <h3 className="text-lg font-medium mb-12 text-center md:text-left">Clearspace & Safe Zones</h3>
-                            <div className="flex flex-col items-center justify-center py-4">
+                            <div className="flex flex-col items-center justify-center py-12">
                                 <div className="relative inline-flex items-center justify-center">
-                                    {/* Safe Zone Box */}
-                                    <div className="absolute -inset-12 border border-brand-500/30 border-dashed rounded-xl bg-brand-500/5">
-                                        <div className="absolute top-0 left-0 w-12 h-12 flex items-center justify-center border-r border-b border-brand-500/20">
+                                    {/* Safe Zone Box - Calculated as 50% of width padding */}
+                                    <div className="absolute -inset-[60px] border border-brand-500/30 border-dashed rounded-xl bg-brand-500/5">
+                                        <div className="absolute top-0 left-0 w-[60px] h-[60px] flex items-center justify-center border-r border-b border-brand-500/20">
                                             <span className="text-sm font-mono text-brand-500 font-bold">x</span>
                                         </div>
                                     </div>
 
-                                    {/* Logo */}
+                                    {/* Logo Width 120px */}
                                     <Soci4LLogo variant="icon" width={120} className="relative z-10 !invert-0 dark:!invert-0" />
 
                                     {/* Measurement Indicator */}
-                                    <div className="absolute -right-20 top-0 bottom-0 flex items-center">
-                                        <div className="h-12 border-l-2 border-brand-500/40 w-4"></div>
+                                    <div className="absolute -right-32 top-0 bottom-0 flex items-center">
+                                        <div className="h-[120px] border-l-2 border-brand-500/40 w-4"></div>
                                         <span className="text-xs font-mono text-muted-foreground ml-2">x = 1/2 Width</span>
                                     </div>
                                 </div>
                             </div>
                             <p className="text-sm text-muted-foreground mt-16 text-center max-w-lg mx-auto leading-relaxed">
-                                The Clearspace (x) is defined as half the width of the logomark.
+                                The Clearspace (x) is defined as <strong>half the width</strong> of the logomark.
                                 Keep this area free from other elements to ensure maximum visibility and impact.
                             </p>
                         </div>
@@ -122,7 +123,9 @@ export default function BrandPage() {
                                 borderColor="border-black/5"
                                 downloadLink="/logos/combination.svg"
                             >
-                                <Soci4LLogo variant="combination" width={240} className="!invert !brightness-0" />
+                                <div style={{ filter: 'invert(1)' }}>
+                                    <Soci4LLogo variant="combination" width={240} className="!filter-none" />
+                                </div>
                             </LogoCard>
                         </div>
                     </section>
@@ -157,18 +160,21 @@ export default function BrandPage() {
 
                         {/* Palette Scale */}
                         <div className="space-y-4">
-                            <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">Extended Palette</h3>
+                            <div className="flex justify-between items-end">
+                                <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">Extended Palette</h3>
+                                <span className="text-xs text-muted-foreground/60 hidden md:inline-block">Click to copy HEX</span>
+                            </div>
                             <div className="grid grid-cols-2 sm:grid-cols-5 md:grid-cols-10 gap-2">
-                                <PaletteChip shade="50" color="bg-brand-50" text="text-brand-900" />
-                                <PaletteChip shade="100" color="bg-brand-100" text="text-brand-900" />
-                                <PaletteChip shade="200" color="bg-brand-200" text="text-brand-900" />
-                                <PaletteChip shade="300" color="bg-brand-300" text="text-brand-900" />
-                                <PaletteChip shade="400" color="bg-brand-400" text="text-white" />
-                                <PaletteChip shade="500" color="bg-brand-500" text="text-white" label="Main" />
-                                <PaletteChip shade="600" color="bg-brand-600" text="text-white" />
-                                <PaletteChip shade="700" color="bg-brand-700" text="text-white" />
-                                <PaletteChip shade="800" color="bg-brand-800" text="text-white" />
-                                <PaletteChip shade="900" color="bg-brand-900" text="text-white" />
+                                <PaletteChip shade="50" hex="#F5F7FF" color="bg-brand-50" text="text-brand-900" />
+                                <PaletteChip shade="100" hex="#E6EBFF" color="bg-brand-100" text="text-brand-900" />
+                                <PaletteChip shade="200" hex="#CEDBFF" color="bg-brand-200" text="text-brand-900" />
+                                <PaletteChip shade="300" hex="#9EB6FF" color="bg-brand-300" text="text-brand-900" />
+                                <PaletteChip shade="400" hex="#5C7CFF" color="bg-brand-400" text="text-white" />
+                                <PaletteChip shade="500" hex="#2845D6" color="bg-brand-500" text="text-white" label="Main" />
+                                <PaletteChip shade="600" hex="#1E34A8" color="bg-brand-600" text="text-white" />
+                                <PaletteChip shade="700" hex="#16267D" color="bg-brand-700" text="text-white" />
+                                <PaletteChip shade="800" hex="#101B59" color="bg-brand-800" text="text-white" />
+                                <PaletteChip shade="900" hex="#0A1138" color="bg-brand-900" text="text-white" />
                             </div>
                         </div>
                     </section>
@@ -180,43 +186,49 @@ export default function BrandPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                             <div className="space-y-8">
                                 <div className="pb-4 border-b border-border/20 flex justify-between items-baseline">
-                                    <span className="text-sm font-mono text-muted-foreground">Heading Font</span>
-                                    <h3 className="text-2xl font-semibold">Outfit</h3>
+                                    <span className="text-sm font-mono text-muted-foreground">Primary Font</span>
+                                    <h3 className="text-2xl font-semibold">Geist Sans</h3>
                                 </div>
                                 <div className="space-y-6">
                                     <div className="flex items-end gap-4">
-                                        <span className="text-6xl font-bold leading-none">Aa</span>
+                                        <span className="text-6xl font-bold leading-none font-sans">Aa</span>
                                         <span className="text-sm font-mono text-muted-foreground mb-1">Bold</span>
                                     </div>
                                     <div className="flex items-end gap-4">
-                                        <span className="text-6xl font-medium leading-none">Aa</span>
+                                        <span className="text-6xl font-medium leading-none font-sans">Aa</span>
                                         <span className="text-sm font-mono text-muted-foreground mb-1">Medium</span>
                                     </div>
-                                    <p className="text-lg text-muted-foreground pt-4">
-                                        Used for all headlines, major UI elements, and calls to action.
-                                        It conveys modernity and approachability.
-                                    </p>
+                                    <div className="space-y-1 pt-4">
+                                        <p className="text-2xl font-sans">The quick brown fox jumps over the lazy dog.</p>
+                                        <p className="text-lg text-muted-foreground">
+                                            Used for all headlines, UI text, and clear communication.
+                                            Designed for readability and modern aesthetics.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
 
                             <div className="space-y-8">
                                 <div className="pb-4 border-b border-border/20 flex justify-between items-baseline">
-                                    <span className="text-sm font-mono text-muted-foreground">Body / Mono Font</span>
+                                    <span className="text-sm font-mono text-muted-foreground">Monospace Font</span>
                                     <h3 className="text-2xl font-mono">Geist Mono</h3>
                                 </div>
-                                <div className="space-y-4">
-                                    <p className="font-mono text-lg leading-relaxed">
-                                        The quick brown fox jumps over the lazy dog.
-                                        1234567890
-                                    </p>
-                                    <div className="font-mono text-sm text-muted-foreground bg-muted/30 p-4 rounded-lg">
-                                        function Brand() {'{'}
-                                        <br />&nbsp;&nbsp;return "Precision";
-                                        <br />{'}'}
+                                <div className="space-y-6">
+                                    <div className="flex items-end gap-4">
+                                        <span className="text-6xl font-medium leading-none font-mono">Aa</span>
+                                        <span className="text-sm font-mono text-muted-foreground mb-1">Regular</span>
                                     </div>
-                                    <p className="text-sm text-muted-foreground pt-4">
-                                        Used for data visualization, code snippets, and technical details.
-                                    </p>
+                                    <div className="space-y-4 pt-4">
+                                        <p className="font-mono text-lg leading-relaxed">
+                                            0123456789 { } [] () / * & % $ # @ !
+                                        </p>
+                                        <div className="font-mono text-sm text-muted-foreground bg-muted/30 p-4 rounded-lg border border-border/50">
+                                            <span className="text-brand-500">const</span> <span className="text-foreground">SOCI4L</span> = <span className="text-green-500">true</span>;
+                                        </div>
+                                        <p className="text-sm text-muted-foreground">
+                                            Used for data visualization, code snippets, addresses, and technical details.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -271,9 +283,7 @@ function SectionHeader({ number, title }: { number: string, title: string }) {
 
 function LogoCard({ children, label, bg, textColor, borderColor, downloadLink }: any) {
     return (
-        <motion.div variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } }}
-            className={cn("group relative overflow-hidden rounded-3xl border flex flex-col items-center justify-center min-h-[320px] transition-colors", bg, borderColor || "border-white/10")}
-        >
+        <div className={cn("group relative overflow-hidden rounded-3xl border flex flex-col items-center justify-center min-h-[320px] transition-colors", bg, borderColor || "border-white/10")}>
             <div className={cn("absolute top-6 left-6 text-xs font-mono uppercase tracking-wider", textColor)}>{label}</div>
             <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button variant="ghost" size="icon" asChild className={cn("h-8 w-8", textColor)}>
@@ -285,30 +295,53 @@ function LogoCard({ children, label, bg, textColor, borderColor, downloadLink }:
             <div className="relative z-10 transition-transform duration-500 group-hover:scale-105">
                 {children}
             </div>
-        </motion.div>
+        </div>
     )
 }
 
 function ColorCard({ name, hex, bg, text, border }: any) {
+    const copyToClipboard = () => {
+        navigator.clipboard.writeText(hex)
+        toast.success(`Copied ${hex}`)
+    }
+
     return (
-        <div className={cn("p-6 rounded-2xl border aspect-square flex flex-col justify-between group transition-transform hover:-translate-y-1", bg, text, border || "border-transparent")}>
+        <div
+            onClick={copyToClipboard}
+            className={cn("p-6 rounded-2xl border aspect-square flex flex-col justify-between group transition-transform hover:-translate-y-1 cursor-pointer", bg, text, border || "border-transparent")}
+        >
             <div className="text-lg font-medium">{name}</div>
-            <div className="space-y-1">
+            <div className="space-y-1 flex items-center justify-between">
                 <div className="text-sm font-mono opacity-80 uppercase">{hex}</div>
+                <Copy className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
         </div>
     )
 }
 
-function PaletteChip({ shade, color, text, label }: any) {
+function PaletteChip({ shade, color, text, label, hex }: any) {
+    const copyToClipboard = () => {
+        if (hex) {
+            navigator.clipboard.writeText(hex)
+            toast.success(`Copied ${hex}`)
+        }
+    }
+
     return (
-        <div className={cn("h-24 rounded-lg flex flex-col items-center justify-center relative group cursor-default", color)}>
+        <div
+            onClick={copyToClipboard}
+            className={cn("h-24 rounded-lg flex flex-col items-center justify-center relative group cursor-pointer hover:ring-2 ring-offset-2 ring-brand-500 transition-all", color)}
+            title={hex}
+        >
             <span className={cn("text-xs font-mono font-medium", text)}>{shade}</span>
             {label && (
-                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-foreground text-background text-[10px] px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-foreground text-background text-[10px] px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">
                     {label}
                 </div>
             )}
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10 dark:bg-black/20 rounded-lg">
+                <span className={cn("text-[10px] font-mono", text)}>{hex}</span>
+            </div>
         </div>
     )
 }
@@ -319,10 +352,10 @@ function DontCard({ children, title }: any) {
             <div className="relative z-10 p-8 flex items-center justify-center w-full h-full">
                 {children}
             </div>
-            <div className="absolute inset-0 bg-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <div className="absolute inset-0 bg-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-20">
                 <X className="w-12 h-12 text-red-500" />
             </div>
-            <div className="absolute bottom-4 left-0 right-0 text-center text-xs font-mono text-red-500 uppercase tracking-wider">
+            <div className="absolute bottom-4 left-0 right-0 text-center text-xs font-mono text-red-500 uppercase tracking-wider z-20">
                 {title}
             </div>
         </div>
