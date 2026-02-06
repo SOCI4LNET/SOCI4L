@@ -1192,6 +1192,13 @@ export default function ProfilePage({ params }: PageProps) {
                                           ? link.url
                                           : `/r/${link.id}?source=profile`
 
+                                        // Format displayed URL (strip protocol and www)
+                                        let displayUrl = link.url
+                                          .replace(/^https?:\/\//, '')
+                                          .replace(/^www\./, '')
+                                          // Optional: strip trailing slash
+                                          .replace(/\/$/, '')
+
                                         return (
                                           <a
                                             key={link.id}
@@ -1229,7 +1236,7 @@ export default function ProfilePage({ params }: PageProps) {
                                                   {link.title}
                                                 </p>
                                                 <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')} truncate flex items-center gap-1.5`}>
-                                                  {link.url}
+                                                  {displayUrl}
                                                   {link.url.startsWith('http://') && (
                                                     <TooltipProvider>
                                                       <Tooltip>
