@@ -11,7 +11,7 @@ import { Loader2, CheckCircle, ExternalLink } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export function SocialConnect() {
-    const { user, linkTwitter, unlinkTwitter, linkWallet, authenticated, ready } = usePrivy()
+    const { user, linkTwitter, unlinkTwitter, linkWallet, logout, authenticated, ready } = usePrivy()
     const { address: connectedAddress } = useAccount()
     const [isLinking, setIsLinking] = useState(false)
     const [isSyncing, setIsSyncing] = useState(false)
@@ -64,23 +64,21 @@ export function SocialConnect() {
 
             // Handle "Last Account" Error
             if (error?.message?.toLowerCase().includes('only one account') || error?.message?.toLowerCase().includes('last linked account')) {
-                toast.info('To disconnect your last account, you must verify your wallet.', {
-                    duration: 5000
+                toast.info('Disconnecting session to remove connection...', {
+                    duration: 3000
                 })
 
                 try {
-                    // Force link wallet first
-                    await linkWallet()
-
-                    // Retry unlink after successful link
-                    await unlinkTwitter(twitterAccount.subject)
+                    // Since specific unlink is not allowed for the last account,
+                    // we remove the DB record and log the user out of Privy.
                     await performDbUnlink()
+                    await logout()
 
-                    toast.success('Twitter account disconnected')
+                    toast.success('Disconnected')
                     return
-                } catch (linkError: any) {
-                    console.error('Failed to fallback link wallet:', linkError)
-                    // If user cancelled or failed linking, we stop here
+                } catch (logoutError: any) {
+                    console.error('Failed to logout:', logoutError)
+                    toast.error('Failed to disconnect properly')
                     return
                 }
             }
