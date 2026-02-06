@@ -407,12 +407,13 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
   const chartData = useMemo(() => {
     const sourceData = [
       ...Object.entries(analytics.sourceBreakdown)
-        .filter(([source, count]) => count > 0 && source !== 'unknown')
+        .filter(([source, count]) => count > 0)
         .map(([source, count]) => ({
           name: source === 'profile' ? 'Direct'
             : source === 'qr' ? 'QR Code'
               : source === 'copy' ? 'Ref Link'
-                : 'System',
+                : source === 'extension' ? 'Extension'
+                  : 'Direct/Unknown',
           value: count,
         })),
       ...analytics.topReferrers.map(ref => ({
@@ -423,9 +424,20 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
             return ref.name
           }
         })(),
-        value: ref.count
+        value: ref.count,
       }))
-    ].sort((a, b) => b.value - a.value).slice(0, 5)
+    ]
+
+    // Group by name to avoid duplicates
+    const groupedData = new Map<string, number>()
+    sourceData.forEach(item => {
+      groupedData.set(item.name, (groupedData.get(item.name) || 0) + item.value)
+    })
+
+    const finalSourceData = Array.from(groupedData.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5)
 
     const categoryChartData = analytics.categoryRows
       .filter((row) => row.totalClicks > 0)
@@ -436,13 +448,11 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
         share: Math.round(row.percentageShare * 100),
       }))
 
-    // Check if source data should show empty state
-    // Show empty state if: no views AND no source data
-    const shouldShowSourceEmptyState =
-      analytics.totalProfileViews === 0 || sourceData.length === 0
+    // Show empty state IF no views at all
+    const shouldShowSourceEmptyState = analytics.totalProfileViews === 0
 
     return {
-      sourceData,
+      sourceData: finalSourceData,
       categoryChartData,
       shouldShowSourceEmptyState,
     }
