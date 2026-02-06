@@ -42,7 +42,7 @@ export function Soci4LLogo({
   if (variant === 'icon') {
     return (
       <Image
-        src="/logos/icon.png"
+        src="/logos/icon.svg"
         alt="SOCI4L Logo"
         width={finalWidth}
         height={finalHeight}
@@ -55,7 +55,7 @@ export function Soci4LLogo({
   // Combination logo
   return (
     <Image
-      src="/logos/combination.png"
+      src="/logos/combination.svg"
       alt="SOCI4L"
       width={finalWidth}
       height={finalHeight}
