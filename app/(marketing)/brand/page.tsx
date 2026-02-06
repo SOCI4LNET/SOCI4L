@@ -588,7 +588,7 @@ function LogoCard({ children, label, bg, textColor, borderColor, downloadLink, d
     return (
         <div className={cn("group relative overflow-hidden rounded-3xl border flex flex-col items-center justify-center min-h-[320px] transition-colors", bg, borderColor || "border-white/10")}>
             <div className={cn("absolute top-6 left-6 text-xs font-mono uppercase tracking-wider", textColor)}>{label}</div>
-            <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 has-[[data-state=open]]:opacity-100 transition-opacity">
                 <DownloadDropdown downloadLink={downloadLink} downloadName={downloadName} textColor={textColor} />
             </div>
             <div className="relative z-10 transition-transform duration-500 group-hover:scale-105">
