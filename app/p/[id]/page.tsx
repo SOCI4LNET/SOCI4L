@@ -504,6 +504,7 @@ export default function ProfilePage({ params }: PageProps) {
   const isPrivate = profileStatus === 'CLAIMED+PRIVATE'
   const isClaimed = profileStatus === 'CLAIMED+PUBLIC' || profileStatus === 'CLAIMED+PRIVATE'
   const resolvedAddress = profile?.address || (params.id.startsWith('0x') ? params.id : null)
+  const isOwnProfile = connectedAddress && resolvedAddress && connectedAddress.toLowerCase() === resolvedAddress.toLowerCase()
   // Normalize once for follow/stats so cache key and API always use same address (fixes followers count persistence)
   const profileAddressForFollow =
     resolvedAddress && isValidAddress(resolvedAddress) ? resolvedAddress.toLowerCase() : null
