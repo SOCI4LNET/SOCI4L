@@ -11,14 +11,31 @@ import { Loader2, CheckCircle, ExternalLink } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export function SocialConnect() {
-    const { user, linkTwitter, unlinkTwitter, linkWallet, logout, authenticated, ready } = usePrivy()
+    const { user, linkTwitter, unlinkTwitter, linkWallet, logout, authenticated, ready, login } = usePrivy()
     const { address: connectedAddress } = useAccount()
     const [isLinking, setIsLinking] = useState(false)
     const [isSyncing, setIsSyncing] = useState(false)
 
+    // State for triggering Twitter link after Privy authentication
+    const [pendingTwitterLink, setPendingTwitterLink] = useState(false)
+
     const twitterAccount = user?.twitter
 
+    // Auto-link Twitter after Privy authentication
+    useEffect(() => {
+        if (authenticated && pendingTwitterLink && ready) {
+            setPendingTwitterLink(false)
+            linkTwitter()
+        }
+    }, [authenticated, pendingTwitterLink, ready, linkTwitter])
+
     const handleLinkTwitter = async () => {
+        if (!authenticated) {
+            setPendingTwitterLink(true)
+            login()
+            return
+        }
+
         try {
             setIsLinking(true)
             await linkTwitter()

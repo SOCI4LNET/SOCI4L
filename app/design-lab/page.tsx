@@ -13,6 +13,7 @@ import { QuantumCodeScanner } from '@/components/showcase/quantum-code-scanner'
 import { DidVault } from '@/components/showcase/did-vault'
 import { SocialEchoRadar } from '@/components/showcase/social-echo-radar'
 import { GlobalNetworkMap } from '@/components/showcase/global-network-map'
+import { WalletLoadersShowcase } from '@/components/design-lab/wallet-loaders'
 
 export default function DesignLabPage() {
     return (
@@ -155,10 +156,21 @@ export default function DesignLabPage() {
                     </div>
                 </div>
 
-                {/* Component 13: Global Network Map */}
+                {/* Component 13: Interactive Wallet Loaders */}
+                <div className="col-span-1 md:col-span-2 lg:col-span-3 min-h-[400px] flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                        <h3 className="font-mono text-sm uppercase tracking-wider text-muted-foreground">13. Interactive Wallet Loaders</h3>
+                        <Badge variant="outline">UX / Animation</Badge>
+                    </div>
+                    <div className="flex-1 rounded-xl border border-dashed border-border p-6 flex items-center justify-center bg-muted/5 relative overflow-hidden">
+                        <WalletLoadersShowcase />
+                    </div>
+                </div>
+
+                {/* Component 14: Global Network Map */}
                 <div className="col-span-1 md:col-span-2 lg:col-span-3 min-h-[500px] flex flex-col gap-4">
                     <div className="flex items-center justify-between">
-                        <h3 className="font-mono text-sm uppercase tracking-wider text-muted-foreground">13. Global Network Map</h3>
+                        <h3 className="font-mono text-sm uppercase tracking-wider text-muted-foreground">14. Global Network Map</h3>
                         <Badge variant="outline">Ecosystem</Badge>
                     </div>
                     <div className="flex-1 rounded-xl border border-dashed border-border p-6 flex items-center justify-center bg-black relative overflow-hidden">
