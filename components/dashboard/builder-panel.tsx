@@ -1585,7 +1585,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
               {/* 4. Status (Bottom - Enhanced Visibility) */}
               <div className="pt-3">
                 <div className="flex items-center gap-1.5 mb-1.5">
-                  <Label className="text-xs font-semibold text-foreground/70">Building Status</Label>
+                  <Label className="text-xs font-semibold text-foreground/70">Status</Label>
                   <TooltipProvider>
                     <Tooltip delayDuration={300}>
                       <TooltipTrigger asChild>

@@ -816,7 +816,6 @@ export default function ProfilePage({ params }: PageProps) {
                       {/* 3. Status / Intent (Whisper style) */}
                       {!profile?.isBanned && profile?.statusMessage && (
                         <p className="text-xs text-muted-foreground/70 italic truncate pr-4 leading-relaxed">
-                          <span className="opacity-70 mr-1">Building:</span>
                           {profile.statusMessage}
                         </p>
                       )}
