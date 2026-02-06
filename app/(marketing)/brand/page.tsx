@@ -73,30 +73,42 @@ export default function BrandPage() {
                         </div>
 
                         {/* Safe Zone */}
-                        <div className="mt-8 p-12 rounded-3xl border border-border/50 bg-card overflow-hidden">
-                            <h3 className="text-lg font-medium mb-12 text-center md:text-left">Clearspace & Safe Zones</h3>
-                            <div className="flex flex-col items-center justify-center py-12">
+                        {/* Safe Zone */}
+                        <div className="mt-8 p-12 rounded-3xl border border-border/50 bg-card overflow-hidden relative">
+                            {/* Grid Background */}
+                            <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-[0.03] pointer-events-none" style={{ backgroundSize: '24px 24px' }}></div>
+
+                            <h3 className="text-lg font-medium mb-12 text-center md:text-left relative z-10">Clearspace & Safe Zones</h3>
+
+                            <div className="flex flex-col items-center justify-center py-12 relative z-10">
                                 <div className="relative inline-flex items-center justify-center">
-                                    {/* Safe Zone Box - Calculated as Spacing between Icon & Text (~44% width of 120px = ~53px) */}
-                                    <div className="absolute -inset-[53px] border border-brand-500/30 border-dashed rounded-xl bg-brand-500/5">
-                                        <div className="absolute top-0 left-0 w-[53px] h-[53px] flex items-center justify-center border-r border-b border-brand-500/20">
-                                            <span className="text-sm font-mono text-brand-500 font-bold">x</span>
+                                    {/* Safe Zone Box - Dashed Boundary */}
+                                    <div className="absolute -inset-[36px] border border-brand-500/30 border-dashed rounded-xl bg-brand-500/5">
+                                        {/* Top Marker */}
+                                        <div className="absolute -top-[36px] left-1/2 -translate-x-1/2 h-[36px] w-px bg-brand-500/20 flex items-center justify-center">
+                                            <span className="bg-card px-1 text-[10px] font-mono text-brand-500 font-bold">x</span>
+                                        </div>
+                                        {/* Bottom Marker */}
+                                        <div className="absolute -bottom-[36px] left-1/2 -translate-x-1/2 h-[36px] w-px bg-brand-500/20 flex items-center justify-center">
+                                            <span className="bg-card px-1 text-[10px] font-mono text-brand-500 font-bold">x</span>
+                                        </div>
+                                        {/* Left Marker */}
+                                        <div className="absolute top-1/2 -left-[36px] -translate-y-1/2 w-[36px] h-px bg-brand-500/20 flex items-center justify-center">
+                                            <span className="bg-card px-1 text-[10px] font-mono text-brand-500 font-bold">x</span>
+                                        </div>
+                                        {/* Right Marker */}
+                                        <div className="absolute top-1/2 -right-[36px] -translate-y-1/2 w-[36px] h-px bg-brand-500/20 flex items-center justify-center">
+                                            <span className="bg-card px-1 text-[10px] font-mono text-brand-500 font-bold">x</span>
                                         </div>
                                     </div>
 
-                                    {/* Logo Width 120px */}
-                                    <Soci4LLogo variant="icon" width={120} className="relative z-10 !invert-0 dark:!invert-0" />
-
-                                    {/* Measurement Indicator */}
-                                    <div className="absolute -right-32 top-0 bottom-0 flex items-center">
-                                        <div className="h-[120px] border-l-2 border-brand-500/40 w-4"></div>
-                                        <span className="text-xs font-mono text-muted-foreground ml-2">x = Gap</span>
-                                    </div>
+                                    {/* Logo Combination Mark */}
+                                    <Soci4LLogo variant="combination" width={180} className="relative z-10 !invert-0 dark:!invert-0" />
                                 </div>
                             </div>
-                            <p className="text-sm text-muted-foreground mt-16 text-center max-w-lg mx-auto leading-relaxed">
-                                The Clearspace (x) is defined by the <strong>spacing between the logomark and wordmark</strong>.
-                                Keep this area free from other elements to ensure maximum visibility and impact.
+                            <p className="text-sm text-muted-foreground mt-16 text-center max-w-lg mx-auto leading-relaxed relative z-10">
+                                The Clearspace (x) is defined by the <strong>height of the logomark</strong>.
+                                Maintain this minimum spacing on all sides to ensure the logo stands out.
                             </p>
                         </div>
                     </section>
