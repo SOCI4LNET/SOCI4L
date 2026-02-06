@@ -15,6 +15,8 @@ export default function LinkTrackPage() {
 
   const hasIdentified = useRef(false)
   const isRedirecting = useRef(false)
+  const [isIdentifying, setIsIdentifying] = useState(false)
+  const identifyPromiseRef = useRef<Promise<any> | null>(null)
 
   useEffect(() => {
     // Basic validation
@@ -26,55 +28,57 @@ export default function LinkTrackPage() {
       return
     }
 
-    // 1. Attempt Identity Update (Non-blocking, persistent)
-    if (eventId && visitorWallet && !hasIdentified.current) {
-      hasIdentified.current = true
-      fetch('/api/analytics/identify', {
+    // 1. Attempt Identity Update
+    if (eventId && visitorWallet && !hasIdentified.current && !identifyPromiseRef.current) {
+      setIsIdentifying(true)
+      const promise = fetch('/api/analytics/identify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           eventId,
           walletAddress: visitorWallet
         }),
-        keepalive: true // Critical: ensures request survives page unload
-      }).catch(err => console.error('[LinkTrack] Identify failed', err))
+        keepalive: true
+      }).then(() => {
+        hasIdentified.current = true
+        setIsIdentifying(false)
+      }).catch(err => {
+        console.error('[LinkTrack] Identify failed', err)
+        hasIdentified.current = true // Still mark as tried to allow redirect
+        setIsIdentifying(false)
+      })
+
+      identifyPromiseRef.current = promise
     }
 
     // 2. Redirect Logic
-    // We wait a short moment if we are "connecting" or "reconnecting" to give the wallet a chance to appear.
-    // Otherwise, or after timeout, we redirect.
-
     if (isRedirecting.current) return
 
     const performRedirect = () => {
       if (isRedirecting.current) return
+      // If we are currently identifying, we wait for it to finish 
+      if (isIdentifying) return
+
       isRedirecting.current = true
       window.location.href = url
     }
 
-    // If we have identified, we can go immediately
-    if (hasIdentified.current) {
-      performRedirect()
-      return
-    }
-
-    // If we are connecting/reconnecting, wait up to 2000ms
-    // If status is stable (connected or disconnected), we can go immediately
+    // Determine if we are ready to redirect
     const isStable = status === 'connected' || status === 'disconnected'
+    const identifyFinishedIfNecessary = !visitorWallet || hasIdentified.current
 
-    if (isStable) {
+    if (isStable && identifyFinishedIfNecessary) {
       performRedirect()
       return
     }
 
-    // Wait up to 2000ms for wallet to initialize if we are connecting
+    // Safety Timeout: Wait up to 2000ms max
     const timer = setTimeout(() => {
       performRedirect()
     }, 2000)
 
     return () => clearTimeout(timer)
-
-  }, [searchParams, linkId, visitorWallet, status])
+  }, [searchParams, linkId, visitorWallet, status, isIdentifying])
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground">
