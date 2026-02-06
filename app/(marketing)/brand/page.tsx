@@ -55,6 +55,7 @@ export default function BrandPage() {
                                 bg="bg-[#0A0A0A]"
                                 textColor="text-zinc-500"
                                 downloadLink="/logos/icon.svg"
+                                downloadName="SOCI4L_ICON_WHITE.svg"
                             >
                                 {/* Dark BG -> White Logo. Force no filter (white source) */}
                                 <Soci4LLogo variant="icon" width={120} className="!invert-0 !filter-none" />
@@ -64,7 +65,8 @@ export default function BrandPage() {
                                 bg="bg-[#FAFAFA]"
                                 textColor="text-zinc-400"
                                 borderColor="border-black/5"
-                                downloadLink="/logos/icon.svg"
+                                downloadLink="/logos/icon-black.svg"
+                                downloadName="SOCI4L_ICON_BLACK.svg"
                             >
                                 {/* Light BG -> #0A0A0A Logo. 
                                     invert(0.96) transforms White to ~#0A0A0A. */}
@@ -113,6 +115,7 @@ export default function BrandPage() {
                                 bg="bg-[#0A0A0A]"
                                 textColor="text-zinc-500"
                                 downloadLink="/logos/combination.svg"
+                                downloadName="SOCI4L_COMBINATION_WHITE.svg"
                             >
                                 <Soci4LLogo variant="combination" width={240} className="!invert-0 !filter-none" />
                             </LogoCard>
@@ -121,7 +124,8 @@ export default function BrandPage() {
                                 bg="bg-[#FAFAFA]"
                                 textColor="text-zinc-400"
                                 borderColor="border-black/5"
-                                downloadLink="/logos/combination.svg"
+                                downloadLink="/logos/combination-black.svg"
+                                downloadName="SOCI4L_COMBINATION_BLACK.svg"
                             >
                                 <div style={{ filter: 'invert(0.96)' }}>
                                     <Soci4LLogo variant="combination" width={240} className="!filter-none" />
@@ -283,13 +287,13 @@ function SectionHeader({ number, title }: { number: string, title: string }) {
     )
 }
 
-function LogoCard({ children, label, bg, textColor, borderColor, downloadLink }: any) {
+function LogoCard({ children, label, bg, textColor, borderColor, downloadLink, downloadName }: any) {
     return (
         <div className={cn("group relative overflow-hidden rounded-3xl border flex flex-col items-center justify-center min-h-[320px] transition-colors", bg, borderColor || "border-white/10")}>
             <div className={cn("absolute top-6 left-6 text-xs font-mono uppercase tracking-wider", textColor)}>{label}</div>
             <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button variant="ghost" size="icon" asChild className={cn("h-8 w-8", textColor)}>
-                    <a href={downloadLink} download>
+                    <a href={downloadLink} download={downloadName || true}>
                         <Download className="w-4 h-4" />
                     </a>
                 </Button>
