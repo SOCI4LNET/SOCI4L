@@ -254,7 +254,7 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
                     <a
                       href={targetAddress ? `https://snowtrace.io/address/${targetAddress}` : 'https://snowtrace.io'}
                       target="_blank"
-                      rel="noopener noreferrer"
+                      rel="noopener"
                     >
                       <ExternalLink className="h-4 w-4" />
                     </a>

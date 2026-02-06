@@ -312,7 +312,7 @@ export function ActivityDetailSheet({ transaction, open, onOpenChange, address }
               <a
                 href={transaction.explorerUrl}
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="noopener"
               >
                 <ExternalLink className="mr-2 h-4 w-4" />
                 Open in Explorer

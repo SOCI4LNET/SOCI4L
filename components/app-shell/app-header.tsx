@@ -105,7 +105,7 @@ export function AppHeader({ showSidebarTrigger = false, sticky = true, showNavig
                   <a
                     href={item.href}
                     target="_blank"
-                    rel="noopener noreferrer"
+                    rel="noopener"
                   >
                     {item.label}
                   </a>

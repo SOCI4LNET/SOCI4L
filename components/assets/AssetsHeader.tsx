@@ -62,7 +62,7 @@ export function AssetsHeader({
                 className="h-9 w-9"
                 aria-label="View on explorer"
               >
-                <Link href={explorerHref} target="_blank" rel="noopener noreferrer">
+                <Link href={explorerHref} target="_blank" rel="noopener">
                   <ExternalLink className="h-4 w-4" />
                 </Link>
               </Button>

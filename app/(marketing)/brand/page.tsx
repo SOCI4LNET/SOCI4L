@@ -54,7 +54,7 @@ export default function BrandPage() {
                             <h2 className="text-2xl font-mono uppercase tracking-widest text-muted-foreground">01. Logomark</h2>
                             <div className="flex gap-2">
                                 <Button variant="outline" size="sm" asChild>
-                                    <a href="/logos/icon.png" download="SOCI4L_Icon_Source.png" target="_blank" rel="noopener noreferrer" className="gap-2">
+                                    <a href="/logos/icon.png" download="SOCI4L_Icon_Source.png" target="_blank" rel="noopener" className="gap-2">
                                         <Download className="w-4 h-4" /> Download PNG
                                     </a>
                                 </Button>
@@ -85,7 +85,7 @@ export default function BrandPage() {
                         <div className="flex items-end justify-between mb-12 border-b border-border/40 pb-6">
                             <h2 className="text-2xl font-mono uppercase tracking-widest text-muted-foreground">02. Combination</h2>
                             <Button variant="outline" size="sm" asChild>
-                                <a href="/logos/combination.png" download="SOCI4L_Logo_Full.png" target="_blank" rel="noopener noreferrer" className="gap-2">
+                                <a href="/logos/combination.png" download="SOCI4L_Logo_Full.png" target="_blank" rel="noopener" className="gap-2">
                                     <Download className="w-4 h-4" /> Download PNG
                                 </a>
                             </Button>

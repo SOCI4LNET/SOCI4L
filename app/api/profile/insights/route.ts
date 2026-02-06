@@ -81,11 +81,28 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Load appearance config
+    let hideSelfActivity = false
+    if (profile?.appearanceConfig) {
+      try {
+        const parsed = JSON.parse(profile.appearanceConfig)
+        hideSelfActivity = parsed.hideSelfActivity === true
+      } catch (error) {
+        console.error('[Public Insights API] Failed to parse appearance config', error)
+      }
+    }
+
+    // Common filter for self-activity
+    const selfActivityFilter = hideSelfActivity ? {
+      visitorWallet: { not: resolvedAddress }
+    } : {}
+
     // Load analytics from database
     const totalProfileViews = await prisma.analyticsEvent.count({
       where: {
         profileId: resolvedAddress,
         type: 'profile_view',
+        ...selfActivityFilter,
       },
     })
 
@@ -93,6 +110,7 @@ export async function GET(request: NextRequest) {
       where: {
         profileId: resolvedAddress,
         type: 'link_click',
+        ...selfActivityFilter,
       },
     })
 
@@ -105,6 +123,7 @@ export async function GET(request: NextRequest) {
         profileId: resolvedAddress,
         type: 'link_click',
         linkId: { not: null },
+        ...selfActivityFilter,
       },
       _count: {
         _all: true,
@@ -213,6 +232,7 @@ export async function GET(request: NextRequest) {
         profileId: resolvedAddress,
         type: 'link_click',
         categoryId: { not: null },
+        ...selfActivityFilter,
       },
       _count: {
         _all: true,
@@ -247,6 +267,7 @@ export async function GET(request: NextRequest) {
       where: {
         profileId: resolvedAddress,
         type: 'profile_view', // Focus on profile view sources for now, or remove for all traffic
+        ...selfActivityFilter,
       },
       _count: {
         _all: true
@@ -266,6 +287,7 @@ export async function GET(request: NextRequest) {
     const recentEvents = await prisma.analyticsEvent.findMany({
       where: {
         profileId: resolvedAddress,
+        ...selfActivityFilter,
       },
       orderBy: {
         createdAt: 'desc',
@@ -273,7 +295,7 @@ export async function GET(request: NextRequest) {
       take: 10,
     })
 
-    const recentActivity = recentEvents.map(event => ({
+    const recentActivity = recentEvents.map((event: any) => ({
       type: event.type as 'profile_view' | 'link_click',
       timestamp: event.createdAt.getTime(),
       linkTitle: event.linkTitle || undefined,

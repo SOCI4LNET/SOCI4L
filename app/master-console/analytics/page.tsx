@@ -473,7 +473,7 @@ export default async function AdminAnalyticsPage() {
                               <a
                                 href={row.linkUrl}
                                 target="_blank"
-                                rel="noopener noreferrer"
+                                rel="noopener"
                                 className="text-xs text-muted-foreground hover:text-foreground hover:underline truncate max-w-xs transition-colors duration-150 flex items-center gap-1"
                               >
                                 {row.linkUrl.length > 50 ? row.linkUrl.slice(0, 50) + '...' : row.linkUrl}

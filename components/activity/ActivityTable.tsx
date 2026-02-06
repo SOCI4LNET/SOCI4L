@@ -185,7 +185,7 @@ export function ActivityTable({ transactions, address, isLoading }: ActivityTabl
                           <a
                             href={tx.explorerUrl}
                             target="_blank"
-                            rel="noopener noreferrer"
+                            rel="noopener"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <ExternalLink className="h-4 w-4" />
@@ -273,7 +273,7 @@ export function ActivityTable({ transactions, address, isLoading }: ActivityTabl
                     className="h-7 w-7"
                     onClick={(e) => {
                       e.stopPropagation()
-                      window.open(tx.explorerUrl, '_blank', 'noopener,noreferrer')
+                      window.open(tx.explorerUrl, '_blank', 'noopener')
                     }}
                     aria-label="Open in explorer"
                   >

@@ -36,6 +36,7 @@ interface Profile {
   displayName?: string | null
   bio?: string | null
   socialLinks?: Array<{ type: string; url: string; label?: string }> | null
+  appearance?: any
 }
 
 interface WalletData {
@@ -267,6 +268,7 @@ export default function DashboardAddressPage() {
             displayName: data.profile.displayName || null,
             bio: data.profile.bio || null,
             socialLinks: normalizedLinks,
+            appearance: data.appearance || null,
           }
         })
         console.log('[Overview] Profile state updated:', {

@@ -42,7 +42,7 @@ export function PublicProfileShareMenu({ address, slug, onOpenQR }: PublicProfil
 
   if (!mounted) {
     return (
-      <Button variant="outline" size="icon-sm" disabled>
+      <Button variant="outline" size="icon" disabled>
         <Share2 className="h-4 w-4" />
       </Button>
     )
@@ -97,7 +97,7 @@ export function PublicProfileShareMenu({ address, slug, onOpenQR }: PublicProfil
     const intentUrl = `https://twitter.com/intent/tweet?text=${text}`
 
     if (typeof window !== 'undefined') {
-      window.open(intentUrl, '_blank', 'noopener,noreferrer')
+      window.open(intentUrl, '_blank', 'noopener')
     }
   }
 

@@ -151,7 +151,7 @@ export default function SiteFooter({ className }: SiteFooterProps = {}) {
                                             <a
                                                 href={link.href}
                                                 target="_blank"
-                                                rel="noopener noreferrer"
+                                                rel="noopener"
                                                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                                             >
                                                 {link.label}
@@ -209,7 +209,7 @@ export default function SiteFooter({ className }: SiteFooterProps = {}) {
                                         key={social.label}
                                         href={social.href}
                                         target="_blank"
-                                        rel="noopener noreferrer"
+                                        rel="noopener"
                                         className={cn(
                                             'text-muted-foreground hover:text-foreground transition-colors',
                                             'p-2 rounded-md hover:bg-accent',

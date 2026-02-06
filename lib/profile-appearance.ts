@@ -7,11 +7,13 @@ export type ProfileTheme = 'default' | 'minimal' | 'dense' | 'spotlight'
 
 export interface ProfileAppearanceConfig {
   theme: ProfileTheme
+  hideSelfActivity?: boolean
 }
 
 export function getDefaultAppearanceConfig(): ProfileAppearanceConfig {
   return {
     theme: 'default',
+    hideSelfActivity: false,
   }
 }
 
@@ -32,6 +34,7 @@ export function normalizeAppearanceConfig(
 
   return {
     theme: isValidTheme ? (theme as ProfileTheme) : 'default',
+    hideSelfActivity: typeof config.hideSelfActivity === 'boolean' ? config.hideSelfActivity : false,
   }
 }
 

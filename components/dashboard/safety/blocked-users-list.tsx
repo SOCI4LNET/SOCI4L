@@ -152,7 +152,7 @@ export function BlockedUsersList() {
                                         size="sm"
                                         asChild
                                     >
-                                        <a href={`/p/${user.address}`} target="_blank" rel="noopener noreferrer">
+                                        <a href={`/p/${user.address}`} target="_blank" rel="noopener">
                                             View Profile
                                         </a>
                                     </Button>

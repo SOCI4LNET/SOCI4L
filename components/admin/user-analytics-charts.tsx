@@ -237,7 +237,7 @@ export function UserAnalyticsCharts({
                             <a
                               href={link.linkUrl}
                               target="_blank"
-                              rel="noopener noreferrer"
+                              rel="noopener"
                               className="text-xs text-muted-foreground hover:underline break-all"
                             >
                               {link.linkUrl.length > 50 ? link.linkUrl.slice(0, 50) + '...' : link.linkUrl}

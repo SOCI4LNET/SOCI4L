@@ -184,7 +184,7 @@ export function SocialPanel({ address }: SocialPanelProps) {
       shareText = `Check out this SOCI4L profile on Avalanche: ${profileName}\n\nTrack on-chain identity and links in one place.\n\n` + url
     }
     const text = encodeURIComponent(shareText)
-    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank', 'noopener,noreferrer')
+    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank', 'noopener')
   }
 
   const handleShareNative = async () => {

@@ -396,7 +396,7 @@ export function OverviewPanelContent({
                                                             key={i}
                                                             href={link.url}
                                                             target="_blank"
-                                                            rel="noopener noreferrer"
+                                                            rel="noopener"
                                                             className="group flex items-center justify-between p-3 rounded-xl bg-background/50 hover:bg-muted/50 transition-all border border-border/50 hover:border-primary/30 hover:shadow-sm"
                                                         >
                                                             <div className="flex items-center gap-3 min-w-0">
@@ -535,7 +535,7 @@ export function OverviewPanelContent({
                                                             <a
                                                                 href={getExplorerLink(tx.hash)}
                                                                 target="_blank"
-                                                                rel="noopener noreferrer"
+                                                                rel="noopener"
                                                             >
                                                                 <ExternalLink className="h-4 w-4" />
                                                             </a>

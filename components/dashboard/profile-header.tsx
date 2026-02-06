@@ -98,7 +98,7 @@ export function ProfileHeader({
             shareText = `Check out this SOCI4L profile on Avalanche: ${profileName}\n\nTrack on-chain identity and links in one place.\n\n` + profileUrl
         }
         const text = encodeURIComponent(shareText)
-        window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank', 'noopener,noreferrer')
+        window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank', 'noopener')
     }
 
     const handleSave = () => {

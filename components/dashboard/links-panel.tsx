@@ -334,7 +334,7 @@ function DraggableLinkRow({
             <a
               href={link.url}
               target="_blank"
-              rel="noopener noreferrer"
+              rel="noopener"
               className="truncate hover:text-primary transition-colors"
               title={link.url}
             >
@@ -343,7 +343,7 @@ function DraggableLinkRow({
             <a
               href={link.url}
               target="_blank"
-              rel="noopener noreferrer"
+              rel="noopener"
               aria-label="Open link"
               className="inline-flex items-center justify-center rounded-md p-1 text-muted-foreground hover:text-primary hover:bg-muted/60 shrink-0"
             >
@@ -2167,7 +2167,7 @@ export function LinksPanel() {
                         <a
                           href={link.url}
                           target="_blank"
-                          rel="noopener noreferrer"
+                          rel="noopener"
                           className="text-xs text-muted-foreground hover:text-primary truncate block"
                         >
                           {link.url}

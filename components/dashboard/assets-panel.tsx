@@ -876,7 +876,7 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
                                         <a
                                           href={isNative ? explorerHref : getExplorerLink('token', token.address!)}
                                           target="_blank"
-                                          rel="noopener noreferrer"
+                                          rel="noopener"
                                         >
                                           <ExternalLink className="h-4 w-4" />
                                         </a>
@@ -1047,7 +1047,7 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
                                   <a
                                     href={getExplorerLink('nft', nft.contract, nft.tokenId)}
                                     target="_blank"
-                                    rel="noopener noreferrer"
+                                    rel="noopener"
                                   >
                                     <ExternalLink className="h-3 w-3" />
                                   </a>
@@ -1069,7 +1069,7 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
                                   <a
                                     href={getExplorerLink('token', nft.contract)}
                                     target="_blank"
-                                    rel="noopener noreferrer"
+                                    rel="noopener"
                                   >
                                     <Layers className="h-3 w-3" />
                                   </a>

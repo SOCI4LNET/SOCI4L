@@ -139,7 +139,7 @@ export default async function AdminContentPage({
                     <a
                       href={link.url}
                       target="_blank"
-                      rel="noopener noreferrer"
+                      rel="noopener"
                       className="hover:underline break-all transition-colors duration-150 hover:text-primary flex items-center gap-1"
                     >
                       {link.url.length > 40 ? link.url.slice(0, 40) + '...' : link.url}

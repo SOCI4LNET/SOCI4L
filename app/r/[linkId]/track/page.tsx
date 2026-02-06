@@ -58,23 +58,19 @@ export default function LinkTrackPage() {
       return
     }
 
-    // If we are definitely disconnected, go immediately
-    if (status === 'disconnected') {
+    // If we are connecting/reconnecting, wait up to 2000ms
+    // If status is stable (connected or disconnected), we can go immediately
+    const isStable = status === 'connected' || status === 'disconnected'
+
+    if (isStable) {
       performRedirect()
       return
     }
 
-    // If we are connecting/reconnecting, wait up to 800ms
-    // If connected but no address (rare), also wait briefly
-    // If we are definitely connected but just waiting for address? 
-    // status === 'connected' usually means we have address.
-    // So 'connecting' and 'reconnecting' are the main ones to wait for.
-
-    // Wait up to 3500ms for wallet to initialize if we are connecting
-    const timeout = status === 'connecting' || status === 'reconnecting' ? 3500 : 1500
+    // Wait up to 2000ms for wallet to initialize if we are connecting
     const timer = setTimeout(() => {
       performRedirect()
-    }, timeout)
+    }, 2000)
 
     return () => clearTimeout(timer)
 

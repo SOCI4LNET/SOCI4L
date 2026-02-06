@@ -41,7 +41,10 @@ interface Profile {
   displayName?: string | null
   bio?: string | null
   socialLinks?: Array<{ id?: string; platform?: string; type?: string; url: string; label?: string }> | null
+  appearance?: any
 }
+
+import { Checkbox } from "@/components/ui/checkbox"
 
 interface SettingsPanelProps {
   profile: Profile
@@ -58,6 +61,10 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
   const [visibility, setVisibility] = useState<'PUBLIC' | 'PRIVATE'>(
     (profile.visibility === 'PRIVATE' ? 'PRIVATE' : 'PUBLIC')
   )
+  const [hideSelfActivity, setHideSelfActivity] = useState<boolean>(
+    profile.appearance?.hideSelfActivity ?? false
+  )
+  const [savingAnalytics, setSavingAnalytics] = useState(false)
 
   // Update form state when profile prop changes (e.g., after save/reload)
   useEffect(() => {
@@ -66,8 +73,10 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
       if (slug !== newSlug) setSlug(newSlug)
       const newVisibility = profile.visibility === 'PRIVATE' ? 'PRIVATE' : 'PUBLIC'
       if (visibility !== newVisibility) setVisibility(newVisibility)
+      const newHideSelf = profile.appearance?.hideSelfActivity ?? false
+      if (hideSelfActivity !== newHideSelf) setHideSelfActivity(newHideSelf)
     }
-  }, [profile?.id, profile?.slug, profile?.visibility])
+  }, [profile?.id, profile?.slug, profile?.visibility, profile.appearance?.hideSelfActivity])
 
   const normalizedAddress = targetAddress.toLowerCase()
   const shortAddress = formatAddress(normalizedAddress, 4)
@@ -254,6 +263,47 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
     }
   }
 
+  const handleSaveAnalytics = async () => {
+    setSavingAnalytics(true)
+    try {
+      const nonceResponse = await fetch('/api/auth/nonce')
+      if (!nonceResponse.ok) throw new Error('Failed to get nonce')
+      const { nonce } = await nonceResponse.json()
+
+      showTransactionLoader("Confirm in Wallet...")
+      const message = `Update profile appearance for ${targetAddress}. Nonce: ${nonce}`
+      const signature = await signMessageAsync({ message })
+
+      showTransactionLoader("Updating analytics settings...")
+
+      const appearanceResponse = await fetch('/api/profile/appearance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          address: targetAddress,
+          appearance: {
+            ...profile.appearance,
+            hideSelfActivity
+          },
+          signature,
+        }),
+      })
+
+      if (!appearanceResponse.ok) {
+        throw new Error('Failed to save analytics settings')
+      }
+
+      await onUpdate()
+      toast.success('Analytics settings updated')
+    } catch (error: any) {
+      console.error('Error updating analytics:', error)
+      toast.error(error.message || 'Failed to save settings')
+    } finally {
+      setSavingAnalytics(false)
+      hideTransactionLoader()
+    }
+  }
+
   return (
     <PageShell
       title="Settings"
@@ -334,7 +384,7 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
                   <a
                     href={publicProfileHref}
                     target="_blank"
-                    rel="noopener noreferrer"
+                    rel="noopener"
                     className="text-xs font-mono text-primary hover:underline truncate max-w-[200px]"
                   >
                     {publicProfileUrl}
@@ -532,6 +582,53 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
                 disabled={savingVisibility || visibility === (profile.visibility === 'PRIVATE' ? 'PRIVATE' : 'PUBLIC')}
               >
                 {savingVisibility ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Update"
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Analytics Section */}
+        <Card className="bg-card border border-border/60 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-base">Analytics</CardTitle>
+            <CardDescription>
+              Configure how your activity is tracked and displayed
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-start space-x-3 space-y-0">
+              <Checkbox
+                id="hide-self"
+                checked={hideSelfActivity}
+                onCheckedChange={(checked) => setHideSelfActivity(checked === true)}
+              />
+              <div className="grid gap-1.5 leading-none">
+                <Label
+                  htmlFor="hide-self"
+                  className="text-sm font-medium leading-none cursor-pointer"
+                >
+                  Hide my own activities
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Your views and clicks will be recorded but hidden from Insights and the Recent Activity block.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSaveAnalytics}
+                disabled={savingAnalytics || hideSelfActivity === (profile.appearance?.hideSelfActivity ?? false)}
+              >
+                {savingAnalytics ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Saving...
