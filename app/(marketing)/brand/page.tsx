@@ -2,11 +2,17 @@
 
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Download, Check, X, ShieldAlert, Copy, Sparkles } from 'lucide-react'
+import { ArrowRight, Download, Check, X, ShieldAlert, Copy, Sparkles, MoreVertical, FileImage, FileCode } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export default function BrandPage() {
     const container = {
@@ -68,11 +74,8 @@ export default function BrandPage() {
                                 downloadLink="/logos/icon-black.svg"
                                 downloadName="SOCI4L_ICON_BLACK.svg"
                             >
-                                {/* Light BG -> #0A0A0A Logo. 
-                                    invert(0.96) transforms White to ~#0A0A0A. */}
-                                <div style={{ filter: 'invert(0.96)' }}>
-                                    <Soci4LLogo variant="icon" width={120} className="!filter-none" />
-                                </div>
+                                {/* Direct Black Logo for perfect sizing/rendering */}
+                                <img src="/logos/icon-black.svg" width={120} height={120} alt="SOCI4L Icon Black" className="object-contain" />
                             </LogoCard>
                         </div>
 
@@ -127,9 +130,7 @@ export default function BrandPage() {
                                 downloadLink="/logos/combination-black.svg"
                                 downloadName="SOCI4L_COMBINATION_BLACK.svg"
                             >
-                                <div style={{ filter: 'invert(0.96)' }}>
-                                    <Soci4LLogo variant="combination" width={240} className="!filter-none" />
-                                </div>
+                                <img src="/logos/combination-black.svg" width={240} height={72} alt="SOCI4L Combination Black" className="object-contain" />
                             </LogoCard>
                         </div>
                     </section>
@@ -159,6 +160,32 @@ export default function BrandPage() {
                                 bg="bg-[#FAFAFA]"
                                 text="text-black"
                                 border="border-black/5"
+                            />
+                        </div>
+
+                        {/* Neutrals */}
+                        <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-4">Neutrals & UI</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                            <ColorCard
+                                name="Muted / Card"
+                                hex="#F5F5F5"
+                                bg="bg-zinc-100"
+                                text="text-zinc-900"
+                                border="border-black/5"
+                            />
+                            <ColorCard
+                                name="Subtle Muted"
+                                hex="#FAFAFA"
+                                bg="bg-zinc-50"
+                                text="text-zinc-900"
+                                border="border-black/5"
+                            />
+                            <ColorCard
+                                name="Dark Muted"
+                                hex="#18181B"
+                                bg="bg-zinc-900"
+                                text="text-white"
+                                border="border-white/10"
                             />
                         </div>
 
@@ -338,7 +365,7 @@ export default function BrandPage() {
                                     status="info"
                                     description="Standard Radius: 0.5rem (8px). Font Weight: Medium (500)."
                                 >
-                                    <div className="w-8 h-8 rounded-lg border-2 border-dashed border-brand-500/50" />
+                                    <div className="w-8 h-8 rounded-lg border-2 border-dashed border-zinc-400/50" />
                                 </ButtonRuleCard>
 
                                 <ButtonRuleCard
@@ -346,8 +373,8 @@ export default function BrandPage() {
                                     status="info"
                                     description="Horizontal: px-4 (16px). Vertical: py-2 (8px). Gap: 8px."
                                 >
-                                    <div className="h-6 w-12 border-x-2 border-brand-500/50 flex items-center justify-center">
-                                        <span className="text-[10px] font-mono mx-1">16px</span>
+                                    <div className="h-6 w-12 border-x-2 border-zinc-400/50 flex items-center justify-center">
+                                        <span className="text-[10px] font-mono mx-1 text-zinc-500">16px</span>
                                     </div>
                                 </ButtonRuleCard>
                             </div>
@@ -378,10 +405,8 @@ export default function BrandPage() {
                                     </div>
                                 </div>
                             </div>
-
                         </div>
                     </section>
-
                 </motion.div>
             </div>
         </div>
@@ -404,17 +429,80 @@ function LogoCard({ children, label, bg, textColor, borderColor, downloadLink, d
         <div className={cn("group relative overflow-hidden rounded-3xl border flex flex-col items-center justify-center min-h-[320px] transition-colors", bg, borderColor || "border-white/10")}>
             <div className={cn("absolute top-6 left-6 text-xs font-mono uppercase tracking-wider", textColor)}>{label}</div>
             <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button variant="ghost" size="icon" asChild className={cn("h-8 w-8", textColor)}>
-                    <a href={downloadLink} download={downloadName || true}>
-                        <Download className="w-4 h-4" />
-                    </a>
-                </Button>
+                <DownloadDropdown downloadLink={downloadLink} downloadName={downloadName} textColor={textColor} />
             </div>
             <div className="relative z-10 transition-transform duration-500 group-hover:scale-105">
                 {children}
             </div>
         </div>
     )
+}
+
+function DownloadDropdown({ downloadLink, downloadName, textColor }: any) {
+    const handlePngDownload = () => {
+        downloadAsPng(downloadLink, downloadName)
+    }
+
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className={cn("h-8 w-8", textColor)}>
+                    <Download className="w-4 h-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                    <a href={downloadLink} download={downloadName} className="cursor-pointer flex items-center">
+                        <FileCode className="w-4 h-4 mr-2" />
+                        Download SVG
+                    </a>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handlePngDownload} className="cursor-pointer flex items-center">
+                    <FileImage className="w-4 h-4 mr-2" />
+                    Download PNG
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    )
+}
+
+const downloadAsPng = (url: string, filename: string) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = url;
+    img.onload = () => {
+        const canvas = document.createElement('canvas');
+        // Standardize size for consistent quality. 
+        // 1024px is good for logos.
+        const size = 1024;
+        let width = img.width;
+        let height = img.height;
+
+        // If SVG doesn't have intrinsic size, default to square relative to 1024
+        if (width === 0 || height === 0) {
+            width = size;
+            height = size;
+        } else {
+            // Keep aspect ratio
+            const scale = size / Math.max(width, height);
+            width *= scale;
+            height *= scale;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            const a = document.createElement('a');
+            a.href = canvas.toDataURL('image/png');
+            a.download = filename.replace('.svg', '.png');
+            a.click();
+        }
+    };
+    img.onerror = () => {
+        toast.error("Failed to generate PNG");
+    }
 }
 
 function ColorCard({ name, hex, bg, text, border }: any) {
