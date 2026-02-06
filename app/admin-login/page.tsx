@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { PageShell } from '@/components/app-shell/page-shell'
 
+import { useEffect } from 'react'
 import { Suspense } from 'react'
 
 function AdminLoginContent() {
@@ -15,6 +16,17 @@ function AdminLoginContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const redirectPath = searchParams.get('redirect') || '/master-console'
+    const error = searchParams.get('error')
+
+    useEffect(() => {
+        if (error === 'admin_no_session') {
+            toast.error('Admin authentication required. Please sign in.')
+        } else if (error === 'not_admin') {
+            toast.error('Access denied. Your wallet is not authorized as an admin.')
+        } else if (error) {
+            toast.error(`Authentication error: ${error}`)
+        }
+    }, [error])
 
     const handleLogin = async () => {
         const success = await ensureSession()
