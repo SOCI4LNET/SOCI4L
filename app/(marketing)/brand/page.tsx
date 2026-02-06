@@ -44,56 +44,9 @@ export default function BrandPage() {
                     className="space-y-32"
                 >
 
-                    {/* 01. MISSION & VALUES */}
+                    {/* 01. LOGOMARK (ICON) */}
                     <section>
-                        <SectionHeader number="01" title="Mission & Values" />
-
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-                            <div className="col-span-1 lg:col-span-2 p-8 rounded-3xl border border-border/50 bg-card flex flex-col justify-center">
-                                <h3 className="text-2xl font-semibold mb-4">Our Mission</h3>
-                                <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                                    Empowering the Avalanche ecosystem by creating a measurable, transparent, and unified public identity for every builder and trader.
-                                </p>
-                                <div className="flex gap-4">
-                                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-500/10 text-brand-500 text-sm font-medium">
-                                        <Target className="w-4 h-4" />
-                                        Identity First
-                                    </div>
-                                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-500/10 text-brand-500 text-sm font-medium">
-                                        <Globe className="w-4 h-4" />
-                                        On-Chain Social
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="p-8 rounded-3xl border border-border/50 bg-brand-500 text-white flex flex-col justify-between">
-                                <Shield className="w-12 h-12 opacity-20" />
-                                <div>
-                                    <h4 className="text-xl font-bold mb-2">Security & Trust</h4>
-                                    <p className="text-sm opacity-80 leading-relaxed">
-                                        Built on verifiable smart contracts to ensure your reputation is truly yours.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {[
-                                { title: "Decentralization", desc: "No central authority owns your data. You are the source of truth.", icon: Globe },
-                                { title: "Transparency", desc: "Every metric and interaction is verifiable on-chain for total clarity.", icon: Sparkles },
-                                { title: "Empowerment", desc: "Tools designed to help you monetize and grow your influence.", icon: Target },
-                            ].map((val, i) => (
-                                <div key={i} className="p-6 rounded-2xl border border-border/50 bg-muted/20">
-                                    <val.icon className="w-6 h-6 text-brand-500 mb-4" />
-                                    <h4 className="font-semibold mb-2">{val.title}</h4>
-                                    <p className="text-sm text-muted-foreground leading-relaxed">{val.desc}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-
-                    {/* 02. LOGOMARK (ICON) */}
-                    <section>
-                        <SectionHeader number="02" title="Logomark" />
+                        <SectionHeader number="01" title="Logomark" />
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <LogoCard
@@ -159,9 +112,9 @@ export default function BrandPage() {
                         </div>
                     </section>
 
-                    {/* 03. COMBINATION MARK */}
+                    {/* 02. COMBINATION MARK */}
                     <section>
-                        <SectionHeader number="03" title="Combination Mark" />
+                        <SectionHeader number="02" title="Combination Mark" />
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <LogoCard
@@ -186,9 +139,9 @@ export default function BrandPage() {
                         </div>
                     </section>
 
-                    {/* 04. COLORS */}
+                    {/* 03. COLORS */}
                     <section>
-                        <SectionHeader number="04" title="Color Architecture" />
+                        <SectionHeader number="03" title="Color Architecture" />
 
                         {/* Primary Brand Color */}
                         <div className="mb-16">
@@ -227,96 +180,69 @@ export default function BrandPage() {
                                 <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">Semantic & Semantic States</h3>
                                 <div className="h-px flex-1 bg-border/20" />
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 {/* Destructive */}
-                                <div className="space-y-4">
-                                    <ColorCard
-                                        name="Destructive"
-                                        hex="#EF4444"
-                                        bg="bg-destructive"
-                                        text="text-destructive-foreground"
-                                    />
-                                    <div className="p-4 rounded-2xl border border-destructive/20 bg-destructive/5 flex flex-col gap-3">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs font-medium">Button Hover</span>
-                                            <span className="text-[10px] font-mono opacity-60">bg-destructive/90</span>
+                                <div className="p-3 rounded-2xl border border-border/50 bg-card flex items-center justify-between group">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-destructive flex items-center justify-center text-white">
+                                            <X className="w-5 h-5" />
                                         </div>
-                                        <Button variant="destructive" className="w-full h-9 text-xs">Primary Hover Effect</Button>
+                                        <div>
+                                            <div className="text-xs font-semibold">Destructive</div>
+                                            <div className="text-[10px] font-mono opacity-50">#EF4444</div>
+                                        </div>
                                     </div>
+                                    <div className="text-[10px] font-mono px-2 py-0.5 rounded bg-destructive/10 text-destructive opacity-0 group-hover:opacity-100 transition-opacity">Copy</div>
                                 </div>
 
                                 {/* Success */}
-                                <div className="space-y-4">
-                                    <ColorCard
-                                        name="Success / Verified"
-                                        hex="#16A34A"
-                                        bg="bg-green-600"
-                                        text="text-white"
-                                    />
-                                    <div className="p-4 rounded-2xl border border-green-600/20 bg-green-500/5 flex flex-col gap-3">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs font-medium">Verified Status</span>
-                                            <span className="text-[10px] font-mono opacity-60">bg-green-500/5</span>
+                                <div className="p-3 rounded-2xl border border-border/50 bg-card flex items-center justify-between group">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-green-600 flex items-center justify-center text-white">
+                                            <CheckCircle className="w-5 h-5" />
                                         </div>
-                                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-500/10 text-green-600 text-[10px] font-bold uppercase border border-green-600/20">
-                                            <CheckCircle className="h-3.5 w-3.5" />
-                                            Verified Account
+                                        <div>
+                                            <div className="text-xs font-semibold">Success</div>
+                                            <div className="text-[10px] font-mono opacity-50">#16A34A</div>
                                         </div>
                                     </div>
+                                    <div className="text-[10px] font-mono px-2 py-0.5 rounded bg-green-600/10 text-green-600 opacity-0 group-hover:opacity-100 transition-opacity">Copy</div>
                                 </div>
 
                                 {/* Warning */}
-                                <div className="space-y-4">
-                                    <ColorCard
-                                        name="Warning"
-                                        hex="#F59E0B"
-                                        bg="bg-amber-500"
-                                        text="text-white"
-                                    />
-                                    <div className="p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 flex flex-col gap-3">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs font-medium">Alert Status</span>
-                                            <span className="text-[10px] font-mono opacity-60 text-amber-600">Action Required</span>
+                                <div className="p-3 rounded-2xl border border-border/50 bg-card flex items-center justify-between group">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center text-white">
+                                            <ShieldAlert className="w-5 h-5" />
                                         </div>
-                                        <div className="h-9 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center px-3 border-dashed">
-                                            <ShieldAlert className="h-3.5 w-3.5 text-amber-600 mr-2" />
-                                            <div className="h-1.5 w-16 bg-amber-600/20 rounded-full" />
+                                        <div>
+                                            <div className="text-xs font-semibold">Warning</div>
+                                            <div className="text-[10px] font-mono opacity-50">#F59E0B</div>
                                         </div>
                                     </div>
+                                    <div className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity">Copy</div>
                                 </div>
 
                                 {/* Info */}
-                                <div className="space-y-4">
-                                    <ColorCard
-                                        name="Info / System"
-                                        hex="#3B82F6"
-                                        bg="bg-blue-500"
-                                        text="text-white"
-                                    />
-                                    <div className="p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 flex flex-col gap-3">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs font-medium">Information</span>
-                                            <span className="text-[10px] font-mono opacity-60 text-blue-600">System Log</span>
+                                <div className="p-3 rounded-2xl border border-border/50 bg-card flex items-center justify-between group">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center text-white">
+                                            <Sparkles className="w-5 h-5" />
                                         </div>
-                                        <div className="h-9 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center px-3">
-                                            <ArrowUpRight className="h-3.5 w-3.5 text-blue-600 mr-2" />
-                                            <div className="h-1.5 w-24 bg-blue-600/20 rounded-full" />
+                                        <div>
+                                            <div className="text-xs font-semibold">Information</div>
+                                            <div className="text-[10px] font-mono opacity-50">#3B82F6</div>
                                         </div>
                                     </div>
+                                    <div className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">Copy</div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Neutrals & Surfaces */}
+                        {/* Surfaces */}
                         <div className="mb-0">
-                            <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-6">Neutral Architecture</h3>
+                            <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-6">Core Surfaces</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                <ColorCard
-                                    name="Pure Black"
-                                    hex="#000000"
-                                    bg="bg-black"
-                                    text="text-white"
-                                />
                                 <ColorCard
                                     name="Dark Surface"
                                     hex="#0A0A0A"
@@ -331,40 +257,13 @@ export default function BrandPage() {
                                     text="text-black"
                                     border="border-black/5"
                                 />
-                                <ColorCard
-                                    name="Pure White"
-                                    hex="#FFFFFF"
-                                    bg="bg-white"
-                                    text="text-black"
-                                    border="border-black/5"
-                                />
-                            </div>
-                            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <ColorCard
-                                    name="Zinc Muted"
-                                    hex="#71717A"
-                                    bg="bg-zinc-500"
-                                    text="text-white"
-                                />
-                                <ColorCard
-                                    name="Border Subtle"
-                                    hex="#E4E4E7"
-                                    bg="bg-zinc-200"
-                                    text="text-black"
-                                />
-                                <ColorCard
-                                    name="Input / Ghost"
-                                    hex="#F4F4F5"
-                                    bg="bg-zinc-100"
-                                    text="text-black"
-                                />
                             </div>
                         </div>
                     </section>
 
-                    {/* 05. TYPOGRAPHY */}
+                    {/* 04. TYPOGRAPHY */}
                     <section>
-                        <SectionHeader number="05" title="Typography" />
+                        <SectionHeader number="04" title="Typography" />
 
                         <div className="space-y-12">
                             {/* Font Families */}
@@ -574,51 +473,102 @@ export default function BrandPage() {
                         </div>
                     </section>
 
-                    {/* 06. NAMING CONVENTION */}
+                    {/* 05. NAMING CONVENTION */}
                     <section>
-                        <SectionHeader number="06" title="Naming Convention" />
+                        <SectionHeader number="05" title="Naming Convention" />
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="p-8 rounded-3xl border border-border/50 bg-card">
-                                <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-6">Master Brand</h3>
+                        <div className="space-y-12">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                                 <div className="space-y-6">
-                                    <div className="flex items-center justify-between p-4 rounded-xl bg-green-500/5 border border-green-500/20">
-                                        <span className="text-2xl font-bold tracking-tighter">SOCI4L</span>
-                                        <Check className="text-green-500 w-5 h-5" />
-                                    </div>
-                                    <div className="flex items-center justify-between p-4 rounded-xl bg-red-500/5 border border-red-500/20 opacity-50">
-                                        <span className="text-2xl font-medium tracking-tighter">Soci4l</span>
-                                        <X className="text-red-500 w-5 h-5" />
-                                    </div>
-                                    <p className="text-sm text-muted-foreground leading-relaxed">
-                                        Always use <strong>all-caps</strong> for the master brand name. The "4" represents the four core pillars of on-chain identity.
+                                    <h3 className="text-xl font-semibold">The Brand Name</h3>
+                                    <p className="text-muted-foreground leading-relaxed">
+                                        Our name is always written in uppercase with a numeric "4" replacing the "I".
+                                        This reflects our roots in Web4 and on-chain intelligence.
                                     </p>
+                                    <div className="p-6 rounded-3xl border border-border/50 bg-muted/20 inline-block font-mono text-4xl tracking-tighter">
+                                        SOCI<span className="text-brand-500">4</span>L
+                                    </div>
+                                </div>
+
+                                <div className="space-y-8">
+                                    <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">Product Naming Structure</h3>
+                                    <div className="space-y-4">
+                                        {[
+                                            { product: "SOCI4L ID", desc: "Core identity protocol and profile pages." },
+                                            { product: "SOCI4L Insights", desc: "Analytics and link tracking dashboard." },
+                                            { product: "SOCI4L Radar", desc: "Real-time on-chain social activity tracking." }
+                                        ].map((item, i) => (
+                                            <div key={i} className="flex items-start gap-4 p-4 rounded-2xl border border-border/20 hover:border-brand-500/30 transition-colors group">
+                                                <div className="h-8 w-8 rounded-lg bg-brand-500/10 flex items-center justify-center text-brand-500 shrink-0 font-bold text-xs ring-1 ring-brand-500/20">
+                                                    {i + 1}
+                                                </div>
+                                                <div>
+                                                    <div className="font-semibold group-hover:text-brand-500 transition-colors">{item.product}</div>
+                                                    <div className="text-sm text-muted-foreground mt-0.5">{item.desc}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="p-8 rounded-3xl border border-border/50 bg-card">
-                                <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-6">Sub-Products</h3>
-                                <div className="space-y-4">
-                                    <div className="p-4 rounded-xl bg-muted/30 border border-border/50 font-medium">
-                                        <span className="text-brand-500 mr-2 uppercase">SOCI4L</span> Insights
+                            <div className="p-1 border border-border/40 rounded-[2rem] bg-muted/10">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-border/40 overflow-hidden rounded-[1.9rem]">
+                                    {/* DO */}
+                                    <div className="bg-card p-10 space-y-6">
+                                        <div className="flex items-center gap-2 text-green-600 font-mono text-xs uppercase tracking-widest">
+                                            <div className="h-4 w-4 rounded-full bg-green-600/10 flex items-center justify-center">
+                                                <Check className="w-3 h-3" />
+                                            </div>
+                                            Correct Usage
+                                        </div>
+                                        <ul className="space-y-4">
+                                            <li className="flex items-center justify-between p-4 rounded-xl border border-green-600/10 bg-green-600/5">
+                                                <span className="font-semibold">SOCI4L</span>
+                                                <span className="text-[10px] font-mono text-green-600/60">Primary Brand</span>
+                                            </li>
+                                            <li className="flex items-center justify-between p-4 rounded-xl border border-green-600/10 bg-green-600/5">
+                                                <span className="font-semibold">SOCI4L ID</span>
+                                                <span className="text-[10px] font-mono text-green-600/60">With Space</span>
+                                            </li>
+                                            <li className="flex items-center justify-between p-4 rounded-xl border border-green-600/10 bg-green-600/5">
+                                                <span className="font-semibold text-muted-foreground/40 italic">the</span> <span className="font-semibold">SOCI4L</span> <span className="font-semibold text-muted-foreground/40 italic">ecosystem</span>
+                                                <span className="text-[10px] font-mono text-green-600/60">Lowercase prefix</span>
+                                            </li>
+                                        </ul>
                                     </div>
-                                    <div className="p-4 rounded-xl bg-muted/30 border border-border/50 font-medium">
-                                        <span className="text-brand-500 mr-2 uppercase">SOCI4L</span> Radar
+
+                                    {/* DON'T */}
+                                    <div className="bg-card p-10 space-y-6">
+                                        <div className="flex items-center gap-2 text-destructive font-mono text-xs uppercase tracking-widest">
+                                            <div className="h-4 w-4 rounded-full bg-destructive/10 flex items-center justify-center">
+                                                <X className="w-3 h-3" />
+                                            </div>
+                                            Incorrect Usage
+                                        </div>
+                                        <ul className="space-y-4">
+                                            <li className="flex items-center justify-between p-4 rounded-xl border border-destructive/10 bg-destructive/5 line-through opacity-60">
+                                                <span className="font-semibold">SOCIAL</span>
+                                                <span className="text-[10px] font-mono text-destructive/60">No "I"</span>
+                                            </li>
+                                            <li className="flex items-center justify-between p-4 rounded-xl border border-destructive/10 bg-destructive/5 line-through opacity-60">
+                                                <span className="font-semibold text-brand-500 italic">SOCI4LID</span>
+                                                <span className="text-[10px] font-mono text-destructive/60">No Space</span>
+                                            </li>
+                                            <li className="flex items-center justify-between p-4 rounded-xl border border-destructive/10 bg-destructive/5 line-through opacity-60">
+                                                <span className="font-semibold">soci4l</span>
+                                                <span className="text-[10px] font-mono text-destructive/60">Lowercase</span>
+                                            </li>
+                                        </ul>
                                     </div>
-                                    <div className="p-4 rounded-xl bg-muted/30 border border-border/50 font-medium opacity-50 line-through">
-                                        SOCI4LInsights
-                                    </div>
-                                    <p className="text-sm text-muted-foreground leading-relaxed">
-                                        Add a single space between SOCI4L and the product name. Product names should be <strong>Sentence Case</strong>.
-                                    </p>
                                 </div>
                             </div>
                         </div>
                     </section>
 
-                    {/* 07. UI COMPONENTS & BUTTONS */}
+                    {/* 06. BUTTONS & COMPONENTS */}
                     <section>
-                        <SectionHeader number="07" title="Buttons & Components" />
+                        <SectionHeader number="06" title="Buttons & Components" />
 
                         {/* Button Guidelines */}
                         <div className="space-y-16">
@@ -656,15 +606,16 @@ export default function BrandPage() {
                                 <ButtonRuleCard
                                     title="Contrast Rule"
                                     status="correct"
-                                    description="Always use High Contrast. White Button = Black Text. Black Button = White Text."
+                                    description="Buttons must contrast perfectly with their background. White button on dark, black button on light."
                                 >
-                                    <div className="flex gap-2">
-                                        <div className="px-3 py-1 bg-black text-white text-xs font-medium rounded">Correct</div>
-                                        <div className="px-3 py-1 bg-black text-zinc-600 text-xs font-medium rounded border border-white/10 opacity-50 relative overflow-hidden">
-                                            <div className="absolute inset-0 flex items-center justify-center">
-                                                <div className="w-full h-px bg-red-500 rotate-12" />
-                                            </div>
-                                            Wrong
+                                    <div className="flex flex-col gap-4 w-full">
+                                        <div className="flex items-center justify-between p-3 rounded-xl bg-black border border-white/10 w-full group">
+                                            <div className="w-2 h-2 rounded-full bg-white/20" />
+                                            <Button size="sm" className="h-7 px-3 text-[10px] font-bold bg-white text-black hover:bg-zinc-200 border-none">Label</Button>
+                                        </div>
+                                        <div className="flex items-center justify-between p-3 rounded-xl bg-[#F5F5F5] border border-black/5 w-full">
+                                            <div className="w-2 h-2 rounded-full bg-black/10" />
+                                            <Button size="sm" className="h-7 px-3 text-[10px] font-bold bg-black text-white hover:bg-zinc-800 border-none">Label</Button>
                                         </div>
                                     </div>
                                 </ButtonRuleCard>
@@ -726,9 +677,9 @@ export default function BrandPage() {
                             </div>
                         </div>
                     </section>
-                    {/* 08. SOCIAL MEDIA KITS */}
+                    {/* 07. SOCIAL MEDIA KITS */}
                     <section>
-                        <SectionHeader number="08" title="Social Media Kits" />
+                        <SectionHeader number="07" title="Social Media Kits" />
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {/* X Banner */}
@@ -809,9 +760,9 @@ export default function BrandPage() {
                         </div>
                     </section>
 
-                    {/* 09. USAGE VIOLATIONS */}
+                    {/* 08. USAGE VIOLATIONS */}
                     <section>
-                        <SectionHeader number="09" title="Usage Violations" />
+                        <SectionHeader number="08" title="Usage Violations" />
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                             {[
@@ -836,7 +787,7 @@ function SectionHeader({ number, title }: { number: string, title: string }) {
     return (
         <div className="flex items-end justify-between mb-12 border-b border-border/40 pb-6">
             <h2 className="text-2xl font-mono uppercase tracking-widest text-muted-foreground">
-                <span className="text-brand-500 mr-2">{number}.</span>
+                <span className="text-foreground/80 mr-2">{number}.</span>
                 {title}
             </h2>
         </div>
