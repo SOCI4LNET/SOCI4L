@@ -52,18 +52,17 @@ export type AnalyticsEvent =
 
 
 
-function shouldLogProfileView(profileId: string, source: AnalyticsSource): boolean {
+function shouldLogProfileView(profileId: string, source: AnalyticsSource, visitorWallet?: string): boolean {
   if (!profileId) return false
   if (typeof window === 'undefined') return false
 
   const now = Date.now()
   // Include source in key to allow distinct tracking for different sources
-  // e.g. visit direct -> visit via extension should track both
   const key = `soci4l:viewed:${profileId}:${source}`
   const tsKey = `soci4l:viewed_ts:${profileId}:${source}`
+  const walletKey = `soci4l:viewed_wallet:${profileId}:${source}`
 
   // Also maintain a global profile view timestamp to prevent spam
-  // regardless of source, if it's within a very short window (e.g. 1s)
   const globalTsKey = `soci4l:viewed_ts:${profileId}:any`
 
   try {
@@ -79,15 +78,22 @@ function shouldLogProfileView(profileId: string, source: AnalyticsSource): boole
     // 2. Check specific source dedupe (5s)
     const lastTsRaw = storage.getItem(tsKey)
     const lastTs = lastTsRaw ? Number(lastTsRaw) || 0 : 0
+    const lastWallet = storage.getItem(walletKey)
     const DEDUPE_WINDOW_MS = 5 * 1000 // 5 seconds
 
-    if (lastTs && now - lastTs < DEDUPE_WINDOW_MS) {
+    // Allow re-tracking if we were anonymous before and now have a wallet
+    const identityGained = visitorWallet && !lastWallet
+
+    if (lastTs && now - lastTs < DEDUPE_WINDOW_MS && !identityGained) {
       return false
     }
 
     storage.setItem(key, '1')
     storage.setItem(tsKey, String(now))
     storage.setItem(globalTsKey, String(now))
+    if (visitorWallet) {
+      storage.setItem(walletKey, visitorWallet)
+    }
   } catch (error) {
     // Fallback: localStorage
     try {
@@ -96,9 +102,7 @@ function shouldLogProfileView(profileId: string, source: AnalyticsSource): boole
       const raw = window.localStorage.getItem(tsKey)
       const lastTs = raw ? Number(raw) || 0 : 0
 
-      // Dedupe logic
-      const DEDUPE_WINDOW_MS = 5 * 1000
-      if (lastTs && now - lastTs < DEDUPE_WINDOW_MS) {
+      if (lastTs && now - lastTs < 5000) {
         return false
       }
       window.localStorage.setItem(tsKey, String(now))
@@ -119,7 +123,7 @@ export function trackProfileView(
   // Normalize profileId to lowercase for consistency
   const normalizedProfileId = profileId.toLowerCase()
 
-  if (!shouldLogProfileView(normalizedProfileId, source)) {
+  if (!shouldLogProfileView(normalizedProfileId, source, visitorWallet)) {
     return
   }
 

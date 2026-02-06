@@ -380,6 +380,13 @@ export default function ProfilePage({ params }: PageProps) {
 
     // Track view with source attribution from URL query params
     const source = getSourceFromUrl(searchParams)
+    const currentTrackKey = `${stableProfileId}:${connectedAddress || 'anon'}:${source}`
+
+    // Guard: Don't re-track if we already tracked this profile+identity+source in this mount
+    if (trackedProfileIdRef.current === currentTrackKey) {
+      return
+    }
+
     trackProfileView(stableProfileId, source, connectedAddress || undefined)
 
     // Mark as tracked for this profile ID to prevent double invoke
@@ -389,7 +396,7 @@ export default function ProfilePage({ params }: PageProps) {
 
     // For now, let's allow re-tracking if connectedAddress was previously null and now it's not.
     // We'll store what we tracked in the ref.
-    trackedProfileIdRef.current = `${stableProfileId}:${connectedAddress || 'anon'}`
+    trackedProfileIdRef.current = currentTrackKey
   }, [stableProfileId, searchParams, connectedAddress, status])
 
 

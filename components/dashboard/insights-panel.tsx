@@ -885,7 +885,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
         <section className="space-y-4">
           <SectionHeader
             title="Recent Activity"
-            description="Latest events timeline (privacy-first, no user identity)"
+            description="Latest events timeline (verified real-time activity)"
           />
           <Card className="bg-card border border-border/60 shadow-sm">
             <CardContent className="pt-6">
