@@ -2,7 +2,7 @@
 
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Download, Check, X, ShieldAlert, Copy, Sparkles, MoreVertical, FileImage, FileCode, ArrowUpRight, LayoutDashboard, ChevronDown } from 'lucide-react'
+import { ArrowRight, Download, Check, X, ShieldAlert, Copy, Sparkles, MoreVertical, FileImage, FileCode, ArrowUpRight, LayoutDashboard, ChevronDown, Globe, Target, Shield, Twitter } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -44,9 +44,56 @@ export default function BrandPage() {
                     className="space-y-32"
                 >
 
-                    {/* 01. LOGOMARK (ICON) */}
+                    {/* 01. MISSION & VALUES */}
                     <section>
-                        <SectionHeader number="01" title="Logomark" />
+                        <SectionHeader number="01" title="Mission & Values" />
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+                            <div className="col-span-1 lg:col-span-2 p-8 rounded-3xl border border-border/50 bg-card flex flex-col justify-center">
+                                <h3 className="text-2xl font-semibold mb-4">Our Mission</h3>
+                                <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+                                    Empowering the Avalanche ecosystem by creating a measurable, transparent, and unified public identity for every builder and trader.
+                                </p>
+                                <div className="flex gap-4">
+                                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-500/10 text-brand-500 text-sm font-medium">
+                                        <Target className="w-4 h-4" />
+                                        Identity First
+                                    </div>
+                                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-500/10 text-brand-500 text-sm font-medium">
+                                        <Globe className="w-4 h-4" />
+                                        On-Chain Social
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="p-8 rounded-3xl border border-border/50 bg-brand-500 text-white flex flex-col justify-between">
+                                <Shield className="w-12 h-12 opacity-20" />
+                                <div>
+                                    <h4 className="text-xl font-bold mb-2">Security & Trust</h4>
+                                    <p className="text-sm opacity-80 leading-relaxed">
+                                        Built on verifiable smart contracts to ensure your reputation is truly yours.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {[
+                                { title: "Decentralization", desc: "No central authority owns your data. You are the source of truth.", icon: Globe },
+                                { title: "Transparency", desc: "Every metric and interaction is verifiable on-chain for total clarity.", icon: Sparkles },
+                                { title: "Empowerment", desc: "Tools designed to help you monetize and grow your influence.", icon: Target },
+                            ].map((val, i) => (
+                                <div key={i} className="p-6 rounded-2xl border border-border/50 bg-muted/20">
+                                    <val.icon className="w-6 h-6 text-brand-500 mb-4" />
+                                    <h4 className="font-semibold mb-2">{val.title}</h4>
+                                    <p className="text-sm text-muted-foreground leading-relaxed">{val.desc}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* 02. LOGOMARK (ICON) */}
+                    <section>
+                        <SectionHeader number="02" title="Logomark" />
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <LogoCard
@@ -72,7 +119,6 @@ export default function BrandPage() {
                             </LogoCard>
                         </div>
 
-                        {/* Safe Zone */}
                         {/* Safe Zone */}
                         <div className="mt-8 p-12 rounded-3xl border border-border/50 bg-card overflow-hidden relative">
                             {/* Grid Background */}
@@ -113,9 +159,9 @@ export default function BrandPage() {
                         </div>
                     </section>
 
-                    {/* 02. COMBINATION MARK */}
+                    {/* 03. COMBINATION MARK */}
                     <section>
-                        <SectionHeader number="02" title="Combination Mark" />
+                        <SectionHeader number="03" title="Combination Mark" />
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <LogoCard
@@ -140,9 +186,9 @@ export default function BrandPage() {
                         </div>
                     </section>
 
-                    {/* 03. COLORS */}
+                    {/* 04. COLORS */}
                     <section>
-                        <SectionHeader number="03" title="Color Architecture" />
+                        <SectionHeader number="04" title="Color Architecture" />
 
                         {/* Primary Colors */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -215,9 +261,9 @@ export default function BrandPage() {
                         </div>
                     </section>
 
-                    {/* 04. TYPOGRAPHY */}
+                    {/* 05. TYPOGRAPHY */}
                     <section>
-                        <SectionHeader number="04" title="Typography" />
+                        <SectionHeader number="05" title="Typography" />
 
                         <div className="space-y-12">
                             {/* Font Families */}
@@ -427,39 +473,51 @@ export default function BrandPage() {
                         </div>
                     </section>
 
-                    {/* 05. DON'Ts */}
+                    {/* 06. NAMING CONVENTION */}
                     <section>
-                        <SectionHeader number="05" title="Usage Violations" />
+                        <SectionHeader number="06" title="Naming Convention" />
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                            <DontCard title="Do not distort">
-                                <div className="scale-x-125 origin-left">
-                                    <Soci4LLogo variant="icon" width={60} className="invert dark:invert-0" />
-                                </div>
-                            </DontCard>
-                            <DontCard title="Do not rotate">
-                                <div className="-rotate-12">
-                                    <Soci4LLogo variant="icon" width={60} className="invert dark:invert-0" />
-                                </div>
-                            </DontCard>
-                            <DontCard title="Do not change color">
-                                <div className="text-red-500 filter sepia saturate-200">
-                                    <Soci4LLogo variant="icon" width={60} className="" />
-                                </div>
-                            </DontCard>
-                            <DontCard title="Avoid low contrast">
-                                <div className="bg-zinc-800 p-4 rounded flex items-center justify-center w-full h-full">
-                                    <div className="opacity-30">
-                                        <Soci4LLogo variant="icon" width={60} className="invert-0" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="p-8 rounded-3xl border border-border/50 bg-card">
+                                <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-6">Master Brand</h3>
+                                <div className="space-y-6">
+                                    <div className="flex items-center justify-between p-4 rounded-xl bg-green-500/5 border border-green-500/20">
+                                        <span className="text-2xl font-bold tracking-tighter">SOCI4L</span>
+                                        <Check className="text-green-500 w-5 h-5" />
                                     </div>
+                                    <div className="flex items-center justify-between p-4 rounded-xl bg-red-500/5 border border-red-500/20 opacity-50">
+                                        <span className="text-2xl font-medium tracking-tighter">Soci4l</span>
+                                        <X className="text-red-500 w-5 h-5" />
+                                    </div>
+                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                        Always use <strong>all-caps</strong> for the master brand name. The "4" represents the four core pillars of on-chain identity.
+                                    </p>
                                 </div>
-                            </DontCard>
+                            </div>
+
+                            <div className="p-8 rounded-3xl border border-border/50 bg-card">
+                                <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-6">Sub-Products</h3>
+                                <div className="space-y-4">
+                                    <div className="p-4 rounded-xl bg-muted/30 border border-border/50 font-medium">
+                                        <span className="text-brand-500 mr-2 uppercase">SOCI4L</span> Insights
+                                    </div>
+                                    <div className="p-4 rounded-xl bg-muted/30 border border-border/50 font-medium">
+                                        <span className="text-brand-500 mr-2 uppercase">SOCI4L</span> Radar
+                                    </div>
+                                    <div className="p-4 rounded-xl bg-muted/30 border border-border/50 font-medium opacity-50 line-through">
+                                        SOCI4LInsights
+                                    </div>
+                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                        Add a single space between SOCI4L and the product name. Product names should be <strong>Sentence Case</strong>.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </section>
 
-                    {/* 06. UI COMPONENTS & BUTTONS */}
+                    {/* 07. UI COMPONENTS & BUTTONS */}
                     <section>
-                        <SectionHeader number="06" title="Buttons & Components" />
+                        <SectionHeader number="07" title="Buttons & Components" />
 
                         {/* Button Guidelines */}
                         <div className="space-y-16">
@@ -565,6 +623,106 @@ export default function BrandPage() {
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </section>
+                    {/* 08. SOCIAL MEDIA KITS */}
+                    <section>
+                        <SectionHeader number="08" title="Social Media Kits" />
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {/* X Banner */}
+                            <div className="p-1 rounded-3xl border border-border/50 bg-card group overflow-hidden">
+                                <div className="aspect-[3/1] rounded-2xl bg-[#0A0A0A] relative flex items-center justify-center overflow-hidden">
+                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(40,69,214,0.15),transparent_70%)]" />
+                                    <Soci4LLogo variant="combination" width={200} className="relative z-10 !invert-0" />
+                                </div>
+                                <div className="p-4 flex justify-between items-center">
+                                    <div>
+                                        <h4 className="font-medium">X (Twitter) Banner</h4>
+                                        <p className="text-xs text-muted-foreground">1500 x 500 px</p>
+                                    </div>
+                                    <Button variant="ghost" size="icon" className="h-9 w-9">
+                                        <Download className="w-4 h-4" />
+                                    </Button>
+                                </div>
+                            </div>
+
+                            {/* Profile Frame */}
+                            <div className="p-1 rounded-3xl border border-border/50 bg-card group overflow-hidden">
+                                <div className="aspect-square rounded-2xl bg-[#FAFAFA] relative flex items-center justify-center">
+                                    <div className="w-32 h-32 rounded-full border-4 border-brand-500 flex items-center justify-center bg-white shadow-xl shadow-brand-500/10">
+                                        <Soci4LLogo variant="icon" width={60} className="!invert-0" />
+                                    </div>
+                                    <div className="absolute top-4 left-4 text-[10px] font-mono text-zinc-400">PFP Template</div>
+                                </div>
+                                <div className="p-4 flex justify-between items-center">
+                                    <div>
+                                        <h4 className="font-medium">Identity Frame</h4>
+                                        <p className="text-xs text-muted-foreground">400 x 400 px</p>
+                                    </div>
+                                    <Button variant="ghost" size="icon" className="h-9 w-9">
+                                        <Download className="w-4 h-4" />
+                                    </Button>
+                                </div>
+                            </div>
+
+                            {/* Powered by Badge */}
+                            <div className="p-1 rounded-3xl border border-border/50 bg-card group overflow-hidden">
+                                <div className="aspect-square rounded-2xl bg-zinc-900 border border-white/5 relative flex flex-col items-center justify-center gap-4">
+                                    <div className="px-4 py-2 rounded-lg bg-black/40 border border-white/10 flex items-center gap-3 backdrop-blur-sm">
+                                        <span className="text-[10px] uppercase tracking-tighter text-zinc-500 font-medium">Powered by</span>
+                                        <Soci4LLogo variant="combination" width={80} className="!invert-0" />
+                                    </div>
+                                    <div className="px-4 py-2 rounded-lg bg-white border border-black/5 flex items-center gap-3 shadow-lg">
+                                        <span className="text-[10px] uppercase tracking-tighter text-zinc-400 font-medium font-bold text-sm">Powered by</span>
+                                        <img src="/logos/combination-black.svg" width={80} height={20} alt="Small Black Logo" />
+                                    </div>
+                                </div>
+                                <div className="p-4 flex justify-between items-center">
+                                    <div>
+                                        <h4 className="font-medium">Community Badges</h4>
+                                        <p className="text-xs text-muted-foreground">Dark & Light variants</p>
+                                    </div>
+                                    <Button variant="ghost" size="icon" className="h-9 w-9">
+                                        <Download className="w-4 h-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-12 p-8 rounded-3xl border border-brand-500/20 bg-brand-500/5 flex flex-col md:flex-row items-center justify-between gap-8">
+                            <div className="max-w-xl">
+                                <div className="flex items-center gap-2 text-brand-500 mb-2">
+                                    <Twitter className="w-5 h-5" />
+                                    <span className="font-bold uppercase tracking-widest text-xs">Community Kit</span>
+                                </div>
+                                <h3 className="text-xl font-semibold mb-2">Build your identity everywhere.</h3>
+                                <p className="text-sm text-muted-foreground leading-relaxed">
+                                    Download the complete Social Media Graphics kit to unify your on-chain and off-chain presence. Includes high-res renders and vector badges.
+                                </p>
+                            </div>
+                            <Button className="bg-brand-500 text-white hover:bg-brand-600 gap-2 px-8 py-6 rounded-2xl">
+                                <Download className="w-5 h-5" />
+                                Download Complete Kit
+                            </Button>
+                        </div>
+                    </section>
+
+                    {/* 09. USAGE VIOLATIONS */}
+                    <section>
+                        <SectionHeader number="09" title="Usage Violations" />
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                            {[
+                                { title: "Do not distort", content: <div className="scale-x-125 origin-left"><Soci4LLogo variant="icon" width={60} className="invert dark:invert-0" /></div> },
+                                { title: "Do not rotate", content: <div className="-rotate-12"><Soci4LLogo variant="icon" width={60} className="invert dark:invert-0" /></div> },
+                                { title: "Do not change color", content: <div className="text-red-500 filter sepia saturate-200"><Soci4LLogo variant="icon" width={60} className="" /></div> },
+                                { title: "Avoid low contrast", content: <div className="bg-zinc-800 p-4 rounded flex items-center justify-center w-full h-full"><div className="opacity-30"><Soci4LLogo variant="icon" width={60} className="invert-0" /></div></div> },
+                            ].map((card, i) => (
+                                <DontCard key={i} title={card.title}>
+                                    {card.content}
+                                </DontCard>
+                            ))}
                         </div>
                     </section>
                 </motion.div>
