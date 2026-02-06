@@ -270,6 +270,118 @@ export default function BrandPage() {
                         </div>
                     </section>
 
+                    {/* 06. UI COMPONENTS & BUTTONS */}
+                    <section>
+                        <SectionHeader number="06" title="Buttons & Components" />
+
+                        {/* Button Guidelines */}
+                        <div className="space-y-16">
+
+                            {/* Primary & Secondary */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                                <ButtonSpecs
+                                    title="Primary (Light)"
+                                    description="Used for main calls-to-action on dark backgrounds. Strict black text."
+                                    bg="bg-[#0A0A0A]"
+                                >
+                                    <Button size="default" className="bg-white text-black hover:bg-white/90">
+                                        <div className="w-4 h-4 mr-2 bg-black/10 rounded-full" />
+                                        Primary Action
+                                    </Button>
+                                    <SpecsOverlay />
+                                </ButtonSpecs>
+
+                                <ButtonSpecs
+                                    title="Primary (Dark)"
+                                    description="Used for main calls-to-action on light backgrounds. Strict white text."
+                                    bg="bg-[#FAFAFA]"
+                                    dark
+                                >
+                                    <Button size="default" className="bg-black text-white hover:bg-black/90">
+                                        <div className="w-4 h-4 mr-2 bg-white/20 rounded-full" />
+                                        Primary Action
+                                    </Button>
+                                    <SpecsOverlay />
+                                </ButtonSpecs>
+                            </div>
+
+                            {/* Rules */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                <ButtonRuleCard
+                                    title="Contrast Rule"
+                                    status="correct"
+                                    description="Always use High Contrast. White Button = Black Text. Black Button = White Text."
+                                >
+                                    <div className="flex gap-2">
+                                        <div className="px-3 py-1 bg-white text-black text-xs font-medium rounded">Correct</div>
+                                        <div className="px-3 py-1 bg-white text-blue-600 text-xs font-medium rounded border border-blue-200/20 opacity-50 relative overflow-hidden">
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                <div className="w-full h-px bg-red-500 rotate-12" />
+                                            </div>
+                                            Wrong
+                                        </div>
+                                    </div>
+                                </ButtonRuleCard>
+
+                                <ButtonRuleCard
+                                    title="Brand Color"
+                                    status="warning"
+                                    description="Use Brand Blue (#2845D6) ONLY for special 'Magic' actions or highlights."
+                                >
+                                    <Button size="sm" className="bg-brand-500 text-white hover:bg-brand-600 h-8 text-xs">
+                                        ✨ Special
+                                    </Button>
+                                </ButtonRuleCard>
+
+                                <ButtonRuleCard
+                                    title="Radius & Weight"
+                                    status="info"
+                                    description="Standard Radius: 0.5rem (8px). Font Weight: Medium (500)."
+                                >
+                                    <div className="w-8 h-8 rounded-lg border-2 border-dashed border-brand-500/50" />
+                                </ButtonRuleCard>
+
+                                <ButtonRuleCard
+                                    title="Padding"
+                                    status="info"
+                                    description="Horizontal: px-4 (16px). Vertical: py-2 (8px). Gap: 8px."
+                                >
+                                    <div className="h-6 w-12 border-x-2 border-brand-500/50 flex items-center justify-center">
+                                        <span className="text-[10px] font-mono mx-1">16px</span>
+                                    </div>
+                                </ButtonRuleCard>
+                            </div>
+
+                            {/* Button Variants */}
+                            <div className="p-8 rounded-3xl border border-border/50 bg-card">
+                                <h3 className="text-lg font-medium mb-8">Component Library</h3>
+                                <div className="flex flex-wrap gap-8 items-center">
+                                    <div className="space-y-2 text-center">
+                                        <Button variant="default">Default Button</Button>
+                                        <p className="text-xs font-mono text-muted-foreground">variant="default"</p>
+                                    </div>
+                                    <div className="space-y-2 text-center">
+                                        <Button variant="secondary">Secondary</Button>
+                                        <p className="text-xs font-mono text-muted-foreground">variant="secondary"</p>
+                                    </div>
+                                    <div className="space-y-2 text-center">
+                                        <Button variant="outline">Outline</Button>
+                                        <p className="text-xs font-mono text-muted-foreground">variant="outline"</p>
+                                    </div>
+                                    <div className="space-y-2 text-center">
+                                        <Button variant="ghost">Ghost</Button>
+                                        <p className="text-xs font-mono text-muted-foreground">variant="ghost"</p>
+                                    </div>
+                                    <div className="space-y-2 text-center">
+                                        <Button variant="destructive">Destructive</Button>
+                                        <p className="text-xs font-mono text-muted-foreground">variant="destructive"</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </section>
+
                 </motion.div>
             </div>
         </div>
@@ -363,6 +475,61 @@ function DontCard({ children, title }: any) {
             </div>
             <div className="absolute bottom-4 left-0 right-0 text-center text-xs font-mono text-red-500 uppercase tracking-wider z-20">
                 {title}
+            </div>
+        </div>
+    )
+}
+
+function ButtonSpecs({ children, title, description, bg, dark }: any) {
+    return (
+        <div className={cn("relative rounded-3xl overflow-hidden border border-border/50 flex flex-col", bg)}>
+            <div className="flex-1 flex flex-col items-center justify-center min-h-[240px] relative p-8">
+                {children}
+            </div>
+            <div className={cn("p-6 border-t", dark ? "border-black/5 bg-white" : "border-white/10 bg-[#111]")}>
+                <h4 className={cn("font-medium mb-1", dark ? "text-black" : "text-white")}>{title}</h4>
+                <p className={cn("text-sm", dark ? "text-zinc-500" : "text-zinc-400")}>{description}</p>
+            </div>
+        </div>
+    )
+}
+
+function SpecsOverlay() {
+    return (
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+            {/* Spec lines overlay logic could go here, for now simpler implementation */}
+        </div>
+    )
+}
+
+function ButtonRuleCard({ children, title, description, status }: any) {
+    const statusColor = {
+        correct: "text-green-500",
+        warning: "text-amber-500",
+        error: "text-red-500",
+        info: "text-blue-500"
+    }[status as string] || "text-muted-foreground"
+
+    const Icon = {
+        correct: Check,
+        warning: ShieldAlert,
+        error: X,
+        info: ArrowRight
+    }[status as string] || ArrowRight
+
+    return (
+        <div className="p-6 rounded-2xl border border-border/50 bg-card flex flex-col gap-4">
+            <div className="flex items-start justify-between">
+                <div className={cn("p-2 rounded-lg bg-muted/30", statusColor)}>
+                    <Icon className="w-4 h-4" />
+                </div>
+            </div>
+            <div className="flex-1 flex items-center justify-center py-4">
+                {children}
+            </div>
+            <div>
+                <h4 className="font-medium text-sm mb-1">{title}</h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
             </div>
         </div>
     )
