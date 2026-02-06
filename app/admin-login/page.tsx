@@ -31,8 +31,8 @@ function AdminLoginContent() {
     const handleLogin = async () => {
         const success = await ensureSession()
         if (success) {
-            toast.success('Authenticated successfully')
-            router.push(redirectPath)
+            // Force hard navigation to ensure cookies are sent to server components
+            window.location.href = redirectPath
         }
     }
 
