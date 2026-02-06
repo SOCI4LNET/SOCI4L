@@ -75,11 +75,11 @@ function shouldLogProfileView(profileId: string, source: AnalyticsSource, visito
       return false
     }
 
-    // 2. Check specific source dedupe (5s)
+    // 2. Check specific source dedupe (20s)
     const lastTsRaw = storage.getItem(tsKey)
     const lastTs = lastTsRaw ? Number(lastTsRaw) || 0 : 0
     const lastWallet = storage.getItem(walletKey)
-    const DEDUPE_WINDOW_MS = 5 * 1000 // 5 seconds
+    const DEDUPE_WINDOW_MS = 20 * 1000 // 20 seconds
 
     // Allow re-tracking if we were anonymous before and now have a wallet
     const identityGained = visitorWallet && !lastWallet
@@ -102,7 +102,7 @@ function shouldLogProfileView(profileId: string, source: AnalyticsSource, visito
       const raw = window.localStorage.getItem(tsKey)
       const lastTs = raw ? Number(raw) || 0 : 0
 
-      if (lastTs && now - lastTs < 5000) {
+      if (lastTs && now - lastTs < 20000) {
         return false
       }
       window.localStorage.setItem(tsKey, String(now))
@@ -111,6 +111,31 @@ function shouldLogProfileView(profileId: string, source: AnalyticsSource, visito
   }
 
   return true
+}
+
+/**
+ * Filter referrers to avoid showing reloads or internal navigation as sources
+ */
+function getSafeReferrer(): string | null {
+  if (typeof window === 'undefined') return null
+
+  // 1. Detect reloads via performance API
+  try {
+    const nav = window.performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming
+    if (nav?.type === 'reload') return null
+  } catch { }
+
+  const ref = window.document.referrer
+  if (!ref) return null
+
+  // 2. Ignore internal referrers (same origin)
+  try {
+    const refUrl = new URL(ref)
+    const currentUrl = new URL(window.location.href)
+    if (refUrl.hostname === currentUrl.hostname) return null
+  } catch { }
+
+  return ref
 }
 
 export function trackProfileView(
@@ -135,7 +160,7 @@ export function trackProfileView(
         profileId: normalizedProfileId,
         source,
         visitorWallet: visitorWallet || undefined,
-        referrer: window.document.referrer || null,
+        referrer: getSafeReferrer(),
       })
       const url = '/api/analytics/event'
       if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
@@ -192,7 +217,7 @@ export function trackLinkClick(
         categoryId: categoryId || undefined,
         source,
         visitorWallet: visitorWallet || undefined,
-        referrer: window.document.referrer || null,
+        referrer: getSafeReferrer(),
         utmSource,
         utmMedium,
         utmCampaign,

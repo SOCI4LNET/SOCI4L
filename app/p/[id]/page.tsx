@@ -84,7 +84,7 @@ interface WalletData {
 export default function ProfilePage({ params }: PageProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { address: connectedAddress } = useAccount()
+  const { address: connectedAddress, status, isReconnecting } = useAccount()
   const [walletData, setWalletData] = useState<WalletData | null>(null)
   const [profileStatus, setProfileStatus] = useState<'UNCLAIMED' | 'CLAIMED+PUBLIC' | 'CLAIMED+PRIVATE'>('UNCLAIMED')
   const [profile, setProfile] = useState<{
@@ -371,10 +371,9 @@ export default function ProfilePage({ params }: PageProps) {
       return
     }
 
-    // 3. Status Check: Wait for wallet connection to stabilize (max 2s wait via subsequent effect runs or timeouts)
-    // If status is 'connecting' or 'reconnecting', we wait for it to settle to 'connected' or 'disconnected'
-    // to ensure we capture the visitor wallet if it's there.
-    if (status === 'connecting' || status === 'reconnecting') {
+    // 3. Status Check: Wait for wallet connection to stabilize
+    // If status is 'connecting' or 'reconnecting', we wait for it to settle
+    if (status === 'connecting' || status === 'reconnecting' || isReconnecting) {
       return
     }
 
@@ -387,17 +386,20 @@ export default function ProfilePage({ params }: PageProps) {
       return
     }
 
-    trackProfileView(stableProfileId, source, connectedAddress || undefined)
+    // If anonymous, wait a bit (500ms) to see if identity is gained before sending
+    // This prevents the flickering "Anonymous" then "Wallet" entries in Activity Feed
+    if (!connectedAddress) {
+      const timer = setTimeout(() => {
+        trackProfileView(stableProfileId, source)
+        trackedProfileIdRef.current = currentTrackKey
+      }, 800)
+      return () => clearTimeout(timer)
+    }
 
-    // Mark as tracked for this profile ID to prevent double invoke
-    // Note: If they connect or disconnect later, we've already tracked 'this' session.
-    // If they were anonymous and then connect, 'status' change above will trigger this again,
-    // so we need a more sophisticated guard if we want to allow "re-tracking" with identity.
-
-    // For now, let's allow re-tracking if connectedAddress was previously null and now it's not.
-    // We'll store what we tracked in the ref.
+    // If we have an address, track immediately
+    trackProfileView(stableProfileId, source, connectedAddress)
     trackedProfileIdRef.current = currentTrackKey
-  }, [stableProfileId, searchParams, connectedAddress, status])
+  }, [stableProfileId, searchParams, connectedAddress, status, isReconnecting])
 
 
 
