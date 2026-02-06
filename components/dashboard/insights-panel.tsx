@@ -5,30 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Activity, BarChart2, Clock, Lightbulb, ArrowRight, Share2, TrendingUp, Eye, MousePointerClick, Copy, User, Link as LinkIcon } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip as RechartsTooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts'
-
 import { PageShell } from '@/components/app-shell/page-shell'
-import {
-  CustomTooltip,
-  chartAxisProps,
-  chartGridProps,
-  chartBarProps,
-  chartLineProps,
-} from '@/components/insights/chart-theme'
 import { SectionHeader } from '@/components/insights/section-header'
 import { KpiCard } from '@/components/insights/kpi-card'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -403,60 +380,6 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
     }
   }
 
-  // Prepare chart data from analytics
-  const chartData = useMemo(() => {
-    const sourceData = [
-      ...Object.entries(analytics.sourceBreakdown)
-        .filter(([source, count]) => count > 0)
-        .map(([source, count]) => ({
-          name: source === 'profile' ? 'Direct'
-            : source === 'qr' ? 'QR Code'
-              : source === 'copy' ? 'Ref Link'
-                : source === 'extension' ? 'Extension'
-                  : 'Direct/Unknown',
-          value: count,
-        })),
-      ...analytics.topReferrers.map(ref => ({
-        name: (() => {
-          try {
-            return ref.name.startsWith('http') ? new URL(ref.name).hostname : ref.name
-          } catch {
-            return ref.name
-          }
-        })(),
-        value: ref.count,
-      }))
-    ]
-
-    // Group by name to avoid duplicates
-    const groupedData = new Map<string, number>()
-    sourceData.forEach(item => {
-      groupedData.set(item.name, (groupedData.get(item.name) || 0) + item.value)
-    })
-
-    const finalSourceData = Array.from(groupedData.entries())
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 5)
-
-    const categoryChartData = analytics.categoryRows
-      .filter((row) => row.totalClicks > 0)
-      .slice(0, 5)
-      .map((row) => ({
-        name: row.name,
-        clicks: row.totalClicks,
-        share: Math.round(row.percentageShare * 100),
-      }))
-
-    // Show empty state IF no views at all
-    const shouldShowSourceEmptyState = analytics.totalProfileViews === 0
-
-    return {
-      sourceData: finalSourceData,
-      categoryChartData,
-      shouldShowSourceEmptyState,
-    }
-  }, [analytics])
 
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--primary)) / 0.8', 'hsl(var(--primary)) / 0.6', 'hsl(var(--primary)) / 0.4', 'hsl(var(--primary)) / 0.2']
 
@@ -660,92 +583,6 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
           </CardContent>
         </Card>
 
-        {/* 2. CHARTS & TRENDS */}
-        <section className="space-y-4">
-          <SectionHeader
-            title="Charts & Trends"
-            description="Visual analytics and performance trends"
-          />
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Profile Views Source Breakdown Chart */}
-            <Card className="bg-card border border-border/60 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Profile Views by Source</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0 min-h-[220px] flex items-center justify-center">
-                {chartData.shouldShowSourceEmptyState ? (
-                  <div className="flex flex-col items-center justify-center text-center gap-2 w-full">
-                    <Activity className="h-10 w-10 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium mb-1">Some traffic sources may be unavailable</p>
-                      <p className="text-xs text-muted-foreground">
-                        {analytics.totalProfileViews === 0
-                          ? 'Share your profile to start collecting analytics'
-                          : 'Source tracking will appear here once available.'}
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-transparent w-full">
-                    <ResponsiveContainer width="100%" height={260}>
-                      <BarChart data={chartData.sourceData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                        <CartesianGrid {...chartGridProps} />
-                        <XAxis
-                          dataKey="name"
-                          {...chartAxisProps}
-                        />
-                        <YAxis
-                          {...chartAxisProps}
-                        />
-                        <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--foreground))', fillOpacity: 0.04 }} />
-                        <Bar dataKey="value" fill="hsl(var(--primary))" {...chartBarProps} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Category Performance Chart */}
-            <Card className="bg-card border border-border/60 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Category Performance</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0 min-h-[220px] flex items-center justify-center">
-                {!analytics.hasAnyLinkClicksEver || chartData.categoryChartData.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center text-center gap-2 w-full">
-                    <BarChart2 className="h-10 w-10 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium mb-1">No category data</p>
-                      <p className="text-xs text-muted-foreground">
-                        {analytics.hasAnyLinkClicksEver
-                          ? 'No clicks in the selected time range'
-                          : 'Share your profile to start collecting clicks'}
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-transparent w-full">
-                    <ResponsiveContainer width="100%" height={260}>
-                      <BarChart data={chartData.categoryChartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                        <CartesianGrid {...chartGridProps} />
-                        <XAxis
-                          dataKey="name"
-                          {...chartAxisProps}
-                        />
-                        <YAxis
-                          {...chartAxisProps}
-                        />
-                        <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--foreground))', fillOpacity: 0.04 }} />
-                        <Bar dataKey="clicks" fill="hsl(var(--primary))" {...chartBarProps} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </section>
 
         {/* 3. PERFORMANCE BREAKDOWNS */}
         <section className="space-y-4">
