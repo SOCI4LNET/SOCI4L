@@ -2,7 +2,7 @@
 
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Download, Check, X, ShieldAlert, Copy, Sparkles, MoreVertical, FileImage, FileCode, ArrowUpRight, LayoutDashboard } from 'lucide-react'
+import { ArrowRight, Download, Check, X, ShieldAlert, Copy, Sparkles, MoreVertical, FileImage, FileCode, ArrowUpRight, LayoutDashboard, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -13,6 +13,8 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { useState } from "react"
 
 export default function BrandPage() {
     const container = {
@@ -264,147 +266,160 @@ export default function BrandPage() {
                                 </div>
                             </div>
 
-                            {/* Type Scale & Hierarchy */}
-                            <div className="rounded-3xl border border-border/50 bg-card overflow-hidden">
-                                <div className="p-8 border-b border-border/10 bg-muted/20">
-                                    <h3 className="text-lg font-medium">Type Hierarchy (Web)</h3>
-                                    <p className="text-sm text-muted-foreground mt-1">Global font sizes for landing pages and dashboard.</p>
+                            {/* Type Scale & Hierarchy - Collapsible */}
+                            <Collapsible
+                                open={isTypeHierarchyOpen}
+                                onOpenChange={setIsTypeHierarchyOpen}
+                                className="rounded-3xl border border-border/50 bg-card overflow-hidden transition-all duration-300"
+                            >
+                                <div className="p-8 border-b border-border/10 bg-muted/20 flex justify-between items-center sticky top-0 z-10">
+                                    <div>
+                                        <h3 className="text-lg font-medium">Type Hierarchy (Web)</h3>
+                                        <p className="text-sm text-muted-foreground mt-1">Global font sizes for landing pages and dashboard.</p>
+                                    </div>
+                                    <CollapsibleTrigger asChild>
+                                        <Button variant="ghost" size="sm" className="w-9 p-0 hover:bg-black/5 hover:text-foreground">
+                                            <ChevronDown className={cn("h-4 w-4 transition-transform duration-200", isTypeHierarchyOpen ? "rotate-180" : "")} />
+                                            <span className="sr-only">Toggle</span>
+                                        </Button>
+                                    </CollapsibleTrigger>
                                 </div>
-                                <div className="divide-y divide-border/10">
+                                <CollapsibleContent>
+                                    <div className="divide-y divide-border/10">
 
-                                    {/* H1 */}
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-8 items-center hover:bg-muted/10 transition-colors">
-                                        <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
-                                            <div className="font-bold text-foreground">H1 Display</div>
-                                            <div>text-4xl (MD) / text-3xl (SM)</div>
-                                            <div className="opacity-60">36px / 30px</div>
-                                            <div className="text-brand-500 mt-2">Weight: Semibold (600)</div>
+                                        {/* H1 */}
+                                        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-8 items-center hover:bg-muted/10 transition-colors">
+                                            <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
+                                                <div className="font-bold text-foreground">H1 Display</div>
+                                                <div>text-4xl (MD) / text-3xl (SM)</div>
+                                                <div className="opacity-60">36px / 30px</div>
+                                                <div className="text-brand-500 mt-2">Weight: Semibold (600)</div>
+                                            </div>
+                                            <div className="md:col-span-9">
+                                                <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
+                                                    Turn your Avalanche wallet into a measurable public identity.
+                                                </h1>
+                                            </div>
                                         </div>
-                                        <div className="md:col-span-9">
-                                            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
-                                                Turn your Avalanche wallet into a measurable public identity.
-                                            </h1>
-                                        </div>
-                                    </div>
 
-                                    {/* H2 */}
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-8 items-center hover:bg-muted/10 transition-colors">
-                                        <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
-                                            <div className="font-bold text-foreground">H2 Section</div>
-                                            <div>text-3xl (MD) / text-2xl (SM)</div>
-                                            <div className="opacity-60">30px / 24px</div>
-                                            <div className="text-brand-500 mt-2">Weight: Semibold (600)</div>
+                                        {/* H2 */}
+                                        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-8 items-center hover:bg-muted/10 transition-colors">
+                                            <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
+                                                <div className="font-bold text-foreground">H2 Section</div>
+                                                <div>text-3xl (MD) / text-2xl (SM)</div>
+                                                <div className="opacity-60">30px / 24px</div>
+                                                <div className="text-brand-500 mt-2">Weight: Semibold (600)</div>
+                                            </div>
+                                            <div className="md:col-span-9">
+                                                <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
+                                                    Everything you need to grow on-chain.
+                                                </h2>
+                                            </div>
                                         </div>
-                                        <div className="md:col-span-9">
-                                            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
-                                                Everything you need to grow on-chain.
-                                            </h2>
-                                        </div>
-                                    </div>
 
-                                    {/* H3 */}
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-8 items-center hover:bg-muted/10 transition-colors">
-                                        <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
-                                            <div className="font-bold text-foreground">H3 Card Title</div>
-                                            <div>text-xl</div>
-                                            <div className="opacity-60">20px</div>
-                                            <div className="text-brand-500 mt-2">Weight: Semibold (600)</div>
+                                        {/* H3 */}
+                                        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-8 items-center hover:bg-muted/10 transition-colors">
+                                            <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
+                                                <div className="font-bold text-foreground">H3 Card Title</div>
+                                                <div>text-xl</div>
+                                                <div className="opacity-60">20px</div>
+                                                <div className="text-brand-500 mt-2">Weight: Semibold (600)</div>
+                                            </div>
+                                            <div className="md:col-span-9">
+                                                <h3 className="text-xl font-semibold">
+                                                    Smart Contract Verification
+                                                </h3>
+                                            </div>
                                         </div>
-                                        <div className="md:col-span-9">
-                                            <h3 className="text-xl font-semibold">
-                                                Smart Contract Verification
-                                            </h3>
-                                        </div>
-                                    </div>
 
-                                    {/* Body Lead */}
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-8 items-center hover:bg-muted/10 transition-colors">
-                                        <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
-                                            <div className="font-bold text-foreground">Body Large</div>
-                                            <div>text-base</div>
-                                            <div className="opacity-60">16px</div>
-                                            <div className="text-brand-500 mt-2">Weight: Regular (400)</div>
+                                        {/* Body Lead */}
+                                        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-8 items-center hover:bg-muted/10 transition-colors">
+                                            <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
+                                                <div className="font-bold text-foreground">Body Large</div>
+                                                <div>text-base</div>
+                                                <div className="opacity-60">16px</div>
+                                                <div className="text-brand-500 mt-2">Weight: Regular (400)</div>
+                                            </div>
+                                            <div className="md:col-span-9">
+                                                <p className="text-base text-muted-foreground">
+                                                    Showcase on-chain assets, add links, and share everything as one public page with full control and built-in insights.
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div className="md:col-span-9">
-                                            <p className="text-base text-muted-foreground">
-                                                Showcase on-chain assets, add links, and share everything as one public page with full control and built-in insights.
-                                            </p>
-                                        </div>
-                                    </div>
 
-                                    {/* Body Default */}
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-8 items-center hover:bg-muted/10 transition-colors">
-                                        <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
-                                            <div className="font-bold text-foreground">Body Default</div>
-                                            <div>text-sm</div>
-                                            <div className="opacity-60">14px</div>
-                                            <div className="text-brand-500 mt-2">Weight: Regular (400)</div>
+                                        {/* Body Default */}
+                                        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-8 items-center hover:bg-muted/10 transition-colors">
+                                            <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
+                                                <div className="font-bold text-foreground">Body Default</div>
+                                                <div>text-sm</div>
+                                                <div className="opacity-60">14px</div>
+                                                <div className="text-brand-500 mt-2">Weight: Regular (400)</div>
+                                            </div>
+                                            <div className="md:col-span-9">
+                                                <p className="text-sm text-muted-foreground">
+                                                    Standard text used for descriptions, card content, and general UI elements.
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div className="md:col-span-9">
-                                            <p className="text-sm text-muted-foreground">
-                                                Standard text used for descriptions, card content, and general UI elements.
-                                            </p>
-                                        </div>
-                                    </div>
 
-                                    {/* Caption / Label */}
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-8 items-center hover:bg-muted/10 transition-colors">
-                                        <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
-                                            <div className="font-bold text-foreground">Caption / Label</div>
-                                            <div>text-xs</div>
-                                            <div className="opacity-60">12px</div>
-                                            <div className="text-brand-500 mt-2">Weight: Medium (500)</div>
-                                        </div>
-                                        <div className="md:col-span-9">
-                                            <div className="flex gap-4">
-                                                <span className="text-xs text-muted-foreground uppercase tracking-widest">Uppercase Label</span>
-                                                <span className="text-xs font-medium px-2 py-1 bg-muted rounded">Badge Text</span>
+                                        {/* Caption / Label */}
+                                        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-8 items-center hover:bg-muted/10 transition-colors">
+                                            <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
+                                                <div className="font-bold text-foreground">Caption / Label</div>
+                                                <div>text-xs</div>
+                                                <div className="opacity-60">12px</div>
+                                                <div className="text-brand-500 mt-2">Weight: Medium (500)</div>
+                                            </div>
+                                            <div className="md:col-span-9">
+                                                <div className="flex gap-4">
+                                                    <span className="text-xs text-muted-foreground uppercase tracking-widest">Uppercase Label</span>
+                                                    <span className="text-xs font-medium px-2 py-1 bg-muted rounded">Badge Text</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Spacing Guide */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="p-8 rounded-3xl border border-border/50 bg-card">
-                                    <div className="flex items-center gap-2 mb-6">
-                                        <ArrowUpRight className="w-5 h-5 text-brand-500" />
-                                        <h3 className="font-medium">Headings Spacing</h3>
-                                    </div>
-                                    <div className="bg-muted/30 rounded-xl p-6 border border-border/50 space-y-2 relative">
-                                        <div className="h-4 w-32 bg-brand-500/20 rounded"></div>
-                                        {/* Spacing indicator */}
-                                        <div className="h-3 w-full flex items-center justify-center">
-                                            <div className="h-px bg-red-400 w-full relative">
-                                                <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] text-red-500 font-mono">12px (space-y-3)</span>
+                                {/* Spacing Guide */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="p-8 rounded-3xl border border-border/50 bg-card">
+                                        <div className="flex items-center gap-2 mb-6">
+                                            <ArrowUpRight className="w-5 h-5 text-brand-500" />
+                                            <h3 className="font-medium">Headings Spacing</h3>
+                                        </div>
+                                        <div className="bg-muted/30 rounded-xl p-6 border border-border/50 space-y-2 relative">
+                                            <div className="h-4 w-32 bg-brand-500/20 rounded"></div>
+                                            {/* Spacing indicator */}
+                                            <div className="h-3 w-full flex items-center justify-center">
+                                                <div className="h-px bg-red-400 w-full relative">
+                                                    <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] text-red-500 font-mono">12px (space-y-3)</span>
+                                                </div>
                                             </div>
+                                            <div className="h-2 w-full bg-zinc-500/20 rounded"></div>
+                                            <div className="h-2 w-4/5 bg-zinc-500/20 rounded"></div>
                                         </div>
-                                        <div className="h-2 w-full bg-zinc-500/20 rounded"></div>
-                                        <div className="h-2 w-4/5 bg-zinc-500/20 rounded"></div>
+                                        <p className="text-xs text-muted-foreground mt-4">
+                                            Standard vertical spacing between Headings and Description text is <strong>12px</strong> (`space-y-3` or `gap-3`).
+                                        </p>
                                     </div>
-                                    <p className="text-xs text-muted-foreground mt-4">
-                                        Standard vertical spacing between Headings and Description text is <strong>12px</strong> (`space-y-3` or `gap-3`).
-                                    </p>
-                                </div>
 
-                                <div className="p-8 rounded-3xl border border-border/50 bg-card">
-                                    <div className="flex items-center gap-2 mb-6">
-                                        <LayoutDashboard className="w-5 h-5 text-brand-500" />
-                                        <h3 className="font-medium">Section Spacing</h3>
-                                    </div>
-                                    <div className="space-y-8 bg-muted/10 p-6 rounded-xl border border-dashed border-border/50">
-                                        <div className="h-8 bg-card border border-border rounded flex items-center justify-center text-[10px] text-muted-foreground">Section A</div>
-                                        <div className="h-8 flex items-center justify-center">
-                                            <span className="text-xs font-mono text-brand-500">gap-24 (96px)</span>
+                                    <div className="p-8 rounded-3xl border border-border/50 bg-card">
+                                        <div className="flex items-center gap-2 mb-6">
+                                            <LayoutDashboard className="w-5 h-5 text-brand-500" />
+                                            <h3 className="font-medium">Section Spacing</h3>
                                         </div>
-                                        <div className="h-8 bg-card border border-border rounded flex items-center justify-center text-[10px] text-muted-foreground">Section B</div>
+                                        <div className="space-y-8 bg-muted/10 p-6 rounded-xl border border-dashed border-border/50">
+                                            <div className="h-8 bg-card border border-border rounded flex items-center justify-center text-[10px] text-muted-foreground">Section A</div>
+                                            <div className="h-8 flex items-center justify-center">
+                                                <span className="text-xs font-mono text-brand-500">gap-24 (96px)</span>
+                                            </div>
+                                            <div className="h-8 bg-card border border-border rounded flex items-center justify-center text-[10px] text-muted-foreground">Section B</div>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground mt-4">
+                                            Major sections on landing pages are separated by <strong>96px</strong> (`gap-24` or `py-24`) to give content room to breathe.
+                                        </p>
                                     </div>
-                                    <p className="text-xs text-muted-foreground mt-4">
-                                        Major sections on landing pages are separated by <strong>96px</strong> (`gap-24` or `py-24`) to give content room to breathe.
-                                    </p>
                                 </div>
-                            </div>
                         </div>
                     </section>
 
