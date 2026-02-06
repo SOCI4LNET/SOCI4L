@@ -143,120 +143,103 @@ export default function BrandPage() {
                     <section>
                         <SectionHeader number="03" title="Color Architecture" />
 
-                        {/* Primary Brand Color */}
-                        <div className="mb-16">
-                            <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-6">Core Identity</h3>
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                <ColorCard
-                                    name="Brand Blue (Main)"
-                                    hex="#2845D6"
-                                    bg="bg-brand-500"
-                                    text="text-white"
-                                />
-                                <div className="lg:col-span-2 p-8 rounded-3xl border border-border/50 bg-card">
-                                    <div className="flex justify-between items-end mb-6">
-                                        <h4 className="font-medium">Primary Scale</h4>
-                                        <span className="text-xs text-muted-foreground/60">Used for borders, backgrounds, and shadows</span>
-                                    </div>
-                                    <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
-                                        <PaletteChip shade="50" hex="#F5F7FF" color="bg-brand-50" text="text-brand-900" />
-                                        <PaletteChip shade="100" hex="#E6EBFF" color="bg-brand-100" text="text-brand-900" />
-                                        <PaletteChip shade="200" hex="#CEDBFF" color="bg-brand-200" text="text-brand-900" />
-                                        <PaletteChip shade="300" hex="#9EB6FF" color="bg-brand-300" text="text-brand-900" />
-                                        <PaletteChip shade="400" hex="#5C7CFF" color="bg-brand-400" text="text-white" />
-                                        <PaletteChip shade="500" hex="#2845D6" color="bg-brand-500" text="text-white" label="Main" />
-                                        <PaletteChip shade="600" hex="#1E34A8" color="bg-brand-600" text="text-white" />
-                                        <PaletteChip shade="700" hex="#16267D" color="bg-brand-700" text="text-white" />
-                                        <PaletteChip shade="800" hex="#101B59" color="bg-brand-800" text="text-white" />
-                                        <PaletteChip shade="900" hex="#0A1138" color="bg-brand-900" text="text-white" />
-                                    </div>
+                        <div className="space-y-16">
+                            {/* Core Identity */}
+                            <div>
+                                <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-6">Core Identity</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                    <ColorCard
+                                        name="Brand Blue (Main)"
+                                        hex="#2845D6"
+                                        bg="bg-brand-500"
+                                        text="text-white"
+                                    />
+                                    <ColorCard
+                                        name="Dark Surface"
+                                        hex="#0A0A0A"
+                                        bg="bg-[#0A0A0A]"
+                                        text="text-white"
+                                        border="border-white/10"
+                                    />
+                                    <ColorCard
+                                        name="Light Surface"
+                                        hex="#FAFAFA"
+                                        bg="bg-[#FAFAFA]"
+                                        text="text-black"
+                                        border="border-black/5"
+                                    />
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Semantic Colors */}
-                        <div className="mb-16">
-                            <div className="flex items-center gap-3 mb-6">
-                                <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">Semantic & Semantic States</h3>
-                                <div className="h-px flex-1 bg-border/20" />
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                {/* Destructive */}
-                                <div className="p-3 rounded-2xl border border-border/50 bg-card flex items-center justify-between group">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-destructive flex items-center justify-center text-white">
-                                            <X className="w-5 h-5" />
-                                        </div>
-                                        <div>
-                                            <div className="text-xs font-semibold">Destructive</div>
-                                            <div className="text-[10px] font-mono opacity-50">#EF4444</div>
-                                        </div>
-                                    </div>
-                                    <div className="text-[10px] font-mono px-2 py-0.5 rounded bg-destructive/10 text-destructive opacity-0 group-hover:opacity-100 transition-opacity">Copy</div>
+                            {/* Primary Scale */}
+                            <div className="p-8 rounded-3xl border border-border/50 bg-card">
+                                <div className="flex justify-between items-end mb-6">
+                                    <h4 className="font-medium">Primary Scale</h4>
+                                    <span className="text-xs text-muted-foreground/60">Used for borders, backgrounds, and shadows</span>
                                 </div>
-
-                                {/* Success */}
-                                <div className="p-3 rounded-2xl border border-border/50 bg-card flex items-center justify-between group">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-green-600 flex items-center justify-center text-white">
-                                            <CheckCircle className="w-5 h-5" />
-                                        </div>
-                                        <div>
-                                            <div className="text-xs font-semibold">Success</div>
-                                            <div className="text-[10px] font-mono opacity-50">#16A34A</div>
-                                        </div>
-                                    </div>
-                                    <div className="text-[10px] font-mono px-2 py-0.5 rounded bg-green-600/10 text-green-600 opacity-0 group-hover:opacity-100 transition-opacity">Copy</div>
-                                </div>
-
-                                {/* Warning */}
-                                <div className="p-3 rounded-2xl border border-border/50 bg-card flex items-center justify-between group">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center text-white">
-                                            <ShieldAlert className="w-5 h-5" />
-                                        </div>
-                                        <div>
-                                            <div className="text-xs font-semibold">Warning</div>
-                                            <div className="text-[10px] font-mono opacity-50">#F59E0B</div>
-                                        </div>
-                                    </div>
-                                    <div className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity">Copy</div>
-                                </div>
-
-                                {/* Info */}
-                                <div className="p-3 rounded-2xl border border-border/50 bg-card flex items-center justify-between group">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center text-white">
-                                            <Sparkles className="w-5 h-5" />
-                                        </div>
-                                        <div>
-                                            <div className="text-xs font-semibold">Information</div>
-                                            <div className="text-[10px] font-mono opacity-50">#3B82F6</div>
-                                        </div>
-                                    </div>
-                                    <div className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">Copy</div>
+                                <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
+                                    <PaletteChip shade="50" hex="#F5F7FF" color="bg-brand-50" text="text-brand-900" />
+                                    <PaletteChip shade="100" hex="#E6EBFF" color="bg-brand-100" text="text-brand-900" />
+                                    <PaletteChip shade="200" hex="#CEDBFF" color="bg-brand-200" text="text-brand-900" />
+                                    <PaletteChip shade="300" hex="#9EB6FF" color="bg-brand-300" text="text-brand-900" />
+                                    <PaletteChip shade="400" hex="#5C7CFF" color="bg-brand-400" text="text-white" />
+                                    <PaletteChip shade="500" hex="#2845D6" color="bg-brand-500" text="text-white" label="Main" />
+                                    <PaletteChip shade="600" hex="#1E34A8" color="bg-brand-600" text="text-white" />
+                                    <PaletteChip shade="700" hex="#16267D" color="bg-brand-700" text="text-white" />
+                                    <PaletteChip shade="800" hex="#101B59" color="bg-brand-800" text="text-white" />
+                                    <PaletteChip shade="900" hex="#0A1138" color="bg-brand-900" text="text-white" />
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Surfaces */}
-                        <div className="mb-0">
-                            <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-6">Core Surfaces</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                <ColorCard
-                                    name="Dark Surface"
-                                    hex="#0A0A0A"
-                                    bg="bg-[#0A0A0A]"
-                                    text="text-white"
-                                    border="border-white/10"
-                                />
-                                <ColorCard
-                                    name="Light Surface"
-                                    hex="#FAFAFA"
-                                    bg="bg-[#FAFAFA]"
-                                    text="text-black"
-                                    border="border-black/5"
-                                />
+                            {/* Semantic Colors */}
+                            <div>
+                                <div className="flex items-center gap-3 mb-6">
+                                    <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">Semantic & Semantic States</h3>
+                                    <div className="h-px flex-1 bg-border/20" />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    {/* Destructive */}
+                                    <div className="p-3 rounded-2xl border border-border/50 bg-card flex items-center justify-between group">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-destructive flex items-center justify-center text-white">
+                                                <X className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <div className="text-xs font-semibold">Destructive</div>
+                                                <div className="text-[10px] font-mono opacity-50">#EF4444</div>
+                                            </div>
+                                        </div>
+                                        <div className="text-[10px] font-mono px-2 py-0.5 rounded bg-destructive/10 text-destructive opacity-0 group-hover:opacity-100 transition-opacity">Copy</div>
+                                    </div>
+
+                                    {/* Success */}
+                                    <div className="p-3 rounded-2xl border border-border/50 bg-card flex items-center justify-between group">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-green-600 flex items-center justify-center text-white">
+                                                <CheckCircle className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <div className="text-xs font-semibold">Success</div>
+                                                <div className="text-[10px] font-mono opacity-50">#16A34A</div>
+                                            </div>
+                                        </div>
+                                        <div className="text-[10px] font-mono px-2 py-0.5 rounded bg-green-600/10 text-green-600 opacity-0 group-hover:opacity-100 transition-opacity">Copy</div>
+                                    </div>
+
+                                    {/* Warning */}
+                                    <div className="p-3 rounded-2xl border border-border/50 bg-card flex items-center justify-between group">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center text-white">
+                                                <ShieldAlert className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <div className="text-xs font-semibold">Warning</div>
+                                                <div className="text-[10px] font-mono opacity-50">#F59E0B</div>
+                                            </div>
+                                        </div>
+                                        <div className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity">Copy</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -482,8 +465,8 @@ export default function BrandPage() {
                                 <div className="space-y-6">
                                     <h3 className="text-xl font-semibold">The Brand Name</h3>
                                     <p className="text-muted-foreground leading-relaxed">
-                                        Our name is always written in uppercase with a numeric "4" replacing the "I".
-                                        This reflects our roots in Web4 and on-chain intelligence.
+                                        Our name is always written in uppercase with a numeric "4" replacing the "A".
+                                        This reflects our roots in Web3 and on-chain intelligence.
                                     </p>
                                     <div className="p-6 rounded-3xl border border-border/50 bg-muted/20 inline-block font-mono text-4xl tracking-tighter">
                                         SOCI<span className="text-brand-500">4</span>L
