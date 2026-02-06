@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Links must be an array' }, { status: 400 })
     }
 
-    const normalizedAddress = address.toLowerCase()
+    // normalizedAddress is already declared above
 
     // Find or create profile
     let profile = await prisma.profile.findUnique({
@@ -250,6 +250,10 @@ export async function POST(request: NextRequest) {
       } else {
         defaultCategory = checkDefault
       }
+    }
+
+    if (!defaultCategory) {
+      throw new Error('Failed to retrieve or create default category')
     }
 
     // Validate links
