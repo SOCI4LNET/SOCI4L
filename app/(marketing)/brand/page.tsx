@@ -477,16 +477,16 @@ export default function BrandPage() {
                                     <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">Product Naming Structure</h3>
                                     <div className="space-y-4">
                                         {[
-                                            { product: "SOCI4L ID", desc: "Core identity protocol and profile pages." },
-                                            { product: "SOCI4L Insights", desc: "Analytics and link tracking dashboard." },
-                                            { product: "SOCI4L Radar", desc: "Real-time on-chain social activity tracking." }
+                                            { product: "SOCI4L Profile", desc: "On-chain identity and public profile pages." },
+                                            { product: "SOCI4L Analytics", desc: "Link tracking and engagement insights." },
+                                            { product: "SOCI4L Verify", desc: "Social account verification and linking." }
                                         ].map((item, i) => (
-                                            <div key={i} className="flex items-start gap-4 p-4 rounded-2xl border border-border/20 hover:border-brand-500/30 transition-colors group">
-                                                <div className="h-8 w-8 rounded-lg bg-brand-500/10 flex items-center justify-center text-brand-500 shrink-0 font-bold text-xs ring-1 ring-brand-500/20">
+                                            <div key={i} className="flex items-start gap-4 p-4 rounded-2xl border border-border/50 bg-card hover:border-border transition-colors group">
+                                                <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center text-foreground shrink-0 font-bold text-xs">
                                                     {i + 1}
                                                 </div>
                                                 <div>
-                                                    <div className="font-semibold group-hover:text-brand-500 transition-colors">{item.product}</div>
+                                                    <div className="font-semibold">{item.product}</div>
                                                     <div className="text-sm text-muted-foreground mt-0.5">{item.desc}</div>
                                                 </div>
                                             </div>
@@ -506,17 +506,17 @@ export default function BrandPage() {
                                             Correct Usage
                                         </div>
                                         <ul className="space-y-4">
-                                            <li className="flex items-center justify-between p-4 rounded-xl border border-green-600/10 bg-green-600/5">
+                                            <li className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-card">
                                                 <span className="font-semibold">SOCI4L</span>
-                                                <span className="text-[10px] font-mono text-green-600/60">Primary Brand</span>
+                                                <span className="text-[10px] font-mono text-muted-foreground">Primary Brand</span>
                                             </li>
-                                            <li className="flex items-center justify-between p-4 rounded-xl border border-green-600/10 bg-green-600/5">
-                                                <span className="font-semibold">SOCI4L ID</span>
-                                                <span className="text-[10px] font-mono text-green-600/60">With Space</span>
+                                            <li className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-card">
+                                                <span className="font-semibold">SOCI4L Profile</span>
+                                                <span className="text-[10px] font-mono text-muted-foreground">With Space</span>
                                             </li>
-                                            <li className="flex items-center justify-between p-4 rounded-xl border border-green-600/10 bg-green-600/5">
+                                            <li className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-card">
                                                 <span className="font-semibold text-muted-foreground/40 italic">the</span> <span className="font-semibold">SOCI4L</span> <span className="font-semibold text-muted-foreground/40 italic">ecosystem</span>
-                                                <span className="text-[10px] font-mono text-green-600/60">Lowercase prefix</span>
+                                                <span className="text-[10px] font-mono text-muted-foreground">Lowercase prefix</span>
                                             </li>
                                         </ul>
                                     </div>
@@ -530,17 +530,26 @@ export default function BrandPage() {
                                             Incorrect Usage
                                         </div>
                                         <ul className="space-y-4">
-                                            <li className="flex items-center justify-between p-4 rounded-xl border border-destructive/10 bg-destructive/5 line-through opacity-60">
-                                                <span className="font-semibold">SOCIAL</span>
-                                                <span className="text-[10px] font-mono text-destructive/60">No "I"</span>
+                                            <li className="flex items-center justify-between p-4 rounded-xl border border-destructive/20 bg-destructive/5 relative">
+                                                <span className="font-semibold opacity-50">SOCIAL</span>
+                                                <span className="text-[10px] font-mono text-destructive">No "4"</span>
+                                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                    <div className="w-full h-[2px] bg-destructive/40" />
+                                                </div>
                                             </li>
-                                            <li className="flex items-center justify-between p-4 rounded-xl border border-destructive/10 bg-destructive/5 line-through opacity-60">
-                                                <span className="font-semibold text-brand-500 italic">SOCI4LID</span>
-                                                <span className="text-[10px] font-mono text-destructive/60">No Space</span>
+                                            <li className="flex items-center justify-between p-4 rounded-xl border border-destructive/20 bg-destructive/5 relative">
+                                                <span className="font-semibold opacity-50">SOCI4LProfile</span>
+                                                <span className="text-[10px] font-mono text-destructive">No Space</span>
+                                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                    <div className="w-full h-[2px] bg-destructive/40" />
+                                                </div>
                                             </li>
-                                            <li className="flex items-center justify-between p-4 rounded-xl border border-destructive/10 bg-destructive/5 line-through opacity-60">
-                                                <span className="font-semibold">soci4l</span>
-                                                <span className="text-[10px] font-mono text-destructive/60">Lowercase</span>
+                                            <li className="flex items-center justify-between p-4 rounded-xl border border-destructive/20 bg-destructive/5 relative">
+                                                <span className="font-semibold opacity-50">soci4l</span>
+                                                <span className="text-[10px] font-mono text-destructive">Lowercase</span>
+                                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                    <div className="w-full h-[2px] bg-destructive/40" />
+                                                </div>
                                             </li>
                                         </ul>
                                     </div>
