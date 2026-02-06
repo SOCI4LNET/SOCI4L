@@ -2,7 +2,7 @@
 
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Download, Check, X, ShieldAlert, Copy } from 'lucide-react'
+import { ArrowRight, Download, Check, X, ShieldAlert, Copy, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -314,7 +314,7 @@ export default function BrandPage() {
                                 >
                                     <div className="flex gap-2">
                                         <div className="px-3 py-1 bg-white text-black text-xs font-medium rounded">Correct</div>
-                                        <div className="px-3 py-1 bg-white text-blue-600 text-xs font-medium rounded border border-blue-200/20 opacity-50 relative overflow-hidden">
+                                        <div className="px-3 py-1 bg-white text-zinc-300 text-xs font-medium rounded border border-zinc-200/20 opacity-50 relative overflow-hidden">
                                             <div className="absolute inset-0 flex items-center justify-center">
                                                 <div className="w-full h-px bg-red-500 rotate-12" />
                                             </div>
@@ -329,7 +329,7 @@ export default function BrandPage() {
                                     description="Use Brand Blue (#2845D6) ONLY for special 'Magic' actions or highlights."
                                 >
                                     <Button size="sm" className="bg-brand-500 text-white hover:bg-brand-600 h-8 text-xs">
-                                        ✨ Special
+                                        <Sparkles className="w-3 h-3 mr-2" /> Special
                                     </Button>
                                 </ButtonRuleCard>
 
