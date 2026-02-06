@@ -17,16 +17,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useState } from "react"
 
 export default function BrandPage() {
-    const container = {
-        hidden: { opacity: 0 },
-        show: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1
-            }
-        }
-    }
-
     const [isTypeHierarchyOpen, setIsTypeHierarchyOpen] = useState(false)
 
     return (
@@ -49,9 +39,8 @@ export default function BrandPage() {
                 </motion.div>
 
                 <motion.div
-                    variants={container}
-                    initial="hidden"
-                    animate="show"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     className="space-y-32"
                 >
 
