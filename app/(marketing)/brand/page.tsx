@@ -79,9 +79,9 @@ export default function BrandPage() {
                             <h3 className="text-lg font-medium mb-12 text-center md:text-left">Clearspace & Safe Zones</h3>
                             <div className="flex flex-col items-center justify-center py-12">
                                 <div className="relative inline-flex items-center justify-center">
-                                    {/* Safe Zone Box - Calculated as 50% of width padding */}
-                                    <div className="absolute -inset-[60px] border border-brand-500/30 border-dashed rounded-xl bg-brand-500/5">
-                                        <div className="absolute top-0 left-0 w-[60px] h-[60px] flex items-center justify-center border-r border-b border-brand-500/20">
+                                    {/* Safe Zone Box - Calculated as Spacing between Icon & Text (~44% width of 120px = ~53px) */}
+                                    <div className="absolute -inset-[53px] border border-brand-500/30 border-dashed rounded-xl bg-brand-500/5">
+                                        <div className="absolute top-0 left-0 w-[53px] h-[53px] flex items-center justify-center border-r border-b border-brand-500/20">
                                             <span className="text-sm font-mono text-brand-500 font-bold">x</span>
                                         </div>
                                     </div>
@@ -92,12 +92,12 @@ export default function BrandPage() {
                                     {/* Measurement Indicator */}
                                     <div className="absolute -right-32 top-0 bottom-0 flex items-center">
                                         <div className="h-[120px] border-l-2 border-brand-500/40 w-4"></div>
-                                        <span className="text-xs font-mono text-muted-foreground ml-2">x = 1/2 Width</span>
+                                        <span className="text-xs font-mono text-muted-foreground ml-2">x = Gap</span>
                                     </div>
                                 </div>
                             </div>
                             <p className="text-sm text-muted-foreground mt-16 text-center max-w-lg mx-auto leading-relaxed">
-                                The Clearspace (x) is defined as <strong>half the width</strong> of the logomark.
+                                The Clearspace (x) is defined by the <strong>spacing between the logomark and wordmark</strong>.
                                 Keep this area free from other elements to ensure maximum visibility and impact.
                             </p>
                         </div>
@@ -335,7 +335,7 @@ function PaletteChip({ shade, color, text, label, hex }: any) {
             className={cn("h-24 rounded-lg flex flex-col items-center justify-center relative group cursor-pointer hover:ring-2 ring-offset-2 ring-brand-500 transition-all", color)}
             title={hex}
         >
-            <span className={cn("text-xs font-mono font-medium", text)}>{shade}</span>
+            <span className={cn("text-xs font-mono font-medium transition-opacity duration-200 group-hover:opacity-0", text)}>{shade}</span>
             {label && (
                 <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-foreground text-background text-[10px] px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">
                     {label}
