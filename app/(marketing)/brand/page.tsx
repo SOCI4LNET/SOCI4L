@@ -2,7 +2,7 @@
 
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Download, Check, X, ShieldAlert, Copy, Sparkles, MoreVertical, FileImage, FileCode, ArrowUpRight, LayoutDashboard, ChevronDown, Globe, Target, Shield, Twitter } from 'lucide-react'
+import { ArrowRight, Download, Check, X, ShieldAlert, Copy, Sparkles, MoreVertical, FileImage, FileCode, ArrowUpRight, LayoutDashboard, ChevronDown, Globe, Target, Shield, Twitter, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -190,73 +190,174 @@ export default function BrandPage() {
                     <section>
                         <SectionHeader number="04" title="Color Architecture" />
 
-                        {/* Primary Colors */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                            <ColorCard
-                                name="Brand Blue"
-                                hex="#2845D6"
-                                bg="bg-brand-500"
-                                text="text-white"
-                            />
-                            <ColorCard
-                                name="Dark Surface"
-                                hex="#0A0A0A"
-                                bg="bg-[#0A0A0A]"
-                                text="text-white"
-                                border="border-white/10"
-                            />
-                            <ColorCard
-                                name="Light Surface"
-                                hex="#FAFAFA"
-                                bg="bg-[#FAFAFA]"
-                                text="text-black"
-                                border="border-black/5"
-                            />
-                        </div>
-
-                        {/* Neutrals */}
-                        <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-4">Neutrals & UI</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                            <ColorCard
-                                name="Muted / Card"
-                                hex="#F5F5F5"
-                                bg="bg-zinc-100"
-                                text="text-zinc-900"
-                                border="border-black/5"
-                            />
-                            <ColorCard
-                                name="Subtle Muted"
-                                hex="#FAFAFA"
-                                bg="bg-zinc-50"
-                                text="text-zinc-900"
-                                border="border-black/5"
-                            />
-                            <ColorCard
-                                name="Dark Muted"
-                                hex="#18181B"
-                                bg="bg-zinc-900"
-                                text="text-white"
-                                border="border-white/10"
-                            />
-                        </div>
-
-                        {/* Palette Scale */}
-                        <div className="space-y-4">
-                            <div className="flex justify-between items-end">
-                                <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">Extended Palette</h3>
-                                <span className="text-xs text-muted-foreground/60 hidden md:inline-block">Click to copy HEX</span>
+                        {/* Primary Brand Color */}
+                        <div className="mb-16">
+                            <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-6">Core Identity</h3>
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                <ColorCard
+                                    name="Brand Blue (Main)"
+                                    hex="#2845D6"
+                                    bg="bg-brand-500"
+                                    text="text-white"
+                                />
+                                <div className="lg:col-span-2 p-8 rounded-3xl border border-border/50 bg-card">
+                                    <div className="flex justify-between items-end mb-6">
+                                        <h4 className="font-medium">Primary Scale</h4>
+                                        <span className="text-xs text-muted-foreground/60">Used for borders, backgrounds, and shadows</span>
+                                    </div>
+                                    <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
+                                        <PaletteChip shade="50" hex="#F5F7FF" color="bg-brand-50" text="text-brand-900" />
+                                        <PaletteChip shade="100" hex="#E6EBFF" color="bg-brand-100" text="text-brand-900" />
+                                        <PaletteChip shade="200" hex="#CEDBFF" color="bg-brand-200" text="text-brand-900" />
+                                        <PaletteChip shade="300" hex="#9EB6FF" color="bg-brand-300" text="text-brand-900" />
+                                        <PaletteChip shade="400" hex="#5C7CFF" color="bg-brand-400" text="text-white" />
+                                        <PaletteChip shade="500" hex="#2845D6" color="bg-brand-500" text="text-white" label="Main" />
+                                        <PaletteChip shade="600" hex="#1E34A8" color="bg-brand-600" text="text-white" />
+                                        <PaletteChip shade="700" hex="#16267D" color="bg-brand-700" text="text-white" />
+                                        <PaletteChip shade="800" hex="#101B59" color="bg-brand-800" text="text-white" />
+                                        <PaletteChip shade="900" hex="#0A1138" color="bg-brand-900" text="text-white" />
+                                    </div>
+                                </div>
                             </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-5 md:grid-cols-10 gap-2">
-                                <PaletteChip shade="50" hex="#F5F7FF" color="bg-brand-50" text="text-brand-900" />
-                                <PaletteChip shade="100" hex="#E6EBFF" color="bg-brand-100" text="text-brand-900" />
-                                <PaletteChip shade="200" hex="#CEDBFF" color="bg-brand-200" text="text-brand-900" />
-                                <PaletteChip shade="300" hex="#9EB6FF" color="bg-brand-300" text="text-brand-900" />
-                                <PaletteChip shade="400" hex="#5C7CFF" color="bg-brand-400" text="text-white" />
-                                <PaletteChip shade="500" hex="#2845D6" color="bg-brand-500" text="text-white" label="Main" />
-                                <PaletteChip shade="600" hex="#1E34A8" color="bg-brand-600" text="text-white" />
-                                <PaletteChip shade="700" hex="#16267D" color="bg-brand-700" text="text-white" />
-                                <PaletteChip shade="800" hex="#101B59" color="bg-brand-800" text="text-white" />
-                                <PaletteChip shade="900" hex="#0A1138" color="bg-brand-900" text="text-white" />
+                        </div>
+
+                        {/* Semantic Colors */}
+                        <div className="mb-16">
+                            <div className="flex items-center gap-3 mb-6">
+                                <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">Semantic & Semantic States</h3>
+                                <div className="h-px flex-1 bg-border/20" />
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                {/* Destructive */}
+                                <div className="space-y-4">
+                                    <ColorCard
+                                        name="Destructive"
+                                        hex="#EF4444"
+                                        bg="bg-destructive"
+                                        text="text-destructive-foreground"
+                                    />
+                                    <div className="p-4 rounded-2xl border border-destructive/20 bg-destructive/5 flex flex-col gap-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-medium">Button Hover</span>
+                                            <span className="text-[10px] font-mono opacity-60">bg-destructive/90</span>
+                                        </div>
+                                        <Button variant="destructive" className="w-full h-9 text-xs">Primary Hover Effect</Button>
+                                    </div>
+                                </div>
+
+                                {/* Success */}
+                                <div className="space-y-4">
+                                    <ColorCard
+                                        name="Success / Verified"
+                                        hex="#16A34A"
+                                        bg="bg-green-600"
+                                        text="text-white"
+                                    />
+                                    <div className="p-4 rounded-2xl border border-green-600/20 bg-green-500/5 flex flex-col gap-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-medium">Verified Status</span>
+                                            <span className="text-[10px] font-mono opacity-60">bg-green-500/5</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-500/10 text-green-600 text-[10px] font-bold uppercase border border-green-600/20">
+                                            <CheckCircle className="h-3.5 w-3.5" />
+                                            Verified Account
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Warning */}
+                                <div className="space-y-4">
+                                    <ColorCard
+                                        name="Warning"
+                                        hex="#F59E0B"
+                                        bg="bg-amber-500"
+                                        text="text-white"
+                                    />
+                                    <div className="p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5 flex flex-col gap-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-medium">Alert Status</span>
+                                            <span className="text-[10px] font-mono opacity-60 text-amber-600">Action Required</span>
+                                        </div>
+                                        <div className="h-9 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center px-3 border-dashed">
+                                            <ShieldAlert className="h-3.5 w-3.5 text-amber-600 mr-2" />
+                                            <div className="h-1.5 w-16 bg-amber-600/20 rounded-full" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Info */}
+                                <div className="space-y-4">
+                                    <ColorCard
+                                        name="Info / System"
+                                        hex="#3B82F6"
+                                        bg="bg-blue-500"
+                                        text="text-white"
+                                    />
+                                    <div className="p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5 flex flex-col gap-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-medium">Information</span>
+                                            <span className="text-[10px] font-mono opacity-60 text-blue-600">System Log</span>
+                                        </div>
+                                        <div className="h-9 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center px-3">
+                                            <ArrowUpRight className="h-3.5 w-3.5 text-blue-600 mr-2" />
+                                            <div className="h-1.5 w-24 bg-blue-600/20 rounded-full" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Neutrals & Surfaces */}
+                        <div className="mb-0">
+                            <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest mb-6">Neutral Architecture</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                <ColorCard
+                                    name="Pure Black"
+                                    hex="#000000"
+                                    bg="bg-black"
+                                    text="text-white"
+                                />
+                                <ColorCard
+                                    name="Dark Surface"
+                                    hex="#0A0A0A"
+                                    bg="bg-[#0A0A0A]"
+                                    text="text-white"
+                                    border="border-white/10"
+                                />
+                                <ColorCard
+                                    name="Light Surface"
+                                    hex="#FAFAFA"
+                                    bg="bg-[#FAFAFA]"
+                                    text="text-black"
+                                    border="border-black/5"
+                                />
+                                <ColorCard
+                                    name="Pure White"
+                                    hex="#FFFFFF"
+                                    bg="bg-white"
+                                    text="text-black"
+                                    border="border-black/5"
+                                />
+                            </div>
+                            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <ColorCard
+                                    name="Zinc Muted"
+                                    hex="#71717A"
+                                    bg="bg-zinc-500"
+                                    text="text-white"
+                                />
+                                <ColorCard
+                                    name="Border Subtle"
+                                    hex="#E4E4E7"
+                                    bg="bg-zinc-200"
+                                    text="text-black"
+                                />
+                                <ColorCard
+                                    name="Input / Ghost"
+                                    hex="#F4F4F5"
+                                    bg="bg-zinc-100"
+                                    text="text-black"
+                                />
                             </div>
                         </div>
                     </section>
