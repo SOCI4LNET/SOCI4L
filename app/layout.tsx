@@ -47,9 +47,13 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/logos/icon.png", type: "image/png" },
+      { url: "/logos/icon-black.svg", type: "image/svg+xml", media: "(prefers-color-scheme: light)" },
+      { url: "/logos/icon.svg", type: "image/svg+xml", media: "(prefers-color-scheme: dark)" }
     ],
-    apple: "/logos/icon.png",
+    shortcut: ["/logos/icon-black.svg"],
+    apple: [
+      { url: "/logos/icon-black.svg", type: "image/svg+xml" }
+    ]
   },
   robots: {
     index: true,
