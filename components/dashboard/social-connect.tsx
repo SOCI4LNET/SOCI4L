@@ -1,5 +1,6 @@
 'use client'
 
+import { useAccount } from 'wagmi'
 import { usePrivy } from '@privy-io/react-auth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -7,9 +8,11 @@ import { useState, useEffect } from 'react'
 import { XIcon } from '@/components/icons/x-icon'
 import { toast } from 'sonner'
 import { Loader2, CheckCircle, ExternalLink } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export function SocialConnect() {
-    const { user, linkTwitter, unlinkTwitter, connectWallet } = usePrivy()
+    const { user, linkTwitter, unlinkTwitter, authenticated, ready } = usePrivy()
+    const { address: connectedAddress } = useAccount()
     const [isLinking, setIsLinking] = useState(false)
     const [isSyncing, setIsSyncing] = useState(false)
 
@@ -20,26 +23,52 @@ export function SocialConnect() {
             setIsLinking(true)
             await linkTwitter()
             // Post-link logic handled by useEffect when user object updates
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to link Twitter:', error)
-            toast.error('Failed to connect Twitter account')
+            toast.error(error?.message || 'Failed to connect Twitter account')
         } finally {
             setIsLinking(false)
         }
     }
 
     const handleUnlinkTwitter = async () => {
-        if (!twitterAccount?.subject) return
+        if (!twitterAccount?.subject) {
+            toast.error('No Twitter account found to disconnect')
+            return
+        }
 
         try {
             setIsLinking(true)
+
+            // 1. Unlink from Privy
             await unlinkTwitter(twitterAccount.subject)
+
+            // 2. Remove from our database
+            const walletAddress = user?.wallet?.address || connectedAddress
+            if (walletAddress) {
+                const response = await fetch(`/api/social/link?platform=twitter&walletAddress=${walletAddress}`, {
+                    method: 'DELETE'
+                })
+                if (!response.ok) {
+                    console.warn('Backend social unlink failed, but Privy unlink succeeded')
+                }
+            }
+
             toast.success('Twitter account disconnected')
-            // You should also call backend to remove the link from your DB here if needed
-            // await deleteSocialConnection('twitter')
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to unlink Twitter:', error)
-            toast.error('Failed to disconnect Twitter account')
+            // Check if it's already unlinked in Privy but still in our DB
+            if (error?.message?.includes('not linked') || error?.message?.includes('not found')) {
+                const walletAddress = user?.wallet?.address || connectedAddress
+                if (walletAddress) {
+                    await fetch(`/api/social/link?platform=twitter&walletAddress=${walletAddress}`, {
+                        method: 'DELETE'
+                    })
+                    toast.success('Connection removed from profile')
+                    return
+                }
+            }
+            toast.error(error?.message || 'Failed to disconnect Twitter account')
         } finally {
             setIsLinking(false)
         }
@@ -88,6 +117,20 @@ export function SocialConnect() {
             syncSocial()
         }
     }, [twitterAccount])
+
+    if (!ready) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Social Connections</CardTitle>
+                    <Skeleton className="h-4 w-3/4" />
+                </CardHeader>
+                <CardContent>
+                    <Skeleton className="h-20 w-full" />
+                </CardContent>
+            </Card>
+        )
+    }
 
     return (
         <Card>
