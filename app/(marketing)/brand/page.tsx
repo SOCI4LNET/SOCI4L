@@ -380,194 +380,193 @@ export default function BrandPage() {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                {/* Spacing Guide */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="p-8 rounded-3xl border border-border/50 bg-card">
-                                        <div className="flex items-center gap-2 mb-6">
-                                            <ArrowUpRight className="w-5 h-5 text-brand-500" />
-                                            <h3 className="font-medium">Headings Spacing</h3>
-                                        </div>
-                                        <div className="bg-muted/30 rounded-xl p-6 border border-border/50 space-y-2 relative">
-                                            <div className="h-4 w-32 bg-brand-500/20 rounded"></div>
-                                            {/* Spacing indicator */}
-                                            <div className="h-3 w-full flex items-center justify-center">
-                                                <div className="h-px bg-red-400 w-full relative">
-                                                    <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] text-red-500 font-mono">12px (space-y-3)</span>
+                                    {/* Spacing Guide */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 p-8 border-t border-border/10">
+                                        <div className="p-8 rounded-3xl border border-border/50 bg-card">
+                                            <div className="flex items-center gap-2 mb-6">
+                                                <ArrowUpRight className="w-5 h-5 text-brand-500" />
+                                                <h3 className="font-medium">Headings Spacing</h3>
+                                            </div>
+                                            <div className="bg-muted/30 rounded-xl p-6 border border-border/50 space-y-2 relative">
+                                                <div className="h-4 w-32 bg-brand-500/20 rounded"></div>
+                                                {/* Spacing indicator */}
+                                                <div className="h-3 w-full flex items-center justify-center">
+                                                    <div className="h-px bg-red-400 w-full relative">
+                                                        <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] text-red-500 font-mono">12px (space-y-3)</span>
+                                                    </div>
                                                 </div>
+                                                <div className="h-2 w-full bg-zinc-500/20 rounded"></div>
+                                                <div className="h-2 w-4/5 bg-zinc-500/20 rounded"></div>
                                             </div>
-                                            <div className="h-2 w-full bg-zinc-500/20 rounded"></div>
-                                            <div className="h-2 w-4/5 bg-zinc-500/20 rounded"></div>
+                                            <p className="text-xs text-muted-foreground mt-4">
+                                                Standard vertical spacing between Headings and Description text is <strong>12px</strong> (`space-y-3` or `gap-3`).
+                                            </p>
                                         </div>
-                                        <p className="text-xs text-muted-foreground mt-4">
-                                            Standard vertical spacing between Headings and Description text is <strong>12px</strong> (`space-y-3` or `gap-3`).
-                                        </p>
-                                    </div>
 
-                                    <div className="p-8 rounded-3xl border border-border/50 bg-card">
-                                        <div className="flex items-center gap-2 mb-6">
-                                            <LayoutDashboard className="w-5 h-5 text-brand-500" />
-                                            <h3 className="font-medium">Section Spacing</h3>
-                                        </div>
-                                        <div className="space-y-8 bg-muted/10 p-6 rounded-xl border border-dashed border-border/50">
-                                            <div className="h-8 bg-card border border-border rounded flex items-center justify-center text-[10px] text-muted-foreground">Section A</div>
-                                            <div className="h-8 flex items-center justify-center">
-                                                <span className="text-xs font-mono text-brand-500">gap-24 (96px)</span>
+                                        <div className="p-8 rounded-3xl border border-border/50 bg-card">
+                                            <div className="flex items-center gap-2 mb-6">
+                                                <LayoutDashboard className="w-5 h-5 text-brand-500" />
+                                                <h3 className="font-medium">Section Spacing</h3>
                                             </div>
-                                            <div className="h-8 bg-card border border-border rounded flex items-center justify-center text-[10px] text-muted-foreground">Section B</div>
+                                            <div className="space-y-8 bg-muted/10 p-6 rounded-xl border border-dashed border-border/50">
+                                                <div className="h-8 bg-card border border-border rounded flex items-center justify-center text-[10px] text-muted-foreground">Section A</div>
+                                                <div className="h-8 flex items-center justify-center">
+                                                    <span className="text-xs font-mono text-brand-500">gap-24 (96px)</span>
+                                                </div>
+                                                <div className="h-8 bg-card border border-border rounded flex items-center justify-center text-[10px] text-muted-foreground">Section B</div>
+                                            </div>
+                                            <p className="text-xs text-muted-foreground mt-4">
+                                                Major sections on landing pages are separated by <strong>96px</strong> (`gap-24` or `py-24`) to give content room to breathe.
+                                            </p>
                                         </div>
-                                        <p className="text-xs text-muted-foreground mt-4">
-                                            Major sections on landing pages are separated by <strong>96px</strong> (`gap-24` or `py-24`) to give content room to breathe.
-                                        </p>
+                                    </div>
+                                </CollapsibleContent>
+                            </Collapsible>
+                        </div>
+                    </section>
+
+                    {/* 05. DON'Ts */}
+                    <section>
+                        <SectionHeader number="05" title="Usage Violations" />
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                            <DontCard title="Do not distort">
+                                <div className="scale-x-125 origin-left">
+                                    <Soci4LLogo variant="icon" width={60} className="invert dark:invert-0" />
+                                </div>
+                            </DontCard>
+                            <DontCard title="Do not rotate">
+                                <div className="-rotate-12">
+                                    <Soci4LLogo variant="icon" width={60} className="invert dark:invert-0" />
+                                </div>
+                            </DontCard>
+                            <DontCard title="Do not change color">
+                                <div className="text-red-500 filter sepia saturate-200">
+                                    <Soci4LLogo variant="icon" width={60} className="" />
+                                </div>
+                            </DontCard>
+                            <DontCard title="Avoid low contrast">
+                                <div className="bg-zinc-800 p-4 rounded flex items-center justify-center w-full h-full">
+                                    <div className="opacity-30">
+                                        <Soci4LLogo variant="icon" width={60} className="invert-0" />
                                     </div>
                                 </div>
+                            </DontCard>
                         </div>
-                    </CollapsibleContent>
-                </Collapsible>
-            </section>
+                    </section>
 
-            {/* 05. DON'Ts */}
-            <section>
-                <SectionHeader number="05" title="Usage Violations" />
+                    {/* 06. UI COMPONENTS & BUTTONS */}
+                    <section>
+                        <SectionHeader number="06" title="Buttons & Components" />
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                    <DontCard title="Do not distort">
-                        <div className="scale-x-125 origin-left">
-                            <Soci4LLogo variant="icon" width={60} className="invert dark:invert-0" />
-                        </div>
-                    </DontCard>
-                    <DontCard title="Do not rotate">
-                        <div className="-rotate-12">
-                            <Soci4LLogo variant="icon" width={60} className="invert dark:invert-0" />
-                        </div>
-                    </DontCard>
-                    <DontCard title="Do not change color">
-                        <div className="text-red-500 filter sepia saturate-200">
-                            <Soci4LLogo variant="icon" width={60} className="" />
-                        </div>
-                    </DontCard>
-                    <DontCard title="Avoid low contrast">
-                        <div className="bg-zinc-800 p-4 rounded flex items-center justify-center w-full h-full">
-                            <div className="opacity-30">
-                                <Soci4LLogo variant="icon" width={60} className="invert-0" />
+                        {/* Button Guidelines */}
+                        <div className="space-y-16">
+
+                            {/* Primary & Secondary */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                                <ButtonSpecs
+                                    title="Primary (Light)"
+                                    description="Used for main calls-to-action on dark backgrounds. Strict black text."
+                                    bg="bg-[#0A0A0A]"
+                                >
+                                    <Button size="default" className="bg-white text-black hover:bg-white/90">
+                                        <div className="w-4 h-4 mr-2 bg-black/10 rounded-full" />
+                                        Primary Action
+                                    </Button>
+                                    <SpecsOverlay />
+                                </ButtonSpecs>
+
+                                <ButtonSpecs
+                                    title="Primary (Dark)"
+                                    description="Used for main calls-to-action on light backgrounds. Strict white text."
+                                    bg="bg-[#FAFAFA]"
+                                    dark
+                                >
+                                    <Button size="default" className="bg-black text-white hover:bg-black/90">
+                                        <div className="w-4 h-4 mr-2 bg-white/20 rounded-full" />
+                                        Primary Action
+                                    </Button>
+                                    <SpecsOverlay />
+                                </ButtonSpecs>
                             </div>
-                        </div>
-                    </DontCard>
-                </div>
-            </section>
 
-            {/* 06. UI COMPONENTS & BUTTONS */}
-            <section>
-                <SectionHeader number="06" title="Buttons & Components" />
-
-                {/* Button Guidelines */}
-                <div className="space-y-16">
-
-                    {/* Primary & Secondary */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                        <ButtonSpecs
-                            title="Primary (Light)"
-                            description="Used for main calls-to-action on dark backgrounds. Strict black text."
-                            bg="bg-[#0A0A0A]"
-                        >
-                            <Button size="default" className="bg-white text-black hover:bg-white/90">
-                                <div className="w-4 h-4 mr-2 bg-black/10 rounded-full" />
-                                Primary Action
-                            </Button>
-                            <SpecsOverlay />
-                        </ButtonSpecs>
-
-                        <ButtonSpecs
-                            title="Primary (Dark)"
-                            description="Used for main calls-to-action on light backgrounds. Strict white text."
-                            bg="bg-[#FAFAFA]"
-                            dark
-                        >
-                            <Button size="default" className="bg-black text-white hover:bg-black/90">
-                                <div className="w-4 h-4 mr-2 bg-white/20 rounded-full" />
-                                Primary Action
-                            </Button>
-                            <SpecsOverlay />
-                        </ButtonSpecs>
-                    </div>
-
-                    {/* Rules */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <ButtonRuleCard
-                            title="Contrast Rule"
-                            status="correct"
-                            description="Always use High Contrast. White Button = Black Text. Black Button = White Text."
-                        >
-                            <div className="flex gap-2">
-                                <div className="px-3 py-1 bg-white text-black text-xs font-medium rounded">Correct</div>
-                                <div className="px-3 py-1 bg-white text-zinc-300 text-xs font-medium rounded border border-zinc-200/20 opacity-50 relative overflow-hidden">
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="w-full h-px bg-red-500 rotate-12" />
+                            {/* Rules */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                <ButtonRuleCard
+                                    title="Contrast Rule"
+                                    status="correct"
+                                    description="Always use High Contrast. White Button = Black Text. Black Button = White Text."
+                                >
+                                    <div className="flex gap-2">
+                                        <div className="px-3 py-1 bg-white text-black text-xs font-medium rounded">Correct</div>
+                                        <div className="px-3 py-1 bg-white text-zinc-300 text-xs font-medium rounded border border-zinc-200/20 opacity-50 relative overflow-hidden">
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                <div className="w-full h-px bg-red-500 rotate-12" />
+                                            </div>
+                                            Wrong
+                                        </div>
                                     </div>
-                                    Wrong
+                                </ButtonRuleCard>
+
+                                <ButtonRuleCard
+                                    title="Brand Color"
+                                    status="warning"
+                                    description="Use Brand Blue (#2845D6) ONLY for special 'Magic' actions or highlights."
+                                >
+                                    <Button size="sm" className="bg-brand-500 text-white hover:bg-brand-600 h-8 text-xs">
+                                        <Sparkles className="w-3 h-3 mr-2" /> Special
+                                    </Button>
+                                </ButtonRuleCard>
+
+                                <ButtonRuleCard
+                                    title="Radius & Weight"
+                                    status="info"
+                                    description="Standard Radius: 0.5rem (8px). Font Weight: Medium (500)."
+                                >
+                                    <div className="w-8 h-8 rounded-lg border-2 border-dashed border-zinc-400/50" />
+                                </ButtonRuleCard>
+
+                                <ButtonRuleCard
+                                    title="Padding"
+                                    status="info"
+                                    description="Horizontal: px-4 (16px). Vertical: py-2 (8px). Gap: 8px."
+                                >
+                                    <div className="h-6 w-12 border-x-2 border-zinc-400/50 flex items-center justify-center">
+                                        <span className="text-[10px] font-mono mx-1 text-zinc-500">16px</span>
+                                    </div>
+                                </ButtonRuleCard>
+                            </div>
+
+                            {/* Button Variants */}
+                            <div className="p-8 rounded-3xl border border-border/50 bg-card">
+                                <h3 className="text-lg font-medium mb-8">Component Library</h3>
+                                <div className="flex flex-wrap gap-8 items-center">
+                                    <div className="space-y-2 text-center">
+                                        <Button variant="default">Default Button</Button>
+                                        <p className="text-xs font-mono text-muted-foreground">variant="default"</p>
+                                    </div>
+                                    <div className="space-y-2 text-center">
+                                        <Button variant="secondary">Secondary</Button>
+                                        <p className="text-xs font-mono text-muted-foreground">variant="secondary"</p>
+                                    </div>
+                                    <div className="space-y-2 text-center">
+                                        <Button variant="outline">Outline</Button>
+                                        <p className="text-xs font-mono text-muted-foreground">variant="outline"</p>
+                                    </div>
+                                    <div className="space-y-2 text-center">
+                                        <Button variant="ghost">Ghost</Button>
+                                        <p className="text-xs font-mono text-muted-foreground">variant="ghost"</p>
+                                    </div>
+                                    <div className="space-y-2 text-center">
+                                        <Button variant="destructive">Destructive</Button>
+                                        <p className="text-xs font-mono text-muted-foreground">variant="destructive"</p>
+                                    </div>
                                 </div>
                             </div>
-                        </ButtonRuleCard>
-
-                        <ButtonRuleCard
-                            title="Brand Color"
-                            status="warning"
-                            description="Use Brand Blue (#2845D6) ONLY for special 'Magic' actions or highlights."
-                        >
-                            <Button size="sm" className="bg-brand-500 text-white hover:bg-brand-600 h-8 text-xs">
-                                <Sparkles className="w-3 h-3 mr-2" /> Special
-                            </Button>
-                        </ButtonRuleCard>
-
-                        <ButtonRuleCard
-                            title="Radius & Weight"
-                            status="info"
-                            description="Standard Radius: 0.5rem (8px). Font Weight: Medium (500)."
-                        >
-                            <div className="w-8 h-8 rounded-lg border-2 border-dashed border-zinc-400/50" />
-                        </ButtonRuleCard>
-
-                        <ButtonRuleCard
-                            title="Padding"
-                            status="info"
-                            description="Horizontal: px-4 (16px). Vertical: py-2 (8px). Gap: 8px."
-                        >
-                            <div className="h-6 w-12 border-x-2 border-zinc-400/50 flex items-center justify-center">
-                                <span className="text-[10px] font-mono mx-1 text-zinc-500">16px</span>
-                            </div>
-                        </ButtonRuleCard>
-                    </div>
-
-                    {/* Button Variants */}
-                    <div className="p-8 rounded-3xl border border-border/50 bg-card">
-                        <h3 className="text-lg font-medium mb-8">Component Library</h3>
-                        <div className="flex flex-wrap gap-8 items-center">
-                            <div className="space-y-2 text-center">
-                                <Button variant="default">Default Button</Button>
-                                <p className="text-xs font-mono text-muted-foreground">variant="default"</p>
-                            </div>
-                            <div className="space-y-2 text-center">
-                                <Button variant="secondary">Secondary</Button>
-                                <p className="text-xs font-mono text-muted-foreground">variant="secondary"</p>
-                            </div>
-                            <div className="space-y-2 text-center">
-                                <Button variant="outline">Outline</Button>
-                                <p className="text-xs font-mono text-muted-foreground">variant="outline"</p>
-                            </div>
-                            <div className="space-y-2 text-center">
-                                <Button variant="ghost">Ghost</Button>
-                                <p className="text-xs font-mono text-muted-foreground">variant="ghost"</p>
-                            </div>
-                            <div className="space-y-2 text-center">
-                                <Button variant="destructive">Destructive</Button>
-                                <p className="text-xs font-mono text-muted-foreground">variant="destructive"</p>
-                            </div>
                         </div>
-                    </div>
-                </div>
-            </section>
-        </motion.div>
+                    </section>
+                </motion.div>
             </div >
         </div >
     )
