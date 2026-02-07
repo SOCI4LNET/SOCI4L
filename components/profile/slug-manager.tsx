@@ -60,6 +60,19 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
         }
     });
 
+    const { data: userActiveSlug, refetch: refetchUserActiveSlug } = useReadContract({
+        address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
+        abi: ABI,
+        functionName: "getActiveSlug",
+        args: address ? [address] : undefined,
+        query: {
+            enabled: !!address,
+        }
+    });
+
+    // Cast to string to avoid TS errors
+    const activeSlugHash = userActiveSlug as string;
+
     const { data: isReserved, refetch: refetchReserved } = useReadContract({
         address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
         abi: ABI,
@@ -69,6 +82,9 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
             enabled: !!debouncedSlug && validateSlugFormat(debouncedSlug),
         }
     });
+
+    const ZERO_HASH = "0x0000000000000000000000000000000000000000000000000000000000000000";
+    const isStale = currentSlug && activeSlugHash && activeSlugHash === ZERO_HASH;
 
     useEffect(() => {
         if (!debouncedSlug) {
@@ -219,45 +235,95 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
             </CardHeader>
             <CardContent className="space-y-4">
                 {currentSlug ? (
-                    <div className="space-y-4">
-                        <div className="p-4 bg-muted/50 rounded-lg flex items-center justify-between border">
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground mb-1">Current Handle</p>
-                                <div className="flex items-center gap-2">
-                                    <p className="text-lg font-mono font-semibold">
-                                        /p/{currentSlug}
-                                    </p>
-                                    <Badge variant="secondary" className="text-green-600 bg-green-500/10 hover:bg-green-500/20 border-green-500/20">
-                                        <Check className="w-3 h-3 mr-1" /> Verified
-                                    </Badge>
-                                </div>
+                    isStale ? (
+                        <div className="space-y-4">
+                            <Alert variant="destructive" className="border-yellow-500/50 bg-yellow-500/10">
+                                <AlertCircle className="h-4 w-4 text-yellow-500" />
+                                <AlertTitle className="text-yellow-500">Sync Required</AlertTitle>
+                                <AlertDescription className="text-yellow-500/90">
+                                    Your profile shows a handle, but you don't own it on-chain. This likely means it was released or expired. Please sync to fix this.
+                                </AlertDescription>
+                            </Alert>
+                            <div className="flex justify-end">
+                                <Button
+                                    variant="default"
+                                    size="sm"
+                                    onClick={async () => {
+                                        setPendingAction("claim");
+                                        try {
+                                            if (!address) return;
+                                            const message = `Sync slug "${currentSlug}" for SOCI4L profile`;
+                                            const signature = await signMessageAsync({ message });
+
+                                            const res = await fetch("/api/slug/sync", {
+                                                method: "POST",
+                                                headers: { "Content-Type": "application/json" },
+                                                body: JSON.stringify({
+                                                    slug: currentSlug,
+                                                    signature,
+                                                    message
+                                                })
+                                            });
+
+                                            if (res.ok) {
+                                                toast.success("Synced & Fixed!");
+                                                window.location.reload();
+                                            } else {
+                                                toast.error("Sync failed");
+                                            }
+                                        } catch (e) {
+                                            console.error(e);
+                                            toast.error("Sync failed");
+                                        }
+                                    }}
+                                    disabled={isWritePending || isConfirming}
+                                >
+                                    <Loader2 className={isWritePending ? "w-4 h-4 animate-spin mr-2" : "hidden"} />
+                                    Fix Sync Issue
+                                </Button>
                             </div>
                         </div>
+                    ) : (
+                        <div className="space-y-4">
+                            <div className="p-4 bg-muted/50 rounded-lg flex items-center justify-between border">
+                                <div>
+                                    <p className="text-sm font-medium text-muted-foreground mb-1">Current Handle</p>
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-lg font-mono font-semibold">
+                                            /p/{currentSlug}
+                                        </p>
+                                        <Badge variant="secondary" className="text-green-600 bg-green-500/10 hover:bg-green-500/20 border-green-500/20">
+                                            <Check className="w-3 h-3 mr-1" /> Verified
+                                        </Badge>
+                                    </div>
+                                </div>
+                            </div>
 
-                        <Alert variant="destructive">
-                            <AlertCircle className="h-4 w-4" />
-                            <AlertTitle>Warning</AlertTitle>
-                            <AlertDescription>
-                                Releasing your slug initiates a 7-day cooldown period. During this time, nobody (including you) can claim it.
-                            </AlertDescription>
-                        </Alert>
+                            <Alert variant="destructive">
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertTitle>Warning</AlertTitle>
+                                <AlertDescription>
+                                    Releasing your slug initiates a 7-day cooldown period. During this time, nobody (including you) can claim it.
+                                </AlertDescription>
+                            </Alert>
 
-                        <div className="flex justify-end">
-                            <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={handleRelease}
-                                disabled={isWritePending || isConfirming}
-                            >
-                                {isWritePending && pendingAction === "release" ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                                Release Handle
-                            </Button>
+                            <div className="flex justify-end">
+                                <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={handleRelease}
+                                    disabled={isWritePending || isConfirming}
+                                >
+                                    {isWritePending && pendingAction === "release" ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                                    Release Handle
+                                </Button>
+                            </div>
                         </div>
-                    </div>
+                    )
                 ) : (
                     <div className="space-y-4">
                         {/* Sync UI for Zombie Slugs */}
-                        {slugOwner && address && slugOwner.toLowerCase() === address.toLowerCase() && !currentSlug && (
+                        {slugOwner && address && (slugOwner as string).toLowerCase() === address.toLowerCase() && !currentSlug && (
                             <Alert className="border-yellow-500/50 bg-yellow-500/10 mb-4">
                                 <AlertCircle className="h-4 w-4 text-yellow-500" />
                                 <AlertTitle className="text-yellow-500">Sync Required</AlertTitle>
@@ -287,7 +353,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                                                     availability === "reserved" ? <div className="text-yellow-500 text-xs font-medium flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Reserved</div> : null}
                                     </div>
                                 </div>
-                                {slugOwner && address && slugOwner.toLowerCase() === address.toLowerCase() && !currentSlug ? (
+                                {slugOwner && address && (slugOwner as string).toLowerCase() === address.toLowerCase() && !currentSlug ? (
                                     <Button
                                         onClick={async () => {
                                             if (!debouncedSlug || !address) return;
@@ -367,8 +433,9 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                             )}
                         </div>
                     </div>
-                )}
-            </CardContent>
-        </Card>
+                )
+                }
+            </CardContent >
+        </Card >
     );
 }

@@ -69,15 +69,25 @@ export async function POST(request: Request) {
         });
 
         // 4. Security Check: Ensure the on-chain owner matches the recovered address
+        // 4. Security Check: Ensure the on-chain owner matches the recovered address
         if (!onChainOwner || onChainOwner.toLowerCase() !== recoveredAddress.toLowerCase()) {
-            return NextResponse.json({
-                error: "Slug not owned by this address on-chain",
-                debug: {
-                    recoveredAddress,
-                    onChainOwner,
-                    slug: normalized
+            console.warn(`[Slug Sync] Mismatch detected for ${recoveredAddress}. Clearing db slug.`);
+
+            // Self-healing: If user doesn't own it on-chain, clear it from DB
+            await prisma.profile.update({
+                where: { address: recoveredAddress.toLowerCase() },
+                data: {
+                    slug: null,
+                    slugHash: null,
+                    slugClaimedAt: null
                 }
-            }, { status: 403 });
+            });
+
+            return NextResponse.json({
+                success: true,
+                slug: null,
+                message: "Sync complete: Slug removed (not owned on-chain)"
+            });
         }
 
         // 5. Additional Security: Verify this is the user's ACTIVE slug
