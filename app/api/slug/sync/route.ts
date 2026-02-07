@@ -93,6 +93,19 @@ export async function POST(request: Request) {
         }
 
         // 6. Update Database (Idempotent)
+        // First, clear this slug from any other profiles (in case it was previously synced to wrong address)
+        await prisma.profile.updateMany({
+            where: {
+                slug: normalized,
+                address: { not: recoveredAddress.toLowerCase() }
+            },
+            data: {
+                slug: null,
+                slugHash: null
+            }
+        });
+
+        // Then update the correct profile
         await prisma.profile.update({
             where: { address: recoveredAddress.toLowerCase() },
             data: {
