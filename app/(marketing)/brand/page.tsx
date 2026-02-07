@@ -628,17 +628,20 @@ export default function BrandPage() {
                 </motion.div>
 
                 <footer className="mt-20 py-24 border-t border-border/10 text-center">
-                    <p className="text-[10px] md:text-xs font-mono uppercase tracking-[0.3em] text-muted-foreground/60 leading-relaxed max-w-2xl mx-auto">
-                        All brand identity assets were meticulously designed by
-                        <a
-                            href="https://floyka.space"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-foreground font-semibold hover:text-brand-500 transition-colors ml-2 underline-offset-4 hover:underline"
-                        >
-                            Floyka Design Studio
-                        </a>
-                    </p>
+                    <div className="text-[10px] md:text-xs font-mono uppercase tracking-[0.3em] text-muted-foreground/60 max-w-2xl mx-auto space-y-4">
+                        <p>All brand identity assets were meticulously</p>
+                        <p>
+                            Designed by
+                            <a
+                                href="https://floyka.space"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-foreground font-semibold hover:text-brand-500 transition-colors ml-2 underline-offset-4 hover:underline"
+                            >
+                                Floyka Design Studio
+                            </a>
+                        </p>
+                    </div>
                 </footer>
             </div>
         </div>
