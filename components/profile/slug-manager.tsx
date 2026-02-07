@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSignMessage } from "wagmi";
-import { parseAbi } from "viem";
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSignMessage, usePublicClient } from "wagmi";
+import { parseAbi, decodeFunctionData, parseAbiItem } from "viem";
 import { Loader2, Check, AlertCircle, X, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -24,12 +24,15 @@ interface SlugManagerProps {
 export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
     const { address, isConnected } = useAccount();
     const { signMessageAsync } = useSignMessage();
+    const publicClient = usePublicClient();
     const [inputSlug, setInputSlug] = useState("");
     const [debouncedSlug, setDebouncedSlug] = useState("");
     const [isChecking, setIsChecking] = useState(false);
     const [availability, setAvailability] = useState<"idle" | "available" | "taken" | "reserved" | "invalid">("idle");
     const [cooldownEnd, setCooldownEnd] = useState<Date | null>(null);
     const [pendingAction, setPendingAction] = useState<"claim" | "release" | null>(null);
+    const [recoveredSlug, setRecoveredSlug] = useState<string | null>(null);
+    const [isRecovering, setIsRecovering] = useState(false);
 
     // Debounce input
     useEffect(() => {
@@ -139,6 +142,52 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
         }
     }, [slugOwner, slugStatus, isReserved, debouncedSlug]);
 
+
+    // Recover slug name from chain history if zombie state
+    useEffect(() => {
+        if (!publicClient || !address || !activeSlugHash || activeSlugHash === ZERO_HASH || currentSlug) return;
+
+        const recoverSlug = async () => {
+            setIsRecovering(true);
+            try {
+                // Find the latest SlugClaimed event for this user
+                const logs = await publicClient.getLogs({
+                    address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
+                    event: parseAbiItem('event SlugClaimed(bytes32 indexed slugHash, address indexed owner, uint256 timestamp)'),
+                    args: {
+                        owner: address as `0x${string}`
+                    },
+                    fromBlock: 'earliest'
+                });
+
+                if (logs.length > 0) {
+                    const lastLog = logs[logs.length - 1];
+                    const tx = await publicClient.getTransaction({ hash: lastLog.transactionHash });
+
+                    const { args } = decodeFunctionData({
+                        abi: parseAbi(CUSTOM_SLUG_REGISTRY_ABI),
+                        data: tx.input
+                    });
+
+                    if (args && args[0]) {
+                        setRecoveredSlug(args[0] as string);
+                        // Auto-fill input if empty
+                        if (!inputSlug) {
+                            setInputSlug(args[0] as string);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to recover slug name:", e);
+            } finally {
+                setIsRecovering(false);
+            }
+        };
+
+        if (!recoveredSlug && !isRecovering) {
+            recoverSlug();
+        }
+    }, [activeSlugHash, address, currentSlug, publicClient, recoveredSlug, isRecovering, inputSlug]);
 
     // Transaction Handling
     const { writeContractAsync, data: hash, isPending: isWritePending } = useWriteContract();
@@ -340,7 +389,22 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                                 <AlertCircle className="h-4 w-4 text-yellow-500" />
                                 <AlertTitle className="text-yellow-500">Missing Local Data</AlertTitle>
                                 <AlertDescription className="text-yellow-500/90">
-                                    You have an active handle on-chain, but it's not synced. Please enter your handle below to sync it.
+                                    {isRecovering ? "Resolving your handle..." :
+                                        recoveredSlug ? (
+                                            <span>
+                                                You own the handle <strong>{recoveredSlug}</strong> on-chain, but it's not synced.
+                                                <Button
+                                                    variant="link"
+                                                    className="text-yellow-600 underline px-1 h-auto font-bold"
+                                                    onClick={() => setInputSlug(recoveredSlug)}
+                                                >
+                                                    Click here to sync
+                                                </Button>.
+                                            </span>
+                                        ) : (
+                                            "You have an active handle on-chain, but it's not synced. Please enter your handle below to sync it."
+                                        )
+                                    }
                                 </AlertDescription>
                             </Alert>
                         )}
