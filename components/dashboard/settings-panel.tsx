@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSignMessage } from "wagmi"
+import { useSignMessage, useAccount } from "wagmi"
+import { usePrivy } from "@privy-io/react-auth"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,6 +23,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useTransaction } from '@/components/providers/transaction-provider'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -58,6 +60,13 @@ interface SettingsPanelProps {
 export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPanelProps) {
   const { signMessageAsync } = useSignMessage()
   const { showTransactionLoader, hideTransactionLoader } = useTransaction()
+
+  // Mismatch Detection
+  const { address: connectedAddress } = useAccount()
+  const { user: privyUser, authenticated, logout, login } = usePrivy()
+  const isSessionMismatch = authenticated && connectedAddress && privyUser?.wallet?.address &&
+    (connectedAddress.toLowerCase() !== privyUser.wallet.address.toLowerCase())
+
   // Removed old slug state
   const [savingVisibility, setSavingVisibility] = useState(false)
   const [visibility, setVisibility] = useState<'PUBLIC' | 'PRIVATE'>(
@@ -211,6 +220,31 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
         <div className="w-full">
           <ProfileReadiness profile={profile} address={targetAddress} />
         </div>
+
+        {/* Session Mismatch Alert */}
+        {isSessionMismatch && (
+          <Alert variant="destructive" className="border-red-500/50 bg-red-500/10 text-red-500">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Wallet Mismatch Detected</AlertTitle>
+            <AlertDescription className="flex flex-col gap-2">
+              <p>
+                Your connected wallet ({formatAddress(connectedAddress || "")}) does not match your active session ({formatAddress(privyUser?.wallet?.address || "")}).
+                Actions may verify the wrong account.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-fit border-red-500/20 hover:bg-red-500/10 hover:text-red-500"
+                onClick={async () => {
+                  await logout();
+                  login();
+                }}
+              >
+                Sync Session
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Account Card */}
         <Card className="bg-card border border-border/60 shadow-sm">
