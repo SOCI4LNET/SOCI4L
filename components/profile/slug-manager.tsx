@@ -182,7 +182,8 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                         body: JSON.stringify({
                             action: pendingAction,
                             slug: pendingAction === "claim" ? debouncedSlug : undefined,
-                            txHash: hash
+                            txHash: hash,
+                            address: address
                         })
                     });
 
