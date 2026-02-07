@@ -265,21 +265,32 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
         }
     }, [isStale, address, isAutoRepairing, repairFailed, isWritePending, isConfirming, pendingAction]);
 
-    // Recover slug name from chain history if zombie state
+    // Recover slug name from chain history or local storage if zombie state
     useEffect(() => {
         if (!publicClient || !address || !activeSlugHash || activeSlugHash === ZERO_HASH || currentSlug || hasAttemptedRecovery) return;
 
         const recoverSlug = async () => {
             setIsRecovering(true);
             try {
-                // Find the latest SlugClaimed event for this user
+                // 1. Check Local Storage first (fastest for recent claims)
+                const localPending = localStorage.getItem(`pending_slug_${address.toLowerCase()}`);
+                if (localPending && hashSlug(localPending) === activeSlugHash) {
+                    console.log("[Slug Manager] Recovered slug from local storage:", localPending);
+                    setRecoveredSlug(localPending);
+                    if (!inputSlug || inputSlug === "username") setInputSlug(localPending);
+                    localStorage.removeItem(`pending_slug_${address.toLowerCase()}`);
+                    return; // Done
+                }
+
+                // 2. Fallback to Blockchain Logs
+                console.log("[Slug Manager] Attempting on-chain history recovery for", address);
                 const logs = await publicClient.getLogs({
                     address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
                     event: parseAbiItem('event SlugClaimed(bytes32 indexed slugHash, address indexed owner, uint256 timestamp)'),
                     args: {
                         owner: address as `0x${string}`
                     },
-                    fromBlock: 'earliest'
+                    fromBlock: BigInt(50000000) // Search from a safe recent block to avoid RPC timeouts
                 });
 
                 if (logs.length > 0) {
@@ -338,6 +349,11 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
     // Watch for confirmation to trigger API
     useEffect(() => {
         if (isConfirmed && hash && pendingAction) {
+            // Save to local storage for immediate recovery after reload
+            if (pendingAction === "claim" && debouncedSlug) {
+                localStorage.setItem(`pending_slug_${address?.toLowerCase()}`, debouncedSlug);
+            }
+
             const updateBackend = async () => {
                 try {
                     const res = await fetch("/api/slug/update", {
@@ -515,7 +531,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                                                         Handle identified! Syncing...
                                                     </span>
                                                 ) : (
-                                                    "An active handle was found on-chain. Please enter it below to complete the sync."
+                                                    "A handle was found on-chain, but we couldn't automatically resolve the name. Please enter it below to sync."
                                                 )
                                             )}
                                         </>
@@ -524,63 +540,65 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                             </Alert>
                         )}
 
-                        <div className="space-y-2">
-                            <Label>Desired Handle</Label>
-                            <div className="flex gap-2">
-                                <div className="relative flex-1">
-                                    <span className="absolute left-3 top-2.5 text-muted-foreground font-mono text-sm">soci4l.com/p/</span>
-                                    <Input
-                                        value={inputSlug}
-                                        onChange={(e) => setInputSlug(e.target.value)}
-                                        className="pl-[110px] font-mono"
-                                        placeholder="username"
-                                        disabled={isWritePending || isConfirming}
-                                    />
-                                    {/* Status Icon */}
-                                    <div className="absolute right-3 top-2.5 flex items-center gap-2">
-                                        {isChecking ? <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /> :
-                                            inputSlug && hashSlug(inputSlug) === activeSlugHash ? <Check className="w-4 h-4 text-blue-500 animate-pulse" /> :
-                                                availability === "available" ? <Check className="w-4 h-4 text-green-500" /> :
-                                                    availability === "taken" ? <div className="text-red-500 text-xs font-medium flex items-center gap-1"><X className="w-3 h-3" /> Taken</div> :
-                                                        availability === "reserved" ? <div className="text-yellow-500 text-xs font-medium flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Reserved</div> : null}
+                        {!recoveredSlug && (
+                            <div className="space-y-2">
+                                <Label>Desired Handle</Label>
+                                <div className="flex gap-2">
+                                    <div className="relative flex-1">
+                                        <span className="absolute left-3 top-2.5 text-muted-foreground font-mono text-sm">soci4l.com/p/</span>
+                                        <Input
+                                            value={inputSlug}
+                                            onChange={(e) => setInputSlug(e.target.value)}
+                                            className="pl-[110px] font-mono"
+                                            placeholder="username"
+                                            disabled={isWritePending || isConfirming}
+                                        />
+                                        {/* Status Icon */}
+                                        <div className="absolute right-3 top-2.5 flex items-center gap-2">
+                                            {isChecking ? <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /> :
+                                                inputSlug && hashSlug(inputSlug) === activeSlugHash ? <Check className="w-4 h-4 text-blue-500 animate-pulse" /> :
+                                                    availability === "available" ? <Check className="w-4 h-4 text-green-500" /> :
+                                                        availability === "taken" ? <div className="text-red-500 text-xs font-medium flex items-center gap-1"><X className="w-3 h-3" /> Taken</div> :
+                                                            availability === "reserved" ? <div className="text-yellow-500 text-xs font-medium flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Reserved</div> : null}
+                                        </div>
                                     </div>
+                                    {slugOwner && address && (slugOwner as string).toLowerCase() === address.toLowerCase() && !currentSlug ? (
+                                        <Button
+                                            onClick={() => handleSync(debouncedSlug)}
+                                            disabled={!debouncedSlug || isWritePending}
+                                            variant="secondary"
+                                        >
+                                            {isWritePending && pendingAction === "claim" ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                                            Sync
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            onClick={async () => {
+                                                if (!debouncedSlug || availability !== "available") return;
+                                                setPendingAction("claim");
+                                                try {
+                                                    await writeContractAsync({
+                                                        address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
+                                                        abi: ABI,
+                                                        functionName: "claim",
+                                                        args: [debouncedSlug]
+                                                    });
+                                                    toast.loading("Claiming slug...", { id: "claim-toast" });
+                                                } catch (e: any) {
+                                                    console.error("Claim error:", e);
+                                                    toast.error(e.message || "Failed to initiate claim");
+                                                    setPendingAction(null);
+                                                }
+                                            }}
+                                            disabled={availability !== "available" || isWritePending || isConfirming}
+                                        >
+                                            {isWritePending && pendingAction === "claim" ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                                            Claim
+                                        </Button>
+                                    )}
                                 </div>
-                                {slugOwner && address && (slugOwner as string).toLowerCase() === address.toLowerCase() && !currentSlug ? (
-                                    <Button
-                                        onClick={() => handleSync(debouncedSlug)}
-                                        disabled={!debouncedSlug || isWritePending}
-                                        variant="secondary"
-                                    >
-                                        {isWritePending && pendingAction === "claim" ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                                        Sync
-                                    </Button>
-                                ) : (
-                                    <Button
-                                        onClick={async () => {
-                                            if (!debouncedSlug || availability !== "available") return;
-                                            setPendingAction("claim");
-                                            try {
-                                                await writeContractAsync({
-                                                    address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
-                                                    abi: ABI,
-                                                    functionName: "claim",
-                                                    args: [debouncedSlug]
-                                                });
-                                                toast.loading("Claiming slug...", { id: "claim-toast" });
-                                            } catch (e: any) {
-                                                console.error("Claim error:", e);
-                                                toast.error(e.message || "Failed to initiate claim");
-                                                setPendingAction(null);
-                                            }
-                                        }}
-                                        disabled={availability !== "available" || isWritePending || isConfirming}
-                                    >
-                                        {isWritePending && pendingAction === "claim" ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                                        Claim
-                                    </Button>
-                                )}
                             </div>
-                        </div>
+                        )}
 
                         {/* Status Messages */}
                         <div className="min-h-[20px]">
