@@ -53,9 +53,24 @@ export async function POST(request: Request) {
             args: [computedHash as `0x${string}`]
         }) as string;
 
+        console.log("[Slug Sync Debug]", {
+            slug: normalized,
+            computedHash,
+            sessionAddress,
+            onChainOwner,
+            match: onChainOwner?.toLowerCase() === sessionAddress?.toLowerCase()
+        });
+
         // 4. Security Check: Ensure the on-chain owner matches the session address
         if (!onChainOwner || onChainOwner.toLowerCase() !== sessionAddress.toLowerCase()) {
-            return new NextResponse("Slug not owned by this address on-chain", { status: 403 });
+            return NextResponse.json({
+                error: "Slug not owned by this address on-chain",
+                debug: {
+                    sessionAddress,
+                    onChainOwner,
+                    slug: normalized
+                }
+            }, { status: 403 });
         }
 
         // 5. Additional Security: Verify this is the user's ACTIVE slug
