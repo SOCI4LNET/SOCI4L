@@ -18,8 +18,8 @@ const client = createPublicClient({
  * {
  *   "crons": [{
  *     "path": "/api/cron/sync-slugs",
- *     "schedule": "*/5 * * * * "
-    *   }]
+ *     "schedule": "* * * * *"
+ *   }]
  * }
  */
 export async function GET(request: Request) {
