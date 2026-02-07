@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { CUSTOM_SLUG_REGISTRY_ADDRESS, CUSTOM_SLUG_REGISTRY_ABI } from "@/lib/contracts/CustomSlugRegistry";
 import { normalizeSlug, validateSlugFormat, hashSlug } from "@/lib/utils/slug";
 
@@ -26,6 +28,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
     const [isChecking, setIsChecking] = useState(false);
     const [availability, setAvailability] = useState<"idle" | "available" | "taken" | "reserved" | "invalid">("idle");
     const [cooldownEnd, setCooldownEnd] = useState<Date | null>(null);
+    const [pendingAction, setPendingAction] = useState<"claim" | "release" | null>(null);
 
     // Debounce input
     useEffect(() => {
@@ -121,99 +124,56 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
 
 
     // Transaction Handling
-    const { writeContract, data: hash, isPending: isWritePending, error: writeError } = useWriteContract();
+    const { writeContractAsync, data: hash, isPending: isWritePending } = useWriteContract();
     const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
         hash,
     });
 
-    // Effect to trigger backend update on success
-    useEffect(() => {
-        if (isConfirmed && hash) {
-            const updateBackend = async () => {
-                try {
-                    const action = currentSlug ? "release" : "claim";
-                    // Wait, this component handles both. 
-                    // We need to know WHICH action triggered the success.
-                    // We can track it via a ref or state, but user likely didn't change intent mid-flight.
-
-                    // If inputSlug is set and we just claimed, it's claim.
-                    // If we clicked release, we should have cleared inputSlug or tracked it.
-                    // Using a "pendingAction" state would be better.
-
-                    // For now, trusting the optimistic update call:
-                    // If we have an active `currentSlug` prop (from parent DB data) AND we executed `release`...
-                    // Only `claim` uses `debouncedSlug`. 
-
-                    // Let's implement optimistic update more explicitly in the handlers.
-                } catch (e) {
-                    console.error(e);
-                }
-            };
-            // updateBackend(); // Moving to separate handler
-        }
-    }, [isConfirmed, hash, currentSlug]);
-
-
     const handleClaim = async () => {
         if (!debouncedSlug || availability !== "available") return;
+        setPendingAction("claim");
 
         try {
-            writeContract({
+            await writeContractAsync({
                 address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
                 abi: ABI,
                 functionName: "claim",
                 args: [debouncedSlug]
-            }, {
-                onSuccess: async (txHash) => {
-                    toast.loading("Claiming slug...", { id: "claim-toast" });
-                    // We wait for receipt in the UI via hook, 
-                    // But we can ALSO start watching for it or just wait for `isConfirmed`.
-                }
             });
-        } catch (e) {
-            toast.error("Failed to initiate claim");
+            toast.loading("Claiming slug...", { id: "claim-toast" });
+        } catch (e: any) {
+            console.error("Claim error:", e);
+            toast.error(e.message || "Failed to initiate claim");
+            setPendingAction(null);
         }
     };
 
     const handleRelease = async () => {
         if (!currentSlug) return;
+        setPendingAction("release");
+
         try {
-            writeContract({
+            await writeContractAsync({
                 address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
                 abi: ABI,
                 functionName: "release",
-            }, {
-                onSuccess: (txHash) => {
-                    toast.loading("Releasing slug...", { id: "release-toast" });
-                }
             });
-        } catch (e) {
-            toast.error("Failed to initiate release");
+            toast.loading("Releasing slug...", { id: "release-toast" });
+        } catch (e: any) {
+            console.error("Release error:", e);
+            if (e?.message?.includes('User rejected')) {
+                toast.error("Transaction rejected");
+            } else {
+                toast.error("Failed to initiate release");
+            }
+            setPendingAction(null);
         }
     };
 
     // Watch for confirmation to trigger API
     useEffect(() => {
-        if (isConfirmed && hash) {
-            const performApiUpdate = async () => {
-                // Determine action based on context. 
-                // If we have `currentSlug` locally (from props) but we called release...
-                // It's safer to check the transaction data or just use a state for `lastAction`.
-            };
-
-            // Actually, let's just trigger the API with the logic:
-            // If we claimed, we send "claim" and slug.
-            // If we released, we send "release".
-            // We need state to track what we just did.
-        }
-    }, [isConfirmed, hash]);
-
-    // Better approach: separate state for "pending action type"
-    const [pendingAction, setPendingAction] = useState<"claim" | "release" | null>(null);
-
-    useEffect(() => {
         if (isConfirmed && hash && pendingAction) {
-            const update = async () => {
+            const updateBackend = async () => {
                 try {
                     const res = await fetch("/api/slug/update", {
                         method: "POST",
@@ -231,128 +191,125 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                     toast.success(pendingAction === "claim" ? "Slug claimed!" : "Slug released!");
 
                     // Force reload or callback to update parent state
-                    window.location.reload(); // Simple MVP refresh
+                    window.location.reload();
                 } catch (e) {
                     toast.error("Slug updated on-chain but failed to sync locally. Please refresh.");
                 } finally {
                     setPendingAction(null);
                 }
             };
-            update();
+            updateBackend();
         }
     }, [isConfirmed, hash, pendingAction, debouncedSlug]);
+
 
     if (!isConnected) {
         return <Alert><AlertTitle>Wallet not connected</AlertTitle><AlertDescription>Please connect your wallet to manage slugs.</AlertDescription></Alert>;
     }
 
     return (
-        <Card className="rounded-3xl border-white/5 bg-black/20 backdrop-blur-sm overflow-hidden">
-            <CardHeader className="pb-4">
-                <CardTitle className="text-xl font-medium tracking-tight">Custom Profile Link</CardTitle>
-                <CardDescription className="text-base text-muted-foreground/80">
-                    Claim a unique identity for your profile.
+        <Card className="bg-card border border-border/60 shadow-sm">
+            <CardHeader>
+                <CardTitle className="text-base">Custom Profile Link</CardTitle>
+                <CardDescription>
+                    Claim a unique short URL for your profile (e.g. soci4l.com/p/{currentSlug || "your-name"}).
                 </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
                 {currentSlug ? (
                     <div className="space-y-4">
-                        <div className="p-6 bg-white/5 border border-white/5 rounded-2xl flex items-center justify-between group hover:border-white/10 transition-colors">
+                        <div className="p-4 bg-muted/50 rounded-lg flex items-center justify-between border">
                             <div>
-                                <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">Current Handle</p>
-                                <p className="text-2xl font-bold flex items-center gap-2 font-mono text-white">
-                                    /p/{currentSlug}
-                                    <div className="h-5 w-5 rounded-full bg-green-500/20 flex items-center justify-center">
-                                        <Check className="w-3 h-3 text-green-500" />
-                                    </div>
-                                </p>
+                                <p className="text-sm font-medium text-muted-foreground mb-1">Current Handle</p>
+                                <div className="flex items-center gap-2">
+                                    <p className="text-lg font-mono font-semibold">
+                                        /p/{currentSlug}
+                                    </p>
+                                    <Badge variant="secondary" className="text-green-600 bg-green-500/10 hover:bg-green-500/20 border-green-500/20">
+                                        <Check className="w-3 h-3 mr-1" /> Verified
+                                    </Badge>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="rounded-2xl border border-red-500/10 bg-red-500/5 p-4 flex gap-3 items-start">
-                            <AlertCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
-                            <div className="space-y-1">
-                                <h4 className="text-sm font-medium text-red-500">Cooldown Warning</h4>
-                                <p className="text-xs text-red-500/80 leading-relaxed">
-                                    Releasing your slug initiates a 7-day cooldown period. During this time, nobody (including you) can claim it.
-                                </p>
-                            </div>
+                        <Alert variant="destructive">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertTitle>Warning</AlertTitle>
+                            <AlertDescription>
+                                Releasing your slug initiates a 7-day cooldown period. During this time, nobody (including you) can claim it.
+                            </AlertDescription>
+                        </Alert>
+
+                        <div className="flex justify-end">
+                            <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={handleRelease}
+                                disabled={isWritePending || isConfirming}
+                            >
+                                {isWritePending && pendingAction === "release" ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                                Release Handle
+                            </Button>
                         </div>
                     </div>
                 ) : (
                     <div className="space-y-4">
-                        <div className="relative">
-                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-mono text-lg pointer-events-none select-none">
-                                soci4l.com/p/
-                            </div>
-                            <Input
-                                value={inputSlug}
-                                onChange={(e) => setInputSlug(e.target.value)}
-                                className="pl-[140px] h-14 rounded-2xl border-white/10 bg-black/20 text-lg font-mono focus-visible:ring-brand-500/50 focus-visible:border-brand-500"
-                                placeholder="name"
-                                disabled={isWritePending || isConfirming}
-                            />
-                            {/* Status Icon */}
-                            <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                                {isChecking ? <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /> :
-                                    availability === "available" ? <div className="h-6 w-6 rounded-full bg-green-500/20 flex items-center justify-center"><Check className="w-3.5 h-3.5 text-green-500" /></div> :
-                                        availability === "taken" ? <div className="h-6 w-6 rounded-full bg-red-500/20 flex items-center justify-center"><X className="w-3.5 h-3.5 text-red-500" /></div> :
-                                            availability === "reserved" ? <div className="h-6 w-6 rounded-full bg-yellow-500/20 flex items-center justify-center"><AlertCircle className="w-3.5 h-3.5 text-yellow-500" /></div> : null}
+                        <div className="space-y-2">
+                            <Label>Desired Handle</Label>
+                            <div className="flex gap-2">
+                                <div className="relative flex-1">
+                                    <span className="absolute left-3 top-2.5 text-muted-foreground font-mono text-sm">soci4l.com/p/</span>
+                                    <Input
+                                        value={inputSlug}
+                                        onChange={(e) => setInputSlug(e.target.value)}
+                                        className="pl-[110px] font-mono"
+                                        placeholder="username"
+                                        disabled={isWritePending || isConfirming}
+                                    />
+                                    {/* Status Icon */}
+                                    <div className="absolute right-3 top-2.5">
+                                        {isChecking ? <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /> :
+                                            availability === "available" ? <Check className="w-4 h-4 text-green-500" /> :
+                                                availability === "taken" ? <div className="text-red-500 text-xs font-medium flex items-center gap-1"><X className="w-3 h-3" /> Taken</div> :
+                                                    availability === "reserved" ? <div className="text-yellow-500 text-xs font-medium flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Reserved</div> : null}
+                                    </div>
+                                </div>
+                                <Button
+                                    onClick={handleClaim}
+                                    disabled={availability !== "available" || isWritePending || isConfirming}
+                                >
+                                    {isWritePending && pendingAction === "claim" ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                                    Claim
+                                </Button>
                             </div>
                         </div>
 
-                        <div className="h-6 min-h-[24px]">
-                            {availability === "taken" && (
-                                <p className="text-sm text-red-500 flex items-center gap-2">
-                                    <X className="w-4 h-4" /> This handle is already taken.
-                                </p>
-                            )}
+                        {/* Status Messages */}
+                        <div className="min-h-[20px]">
                             {availability === "invalid" && debouncedSlug && (
-                                <p className="text-sm text-red-500 flex items-center gap-2">
-                                    <AlertCircle className="w-4 h-4" /> Use only lowercase letters, numbers, and hyphens.
+                                <p className="text-xs text-red-500 flex items-center gap-1">
+                                    <AlertCircle className="w-3 h-3" /> Use only lowercase letters, numbers, and hyphens.
                                 </p>
                             )}
                             {availability === "reserved" && cooldownEnd && (
-                                <p className="text-sm text-yellow-500 flex items-center gap-2">
-                                    <Loader2 className="w-4 h-4" /> Cooldown until {cooldownEnd.toLocaleDateString()}.
+                                <p className="text-xs text-yellow-500 flex items-center gap-1">
+                                    <Loader2 className="w-3 h-3" /> In cooldown until {cooldownEnd.toLocaleDateString()}.
                                 </p>
                             )}
                             {availability === "reserved" && !cooldownEnd && (
-                                <p className="text-sm text-red-500 flex items-center gap-2">
-                                    <ShieldAlert className="w-4 h-4" /> Reserved for official use.
+                                <p className="text-xs text-red-500 flex items-center gap-1">
+                                    <ShieldAlert className="w-3 h-3" /> Reserved for official use.
                                 </p>
                             )}
                             {availability === "available" && debouncedSlug && (
-                                <p className="text-sm text-green-500 flex items-center gap-2">
-                                    <Check className="w-4 h-4" /> Available! Cost: Gas only.
+                                <p className="text-xs text-green-500 flex items-center gap-1">
+                                    <Check className="w-3 h-3" /> Available! Gas fees apply.
                                 </p>
                             )}
                         </div>
-
-                        <Button
-                            onClick={() => { setPendingAction("claim"); handleClaim(); }}
-                            disabled={availability !== "available" || isWritePending || isConfirming}
-                            className="w-full h-12 rounded-xl text-base font-medium bg-white text-black hover:bg-white/90 transition-all shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)] disabled:opacity-50 disabled:shadow-none"
-                        >
-                            {isWritePending && pendingAction === "claim" ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                            Claim Handle
-                        </Button>
                     </div>
                 )}
             </CardContent>
-            {currentSlug && (
-                <CardFooter className="pt-2 pb-6">
-                    <Button
-                        variant="ghost"
-                        onClick={() => { setPendingAction("release"); handleRelease(); }}
-                        disabled={isWritePending || isConfirming}
-                        className="w-full h-12 rounded-xl text-red-500 hover:text-red-400 hover:bg-red-500/10 border border-red-500/10"
-                    >
-                        {isWritePending && pendingAction === "release" ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                        Release Handle
-                    </Button>
-                </CardFooter>
-            )}
         </Card>
     );
 }
