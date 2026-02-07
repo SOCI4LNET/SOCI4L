@@ -33,6 +33,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
     const [pendingAction, setPendingAction] = useState<"claim" | "release" | null>(null);
     const [recoveredSlug, setRecoveredSlug] = useState<string | null>(null);
     const [isRecovering, setIsRecovering] = useState(false);
+    const [hasAttemptedRecovery, setHasAttemptedRecovery] = useState(false);
 
     // Debounce input
     useEffect(() => {
@@ -143,9 +144,16 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
     }, [slugOwner, slugStatus, isReserved, debouncedSlug]);
 
 
+
+    // Reset recovery state when account/slug changes
+    useEffect(() => {
+        setHasAttemptedRecovery(false);
+        setRecoveredSlug(null);
+    }, [activeSlugHash, address]);
+
     // Recover slug name from chain history if zombie state
     useEffect(() => {
-        if (!publicClient || !address || !activeSlugHash || activeSlugHash === ZERO_HASH || currentSlug) return;
+        if (!publicClient || !address || !activeSlugHash || activeSlugHash === ZERO_HASH || currentSlug || hasAttemptedRecovery) return;
 
         const recoverSlug = async () => {
             setIsRecovering(true);
@@ -181,13 +189,12 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                 console.error("Failed to recover slug name:", e);
             } finally {
                 setIsRecovering(false);
+                setHasAttemptedRecovery(true);
             }
         };
 
-        if (!recoveredSlug && !isRecovering) {
-            recoverSlug();
-        }
-    }, [activeSlugHash, address, currentSlug, publicClient, recoveredSlug, isRecovering, inputSlug]);
+        recoverSlug();
+    }, [activeSlugHash, address, currentSlug, publicClient, hasAttemptedRecovery, inputSlug]);
 
     // Transaction Handling
     const { writeContractAsync, data: hash, isPending: isWritePending } = useWriteContract();
