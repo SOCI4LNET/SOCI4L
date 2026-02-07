@@ -110,7 +110,7 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
   // Prevent hydration mismatch
   if (!mounted) {
     return (
-      <Button variant="default" size="sm" disabled className="bg-accent-primary text-black">
+      <Button variant="default" size="sm" disabled>
         Claim Profile
       </Button>
     )
@@ -121,7 +121,7 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
       <WalletConnectButtons
         variant="default"
         size="sm"
-        className="bg-accent-primary text-black hover:bg-accent-primary/90"
+        className="w-full"
       />
     )
   }
@@ -143,7 +143,6 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
       onClick={handleClaim}
       variant="default"
       size="sm"
-      className="bg-accent-primary text-black hover:bg-accent-primary/90"
     >
       Claim Profile
     </Button>

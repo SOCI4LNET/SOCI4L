@@ -94,7 +94,6 @@ export function HeaderActions() {
       <WalletConnectButtons
         variant="default"
         size="sm"
-        className="bg-accent-primary text-black hover:bg-accent-primary/90"
       />
     )
   }

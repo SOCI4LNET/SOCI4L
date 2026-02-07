@@ -76,7 +76,7 @@ function DashboardRedirectHandler() {
             <WalletConnectButtons
               variant="default"
               size="sm"
-              className="w-full bg-accent-primary text-black hover:bg-accent-primary/90"
+              className="w-full"
             />
           </CardContent>
         </Card>

@@ -23,7 +23,7 @@
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
-    --ring: 230 69% 50%;
+    --ring: 230 69% 50% / 0;
     /* Brand Main */
     --radius: 0.5rem;
     --sidebar-background: 0 0% 98%;
@@ -50,6 +50,9 @@
     --brand-800: 230 69% 20%;
     --brand-900: 230 69% 10%;
 
+    --accent-primary: 230 69% 50%;
+    --accent-primary-muted: 230 69% 50% / 0.1;
+
     --logo-color: #111111;
   }
 
@@ -73,7 +76,7 @@
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 14.9%;
     --input: 0 0% 14.9%;
-    --ring: 230 69% 50%;
+    --ring: 230 69% 50% / 0;
     --sidebar-background: 0 0% 4%;
     --sidebar-foreground: 0 0% 98%;
     --sidebar-primary: 230 69% 50%;
@@ -96,6 +99,10 @@
     --brand-800: 230 69% 20%;
     --brand-900: 230 69% 10%;
 
+    --accent-primary: 230 69% 60%;
+    /* Slightly lighter for dark mode */
+    --accent-primary-muted: 230 69% 60% / 0.1;
+
     --logo-color: #f9f9f9;
   }
 }
@@ -107,6 +114,11 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Global Focus Rule */
+  :focus-visible {
+    outline: none !important;
   }
 }
 
