@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { parseAbi } from "viem";
-import { Loader2, Check, AlertCircle, X } from "lucide-react";
+import { Loader2, Check, AlertCircle, X, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -247,95 +247,112 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
     }
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Custom Profile Link</CardTitle>
-                <CardDescription>
-                    Claim a unique short URL for your profile (e.g. soci4l.com/p/{currentSlug || "your-name"}).
+        <Card className="rounded-3xl border-white/5 bg-black/20 backdrop-blur-sm overflow-hidden">
+            <CardHeader className="pb-4">
+                <CardTitle className="text-xl font-medium tracking-tight">Custom Profile Link</CardTitle>
+                <CardDescription className="text-base text-muted-foreground/80">
+                    Claim a unique identity for your profile.
                 </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-6">
                 {currentSlug ? (
                     <div className="space-y-4">
-                        <div className="p-4 bg-muted rounded-lg flex items-center justify-between">
+                        <div className="p-6 bg-white/5 border border-white/5 rounded-2xl flex items-center justify-between group hover:border-white/10 transition-colors">
                             <div>
-                                <p className="text-sm font-medium text-muted-foreground">Current Slug</p>
-                                <p className="text-xl font-bold flex items-center gap-2">
+                                <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-1">Current Handle</p>
+                                <p className="text-2xl font-bold flex items-center gap-2 font-mono text-white">
                                     /p/{currentSlug}
-                                    <Check className="w-4 h-4 text-green-500" />
+                                    <div className="h-5 w-5 rounded-full bg-green-500/20 flex items-center justify-center">
+                                        <Check className="w-3 h-3 text-green-500" />
+                                    </div>
                                 </p>
                             </div>
-                            {/* Share Button could go here */}
                         </div>
 
-                        <Alert variant="destructive">
-                            <AlertCircle className="h-4 w-4" />
-                            <AlertTitle>Warning</AlertTitle>
-                            <AlertDescription>
-                                Releasing your slug initiates a 7-day cooldown period. During this time, nobody (including you) can claim it.
-                            </AlertDescription>
-                        </Alert>
+                        <div className="rounded-2xl border border-red-500/10 bg-red-500/5 p-4 flex gap-3 items-start">
+                            <AlertCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+                            <div className="space-y-1">
+                                <h4 className="text-sm font-medium text-red-500">Cooldown Warning</h4>
+                                <p className="text-xs text-red-500/80 leading-relaxed">
+                                    Releasing your slug initiates a 7-day cooldown period. During this time, nobody (including you) can claim it.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 ) : (
                     <div className="space-y-4">
-                        <div className="flex gap-2">
-                            <div className="relative flex-1">
-                                <span className="absolute left-3 top-2.5 text-muted-foreground">/p/</span>
-                                <Input
-                                    value={inputSlug}
-                                    onChange={(e) => setInputSlug(e.target.value)}
-                                    className="pl-9"
-                                    placeholder="your-name"
-                                    disabled={isWritePending || isConfirming}
-                                />
-                                {/* Status Icon */}
-                                <div className="absolute right-3 top-2.5">
-                                    {isChecking ? <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /> :
-                                        availability === "available" ? <Check className="w-4 h-4 text-green-500" /> :
-                                            availability === "taken" ? <X className="w-4 h-4 text-red-500" /> :
-                                                availability === "reserved" ? <AlertCircle className="w-4 h-4 text-yellow-500" /> : null}
-                                </div>
+                        <div className="relative">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-mono text-lg pointer-events-none select-none">
+                                soci4l.com/p/
                             </div>
-                            <Button
-                                onClick={() => { setPendingAction("claim"); handleClaim(); }}
-                                disabled={availability !== "available" || isWritePending || isConfirming}
-                            >
-                                {isWritePending || isConfirming ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                                Claim
-                            </Button>
+                            <Input
+                                value={inputSlug}
+                                onChange={(e) => setInputSlug(e.target.value)}
+                                className="pl-[140px] h-14 rounded-2xl border-white/10 bg-black/20 text-lg font-mono focus-visible:ring-brand-500/50 focus-visible:border-brand-500"
+                                placeholder="name"
+                                disabled={isWritePending || isConfirming}
+                            />
+                            {/* Status Icon */}
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                {isChecking ? <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /> :
+                                    availability === "available" ? <div className="h-6 w-6 rounded-full bg-green-500/20 flex items-center justify-center"><Check className="w-3.5 h-3.5 text-green-500" /></div> :
+                                        availability === "taken" ? <div className="h-6 w-6 rounded-full bg-red-500/20 flex items-center justify-center"><X className="w-3.5 h-3.5 text-red-500" /></div> :
+                                            availability === "reserved" ? <div className="h-6 w-6 rounded-full bg-yellow-500/20 flex items-center justify-center"><AlertCircle className="w-3.5 h-3.5 text-yellow-500" /></div> : null}
+                            </div>
                         </div>
 
-                        {/* Status Messages */}
-                        {availability === "taken" && <p className="text-sm text-red-500">This slug is already taken.</p>}
-                        {availability === "invalid" && <p className="text-sm text-red-500">Invalid format. generic-kebab-case only.</p>}
-                        {availability === "reserved" && cooldownEnd && (
-                            <p className="text-sm text-yellow-500">
-                                This slug is in cooldown until {cooldownEnd.toLocaleDateString()} {cooldownEnd.toLocaleTimeString()}.
-                            </p>
-                        )}
-                        {availability === "reserved" && !cooldownEnd && (
-                            <p className="text-sm text-red-500">
-                                This slug is reserved for official use.
-                            </p>
-                        )}
-                        {availability === "available" && debouncedSlug && (
-                            <p className="text-sm text-green-500">Available! Cost: Gas only.</p>
-                        )}
+                        <div className="h-6 min-h-[24px]">
+                            {availability === "taken" && (
+                                <p className="text-sm text-red-500 flex items-center gap-2">
+                                    <X className="w-4 h-4" /> This handle is already taken.
+                                </p>
+                            )}
+                            {availability === "invalid" && debouncedSlug && (
+                                <p className="text-sm text-red-500 flex items-center gap-2">
+                                    <AlertCircle className="w-4 h-4" /> Use only lowercase letters, numbers, and hyphens.
+                                </p>
+                            )}
+                            {availability === "reserved" && cooldownEnd && (
+                                <p className="text-sm text-yellow-500 flex items-center gap-2">
+                                    <Loader2 className="w-4 h-4" /> Cooldown until {cooldownEnd.toLocaleDateString()}.
+                                </p>
+                            )}
+                            {availability === "reserved" && !cooldownEnd && (
+                                <p className="text-sm text-red-500 flex items-center gap-2">
+                                    <ShieldAlert className="w-4 h-4" /> Reserved for official use.
+                                </p>
+                            )}
+                            {availability === "available" && debouncedSlug && (
+                                <p className="text-sm text-green-500 flex items-center gap-2">
+                                    <Check className="w-4 h-4" /> Available! Cost: Gas only.
+                                </p>
+                            )}
+                        </div>
+
+                        <Button
+                            onClick={() => { setPendingAction("claim"); handleClaim(); }}
+                            disabled={availability !== "available" || isWritePending || isConfirming}
+                            className="w-full h-12 rounded-xl text-base font-medium bg-white text-black hover:bg-white/90 transition-all shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)] disabled:opacity-50 disabled:shadow-none"
+                        >
+                            {isWritePending && pendingAction === "claim" ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                            Claim Handle
+                        </Button>
                     </div>
                 )}
             </CardContent>
-            <CardFooter>
-                {currentSlug && (
+            {currentSlug && (
+                <CardFooter className="pt-2 pb-6">
                     <Button
-                        variant="destructive"
+                        variant="ghost"
                         onClick={() => { setPendingAction("release"); handleRelease(); }}
                         disabled={isWritePending || isConfirming}
+                        className="w-full h-12 rounded-xl text-red-500 hover:text-red-400 hover:bg-red-500/10 border border-red-500/10"
                     >
-                        {isWritePending || isConfirming ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                        Release Slug
+                        {isWritePending && pendingAction === "release" ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                        Release Handle
                     </Button>
-                )}
-            </CardFooter>
+                </CardFooter>
+            )}
         </Card>
     );
 }
