@@ -19,11 +19,8 @@ const ABI = parseAbi(CUSTOM_SLUG_REGISTRY_ABI);
  * 
  * This endpoint allows users to sync their on-chain slug ownership to the database.
  * Security measures:
- * 1. Verifies signature to authenticate wallet ownership
- * 2. Validates slug format
- * 3. Verifies on-chain ownership via contract call
- * 4. Ensures the slug hash matches the user's active slug on-chain
- * 5. Prevents replay attacks with nonce
+ * 1. Verifies signature to authenticate wallet ownership (Standard Mode)
+ * 2. REPAIR/AUTO-SYNC MODE: Uses on-chain state as Proof-of-Ownership (No signature required)
  */
 export async function POST(request: Request) {
     try {
@@ -31,16 +28,16 @@ export async function POST(request: Request) {
         const { slug, signature, message, mode, address: providedAddress } = body;
 
         let targetAddress = "";
+        let isSyncingSpecificSlug = false;
 
-        // 1. Signature or Repair Mode Verification
+        // 1. Authorization: Signature OR On-Chain Proof (Repair/Auto-Sync mode)
         if (mode === "repair") {
             if (!providedAddress) {
                 return NextResponse.json({ error: "Address required for repair mode" }, { status: 400 });
             }
             targetAddress = providedAddress.toLowerCase();
 
-            // SECURITY: Only allow repair if blockchain confirms the user DOES NOT own any active slug hash
-            // (Setting a slug still requires a signature)
+            // Fetch active on-chain slug hash for this address
             const activeSlugHash = await client.readContract({
                 address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
                 abi: ABI,
@@ -49,27 +46,33 @@ export async function POST(request: Request) {
             }) as string;
 
             const ZERO_HASH = "0x0000000000000000000000000000000000000000000000000000000000000000";
-            if (activeSlugHash !== ZERO_HASH) {
-                return NextResponse.json({ error: "Cannot repair if active on-chain slug exists. Signature required for sync." }, { status: 403 });
-            }
 
-            console.log(`[Slug Sync] Repair mode authorized for ${targetAddress} (Public state verified)`);
-
-            // REPAIR: Clear stale DB entry immediately
-            await (prisma as any).profile.update({
-                where: { address: targetAddress.toLowerCase() },
-                data: {
-                    slug: null,
-                    slugHash: null,
-                    slugClaimedAt: null
+            // If a slug is provided, we are attempting to SYNC/RECOVER it immasignature-free
+            if (slug) {
+                if (!validateSlugFormat(slug)) {
+                    return NextResponse.json({ error: "Invalid slug format" }, { status: 400 });
                 }
-            });
+                const normalized = normalizeSlug(slug);
+                const computedHash = hashSlug(normalized);
 
-            return NextResponse.json({
-                success: true,
-                slug: null,
-                message: "Repair complete: Stale slug cleared"
-            });
+                // SECURITY: Only allow if the provided slug matches their on-chain active hash
+                if (activeSlugHash.toLowerCase() !== computedHash.toLowerCase()) {
+                    return NextResponse.json({
+                        error: "On-chain hash mismatch. Cannot recover slug without signature."
+                    }, { status: 403 });
+                }
+
+                isSyncingSpecificSlug = true;
+                console.log(`[Slug Sync] Seamless Recovery authorized for ${normalized} -> ${targetAddress}`);
+            } else {
+                // No slug provided: This is a CLEANUP operation (User has no active slug on-chain)
+                if (activeSlugHash !== ZERO_HASH) {
+                    return NextResponse.json({
+                        error: "Cannot clear DB while active on-chain slug exists. Signature required for sync."
+                    }, { status: 403 });
+                }
+                console.log(`[Slug Sync] Cleanup authorized for ${targetAddress} (Public state verified)`);
+            }
         } else {
             // Standard Sync requires signature
             if (!signature || !message) {
@@ -87,36 +90,14 @@ export async function POST(request: Request) {
             targetAddress = recoveredAddress.toLowerCase();
         }
 
-        // 2. Validate Slug Format
-        if (!slug || !validateSlugFormat(slug)) {
-            return new NextResponse("Invalid slug format", { status: 400 });
-        }
+        // 2. Perform DB Updates
 
-        const normalized = normalizeSlug(slug);
-        const computedHash = hashSlug(normalized);
+        // Strategy: 
+        // A. If we are in CLEANUP mode (no slug), clear everything.
+        // B. If we are in SYNC mode (standard or recovery), ensure uniqueness and upsert.
 
-        // 3. Verify On-Chain Ownership
-        // Check if the user owns this slug on-chain
-        const onChainOwner = await client.readContract({
-            address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
-            abi: ABI,
-            functionName: "resolveSlug",
-            args: [computedHash as `0x${string}`]
-        }) as string;
-
-        console.log("[Slug Sync Debug]", {
-            slug: normalized,
-            computedHash,
-            targetAddress,
-            onChainOwner,
-            match: onChainOwner?.toLowerCase() === targetAddress?.toLowerCase()
-        });
-
-        // 4. Security Check: Ensure the on-chain owner matches the recovered address
-        if (!onChainOwner || onChainOwner.toLowerCase() !== targetAddress.toLowerCase()) {
-            console.warn(`[Slug Sync] Mismatch detected for ${targetAddress}. Clearing db slug.`);
-
-            // Self-healing: If user doesn't own it on-chain, clear it from DB
+        if (!isSyncingSpecificSlug && !slug) {
+            // CLEANUP / REPAIR: Clear stale DB entry
             await (prisma as any).profile.update({
                 where: { address: targetAddress.toLowerCase() },
                 data: {
@@ -126,39 +107,64 @@ export async function POST(request: Request) {
                 }
             });
 
+            // Revalidate
+            try { revalidatePath(`/dashboard/${targetAddress}`, "page"); } catch (e) { }
+
             return NextResponse.json({
                 success: true,
                 slug: null,
-                message: "Sync complete: Slug removed (not owned on-chain)"
+                message: "Repair complete: Stale slug cleared"
             });
         }
 
-        // 5. Additional Security: Verify this is the user's ACTIVE slug
-        const activeSlugHash = await client.readContract({
-            address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
-            abi: ABI,
-            functionName: "getActiveSlug",
-            args: [targetAddress as `0x${string}`]
-        }) as string;
+        // SYNC / RECOVERY MODE
+        const normalized = normalizeSlug(slug);
+        const computedHash = hashSlug(normalized);
 
-        if (activeSlugHash.toLowerCase() !== computedHash.toLowerCase()) {
-            return NextResponse.json({ error: "Slug hash mismatch with active slug on-chain" }, { status: 403 });
+        // Security reinforcement for Standard Mode (Signature provided)
+        if (mode !== "repair") {
+            // Verify on-chain resolveSlug matches targetAddress
+            const onChainOwner = await client.readContract({
+                address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
+                abi: ABI,
+                functionName: "resolveSlug",
+                args: [computedHash as `0x${string}`]
+            }) as string;
+
+            if (!onChainOwner || onChainOwner.toLowerCase() !== targetAddress.toLowerCase()) {
+                // Self-healing: clear if mismatch
+                await (prisma as any).profile.update({
+                    where: { address: targetAddress.toLowerCase() },
+                    data: { slug: null, slugHash: null, slugClaimedAt: null }
+                });
+                return NextResponse.json({ success: true, slug: null, message: "Sync complete: Slug removed (not owned)" });
+            }
+
+            // Verify it's their ACTIVE slug
+            const activeHash = await client.readContract({
+                address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
+                abi: ABI,
+                functionName: "getActiveSlug",
+                args: [targetAddress as `0x${string}`]
+            }) as string;
+
+            if (activeHash.toLowerCase() !== computedHash.toLowerCase()) {
+                return NextResponse.json({ error: "Slug mismatch with active on-chain record" }, { status: 403 });
+            }
         }
 
-        // 6. Update Database (Idempotent)
-        // First, clear this slug from any other profiles (in case it was previously synced to wrong address)
+        // UPDATE DATABASE (Shared for both recovery and standard modes)
+
+        // 1. Clear from anyone else
         await (prisma as any).profile.updateMany({
             where: {
                 slug: normalized,
                 address: { not: targetAddress.toLowerCase() }
             },
-            data: {
-                slug: null,
-                slugHash: null
-            }
+            data: { slug: null, slugHash: null }
         });
 
-        // Then update the correct profile
+        // 2. Upsert for target user
         await (prisma as any).profile.update({
             where: { address: targetAddress.toLowerCase() },
             data: {
@@ -168,15 +174,14 @@ export async function POST(request: Request) {
             }
         });
 
-        // 7. Clear any cooldown for this slug
+        // 3. Clear cooldown
         await (prisma as any).slugCooldown.deleteMany({
             where: { slugHash: computedHash }
         });
 
-        // 8. Revalidate paths to clear cache
+        // 4. Revalidate
         try {
             revalidatePath(`/dashboard/${targetAddress}`, "page");
-            revalidatePath(`/dashboard/${targetAddress.toLowerCase()}`, "page");
             revalidatePath(`/p/${normalized}`, "page");
             revalidatePath("/", "layout");
         } catch (revalidateError) {
@@ -186,17 +191,11 @@ export async function POST(request: Request) {
         return NextResponse.json({
             success: true,
             slug: normalized,
-            message: "Slug synced successfully"
+            message: mode === "repair" ? "Seamless Sync successful" : "Slug synced successfully"
         });
 
     } catch (error: any) {
         console.error("Slug Sync Error:", error);
-
-        // Don't expose internal errors to client
-        if (error?.message?.includes("Profile not found")) {
-            return new NextResponse("Profile not found", { status: 404 });
-        }
-
         return NextResponse.json({
             success: false,
             error: "Failed to sync slug"

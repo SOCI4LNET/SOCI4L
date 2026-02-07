@@ -34,6 +34,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
     const [recoveredSlug, setRecoveredSlug] = useState<string | null>(null);
     const [isRecovering, setIsRecovering] = useState(false);
     const [isAutoRepairing, setIsAutoRepairing] = useState(false);
+    const [isAutoSyncing, setIsAutoSyncing] = useState(false);
     const [repairFailed, setRepairFailed] = useState(false);
     const [hasAttemptedRecovery, setHasAttemptedRecovery] = useState(false);
 
@@ -152,6 +153,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
         setHasAttemptedRecovery(false);
         setRecoveredSlug(null);
         setIsAutoRepairing(false);
+        setIsAutoSyncing(false);
         setRepairFailed(false);
     }, [activeSlugHash, address]);
 
@@ -165,7 +167,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
     const handleSync = async (slugToSync: string) => {
         if (!address) return;
         setPendingAction("claim");
-        console.log(`[Slug Manager] Initiating sync for: ${slugToSync}`);
+        console.log(`[Slug Manager] Initiating manual sync for: ${slugToSync}`);
         try {
             const message = `Sync slug "${slugToSync}" for SOCI4L profile`;
             const signature = await signMessageAsync({ message });
@@ -196,6 +198,35 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
             }
         } finally {
             setPendingAction(null);
+        }
+    };
+
+    const handleAutoSync = async (slugToSync: string) => {
+        if (!address || isAutoSyncing) return;
+        setIsAutoSyncing(true);
+        console.log(`[Slug Manager] Initiating SEAMLESS sync for: ${slugToSync}`);
+        try {
+            const res = await fetch("/api/slug/sync", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    mode: "repair",
+                    slug: slugToSync,
+                    address: address
+                })
+            });
+
+            if (res.ok) {
+                toast.success("Profile synced automatically!", { id: "seamless-sync-success" });
+                window.location.reload();
+            } else {
+                console.error("Seamless sync failed, falling back to manual");
+                // Don't toast error here, user will see the "Sync Required" manual button if it fails
+                setIsAutoSyncing(false);
+            }
+        } catch (e) {
+            console.error("Auto-sync error:", e);
+            setIsAutoSyncing(false);
         }
     };
 
@@ -286,24 +317,23 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
     useEffect(() => {
         if (!currentSlug && activeSlugHash && activeSlugHash !== ZERO_HASH && inputSlug && validateSlugFormat(inputSlug)) {
             const typedHash = hashSlug(inputSlug);
-            if (typedHash === activeSlugHash && !pendingAction) {
-                console.log("[Slug Manager] Input matches on-chain hash. Triggering auto-sync.");
-                handleSync(inputSlug);
+            if (typedHash === activeSlugHash && !pendingAction && !isAutoSyncing) {
+                console.log("[Slug Manager] Input matches on-chain hash. Triggering seamless auto-sync.");
+                handleAutoSync(inputSlug);
             }
         }
-    }, [inputSlug, activeSlugHash, currentSlug, pendingAction]);
+    }, [inputSlug, activeSlugHash, currentSlug, pendingAction, isAutoSyncing]);
 
     // Proactive Sync Trigger: If we found a zombie slug, automatically prompt for sync
     useEffect(() => {
-        if (recoveredSlug && !currentSlug && !isWritePending && !isConfirming && !pendingAction && hasAttemptedRecovery) {
-            // Optional: Add a delay or check if another toast is already showing
+        if (recoveredSlug && !currentSlug && !isWritePending && !isConfirming && !pendingAction && !isAutoSyncing && hasAttemptedRecovery) {
+            // Optional: Add a delay
             const timer = setTimeout(() => {
-                toast.info(`Found your handle: /p/${recoveredSlug}. Syncing now...`, { id: "auto-sync-info" });
-                handleSync(recoveredSlug);
+                handleAutoSync(recoveredSlug);
             }, 1000);
             return () => clearTimeout(timer);
         }
-    }, [recoveredSlug, currentSlug, isWritePending, isConfirming, pendingAction, hasAttemptedRecovery]);
+    }, [recoveredSlug, currentSlug, isWritePending, isConfirming, pendingAction, isAutoSyncing, hasAttemptedRecovery]);
 
     // Watch for confirmation to trigger API
     useEffect(() => {
@@ -458,8 +488,11 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                                 <AlertCircle className="h-4 w-4 text-yellow-500" />
                                 <AlertTitle className="text-yellow-500">Sync Required</AlertTitle>
                                 <AlertDescription className="text-yellow-500/90">
-                                    {isRecovering ? (
-                                        "Resolving your handle from chain history..."
+                                    {isRecovering || isAutoSyncing ? (
+                                        <div className="flex items-center gap-2">
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            {isAutoSyncing ? "Sealing your profile records..." : "Resolving your handle from chain history..."}
+                                        </div>
                                     ) : (
                                         <>
                                             {recoveredSlug ? (
@@ -471,18 +504,18 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                                                             className="text-yellow-600 underline px-1 h-auto font-bold"
                                                             onClick={() => setInputSlug(recoveredSlug)}
                                                         >
-                                                            Click here to sync it
+                                                            Fix it now
                                                         </Button>
                                                     )}
                                                 </span>
                                             ) : (
                                                 inputSlug && hashSlug(inputSlug) === activeSlugHash ? (
-                                                    <span className="flex items-center gap-2">
+                                                    <span className="flex items-center gap-2 text-blue-500">
                                                         <Check className="w-4 h-4" />
-                                                        Handle identified! Opening sync prompt...
+                                                        Handle identified! Syncing...
                                                     </span>
                                                 ) : (
-                                                    "You have an active handle on-chain, but it's not synced locally. Please enter your handle below to sync it."
+                                                    "An active handle was found on-chain. Please enter it below to complete the sync."
                                                 )
                                             )}
                                         </>
