@@ -35,7 +35,7 @@ export default function BrandPage() {
                     className="max-w-3xl mb-24"
                 >
                     <h1 className="text-4xl md:text-6xl font-semibold tracking-tight mb-6">
-                        Brand Guidelines
+                        SOCI4L Brand Guidelines
                     </h1>
                     <p className="text-xl text-muted-foreground leading-relaxed">
                         Our brand is more than just a logo. It's the visual language that connects us with our community.
@@ -627,17 +627,17 @@ export default function BrandPage() {
 
                 </motion.div>
 
-                <footer className="mt-32 pt-12 border-t border-border/20 text-center pb-8">
-                    <p className="text-sm text-muted-foreground">
-                        All brand identity assets were designed by
+                <footer className="mt-20 py-24 border-t border-border/10 text-center">
+                    <p className="text-[10px] md:text-xs font-mono uppercase tracking-[0.3em] text-muted-foreground/60 leading-relaxed max-w-2xl mx-auto">
+                        All brand identity assets were meticulously designed by
                         <a
                             href="https://floyka.space"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-foreground font-medium hover:text-brand-500 transition-colors ml-1 underline-offset-4 hover:underline"
+                            className="text-foreground font-semibold hover:text-brand-500 transition-colors ml-2 underline-offset-4 hover:underline"
                         >
-                            floyka design studio
-                        </a>.
+                            Floyka Design Studio
+                        </a>
                     </p>
                 </footer>
             </div>
