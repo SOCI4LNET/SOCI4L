@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSignMessage } from "wagmi";
 import { parseAbi } from "viem";
 import { Loader2, Check, AlertCircle, X, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
@@ -23,6 +23,7 @@ interface SlugManagerProps {
 
 export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
     const { address, isConnected } = useAccount();
+    const { signMessageAsync } = useSignMessage();
     const [inputSlug, setInputSlug] = useState("");
     const [debouncedSlug, setDebouncedSlug] = useState("");
     const [isChecking, setIsChecking] = useState(false);
@@ -288,14 +289,22 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                                 {slugOwner && address && slugOwner.toLowerCase() === address.toLowerCase() && !currentSlug ? (
                                     <Button
                                         onClick={async () => {
-                                            if (!debouncedSlug) return;
+                                            if (!debouncedSlug || !address) return;
 
                                             setPendingAction("claim");
                                             try {
+                                                // Sign message to prove wallet ownership
+                                                const message = `Sync slug "${debouncedSlug}" for SOCI4L profile`;
+                                                const signature = await signMessageAsync({ message });
+
                                                 const res = await fetch("/api/slug/sync", {
                                                     method: "POST",
                                                     headers: { "Content-Type": "application/json" },
-                                                    body: JSON.stringify({ slug: debouncedSlug })
+                                                    body: JSON.stringify({
+                                                        slug: debouncedSlug,
+                                                        signature,
+                                                        message
+                                                    })
                                                 });
 
                                                 const data = await res.json();
@@ -306,8 +315,12 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                                                 } else {
                                                     toast.error(data.error || "Sync failed");
                                                 }
-                                            } catch (e) {
-                                                toast.error("Sync error");
+                                            } catch (e: any) {
+                                                if (e?.message?.includes("User rejected")) {
+                                                    toast.error("Signature rejected");
+                                                } else {
+                                                    toast.error("Sync error");
+                                                }
                                             }
                                             setPendingAction(null);
                                         }}

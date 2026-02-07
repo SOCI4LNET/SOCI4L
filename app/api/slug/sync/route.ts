@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { normalizeSlug, hashSlug, validateSlugFormat } from "@/lib/utils/slug";
-import { getSessionAddress } from "@/lib/auth";
-import { createPublicClient, http } from "viem";
+import { createPublicClient, http, recoverMessageAddress } from "viem";
 import { avalanche } from "viem/chains";
 import { CUSTOM_SLUG_REGISTRY_ADDRESS, CUSTOM_SLUG_REGISTRY_ABI } from "@/lib/contracts/CustomSlugRegistry";
 import { parseAbi } from "viem";
@@ -19,22 +18,30 @@ const ABI = parseAbi(CUSTOM_SLUG_REGISTRY_ABI);
  * 
  * This endpoint allows users to sync their on-chain slug ownership to the database.
  * Security measures:
- * 1. Verifies user session (must be authenticated)
+ * 1. Verifies signature to authenticate wallet ownership
  * 2. Validates slug format
  * 3. Verifies on-chain ownership via contract call
  * 4. Ensures the slug hash matches the user's active slug on-chain
- * 5. Rate-limited by session authentication
+ * 5. Prevents replay attacks with nonce
  */
 export async function POST(request: Request) {
     try {
-        // 1. Authentication Check
-        const sessionAddress = await getSessionAddress();
-        if (!sessionAddress) {
-            return new NextResponse("Unauthorized", { status: 401 });
+        const body = await request.json();
+        const { slug, signature, message } = body;
+
+        // 1. Validate signature and recover address
+        if (!signature || !message) {
+            return NextResponse.json({ error: "Signature and message required" }, { status: 400 });
         }
 
-        const body = await request.json();
-        const { slug } = body;
+        const recoveredAddress = await recoverMessageAddress({
+            message,
+            signature: signature as `0x${string}`
+        });
+
+        if (!recoveredAddress) {
+            return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+        }
 
         // 2. Validate Slug Format
         if (!slug || !validateSlugFormat(slug)) {
@@ -56,17 +63,17 @@ export async function POST(request: Request) {
         console.log("[Slug Sync Debug]", {
             slug: normalized,
             computedHash,
-            sessionAddress,
+            recoveredAddress,
             onChainOwner,
-            match: onChainOwner?.toLowerCase() === sessionAddress?.toLowerCase()
+            match: onChainOwner?.toLowerCase() === recoveredAddress?.toLowerCase()
         });
 
-        // 4. Security Check: Ensure the on-chain owner matches the session address
-        if (!onChainOwner || onChainOwner.toLowerCase() !== sessionAddress.toLowerCase()) {
+        // 4. Security Check: Ensure the on-chain owner matches the recovered address
+        if (!onChainOwner || onChainOwner.toLowerCase() !== recoveredAddress.toLowerCase()) {
             return NextResponse.json({
                 error: "Slug not owned by this address on-chain",
                 debug: {
-                    sessionAddress,
+                    recoveredAddress,
                     onChainOwner,
                     slug: normalized
                 }
@@ -78,16 +85,16 @@ export async function POST(request: Request) {
             address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
             abi: ABI,
             functionName: "getActiveSlug",
-            args: [sessionAddress as `0x${string}`]
+            args: [recoveredAddress as `0x${string}`]
         }) as string;
 
         if (activeSlugHash.toLowerCase() !== computedHash.toLowerCase()) {
-            return new NextResponse("Slug hash mismatch with active slug on-chain", { status: 403 });
+            return NextResponse.json({ error: "Slug hash mismatch with active slug on-chain" }, { status: 403 });
         }
 
         // 6. Update Database (Idempotent)
         await prisma.profile.update({
-            where: { address: sessionAddress },
+            where: { address: recoveredAddress.toLowerCase() },
             data: {
                 slug: normalized,
                 slugHash: computedHash,
