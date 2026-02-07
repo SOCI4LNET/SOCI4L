@@ -323,12 +323,24 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                 ) : (
                     <div className="space-y-4">
                         {/* Sync UI for Zombie Slugs */}
+                        {/* Case 1: Detect from Input (Exact Match) */}
                         {slugOwner && address && (slugOwner as string).toLowerCase() === address.toLowerCase() && !currentSlug && (
                             <Alert className="border-yellow-500/50 bg-yellow-500/10 mb-4">
                                 <AlertCircle className="h-4 w-4 text-yellow-500" />
                                 <AlertTitle className="text-yellow-500">Sync Required</AlertTitle>
                                 <AlertDescription className="text-yellow-500/90">
-                                    You own a handle on-chain, but it's not visible here. Please enter it below to sync.
+                                    You own this handle on-chain, but it's not visible here. Click Sync below.
+                                </AlertDescription>
+                            </Alert>
+                        )}
+
+                        {/* Case 2: Detect from Active Slug Hash (Generic) */}
+                        {!inputSlug && activeSlugHash && activeSlugHash !== ZERO_HASH && !currentSlug && (
+                            <Alert className="border-yellow-500/50 bg-yellow-500/10 mb-4">
+                                <AlertCircle className="h-4 w-4 text-yellow-500" />
+                                <AlertTitle className="text-yellow-500">Missing Local Data</AlertTitle>
+                                <AlertDescription className="text-yellow-500/90">
+                                    You have an active handle on-chain, but it's not synced. Please enter your handle below to sync it.
                                 </AlertDescription>
                             </Alert>
                         )}
