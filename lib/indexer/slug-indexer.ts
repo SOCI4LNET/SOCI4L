@@ -47,27 +47,52 @@ export async function indexSlugEvents(fromBlock: bigint, toBlock: bigint) {
                 timestamp: bigint;
             };
 
-            // Get slug text from contract (we need to reverse-lookup or store mapping)
-            // For now, we'll get it from the active slug
-            const activeSlugHash = await client.readContract({
-                address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
-                abi: CUSTOM_SLUG_REGISTRY_ABI as any,
-                functionName: "getActiveSlug",
-                args: [owner]
-            }) as string;
+            // Get transaction to decode slug text from input
+            const tx = await client.getTransaction({
+                hash: log.transactionHash!
+            });
 
-            if (activeSlugHash.toLowerCase() === slugHash.toLowerCase()) {
-                // This is the active slug, update profile
-                // Note: We can't get the slug text from hash alone
-                // We need to either:
-                // 1. Store slug->hash mapping in contract
-                // 2. Emit slug text in event
-                // 3. Use transaction input data
+            // Decode transaction input to get slug text
+            // claim(string _slug) - function selector: 0x379607f5
+            if (tx.input.startsWith('0x379607f5')) {
+                try {
+                    // Decode ABI-encoded string parameter
+                    const decoded = decodeEventLog({
+                        abi: [{
+                            type: 'function',
+                            name: 'claim',
+                            inputs: [{ name: '_slug', type: 'string' }]
+                        }],
+                        data: tx.input.slice(10), // Remove function selector
+                        topics: []
+                    });
 
-                console.log(`[Indexer] SlugClaimed: ${slugHash} by ${owner}`);
+                    const slugText = (decoded as any)._slug || '';
 
-                // For now, just log - we'll need slug text to update DB
-                // TODO: Decode transaction input to get slug text
+                    if (slugText) {
+                        console.log(`[Indexer] SlugClaimed: "${slugText}" (${slugHash}) by ${owner}`);
+
+                        // Update profile with slug
+                        await prisma.profile.upsert({
+                            where: { address: owner.toLowerCase() },
+                            create: {
+                                address: owner.toLowerCase(),
+                                slug: slugText.toLowerCase(),
+                                slugHash: slugHash.toLowerCase(),
+                                slugClaimedAt: new Date(Number(timestamp) * 1000)
+                            },
+                            update: {
+                                slug: slugText.toLowerCase(),
+                                slugHash: slugHash.toLowerCase(),
+                                slugClaimedAt: new Date(Number(timestamp) * 1000)
+                            }
+                        });
+                    }
+                } catch (decodeError) {
+                    console.error("[Indexer] Failed to decode slug text:", decodeError);
+                    // Fallback: just log the hash
+                    console.log(`[Indexer] SlugClaimed: ${slugHash} by ${owner} (text decode failed)`);
+                }
             }
         } catch (error) {
             console.error("[Indexer] Error processing SlugClaimed event:", error);

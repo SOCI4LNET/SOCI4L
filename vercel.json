@@ -10,7 +10,7 @@
     },
     {
       "path": "/api/cron/sync-slugs",
-      "schedule": "*/5 * * * *"
+      "schedule": "* * * * *"
     }
   ]
 }
