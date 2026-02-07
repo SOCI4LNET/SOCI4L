@@ -90,8 +90,21 @@ export async function POST(request: Request) {
             const normalized = normalizeSlug(slug);
             const computedHash = hashSlug(normalized);
 
-            // Optimistic Update: Set slug for user
-            await prisma.profile.upsert({
+            // 1. Cleanup: If this slug is assigned to ANY OTHER profile in the DB, clear it
+            // This prevents unique constraint violations if the slug was previously synced to wrong addr
+            await (prisma as any).profile.updateMany({
+                where: {
+                    slug: normalized,
+                    address: { not: address.toLowerCase() }
+                },
+                data: {
+                    slug: null,
+                    slugHash: null
+                }
+            });
+
+            // 2. Optimistic Update: Set slug for user
+            await (prisma as any).profile.upsert({
                 where: { address: address.toLowerCase() },
                 create: {
                     address: address.toLowerCase(),
@@ -106,8 +119,8 @@ export async function POST(request: Request) {
                 }
             });
 
-            // Clear any cooldown for this slug
-            await prisma.slugCooldown.deleteMany({
+            // 3. Clear any cooldown for this slug
+            await (prisma as any).slugCooldown.deleteMany({
                 where: { slugHash: computedHash }
             });
 
@@ -119,7 +132,7 @@ export async function POST(request: Request) {
                 where: { address: address.toLowerCase() }
             });
 
-            if (!profile?.slugHash) {
+            if (!(profile as any)?.slugHash) {
                 console.warn("[Slug Release] No active slug found in DB, but proceeding with cleanup based on request");
             }
 
@@ -131,12 +144,12 @@ export async function POST(request: Request) {
             // If not, we can't easily add cooldown without knowing the slug hash, 
             // but we can definitely clear the profile.
 
-            if (profile?.slugHash && profile?.slug) {
-                await prisma.slugCooldown.upsert({
-                    where: { slugHash: profile.slugHash },
+            if ((profile as any)?.slugHash && (profile as any)?.slug) {
+                await (prisma as any).slugCooldown.upsert({
+                    where: { slugHash: (profile as any).slugHash },
                     create: {
-                        slug: profile.slug,
-                        slugHash: profile.slugHash,
+                        slug: (profile as any).slug,
+                        slugHash: (profile as any).slugHash,
                         previousOwner: address.toLowerCase(),
                         releasedAt: now,
                         cooldownEndsAt: cooldownEndsAt
@@ -149,7 +162,7 @@ export async function POST(request: Request) {
                 });
             }
 
-            await prisma.profile.update({
+            await (prisma as any).profile.update({
                 where: { address: address.toLowerCase() },
                 data: {
                     slug: null,

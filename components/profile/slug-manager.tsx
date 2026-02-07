@@ -153,31 +153,6 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
         setIsAutoRepairing(false);
     }, [activeSlugHash, address]);
 
-    // Auto-Repair Effect: If DB has slug but Chain has none, clear DB automatically
-    useEffect(() => {
-        if (isStale && address && !isAutoRepairing) {
-            const autoRepair = async () => {
-                setIsAutoRepairing(true);
-                try {
-                    await fetch("/api/slug/sync", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            mode: "repair",
-                            address: address
-                        })
-                    });
-                    // Instead of full reload, we just wait for the parent to re-fetch if possible, 
-                    // or reload if we have to. For now, reload is safest to reset all state.
-                    window.location.reload();
-                } catch (e) {
-                    console.error("Auto-repair failed:", e);
-                    setIsAutoRepairing(false);
-                }
-            };
-            autoRepair();
-        }
-    }, [isStale, address, isAutoRepairing]);
 
     // Transaction Handling
     const { writeContractAsync, data: hash, isPending: isWritePending } = useWriteContract();
@@ -219,6 +194,94 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
             setPendingAction(null);
         }
     };
+
+    // Auto-Repair Effect: If DB has slug but Chain has none, clear DB automatically
+    useEffect(() => {
+        if (isStale && address && !isAutoRepairing && !isWritePending && !isConfirming && !pendingAction) {
+            const autoRepair = async () => {
+                setIsAutoRepairing(true);
+                try {
+                    console.log("[Slug Manager] Auto-repairing stale DB state for", address);
+                    const res = await fetch("/api/slug/sync", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            mode: "repair",
+                            address: address
+                        })
+                    });
+                    if (res.ok) {
+                        toast.success("Profile synced with blockchain", { id: "repair-success" });
+                        // Smooth reload to update state
+                        window.location.reload();
+                    }
+                } catch (e) {
+                    console.error("Auto-repair failed:", e);
+                } finally {
+                    setIsAutoRepairing(false);
+                }
+            };
+            autoRepair();
+        }
+    }, [isStale, address, isAutoRepairing, isWritePending, isConfirming, pendingAction]);
+
+    // Recover slug name from chain history if zombie state
+    useEffect(() => {
+        if (!publicClient || !address || !activeSlugHash || activeSlugHash === ZERO_HASH || currentSlug || hasAttemptedRecovery) return;
+
+        const recoverSlug = async () => {
+            setIsRecovering(true);
+            try {
+                // Find the latest SlugClaimed event for this user
+                const logs = await publicClient.getLogs({
+                    address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
+                    event: parseAbiItem('event SlugClaimed(bytes32 indexed slugHash, address indexed owner, uint256 timestamp)'),
+                    args: {
+                        owner: address as `0x${string}`
+                    },
+                    fromBlock: 'earliest'
+                });
+
+                if (logs.length > 0) {
+                    console.log("[Slug Manager] Found claim logs:", logs.length);
+                    const lastLog = logs[logs.length - 1];
+                    const tx = await publicClient.getTransaction({ hash: lastLog.transactionHash });
+
+                    const { args } = decodeFunctionData({
+                        abi: ABI,
+                        data: tx.input
+                    });
+
+                    if (args && args[0]) {
+                        const name = args[0] as string;
+                        setRecoveredSlug(name);
+                        // Auto-fill input if empty or placeholder
+                        if (!inputSlug || inputSlug === "username") {
+                            setInputSlug(name);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to recover slug name:", e);
+            } finally {
+                setIsRecovering(false);
+                setHasAttemptedRecovery(true);
+            }
+        };
+
+        recoverSlug();
+    }, [activeSlugHash, address, currentSlug, publicClient, hasAttemptedRecovery]);
+
+    // Failsafe: If user types the right name for their zombie hash, auto-sync it!
+    useEffect(() => {
+        if (!currentSlug && activeSlugHash && activeSlugHash !== ZERO_HASH && debouncedSlug) {
+            const typedHash = hashSlug(debouncedSlug);
+            if (typedHash === activeSlugHash && !recoveredSlug && !pendingAction) {
+                console.log("[Slug Manager] Input matches on-chain hash. Triggering auto-sync.");
+                handleSync(debouncedSlug);
+            }
+        }
+    }, [debouncedSlug, activeSlugHash, currentSlug, recoveredSlug, pendingAction]);
 
     // Proactive Sync Trigger: If we found a zombie slug, automatically prompt for sync
     useEffect(() => {
