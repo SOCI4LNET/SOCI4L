@@ -30,6 +30,8 @@ import { getPublicProfileHref } from "@/lib/routing"
 import { ProfileReadiness } from "@/components/dashboard/profile-readiness"
 import { SocialConnect } from "@/components/dashboard/social-connect"
 
+import { SlugManager } from "@/components/profile/slug-manager"
+
 interface Profile {
   id: string
   address: string
@@ -38,6 +40,7 @@ interface Profile {
   status: string
   visibility: string
   claimedAt: string | null
+  slugClaimedAt?: string | Date | null // Added
   displayName?: string | null
   bio?: string | null
   socialLinks?: Array<{ id?: string; platform?: string; type?: string; url: string; label?: string }> | null
@@ -55,8 +58,7 @@ interface SettingsPanelProps {
 export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPanelProps) {
   const { signMessageAsync } = useSignMessage()
   const { showTransactionLoader, hideTransactionLoader } = useTransaction()
-  const [savingSlug, setSavingSlug] = useState(false)
-  const [slug, setSlug] = useState<string>(profile.slug || '')
+  // Removed old slug state
   const [savingVisibility, setSavingVisibility] = useState(false)
   const [visibility, setVisibility] = useState<'PUBLIC' | 'PRIVATE'>(
     (profile.visibility === 'PRIVATE' ? 'PRIVATE' : 'PUBLIC')
@@ -69,8 +71,7 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
   // Update form state when profile prop changes (e.g., after save/reload)
   useEffect(() => {
     if (profile) {
-      const newSlug = profile.slug || ''
-      if (slug !== newSlug) setSlug(newSlug)
+      // Removed slug update
       const newVisibility = profile.visibility === 'PRIVATE' ? 'PRIVATE' : 'PUBLIC'
       if (visibility !== newVisibility) setVisibility(newVisibility)
       const newHideSelf = profile.appearance?.hideSelfActivity ?? false
@@ -105,112 +106,7 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
     }
   }
 
-  const handleSaveSlug = async () => {
-    setSavingSlug(true)
-    try {
-      // Step 1: Get nonce
-      const nonceResponse = await fetch('/api/auth/nonce')
-      if (!nonceResponse.ok) {
-        throw new Error('Failed to get nonce')
-      }
-      const { nonce } = await nonceResponse.json()
-
-      // Step 2: Sign message
-      showTransactionLoader("Confirm in Wallet...")
-      const message = `Set slug for ${targetAddress} to ${slug || '(empty)'}. Nonce: ${nonce}`
-      const signature = await signMessageAsync({ message })
-
-      showTransactionLoader("Updating custom URL...")
-
-      // Step 3: Update slug
-      const updateResponse = await fetch('/api/profile/slug', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          address: targetAddress,
-          slug: slug.trim() || null,
-          signature,
-        }),
-      })
-
-      const result = await updateResponse.json()
-
-      if (!updateResponse.ok) {
-        throw new Error(result.error || 'Failed to update slug')
-      }
-
-      // Success - reload data
-      await onUpdate()
-      toast.success('Saved')
-    } catch (error: any) {
-      console.error('Error updating slug:', error)
-      if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
-        toast.error('Transaction rejected')
-      } else {
-        // Show actual error from backend (e.g. "Slug already taken")
-        toast.error(error.message || 'Failed to save custom URL')
-      }
-    } finally {
-      setSavingSlug(false)
-      hideTransactionLoader()
-    }
-  }
-
-  const handleResetSlug = async () => {
-    setSavingSlug(true)
-    try {
-      // Step 1: Get nonce
-      const nonceResponse = await fetch('/api/auth/nonce')
-      if (!nonceResponse.ok) {
-        throw new Error('Failed to get nonce')
-      }
-      const { nonce } = await nonceResponse.json()
-
-      // Step 2: Sign message
-      showTransactionLoader("Confirm reset in Wallet...")
-      // Sending null/empty slug resets to wallet address
-      const message = `Set slug for ${targetAddress} to (empty). Nonce: ${nonce}`
-      const signature = await signMessageAsync({ message })
-
-      showTransactionLoader("Resetting to wallet address...")
-
-      // Step 3: Update slug to null
-      const updateResponse = await fetch('/api/profile/slug', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          address: targetAddress,
-          slug: null,
-          signature,
-        }),
-      })
-
-      const result = await updateResponse.json()
-
-      if (!updateResponse.ok) {
-        throw new Error(result.error || 'Failed to reset URL')
-      }
-
-      // Success - reload data
-      await onUpdate()
-      setSlug('') // Clear local state
-      toast.success('URL reset to wallet address')
-    } catch (error: any) {
-      console.error('Error resetting slug:', error)
-      if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
-        toast.error('Transaction rejected')
-      } else {
-        toast.error(error.message || 'Failed to reset to wallet address')
-      }
-    } finally {
-      setSavingSlug(false)
-      hideTransactionLoader()
-    }
-  }
+  // Removed handleSaveSlug and handleResetSlug
 
   const handleSaveVisibility = async () => {
     setSavingVisibility(true)
@@ -416,135 +312,11 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
         {/* Social Connection */}
         <SocialConnect />
 
-
-        {/* Custom URL Section */}
-        <Card className="bg-card border border-border/60 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-base">Custom URL</CardTitle>
-            <CardDescription>
-              Your custom profile URL
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Input
-                value={slug}
-                maxLength={20}
-                onChange={(e) => {
-                  // Allow typing hyphens for intermediate steps, but validate on save/render
-                  // Still enforce basic char set (lowercase alphanumeric + hyphen)
-                  const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '')
-                  setSlug(val)
-                }}
-                placeholder="your-slug"
-                className={`font-mono ${(slug.length > 0 && (
-                  slug.length < 3 ||
-                  slug.startsWith('-') ||
-                  slug.endsWith('-') ||
-                  slug.endsWith('-') ||
-                  slug.includes('--')
-                )) ? 'border-destructive focus-visible:ring-destructive' : ''
-                  }`}
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSaveSlug}
-                disabled={
-                  savingSlug ||
-                  slug === (profile.slug || "") ||
-                  slug.length < 3 ||
-                  slug.length > 20 ||
-                  slug.startsWith('-') ||
-                  slug.endsWith('-') ||
-                  slug.includes('--')
-                }
-              >
-                {savingSlug ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  "Update"
-                )}
-              </Button>
-            </div>
-            {slug.length > 0 && (
-              <div className="space-y-1">
-                <div className="flex justify-between items-center text-xs">
-                  <span className={slug.length > 20 ? "text-destructive" : "text-muted-foreground"}>
-                    {slug.length}/20 characters
-                  </span>
-                </div>
-                {slug.length < 3 && (
-                  <p className="text-xs text-destructive font-medium">
-                    Slug must be at least 3 characters long
-                  </p>
-                )}
-                {(slug.startsWith('-') || slug.endsWith('-')) && (
-                  <p className="text-xs text-destructive font-medium">
-                    Slug cannot start or end with a hyphen
-                  </p>
-                )}
-                {slug.includes('--') && (
-                  <p className="text-xs text-destructive font-medium">
-                    Slug cannot contain consecutive hyphens
-                  </p>
-                )}
-              </div>
-            )}
-            <div className="flex items-center justify-between">
-              <p className="text-xs text-muted-foreground">
-                Your public link: <span className="font-mono">/p/{slug || "your-slug"}</span>
-              </p>
-
-              {/* Reset to Address Button */}
-              {profile.slug && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-xs text-muted-foreground hover:text-destructive h-7 px-2"
-                      disabled={savingSlug}
-                    >
-                      Reset to wallet address
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle className="flex items-center gap-2">
-                        <AlertTriangle className="h-5 w-5 text-destructive" />
-                        Reset Custom URL?
-                      </AlertDialogTitle>
-                      <AlertDialogDescription className="space-y-2">
-                        <p>
-                          This will remove your custom URL <strong>/p/{profile.slug}</strong> and revert your profile link to your wallet address.
-                        </p>
-                        <p className="font-medium text-destructive">
-                          Warning: Any AVAX spent on acquiring this custom URL will NOT be refunded.
-                        </p>
-                        <p>
-                          Are you sure you want to proceed?
-                        </p>
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handleResetSlug}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        {savingSlug ? "Resetting..." : "Yes, Reset URL"}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Custom URL Section (New SlugManager) */}
+        <SlugManager
+          currentSlug={profile.slug}
+          slugClaimedAt={profile.slugClaimedAt ? new Date(profile.slugClaimedAt) : null}
+        />
 
         {/* Visibility Section */}
         <Card className="bg-card border border-border/60 shadow-sm">

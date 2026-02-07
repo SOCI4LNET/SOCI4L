@@ -38,3 +38,11 @@ next-env.d.ts
 # prisma
 /prisma/*.db
 /prisma/*.db-journal
+
+# smart-contracts
+smart-contracts/node_modules
+smart-contracts/artifacts
+smart-contracts/cache
+smart-contracts/typechain-types
+smart-contracts/coverage
+smart-contracts/.env

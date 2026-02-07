@@ -14,6 +14,8 @@ model Profile {
   id           String   @id @default(cuid())
   address      String   @unique
   slug         String?  @unique
+  slugHash     String?  @unique // keccak256 hash of slug
+  slugClaimedAt DateTime?
   owner        String?  // wallet address of the claimer (kept for backward compatibility)
   ownerAddress String?  // wallet address of the claimer
   status       String   @default("UNCLAIMED") // UNCLAIMED | CLAIMED
@@ -292,4 +294,24 @@ model DocsArticle {
   @@index([slug])
   @@index([category])
   @@index([published])
+}
+// Custom Slug Registry Models
+
+model SlugCooldown {
+  id             String   @id @default(cuid())
+  slug           String
+  slugHash       String   @unique
+  previousOwner  String   // wallet address
+  releasedAt     DateTime
+  cooldownEndsAt DateTime
+  createdAt      DateTime @default(now())
+
+  @@index([slugHash])
+  @@index([cooldownEndsAt])
+}
+
+model IndexerState {
+  key             String   @id // e.g., "slug_registry"
+  lastSyncedBlock BigInt   @default(0)
+  updatedAt       DateTime @updatedAt
 }

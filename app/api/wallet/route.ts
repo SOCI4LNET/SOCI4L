@@ -3,6 +3,7 @@ import { getWalletData } from '@/lib/avalanche'
 import { getProfileByAddress, getProfileBySlug } from '@/lib/db'
 import { isValidAddress } from '@/lib/utils'
 import { prisma } from '@/lib/prisma'
+import { hashSlug, normalizeSlug } from '@/lib/utils/slug'
 import {
   getDefaultProfileLayout,
   normalizeLayoutConfig,
@@ -27,14 +28,31 @@ export async function GET(request: NextRequest) {
 
   let resolvedAddress: string | null = null
   let profile = null
+  let cooldownData = null
 
   // If slug is provided, resolve it to address
   if (slug) {
-    profile = await getProfileBySlug(slug)
-    if (!profile) {
-      return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+    const normalizedSlug = normalizeSlug(slug)
+    profile = await getProfileBySlug(normalizedSlug)
+
+    if (profile) {
+      resolvedAddress = profile.address
+    } else {
+      // Check Cooldown
+      // Cast to any to bypass potential type generation delay
+      const cooldown = await (prisma as any).slugCooldown.findUnique({
+        where: { slugHash: hashSlug(normalizedSlug) }
+      })
+
+      if (cooldown) {
+        // Found in cooldown
+        cooldownData = cooldown
+        // We don't have a resolved address for a cooldown slug (it belongs to no one active)
+        // But we need to return specific status
+      } else {
+        return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+      }
     }
-    resolvedAddress = profile.address
   } else if (address) {
     if (!isValidAddress(address)) {
       return NextResponse.json({ error: 'Invalid wallet address' }, { status: 400 })
@@ -45,6 +63,19 @@ export async function GET(request: NextRequest) {
     profile = await getProfileByAddress(normalizedAddress)
   } else {
     return NextResponse.json({ error: 'Address or slug is required' }, { status: 400 })
+  }
+
+  // Handle Cooldown matching without resolved address
+  if (!resolvedAddress && cooldownData) {
+    return NextResponse.json({
+      profileStatus: 'COOLDOWN',
+      cooldown: {
+        slug: cooldownData.slug,
+        releasedAt: cooldownData.releasedAt,
+        cooldownEndsAt: cooldownData.cooldownEndsAt,
+        previousOwner: cooldownData.previousOwner
+      }
+    })
   }
 
   if (!resolvedAddress) {
@@ -110,7 +141,7 @@ export async function GET(request: NextRequest) {
 
   try {
     // Determine profile status for display
-    let profileStatus: 'UNCLAIMED' | 'CLAIMED+PUBLIC' | 'CLAIMED+PRIVATE' = 'UNCLAIMED'
+    let profileStatus: 'UNCLAIMED' | 'CLAIMED+PUBLIC' | 'CLAIMED+PRIVATE' | 'COOLDOWN' = 'UNCLAIMED'
     if (profile) {
       // Check if profile is claimed (either by status or ownerAddress)
       const isClaimed = profile.status === 'CLAIMED' || profile.ownerAddress || profile.owner
@@ -449,7 +480,7 @@ export async function GET(request: NextRequest) {
             return null
           }
         })() : null,
-        onchainData: profile.onchainData ? JSON.parse(profile.onchainData) : null,
+        onchainData: (profile as any).onchainData ? JSON.parse((profile as any).onchainData) : null,
         ...(debugMode ? { _debug_verifiedConnections: verifiedConnections } : {})
       } : null,
       links: profileLinks,

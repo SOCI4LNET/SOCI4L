@@ -1,0 +1,18 @@
+{
+    "name": "avax-profile-hub-contracts",
+    "version": "1.0.0",
+    "description": "Smart contracts for SOCI4L Custom Slug Registry",
+    "scripts": {
+        "test": "hardhat test",
+        "compile": "hardhat compile"
+    },
+    "devDependencies": {
+        "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+        "@types/chai": "^4.3.11",
+        "@types/mocha": "^10.0.6",
+        "chai": "^4.3.10",
+        "dotenv": "^17.2.4",
+        "hardhat": "^2.22.0",
+        "truffle": "^5.11.5"
+    }
+}

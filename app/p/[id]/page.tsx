@@ -82,12 +82,21 @@ interface WalletData {
   lastSeen?: number
 }
 
+interface CooldownInfo {
+  slug: string
+  releasedAt: string
+  cooldownEndsAt: string
+  previousOwner: string
+}
+
 export default function ProfilePage({ params }: PageProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { address: connectedAddress, status, isReconnecting } = useAccount()
   const [walletData, setWalletData] = useState<WalletData | null>(null)
-  const [profileStatus, setProfileStatus] = useState<'UNCLAIMED' | 'CLAIMED+PUBLIC' | 'CLAIMED+PRIVATE'>('UNCLAIMED')
+  const [profileStatus, setProfileStatus] = useState<'UNCLAIMED' | 'CLAIMED+PUBLIC' | 'CLAIMED+PRIVATE' | 'COOLDOWN'>('UNCLAIMED')
+  const [cooldownInfo, setCooldownInfo] = useState<CooldownInfo | null>(null)
+
   const [profile, setProfile] = useState<{
     address: string
     slug: string | null
@@ -198,9 +207,12 @@ export default function ProfilePage({ params }: PageProps) {
           layout: data.layout,
           appearance: data.appearance,
           profile: data.profile, // Explicitly log profile data
+          profileStatus: data.profileStatus
         })
 
-        if (data.error) {
+        if (data.error && !data.profileStatus) {
+          // Need to check for cooldown handling in API response even if error present?
+          // API returns success JSON with profileStatus='COOLDOWN' if cooldown found, not error.
           if (response.status === 404 && !isAddress) {
             setError('Profile not found')
           } else {
@@ -220,6 +232,11 @@ export default function ProfilePage({ params }: PageProps) {
           })
           setWalletData(data.walletData)
           setProfileStatus(data.profileStatus)
+
+          if (data.cooldown) {
+            setCooldownInfo(data.cooldown)
+          }
+
           if (data.score) {
             setScore(data.score)
           }
@@ -238,7 +255,10 @@ export default function ProfilePage({ params }: PageProps) {
               isVerified: data.profile.isVerified,
               socialLinks: data.profile.socialLinks,
             })
+          } else {
+            // If status is COOLDOWN, profile might be null
           }
+
           if (data.isBlockedByViewer) {
             setIsBlockedByViewer(true)
           }
@@ -355,9 +375,9 @@ export default function ProfilePage({ params }: PageProps) {
     // Guard: only track on client
     if (typeof window === 'undefined') return
 
-    // Guard: need stable profile ID
-    if (!stableProfileId) {
-      // Reset guard if profile ID is not available yet
+    // Guard: need stableProfileId
+    // Also skip tracking for COOLDOWN state as it's not a profile view
+    if (!stableProfileId || profileStatus === 'COOLDOWN') {
       trackedProfileIdRef.current = null
       return
     }
@@ -390,7 +410,7 @@ export default function ProfilePage({ params }: PageProps) {
     // If we have an address, track immediately
     trackProfileView(stableProfileId, source, connectedAddress)
     trackedProfileIdRef.current = currentTrackKey
-  }, [stableProfileId, searchParams, connectedAddress, status, isReconnecting])
+  }, [stableProfileId, searchParams, connectedAddress, status, isReconnecting, profileStatus])
 
 
 
@@ -415,6 +435,12 @@ export default function ProfilePage({ params }: PageProps) {
             Private
           </Badge>
         )
+      case 'COOLDOWN':
+        return (
+          <Badge variant="destructive" className={baseClass}>
+            Reserved
+          </Badge>
+        )
       default:
         return (
           <Badge variant="outline" className={baseClass}>
@@ -422,6 +448,47 @@ export default function ProfilePage({ params }: PageProps) {
           </Badge>
         )
     }
+  }
+
+  if (profileStatus === 'COOLDOWN' && cooldownInfo) {
+    const endsAt = new Date(cooldownInfo.cooldownEndsAt)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="max-w-md w-full">
+          <CardHeader>
+            <div className="flex justify-center mb-4">
+              <div className="h-12 w-12 rounded-full bg-yellow-100 flex items-center justify-center">
+                <Sparkles className="h-6 w-6 text-yellow-600" />
+              </div>
+            </div>
+            <CardTitle className="text-center">Slug Reserved</CardTitle>
+            <CardDescription className="text-center">
+              The slug <strong>{cooldownInfo.slug}</strong> is currently in a cooldown period.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-muted p-4 rounded-lg text-sm space-y-2">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Available from:</span>
+                <span className="font-medium">{endsAt.toLocaleDateString()} {endsAt.toLocaleTimeString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Previous Owner:</span>
+                <span className="font-mono">{formatAddress(cooldownInfo.previousOwner)}</span>
+              </div>
+            </div>
+            <p className="text-sm text-center text-muted-foreground">
+              This slug cannot be claimed until the cooldown period ends.
+            </p>
+          </CardContent>
+          <div className="p-6 pt-0 flex justify-center">
+            <Link href="/">
+              <Button variant="outline">Back to Home</Button>
+            </Link>
+          </div>
+        </Card>
+      </div>
+    )
   }
 
   if (error) {
