@@ -34,6 +34,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
     const [recoveredSlug, setRecoveredSlug] = useState<string | null>(null);
     const [isRecovering, setIsRecovering] = useState(false);
     const [isAutoRepairing, setIsAutoRepairing] = useState(false);
+    const [repairFailed, setRepairFailed] = useState(false);
     const [hasAttemptedRecovery, setHasAttemptedRecovery] = useState(false);
 
     // Debounce input
@@ -151,6 +152,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
         setHasAttemptedRecovery(false);
         setRecoveredSlug(null);
         setIsAutoRepairing(false);
+        setRepairFailed(false);
     }, [activeSlugHash, address]);
 
 
@@ -197,7 +199,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
 
     // Auto-Repair Effect: If DB has slug but Chain has none, clear DB automatically
     useEffect(() => {
-        if (isStale && address && !isAutoRepairing && !isWritePending && !isConfirming && !pendingAction) {
+        if (isStale && address && !isAutoRepairing && !repairFailed && !isWritePending && !isConfirming && !pendingAction) {
             const autoRepair = async () => {
                 setIsAutoRepairing(true);
                 try {
@@ -214,16 +216,21 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                         toast.success("Profile synced with blockchain", { id: "repair-success" });
                         // Smooth reload to update state
                         window.location.reload();
+                    } else {
+                        console.error("Auto-repair API returned error:", res.status);
+                        setRepairFailed(true);
+                        toast.error("Background sync failed. Manual fix may be required.", { id: "repair-failed" });
                     }
                 } catch (e) {
                     console.error("Auto-repair failed:", e);
+                    setRepairFailed(true);
                 } finally {
                     setIsAutoRepairing(false);
                 }
             };
             autoRepair();
         }
-    }, [isStale, address, isAutoRepairing, isWritePending, isConfirming, pendingAction]);
+    }, [isStale, address, isAutoRepairing, repairFailed, isWritePending, isConfirming, pendingAction]);
 
     // Recover slug name from chain history if zombie state
     useEffect(() => {
@@ -341,6 +348,23 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                     <div className="text-center">
                         <p className="font-medium text-yellow-500">Reconciling Profile State...</p>
                         <p className="text-sm text-muted-foreground mt-1">Cleaning up local data after on-chain changes.</p>
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    if (repairFailed && isStale) {
+        return (
+            <Card className="bg-card border-red-500/20 shadow-sm">
+                <CardContent className="py-10 flex flex-col items-center justify-center space-y-4">
+                    <ShieldAlert className="w-8 h-8 text-red-500" />
+                    <div className="text-center">
+                        <p className="font-medium text-red-500">Reconciliation Failed</p>
+                        <p className="text-sm text-muted-foreground mt-1">We couldn't automatically sync your profile. Please try a manual refresh or contact support.</p>
+                        <Button variant="outline" size="sm" className="mt-4" onClick={() => window.location.reload()}>
+                            Retry Refresh
+                        </Button>
                     </div>
                 </CardContent>
             </Card>

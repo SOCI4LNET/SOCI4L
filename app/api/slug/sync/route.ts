@@ -53,6 +53,22 @@ export async function POST(request: Request) {
             }
 
             console.log(`[Slug Sync] Repair mode authorized for ${targetAddress} (Public state verified)`);
+
+            // REPAIR: Clear stale DB entry immediately
+            await (prisma as any).profile.update({
+                where: { address: targetAddress.toLowerCase() },
+                data: {
+                    slug: null,
+                    slugHash: null,
+                    slugClaimedAt: null
+                }
+            });
+
+            return NextResponse.json({
+                success: true,
+                slug: null,
+                message: "Repair complete: Stale slug cleared"
+            });
         } else {
             // Standard Sync requires signature
             if (!signature || !message) {
