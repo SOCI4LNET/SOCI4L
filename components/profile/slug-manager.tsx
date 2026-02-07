@@ -289,46 +289,32 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                                     <Button
                                         onClick={async () => {
                                             if (!debouncedSlug) return;
-                                            // Verify hash match
-                                            if (hashSlug(debouncedSlug) !== slugOwner) {
-                                                // Wait, resolveSlug returns owner address, not hash.
-                                                // We need to check if the INPUT slug resolves to ME.
-                                                // We already checked slugOwner == address.
-                                                // slugOwner comes from resolveSlug(hash(debouncedSlug)).
-                                                // So if slugOwner == address, then debouncedSlug IS the correct slug.
-                                            }
 
-                                            setPendingAction("claim"); // Use claim action to update DB
+                                            setPendingAction("claim");
                                             try {
-                                                const res = await fetch("/api/slug/update", {
+                                                const res = await fetch("/api/slug/sync", {
                                                     method: "POST",
                                                     headers: { "Content-Type": "application/json" },
-                                                    body: JSON.stringify({
-                                                        action: "claim",
-                                                        slug: debouncedSlug,
-                                                        txHash: "0x0000000000000000000000000000000000000000000000000000000000000000" // Bypass tx check or update API?
-                                                        // API requires txHash.
-                                                        // We can find the event via indexer or just bypass if we verify ownership.
-                                                        // But API blindly trusts.
-                                                        // Let's use a dummy hash and rely on the fact that if it wasn't valid, the backend/chain wouldn't match?
-                                                        // No, API code just updates DB.
-                                                        // We should modify API to allow "sync" action or "claim" with ownership proof.
-                                                        // For now, let's try to find a recent tax hash? No.
-                                                        // Just send a dummy hash. The API currently checks `if (!txHash)`. 
-                                                    })
+                                                    body: JSON.stringify({ slug: debouncedSlug })
                                                 });
+
+                                                const data = await res.json();
+
                                                 if (res.ok) {
                                                     toast.success("Synced!");
                                                     window.location.reload();
                                                 } else {
-                                                    toast.error("Sync failed");
+                                                    toast.error(data.error || "Sync failed");
                                                 }
-                                            } catch (e) { toast.error("Sync error"); }
+                                            } catch (e) {
+                                                toast.error("Sync error");
+                                            }
                                             setPendingAction(null);
                                         }}
-                                        disabled={!debouncedSlug}
+                                        disabled={!debouncedSlug || isWritePending}
                                         variant="secondary"
                                     >
+                                        {isWritePending && pendingAction === "claim" ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                                         Sync
                                     </Button>
                                 ) : (
