@@ -82,7 +82,7 @@ export default function BrandPage() {
                         <SectionHeader number="02" title="Combination Mark" />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <LogoCard
-                                label="On Brand Background"
+                                label="On Black Background"
                                 bg="bg-black"
                                 textColor="text-white"
                                 borderColor="border-white/10"
@@ -626,6 +626,20 @@ export default function BrandPage() {
 
 
                 </motion.div>
+
+                <footer className="mt-32 pt-12 border-t border-border/20 text-center pb-8">
+                    <p className="text-sm text-muted-foreground">
+                        All brand identity assets were designed by
+                        <a
+                            href="https://floyka.space"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-foreground font-medium hover:text-brand-500 transition-colors ml-1 underline-offset-4 hover:underline"
+                        >
+                            floyka design studio
+                        </a>.
+                    </p>
+                </footer>
             </div>
         </div>
     )
