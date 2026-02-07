@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { normalizeSlug, hashSlug, validateSlugFormat } from "@/lib/utils/slug";
+import { revalidatePath } from "next/cache";
 import { getSessionAddress } from "@/lib/auth";
 import { createPublicClient, http, decodeFunctionData, parseAbi, type Address } from "viem";
 import { avalanche } from "viem/chains";
@@ -123,6 +124,15 @@ export async function POST(request: Request) {
             await (prisma as any).slugCooldown.deleteMany({
                 where: { slugHash: computedHash }
             });
+
+            // 4. Revalidate paths to clear cache
+            try {
+                revalidatePath(`/dashboard/${address}`, "page");
+                revalidatePath(`/p/${normalized}`, "page");
+                revalidatePath("/", "layout");
+            } catch (revalidateError) {
+                console.warn("[Slug Update] Revalidation failed (non-critical):", revalidateError);
+            }
 
             return NextResponse.json({ success: true, slug: normalized });
         }

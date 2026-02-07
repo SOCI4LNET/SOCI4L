@@ -165,9 +165,11 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
     const handleSync = async (slugToSync: string) => {
         if (!address) return;
         setPendingAction("claim");
+        console.log(`[Slug Manager] Initiating sync for: ${slugToSync}`);
         try {
             const message = `Sync slug "${slugToSync}" for SOCI4L profile`;
             const signature = await signMessageAsync({ message });
+            // ... (rest same)
 
             const res = await fetch("/api/slug/sync", {
                 method: "POST",
@@ -280,15 +282,16 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
     }, [activeSlugHash, address, currentSlug, publicClient, hasAttemptedRecovery]);
 
     // Failsafe: If user types the right name for their zombie hash, auto-sync it!
+    // Using inputSlug instead of debouncedSlug for immediate response
     useEffect(() => {
-        if (!currentSlug && activeSlugHash && activeSlugHash !== ZERO_HASH && debouncedSlug) {
-            const typedHash = hashSlug(debouncedSlug);
-            if (typedHash === activeSlugHash && !recoveredSlug && !pendingAction) {
+        if (!currentSlug && activeSlugHash && activeSlugHash !== ZERO_HASH && inputSlug && validateSlugFormat(inputSlug)) {
+            const typedHash = hashSlug(inputSlug);
+            if (typedHash === activeSlugHash && !pendingAction) {
                 console.log("[Slug Manager] Input matches on-chain hash. Triggering auto-sync.");
-                handleSync(debouncedSlug);
+                handleSync(inputSlug);
             }
         }
-    }, [debouncedSlug, activeSlugHash, currentSlug, recoveredSlug, pendingAction]);
+    }, [inputSlug, activeSlugHash, currentSlug, pendingAction]);
 
     // Proactive Sync Trigger: If we found a zombie slug, automatically prompt for sync
     useEffect(() => {
@@ -450,7 +453,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                 ) : (
                     <div className="space-y-4">
                         {/* Unified Zombie Slug Detection */}
-                        {!currentSlug && activeSlugHash && activeSlugHash !== ZERO_HASH && (
+                        {!currentSlug && activeSlugHash && activeSlugHash !== ZERO_HASH && pendingAction !== "claim" && (
                             <Alert className="border-yellow-500/50 bg-yellow-500/10 mb-4">
                                 <AlertCircle className="h-4 w-4 text-yellow-500" />
                                 <AlertTitle className="text-yellow-500">Sync Required</AlertTitle>
@@ -473,7 +476,14 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                                                     )}
                                                 </span>
                                             ) : (
-                                                "You have an active handle on-chain, but it's not synced locally. Please enter your handle below to sync it."
+                                                inputSlug && hashSlug(inputSlug) === activeSlugHash ? (
+                                                    <span className="flex items-center gap-2">
+                                                        <Check className="w-4 h-4" />
+                                                        Handle identified! Opening sync prompt...
+                                                    </span>
+                                                ) : (
+                                                    "You have an active handle on-chain, but it's not synced locally. Please enter your handle below to sync it."
+                                                )
                                             )}
                                         </>
                                     )}
@@ -494,11 +504,12 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                                         disabled={isWritePending || isConfirming}
                                     />
                                     {/* Status Icon */}
-                                    <div className="absolute right-3 top-2.5">
+                                    <div className="absolute right-3 top-2.5 flex items-center gap-2">
                                         {isChecking ? <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /> :
-                                            availability === "available" ? <Check className="w-4 h-4 text-green-500" /> :
-                                                availability === "taken" ? <div className="text-red-500 text-xs font-medium flex items-center gap-1"><X className="w-3 h-3" /> Taken</div> :
-                                                    availability === "reserved" ? <div className="text-yellow-500 text-xs font-medium flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Reserved</div> : null}
+                                            inputSlug && hashSlug(inputSlug) === activeSlugHash ? <Check className="w-4 h-4 text-blue-500 animate-pulse" /> :
+                                                availability === "available" ? <Check className="w-4 h-4 text-green-500" /> :
+                                                    availability === "taken" ? <div className="text-red-500 text-xs font-medium flex items-center gap-1"><X className="w-3 h-3" /> Taken</div> :
+                                                        availability === "reserved" ? <div className="text-yellow-500 text-xs font-medium flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Reserved</div> : null}
                                     </div>
                                 </div>
                                 {slugOwner && address && (slugOwner as string).toLowerCase() === address.toLowerCase() && !currentSlug ? (

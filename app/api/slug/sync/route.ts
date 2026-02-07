@@ -5,6 +5,7 @@ import { createPublicClient, http, recoverMessageAddress } from "viem";
 import { avalanche } from "viem/chains";
 import { CUSTOM_SLUG_REGISTRY_ADDRESS, CUSTOM_SLUG_REGISTRY_ABI } from "@/lib/contracts/CustomSlugRegistry";
 import { parseAbi } from "viem";
+import { revalidatePath } from "next/cache";
 
 const client = createPublicClient({
     chain: avalanche,
@@ -171,6 +172,16 @@ export async function POST(request: Request) {
         await (prisma as any).slugCooldown.deleteMany({
             where: { slugHash: computedHash }
         });
+
+        // 8. Revalidate paths to clear cache
+        try {
+            revalidatePath(`/dashboard/${targetAddress}`, "page");
+            revalidatePath(`/dashboard/${targetAddress.toLowerCase()}`, "page");
+            revalidatePath(`/p/${normalized}`, "page");
+            revalidatePath("/", "layout");
+        } catch (revalidateError) {
+            console.warn("[Slug Sync] Revalidation failed (non-critical):", revalidateError);
+        }
 
         return NextResponse.json({
             success: true,
