@@ -126,6 +126,10 @@ contract CustomSlugRegistry {
         }
     }
 
+    function isReserved(string calldata _slug) external pure returns (bool) {
+        return _isReserved(keccak256(abi.encodePacked(_slug)));
+    }
+
     function _isReserved(bytes32 slugHash) internal pure returns (bool) {
         if (slugHash == keccak256(abi.encodePacked("admin"))) return true;
         if (slugHash == keccak256(abi.encodePacked("root"))) return true;
@@ -140,6 +144,26 @@ contract CustomSlugRegistry {
         if (slugHash == keccak256(abi.encodePacked("docs"))) return true;
         if (slugHash == keccak256(abi.encodePacked("blog"))) return true;
         if (slugHash == keccak256(abi.encodePacked("www"))) return true;
+        
+        // New restricted words
+        if (slugHash == keccak256(abi.encodePacked("moderator"))) return true;
+        if (slugHash == keccak256(abi.encodePacked("mod"))) return true;
+        if (slugHash == keccak256(abi.encodePacked("avax"))) return true;
+        if (slugHash == keccak256(abi.encodePacked("avalanche"))) return true;
+        if (slugHash == keccak256(abi.encodePacked("foundation"))) return true;
+        if (slugHash == keccak256(abi.encodePacked("official"))) return true;
+        if (slugHash == keccak256(abi.encodePacked("public"))) return true;
+        if (slugHash == keccak256(abi.encodePacked("legal"))) return true;
+        if (slugHash == keccak256(abi.encodePacked("security"))) return true;
+        if (slugHash == keccak256(abi.encodePacked("status"))) return true;
+        if (slugHash == keccak256(abi.encodePacked("about"))) return true;
+        if (slugHash == keccak256(abi.encodePacked("contact"))) return true;
+        if (slugHash == keccak256(abi.encodePacked("login"))) return true;
+        if (slugHash == keccak256(abi.encodePacked("register"))) return true;
+        if (slugHash == keccak256(abi.encodePacked("auth"))) return true;
+        if (slugHash == keccak256(abi.encodePacked("account"))) return true;
+        if (slugHash == keccak256(abi.encodePacked("profile"))) return true;
+        
         return false;
     }
 }

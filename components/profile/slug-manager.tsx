@@ -56,6 +56,16 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
         }
     });
 
+    const { data: isReserved, refetch: refetchReserved } = useReadContract({
+        address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
+        abi: ABI,
+        functionName: "isReserved",
+        args: debouncedSlug ? [debouncedSlug] : undefined,
+        query: {
+            enabled: !!debouncedSlug && validateSlugFormat(debouncedSlug),
+        }
+    });
+
     useEffect(() => {
         if (!debouncedSlug) {
             setAvailability("idle");
@@ -68,29 +78,27 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
         }
 
         // Determine status based on contract reads
-        // Note: status might be loading, but we handle the result here
         const checkStatus = async () => {
             setIsChecking(true);
             try {
                 await refetchOwner();
                 await refetchStatus();
-
-                // Re-read data from hooks (or rely on next render if we didn't use refetch async return)
-                // Ideally we use the data from the hook, but it might not be updated yet in this effect cycle
-                // Let's use a separate effect for data changes or assume wagmi query client handles it.
-                // Actually, we can just rely on the data variables updating.
+                await refetchReserved();
             } finally {
                 setIsChecking(false);
             }
         };
         checkStatus();
-    }, [debouncedSlug, refetchOwner, refetchStatus]);
+    }, [debouncedSlug, refetchOwner, refetchStatus, refetchReserved]);
 
     useEffect(() => {
         if (!debouncedSlug || !validateSlugFormat(debouncedSlug)) return;
 
         // Logic to determine availability from contract data
-        if (slugStatus && Array.isArray(slugStatus)) {
+        if (isReserved) {
+            setAvailability("reserved");
+            setCooldownEnd(null); // Permanent reservation
+        } else if (slugStatus && Array.isArray(slugStatus)) {
             const [owner, releasedAt, cooldownEndsAt] = slugStatus as [string, bigint, bigint];
             const now = BigInt(Math.floor(Date.now() / 1000));
 
@@ -107,11 +115,9 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
         } else if (slugOwner && slugOwner !== "0x0000000000000000000000000000000000000000") {
             setAvailability("taken");
         } else {
-            // Fallback or initial state if status read failed via wagmi (unlikely if valid)
-            // If owner is 0x0... and no status logic, it's likely available
             setAvailability("available");
         }
-    }, [slugOwner, slugStatus, debouncedSlug]);
+    }, [slugOwner, slugStatus, isReserved, debouncedSlug]);
 
 
     // Transaction Handling
@@ -305,6 +311,11 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                         {availability === "reserved" && cooldownEnd && (
                             <p className="text-sm text-yellow-500">
                                 This slug is in cooldown until {cooldownEnd.toLocaleDateString()} {cooldownEnd.toLocaleTimeString()}.
+                            </p>
+                        )}
+                        {availability === "reserved" && !cooldownEnd && (
+                            <p className="text-sm text-red-500">
+                                This slug is reserved for official use.
                             </p>
                         )}
                         {availability === "available" && debouncedSlug && (

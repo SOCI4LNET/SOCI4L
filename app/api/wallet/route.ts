@@ -39,17 +39,25 @@ export async function GET(request: NextRequest) {
       resolvedAddress = profile.address
     } else {
       // Check Cooldown
-      // Cast to any to bypass potential type generation delay
-      const cooldown = await (prisma as any).slugCooldown.findUnique({
-        where: { slugHash: hashSlug(normalizedSlug) }
-      })
+      try {
+        // Cast to any to bypass potential type generation delay
+        // Ensure prisma.slugCooldown exists before accessing
+        if ((prisma as any).slugCooldown) {
+          const cooldown = await (prisma as any).slugCooldown.findUnique({
+            where: { slugHash: hashSlug(normalizedSlug) }
+          })
 
-      if (cooldown) {
-        // Found in cooldown
-        cooldownData = cooldown
-        // We don't have a resolved address for a cooldown slug (it belongs to no one active)
-        // But we need to return specific status
-      } else {
+          if (cooldown) {
+            cooldownData = cooldown
+          }
+        } else {
+          console.warn('[Wallet API] prisma.slugCooldown is undefined. Run prisma generate.')
+        }
+      } catch (e) {
+        console.error('[Wallet API] Cooldown check failed:', e)
+      }
+
+      if (!cooldownData) {
         return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
       }
     }
