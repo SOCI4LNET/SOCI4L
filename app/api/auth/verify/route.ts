@@ -84,8 +84,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Create session cookie with verified wallet address
-    // Note: Cookie deletion below provides replay protection
-    cookieStore.set('aph_session', normalizedAddress, {
+    // Ensure address is exactly 42 characters (0x + 40 hex chars)
+    const cleanAddress = normalizedAddress.slice(0, 42)
+
+    if (cleanAddress.length !== 42 || !cleanAddress.startsWith('0x')) {
+      console.error('[Auth] Invalid address format:', { normalizedAddress, cleanAddress })
+      return NextResponse.json(
+        { error: 'Invalid address format' },
+        { status: 400 }
+      )
+    }
+
+    cookieStore.set('aph_session', cleanAddress, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
