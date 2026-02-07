@@ -33,6 +33,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
     const [pendingAction, setPendingAction] = useState<"claim" | "release" | null>(null);
     const [recoveredSlug, setRecoveredSlug] = useState<string | null>(null);
     const [isRecovering, setIsRecovering] = useState(false);
+    const [isAutoRepairing, setIsAutoRepairing] = useState(false);
     const [hasAttemptedRecovery, setHasAttemptedRecovery] = useState(false);
 
     // Debounce input
@@ -88,7 +89,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
     });
 
     const ZERO_HASH = "0x0000000000000000000000000000000000000000000000000000000000000000";
-    const isStale = currentSlug && activeSlugHash && activeSlugHash === ZERO_HASH;
+    const isStale = !!(currentSlug && activeSlugHash && activeSlugHash === ZERO_HASH);
 
     useEffect(() => {
         if (!debouncedSlug) {
@@ -149,52 +150,34 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
     useEffect(() => {
         setHasAttemptedRecovery(false);
         setRecoveredSlug(null);
+        setIsAutoRepairing(false);
     }, [activeSlugHash, address]);
 
-    // Recover slug name from chain history if zombie state
+    // Auto-Repair Effect: If DB has slug but Chain has none, clear DB automatically
     useEffect(() => {
-        if (!publicClient || !address || !activeSlugHash || activeSlugHash === ZERO_HASH || currentSlug || hasAttemptedRecovery) return;
-
-        const recoverSlug = async () => {
-            setIsRecovering(true);
-            try {
-                // Find the latest SlugClaimed event for this user
-                const logs = await publicClient.getLogs({
-                    address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
-                    event: parseAbiItem('event SlugClaimed(bytes32 indexed slugHash, address indexed owner, uint256 timestamp)'),
-                    args: {
-                        owner: address as `0x${string}`
-                    },
-                    fromBlock: 'earliest'
-                });
-
-                if (logs.length > 0) {
-                    const lastLog = logs[logs.length - 1];
-                    const tx = await publicClient.getTransaction({ hash: lastLog.transactionHash });
-
-                    const { args } = decodeFunctionData({
-                        abi: parseAbi(CUSTOM_SLUG_REGISTRY_ABI),
-                        data: tx.input
+        if (isStale && address && !isAutoRepairing) {
+            const autoRepair = async () => {
+                setIsAutoRepairing(true);
+                try {
+                    await fetch("/api/slug/sync", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            mode: "repair",
+                            address: address
+                        })
                     });
-
-                    if (args && args[0]) {
-                        setRecoveredSlug(args[0] as string);
-                        // Auto-fill input if empty
-                        if (!inputSlug) {
-                            setInputSlug(args[0] as string);
-                        }
-                    }
+                    // Instead of full reload, we just wait for the parent to re-fetch if possible, 
+                    // or reload if we have to. For now, reload is safest to reset all state.
+                    window.location.reload();
+                } catch (e) {
+                    console.error("Auto-repair failed:", e);
+                    setIsAutoRepairing(false);
                 }
-            } catch (e) {
-                console.error("Failed to recover slug name:", e);
-            } finally {
-                setIsRecovering(false);
-                setHasAttemptedRecovery(true);
-            }
-        };
-
-        recoverSlug();
-    }, [activeSlugHash, address, currentSlug, publicClient, hasAttemptedRecovery, inputSlug]);
+            };
+            autoRepair();
+        }
+    }, [isStale, address, isAutoRepairing]);
 
     // Transaction Handling
     const { writeContractAsync, data: hash, isPending: isWritePending } = useWriteContract();
@@ -202,46 +185,52 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
         hash,
     });
 
-    const handleClaim = async () => {
-        if (!debouncedSlug || availability !== "available") return;
+    const handleSync = async (slugToSync: string) => {
+        if (!address) return;
         setPendingAction("claim");
-
         try {
-            await writeContractAsync({
-                address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
-                abi: ABI,
-                functionName: "claim",
-                args: [debouncedSlug]
-            });
-            toast.loading("Claiming slug...", { id: "claim-toast" });
-        } catch (e: any) {
-            console.error("Claim error:", e);
-            toast.error(e.message || "Failed to initiate claim");
-            setPendingAction(null);
-        }
-    };
+            const message = `Sync slug "${slugToSync}" for SOCI4L profile`;
+            const signature = await signMessageAsync({ message });
 
-    const handleRelease = async () => {
-        if (!currentSlug) return;
-        setPendingAction("release");
-
-        try {
-            await writeContractAsync({
-                address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
-                abi: ABI,
-                functionName: "release",
+            const res = await fetch("/api/slug/sync", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    slug: slugToSync,
+                    signature,
+                    message
+                })
             });
-            toast.loading("Releasing slug...", { id: "release-toast" });
-        } catch (e: any) {
-            console.error("Release error:", e);
-            if (e?.message?.includes('User rejected')) {
-                toast.error("Transaction rejected");
+
+            if (res.ok) {
+                toast.success("Synced & Fixed!");
+                window.location.reload();
             } else {
-                toast.error("Failed to initiate release");
+                toast.error("Sync failed");
             }
+        } catch (e: any) {
+            console.error(e);
+            if (e?.message?.includes("User rejected")) {
+                toast.error("Signature rejected");
+            } else {
+                toast.error("Sync error");
+            }
+        } finally {
             setPendingAction(null);
         }
     };
+
+    // Proactive Sync Trigger: If we found a zombie slug, automatically prompt for sync
+    useEffect(() => {
+        if (recoveredSlug && !currentSlug && !isWritePending && !isConfirming && !pendingAction && hasAttemptedRecovery) {
+            // Optional: Add a delay or check if another toast is already showing
+            const timer = setTimeout(() => {
+                toast.info(`Found your handle: /p/${recoveredSlug}. Syncing now...`, { id: "auto-sync-info" });
+                handleSync(recoveredSlug);
+            }, 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [recoveredSlug, currentSlug, isWritePending, isConfirming, pendingAction, hasAttemptedRecovery]);
 
     // Watch for confirmation to trigger API
     useEffect(() => {
@@ -281,6 +270,20 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
         return <Alert><AlertTitle>Wallet not connected</AlertTitle><AlertDescription>Please connect your wallet to manage slugs.</AlertDescription></Alert>;
     }
 
+    if (isAutoRepairing) {
+        return (
+            <Card className="bg-card border-yellow-500/20 shadow-sm">
+                <CardContent className="py-10 flex flex-col items-center justify-center space-y-4">
+                    <Loader2 className="w-8 h-8 animate-spin text-yellow-500" />
+                    <div className="text-center">
+                        <p className="font-medium text-yellow-500">Reconciling Profile State...</p>
+                        <p className="text-sm text-muted-foreground mt-1">Cleaning up local data after on-chain changes.</p>
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }
+
     return (
         <Card className="bg-card border border-border/60 shadow-sm">
             <CardHeader>
@@ -293,51 +296,13 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                 {currentSlug ? (
                     isStale ? (
                         <div className="space-y-4">
-                            <Alert variant="destructive" className="border-yellow-500/50 bg-yellow-500/10">
-                                <AlertCircle className="h-4 w-4 text-yellow-500" />
-                                <AlertTitle className="text-yellow-500">Sync Required</AlertTitle>
-                                <AlertDescription className="text-yellow-500/90">
-                                    Your profile shows a handle, but you don't own it on-chain. This likely means it was released or expired. Please sync to fix this.
+                            <Alert className="border-yellow-500/30 bg-yellow-500/5">
+                                <Loader2 className="h-4 w-4 animate-spin text-yellow-500" />
+                                <AlertTitle className="text-yellow-500">Auto-Detecting State...</AlertTitle>
+                                <AlertDescription className="text-yellow-500/80">
+                                    Your profile appears out of sync. Fixing automatically...
                                 </AlertDescription>
                             </Alert>
-                            <div className="flex justify-end">
-                                <Button
-                                    variant="default"
-                                    size="sm"
-                                    onClick={async () => {
-                                        setPendingAction("claim");
-                                        try {
-                                            if (!address) return;
-                                            const message = `Sync slug "${currentSlug}" for SOCI4L profile`;
-                                            const signature = await signMessageAsync({ message });
-
-                                            const res = await fetch("/api/slug/sync", {
-                                                method: "POST",
-                                                headers: { "Content-Type": "application/json" },
-                                                body: JSON.stringify({
-                                                    slug: currentSlug,
-                                                    signature,
-                                                    message
-                                                })
-                                            });
-
-                                            if (res.ok) {
-                                                toast.success("Synced & Fixed!");
-                                                window.location.reload();
-                                            } else {
-                                                toast.error("Sync failed");
-                                            }
-                                        } catch (e) {
-                                            console.error(e);
-                                            toast.error("Sync failed");
-                                        }
-                                    }}
-                                    disabled={isWritePending || isConfirming}
-                                >
-                                    <Loader2 className={isWritePending ? "w-4 h-4 animate-spin mr-2" : "hidden"} />
-                                    Fix Sync Issue
-                                </Button>
-                            </div>
                         </div>
                     ) : (
                         <div className="space-y-4">
@@ -367,7 +332,26 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                                 <Button
                                     variant="destructive"
                                     size="sm"
-                                    onClick={handleRelease}
+                                    onClick={async () => {
+                                        if (!currentSlug) return;
+                                        setPendingAction("release");
+                                        try {
+                                            await writeContractAsync({
+                                                address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
+                                                abi: ABI,
+                                                functionName: "release",
+                                            });
+                                            toast.loading("Releasing slug...", { id: "release-toast" });
+                                        } catch (e: any) {
+                                            console.error("Release error:", e);
+                                            if (e?.message?.includes('User rejected')) {
+                                                toast.error("Transaction rejected");
+                                            } else {
+                                                toast.error("Failed to initiate release");
+                                            }
+                                            setPendingAction(null);
+                                        }
+                                    }}
                                     disabled={isWritePending || isConfirming}
                                 >
                                     {isWritePending && pendingAction === "release" ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
@@ -432,42 +416,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                                 </div>
                                 {slugOwner && address && (slugOwner as string).toLowerCase() === address.toLowerCase() && !currentSlug ? (
                                     <Button
-                                        onClick={async () => {
-                                            if (!debouncedSlug || !address) return;
-
-                                            setPendingAction("claim");
-                                            try {
-                                                // Sign message to prove wallet ownership
-                                                const message = `Sync slug "${debouncedSlug}" for SOCI4L profile`;
-                                                const signature = await signMessageAsync({ message });
-
-                                                const res = await fetch("/api/slug/sync", {
-                                                    method: "POST",
-                                                    headers: { "Content-Type": "application/json" },
-                                                    body: JSON.stringify({
-                                                        slug: debouncedSlug,
-                                                        signature,
-                                                        message
-                                                    })
-                                                });
-
-                                                const data = await res.json();
-
-                                                if (res.ok) {
-                                                    toast.success("Synced!");
-                                                    window.location.reload();
-                                                } else {
-                                                    toast.error(data.error || "Sync failed");
-                                                }
-                                            } catch (e: any) {
-                                                if (e?.message?.includes("User rejected")) {
-                                                    toast.error("Signature rejected");
-                                                } else {
-                                                    toast.error("Sync error");
-                                                }
-                                            }
-                                            setPendingAction(null);
-                                        }}
+                                        onClick={() => handleSync(debouncedSlug)}
                                         disabled={!debouncedSlug || isWritePending}
                                         variant="secondary"
                                     >
@@ -476,7 +425,23 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                                     </Button>
                                 ) : (
                                     <Button
-                                        onClick={handleClaim}
+                                        onClick={async () => {
+                                            if (!debouncedSlug || availability !== "available") return;
+                                            setPendingAction("claim");
+                                            try {
+                                                await writeContractAsync({
+                                                    address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
+                                                    abi: ABI,
+                                                    functionName: "claim",
+                                                    args: [debouncedSlug]
+                                                });
+                                                toast.loading("Claiming slug...", { id: "claim-toast" });
+                                            } catch (e: any) {
+                                                console.error("Claim error:", e);
+                                                toast.error(e.message || "Failed to initiate claim");
+                                                setPendingAction(null);
+                                            }
+                                        }}
                                         disabled={availability !== "available" || isWritePending || isConfirming}
                                     >
                                         {isWritePending && pendingAction === "claim" ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}

@@ -27,20 +27,47 @@ const ABI = parseAbi(CUSTOM_SLUG_REGISTRY_ABI);
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { slug, signature, message } = body;
+        const { slug, signature, message, mode, address: providedAddress } = body;
 
-        // 1. Validate signature and recover address
-        if (!signature || !message) {
-            return NextResponse.json({ error: "Signature and message required" }, { status: 400 });
-        }
+        let targetAddress = "";
 
-        const recoveredAddress = await recoverMessageAddress({
-            message,
-            signature: signature as `0x${string}`
-        });
+        // 1. Signature or Repair Mode Verification
+        if (mode === "repair") {
+            if (!providedAddress) {
+                return NextResponse.json({ error: "Address required for repair mode" }, { status: 400 });
+            }
+            targetAddress = providedAddress.toLowerCase();
 
-        if (!recoveredAddress) {
-            return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+            // SECURITY: Only allow repair if blockchain confirms the user DOES NOT own any active slug hash
+            // (Setting a slug still requires a signature)
+            const activeSlugHash = await client.readContract({
+                address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
+                abi: ABI,
+                functionName: "getActiveSlug",
+                args: [targetAddress as `0x${string}`]
+            }) as string;
+
+            const ZERO_HASH = "0x0000000000000000000000000000000000000000000000000000000000000000";
+            if (activeSlugHash !== ZERO_HASH) {
+                return NextResponse.json({ error: "Cannot repair if active on-chain slug exists. Signature required for sync." }, { status: 403 });
+            }
+
+            console.log(`[Slug Sync] Repair mode authorized for ${targetAddress} (Public state verified)`);
+        } else {
+            // Standard Sync requires signature
+            if (!signature || !message) {
+                return NextResponse.json({ error: "Signature and message required" }, { status: 400 });
+            }
+
+            const recoveredAddress = await recoverMessageAddress({
+                message,
+                signature: signature as `0x${string}`
+            });
+
+            if (!recoveredAddress) {
+                return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+            }
+            targetAddress = recoveredAddress.toLowerCase();
         }
 
         // 2. Validate Slug Format
@@ -63,19 +90,18 @@ export async function POST(request: Request) {
         console.log("[Slug Sync Debug]", {
             slug: normalized,
             computedHash,
-            recoveredAddress,
+            targetAddress,
             onChainOwner,
-            match: onChainOwner?.toLowerCase() === recoveredAddress?.toLowerCase()
+            match: onChainOwner?.toLowerCase() === targetAddress?.toLowerCase()
         });
 
         // 4. Security Check: Ensure the on-chain owner matches the recovered address
-        // 4. Security Check: Ensure the on-chain owner matches the recovered address
-        if (!onChainOwner || onChainOwner.toLowerCase() !== recoveredAddress.toLowerCase()) {
-            console.warn(`[Slug Sync] Mismatch detected for ${recoveredAddress}. Clearing db slug.`);
+        if (!onChainOwner || onChainOwner.toLowerCase() !== targetAddress.toLowerCase()) {
+            console.warn(`[Slug Sync] Mismatch detected for ${targetAddress}. Clearing db slug.`);
 
             // Self-healing: If user doesn't own it on-chain, clear it from DB
-            await prisma.profile.update({
-                where: { address: recoveredAddress.toLowerCase() },
+            await (prisma as any).profile.update({
+                where: { address: targetAddress.toLowerCase() },
                 data: {
                     slug: null,
                     slugHash: null,
@@ -95,7 +121,7 @@ export async function POST(request: Request) {
             address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
             abi: ABI,
             functionName: "getActiveSlug",
-            args: [recoveredAddress as `0x${string}`]
+            args: [targetAddress as `0x${string}`]
         }) as string;
 
         if (activeSlugHash.toLowerCase() !== computedHash.toLowerCase()) {
@@ -104,10 +130,10 @@ export async function POST(request: Request) {
 
         // 6. Update Database (Idempotent)
         // First, clear this slug from any other profiles (in case it was previously synced to wrong address)
-        await prisma.profile.updateMany({
+        await (prisma as any).profile.updateMany({
             where: {
                 slug: normalized,
-                address: { not: recoveredAddress.toLowerCase() }
+                address: { not: targetAddress.toLowerCase() }
             },
             data: {
                 slug: null,
@@ -116,8 +142,8 @@ export async function POST(request: Request) {
         });
 
         // Then update the correct profile
-        await prisma.profile.update({
-            where: { address: recoveredAddress.toLowerCase() },
+        await (prisma as any).profile.update({
+            where: { address: targetAddress.toLowerCase() },
             data: {
                 slug: normalized,
                 slugHash: computedHash,
@@ -126,7 +152,7 @@ export async function POST(request: Request) {
         });
 
         // 7. Clear any cooldown for this slug
-        await prisma.slugCooldown.deleteMany({
+        await (prisma as any).slugCooldown.deleteMany({
             where: { slugHash: computedHash }
         });
 
