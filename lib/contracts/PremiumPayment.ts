@@ -1,5 +1,5 @@
 // Deployed on Avalanche C-Chain
-export const PREMIUM_PAYMENT_ADDRESS = "0xD6e518aF9E09D31ED81E1cA6eC43978eDaFFd68e";
+export const PREMIUM_PAYMENT_ADDRESS = "0x9bA02537447E6DcdeF72D0e98a4C82E6B73E3cCC";
 
 export const PREMIUM_PAYMENT_ABI = [
     {

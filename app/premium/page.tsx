@@ -18,6 +18,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { PremiumUpgradeModal } from "@/components/premium/premium-upgrade-modal"
 import { Soci4LLogo } from "@/components/logos/soci4l-logo"
 import { formatDistanceToNow } from "date-fns"
+import SiteFooter from "@/components/app-shell/site-footer"
 
 // --- MOCK DATA ---
 const MOCK_SOURCES = {
@@ -199,7 +200,7 @@ export default function PremiumPage() {
                                     <ChevronRight className="w-5 h-5 ml-2" />
                                 </Button>
                                 <p className="text-xs text-muted-foreground mt-4 sm:mt-0 sm:ml-4 font-mono uppercase tracking-wider">
-                                    Lifetime Access
+                                    1 Year Access
                                 </p>
                             </div>
                         </motion.div>
@@ -443,9 +444,7 @@ export default function PremiumPage() {
                         </Card>
                     </section>
 
-                    <footer className="max-w-7xl mx-auto px-6 py-8 border-t border-white/5 text-center text-sm text-muted-foreground">
-                        <p>&copy; {new Date().getFullYear()} SOCI4L. Built on Avalanche.</p>
-                    </footer>
+                    <SiteFooter />
 
                     <PremiumUpgradeModal
                         open={showUpgradeModal}
