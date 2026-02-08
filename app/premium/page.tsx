@@ -19,6 +19,8 @@ import { PremiumUpgradeModal } from "@/components/premium/premium-upgrade-modal"
 import { Soci4LLogo } from "@/components/logos/soci4l-logo"
 import { formatDistanceToNow } from "date-fns"
 import SiteFooter from "@/components/app-shell/site-footer"
+import { HeaderActions } from "@/components/app-shell/header-actions"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 // --- MOCK DATA ---
 const MOCK_SOURCES = {
@@ -44,13 +46,13 @@ const MOCK_CATEGORIES = [
     { id: 4, name: "Contact", totalClicks: 600, share: 0.1 },
 ]
 
-// Updated Mock Activity to match "Real" Feed style
+// Updated Mock Activity to match "Real" Feed style with diverse actions
 const MOCK_ACTIVITY = [
     {
         id: 1,
         visitor: "0x8a80...1dC7",
         fullVisitor: "0x8a809876543210abcdef1234567890abcdef1dC7",
-        action: "viewed your Profile",
+        action: "clicked on Portfolio Website",
         timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString() // 5 mins ago
     },
     {
@@ -64,14 +66,14 @@ const MOCK_ACTIVITY = [
         id: 3,
         visitor: "0x3B28...f12C",
         fullVisitor: "0x3B289134567890abcdef1234567890abcdef12",
-        action: "viewed your Profile",
+        action: "copied your Wallet Address",
         timestamp: new Date(Date.now() - 1000 * 60 * 32).toISOString()
     },
     {
         id: 4,
         visitor: "0x9A12...1234",
         fullVisitor: "0x9A1234567890abcdef1234567890abcdef1234",
-        action: "viewed your Profile",
+        action: "clicked on Twitter / X",
         timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString()
     },
     {
@@ -85,7 +87,7 @@ const MOCK_ACTIVITY = [
         id: 6,
         visitor: "0x1234...5678",
         fullVisitor: "0x1234567890abcdef1234567890abcdef123456",
-        action: "viewed your Profile",
+        action: "clicked on Instagram",
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString()
     },
     {
@@ -97,29 +99,13 @@ const MOCK_ACTIVITY = [
     },
 ]
 
-// Simple generative visual for avatar (mimics Blockies)
+// Updated Avatar component using consistent App style (Effigy.im)
 const PixelAvatar = ({ address }: { address: string }) => {
-    // Generate a simple deterministic color/pattern from address char codes
-    const seed = address.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-    const hue = seed % 360
-    const saturation = 50 + (seed % 30) // 50-80%
-    const lightness = 40 + (seed % 20)  // 40-60%
-    const colorSearch = `hsl(${hue}, ${saturation}%, ${lightness}%)`
-    const colorBg = `hsl(${(hue + 180) % 360}, ${saturation}%, 20%)`
-
     return (
-        <div
-            className="w-8 h-8 rounded-full overflow-hidden relative border border-white/10"
-            style={{ backgroundColor: colorBg }}
-        >
-            {/* Simple symmetrical pixel pattern simulation */}
-            <div className="absolute inset-1 grid grid-cols-2 grid-rows-2 gap-[1px] opacity-80">
-                <div style={{ backgroundColor: colorSearch }} />
-                <div style={{ backgroundColor: colorSearch, opacity: 0.5 }} />
-                <div style={{ backgroundColor: colorSearch, opacity: 0.5 }} />
-                <div style={{ backgroundColor: colorSearch }} />
-            </div>
-        </div>
+        <Avatar className="h-8 w-8 border border-border/50">
+            <AvatarImage src={`https://effigy.im/a/${address}.svg`} alt={address} />
+            <AvatarFallback>{address.slice(2, 4).toUpperCase()}</AvatarFallback>
+        </Avatar>
     )
 }
 
@@ -151,23 +137,17 @@ export default function PremiumPage() {
                 <header className="fixed top-0 w-full z-50 border-b border-border/40 bg-background/80 backdrop-blur-md">
                     <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
                         <div className="flex items-center gap-2 cursor-pointer group" onClick={() => router.push('/')}>
-                            <Soci4LLogo variant="icon" className="w-8 h-8 text-white invert-0 transition-transform group-hover:scale-110" />
+                            <Soci4LLogo variant="icon" className="w-8 h-8 text-foreground invert-0 transition-transform group-hover:scale-110" />
                             <span className="font-bold text-xl tracking-tight">SOCI4L</span>
                         </div>
                         <div className="flex items-center gap-4">
                             <Button
-                                variant="ghost"
-                                className="text-sm text-muted-foreground hover:text-white hidden sm:flex"
-                                onClick={() => router.push('/dashboard')}
-                            >
-                                Dashboard
-                            </Button>
-                            <Button
                                 onClick={handleUpgradeClick}
-                                className="bg-white hover:bg-zinc-200 text-black font-medium rounded-full px-6 transition-all hover:scale-105 active:scale-95 shadow-none hover:shadow-none"
+                                className="bg-foreground hover:bg-foreground/90 text-background font-medium rounded-full px-6 transition-all hover:scale-105 active:scale-95 shadow-none hover:shadow-none hidden sm:flex"
                             >
                                 Upgrade
                             </Button>
+                            <HeaderActions />
                         </div>
                     </div>
                 </header>
@@ -180,12 +160,12 @@ export default function PremiumPage() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8 }}
                         >
-                            <Badge variant="outline" className="mb-6 border-white/20 text-white px-4 py-1.5 rounded-full text-sm hover:bg-white/5 transition-colors cursor-default">
+                            <Badge variant="outline" className="mb-6 border-border text-foreground px-4 py-1.5 rounded-full text-sm hover:bg-foreground/5 transition-colors cursor-default">
                                 <ShieldCheck className="w-3.5 h-3.5 mr-2" />
                                 Official Premium Upgrade
                             </Badge>
-                            <h1 className="text-5xl md:text-7xl font-semibold tracking-tight mb-8 text-white">
-                                Turn your reputation into <br /> <span className="text-zinc-500">identity capital.</span>
+                            <h1 className="text-5xl md:text-7xl font-semibold tracking-tight mb-8 text-foreground">
+                                Turn your reputation into <br /> <span className="text-muted-foreground">identity capital.</span>
                             </h1>
                             <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
                                 Gain deep visibility into your audience with source breakdowns, referrer tracking, and real-time history.
@@ -194,7 +174,7 @@ export default function PremiumPage() {
                                 <Button
                                     onClick={handleUpgradeClick}
                                     size="lg"
-                                    className="h-14 px-10 rounded-full text-lg font-semibold bg-white text-black hover:bg-zinc-200 transition-all hover:scale-105 active:scale-95 shadow-none"
+                                    className="h-14 px-10 rounded-full text-lg font-semibold bg-foreground text-background hover:bg-foreground/90 transition-all hover:scale-105 active:scale-95 shadow-none"
                                 >
                                     Unlock for 0.5 AVAX
                                     <ChevronRight className="w-5 h-5 ml-2" />
@@ -215,11 +195,11 @@ export default function PremiumPage() {
                                 viewport={{ once: true }}
                                 transition={{ duration: 0.8 }}
                             >
-                                <div className="flex items-center gap-2 text-white mb-4">
+                                <div className="flex items-center gap-2 text-foreground mb-4">
                                     <TrendingUp className="w-5 h-5" />
                                     <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Analytics</span>
                                 </div>
-                                <h2 className="text-3xl font-semibold mb-4 text-white">Know exactly where your traffic comes from.</h2>
+                                <h2 className="text-3xl font-semibold mb-4 text-foreground">Know exactly where your traffic comes from.</h2>
                                 <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
                                     Stop guessing. See precise breakdowns of your traffic sources.
                                 </p>
@@ -342,11 +322,11 @@ export default function PremiumPage() {
                                 transition={{ duration: 0.8 }}
                                 className="order-1 md:order-2"
                             >
-                                <div className="flex items-center gap-2 text-white mb-4">
+                                <div className="flex items-center gap-2 text-foreground mb-4">
                                     <BarChart2 className="w-5 h-5" />
                                     <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Performance</span>
                                 </div>
-                                <h2 className="text-3xl font-semibold mb-4 text-white">Identify what resonates. Eliminate what doesn't.</h2>
+                                <h2 className="text-3xl font-semibold mb-4 text-foreground">Identify what resonates. Eliminate what doesn't.</h2>
                                 <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
                                     Discover your highest-performing links and content categories. Understand user intent and restructure your profile.
                                 </p>
@@ -363,11 +343,11 @@ export default function PremiumPage() {
                                 viewport={{ once: true }}
                                 transition={{ duration: 0.8 }}
                             >
-                                <div className="flex items-center gap-2 text-white mb-4">
+                                <div className="flex items-center gap-2 text-foreground mb-4">
                                     <Zap className="w-5 h-5" />
                                     <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Real-time</span>
                                 </div>
-                                <h2 className="text-3xl font-semibold mb-4 text-white">Track on-chain identities. <br /> In real-time.</h2>
+                                <h2 className="text-3xl font-semibold mb-4 text-foreground">Track on-chain identities. <br /> In real-time.</h2>
                                 <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
                                     See exactly who is interacting with your profile. Premium insights reveal real-time analytics.
                                 </p>
@@ -383,7 +363,7 @@ export default function PremiumPage() {
                                 {/* ACTIVITY FEED CARD (TIMELINE STYLE) */}
                                 <Card className="bg-card border border-border/60 shadow-none relative z-10 h-[380px] overflow-hidden">
                                     <CardHeader className="pb-3 border-b border-border/40">
-                                        <CardTitle className="text-base text-white">Recent Activity</CardTitle>
+                                        <CardTitle className="text-base text-foreground">Recent Activity</CardTitle>
                                         <CardDescription className="text-xs">Latest events timeline (verified real-time activity)</CardDescription>
                                     </CardHeader>
                                     <CardContent className="pt-6 relative">
@@ -401,7 +381,7 @@ export default function PremiumPage() {
                                                             <PixelAvatar address={act.fullVisitor} />
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                                                                    <div className="flex items-center gap-1.5 text-xs text-white">
+                                                                    <div className="flex items-center gap-1.5 text-xs text-foreground">
                                                                         <Badge variant="secondary" className="px-1.5 py-0 h-5 font-mono text-[10px] bg-zinc-800 text-zinc-300 border-zinc-700">
                                                                             {act.visitor}
                                                                         </Badge>
@@ -427,16 +407,16 @@ export default function PremiumPage() {
 
                     {/* FINAL CTA */}
                     <section className="max-w-3xl mx-auto px-6 text-center mb-20">
-                        <Card className="bg-gradient-to-b from-white/5 to-transparent border-white/10 backdrop-blur-sm transition-all duration-500">
+                        <Card className="bg-gradient-to-b from-foreground/5 to-transparent border-border/10 backdrop-blur-sm transition-all duration-500">
                             <CardContent className="pt-12 pb-12">
-                                <h2 className="text-3xl font-semibold mb-6 text-white">Ready to upgrade?</h2>
+                                <h2 className="text-3xl font-semibold mb-6 text-foreground">Ready to upgrade?</h2>
                                 <p className="text-muted-foreground mb-8 text-lg">
                                     Join hundreds of creators who own their data and understand their audience.
                                 </p>
                                 <Button
                                     onClick={handleUpgradeClick}
                                     size="lg"
-                                    className="bg-white text-black hover:bg-zinc-200 px-12 h-12 rounded-full font-semibold shadow-none transition-all hover:scale-105 active:scale-95"
+                                    className="bg-foreground text-background hover:bg-foreground/90 px-12 h-12 rounded-full font-semibold shadow-none transition-all hover:scale-105 active:scale-95"
                                 >
                                     Get Premium Now
                                 </Button>
