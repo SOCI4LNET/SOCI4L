@@ -51,7 +51,7 @@ export default function BrandPage() {
 
                     {/* 01. LOGOMARK (ICON) */}
                     {/* 01. LOGOMARK (ICON) */}
-                    <section className="min-h-screen flex flex-col justify-center py-20 sticky top-0 z-10 bg-background">
+                    <section className="min-h-screen flex flex-col justify-center py-20 relative md:sticky md:top-0 z-10 bg-background">
                         <SectionHeader number="01" title="Logomark" />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <LogoCard
@@ -78,7 +78,7 @@ export default function BrandPage() {
 
                     {/* 02. COMBINATION MARK */}
                     {/* 02. COMBINATION MARK */}
-                    <section className="min-h-screen flex flex-col justify-center py-20 sticky top-0 z-20 bg-background">
+                    <section className="min-h-screen flex flex-col justify-center py-20 relative md:sticky md:top-0 z-20 bg-background">
                         <SectionHeader number="02" title="Combination Mark" />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <LogoCard
@@ -128,7 +128,7 @@ export default function BrandPage() {
 
                     <HorizontalScrollSection className="z-30">
                         {/* Slide A: Core Identity */}
-                        <div className="w-screen h-screen flex flex-col justify-center px-4 md:px-20 relative snap-center overflow-y-auto py-20">
+                        <div className="w-full min-h-screen md:w-screen md:h-screen flex flex-col justify-center px-4 md:px-20 relative snap-center overflow-y-auto py-20">
                             <SectionHeader number="03" title="Color Architecture — Core Identity" />
                             <div className="w-full max-w-7xl mx-auto space-y-8">
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -200,7 +200,7 @@ export default function BrandPage() {
                         </div>
 
                         {/* Slide C: Neutral Colors */}
-                        <div className="w-screen h-screen flex flex-col justify-center px-4 md:px-20 relative snap-center overflow-y-auto py-20">
+                        <div className="w-full min-h-screen md:w-screen md:h-screen flex flex-col justify-center px-4 md:px-20 relative snap-center overflow-y-auto py-20">
                             <SectionHeader number="03" title="Color Architecture — Neutral" />
                             <div className="w-full max-w-7xl mx-auto space-y-8">
                                 <div className="flex items-center gap-4 mb-8">
@@ -234,7 +234,7 @@ export default function BrandPage() {
                     <HorizontalScrollSection className="z-40">
 
                         {/* Slide 1: Primary Font */}
-                        <div className="w-screen h-screen flex flex-col justify-center px-8 md:px-20 relative snap-center overflow-y-auto py-20">
+                        <div className="w-full min-h-screen md:w-screen md:h-screen flex flex-col justify-center px-8 md:px-20 relative snap-center overflow-y-auto py-20">
                             <SectionHeader number="04" title="Typography — Primary" />
                             <div className="max-w-4xl mx-auto w-full">
                                 <div className="pb-4 border-b border-border/20 flex justify-between items-baseline mb-8">
@@ -261,7 +261,7 @@ export default function BrandPage() {
                         </div>
 
                         {/* Slide 2: Monospace Font */}
-                        <div className="w-screen h-screen flex flex-col justify-center px-8 md:px-20 relative snap-center overflow-y-auto py-20">
+                        <div className="w-full min-h-screen md:w-screen md:h-screen flex flex-col justify-center px-8 md:px-20 relative snap-center overflow-y-auto py-20">
                             <SectionHeader number="04" title="Typography — Monospace" />
                             <div className="max-w-4xl mx-auto w-full">
                                 <div className="pb-4 border-b border-border/20 flex justify-between items-baseline mb-8">
@@ -288,7 +288,7 @@ export default function BrandPage() {
                         </div>
 
                         {/* Slide 3: Scale & Spacing */}
-                        <div className="w-screen h-screen flex flex-col justify-center px-8 md:px-20 relative snap-center overflow-y-auto py-20">
+                        <div className="w-full min-h-screen md:w-screen md:h-screen flex flex-col justify-center px-8 md:px-20 relative snap-center overflow-y-auto py-20">
                             <div className="max-w-4xl mx-auto w-full pb-8">
                                 <SectionHeader number="04" title="Typography — Scale" />
                                 <div className="space-y-6">
@@ -353,10 +353,10 @@ export default function BrandPage() {
 
                     {/* 05. NAMING CONVENTION */}
                     {/* 05. NAMING CONVENTION */}
-                    <section className="min-h-screen flex flex-col justify-center py-20 sticky top-0 z-50 bg-background overflow-hidden">
+                    <section className="min-h-screen flex flex-col justify-center py-20 relative md:sticky md:top-0 z-50 bg-background overflow-hidden">
                         <SectionHeader number="05" title="Naming Convention" />
                         <div className="space-y-16">
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-16">
                                 <div className="space-y-8">
                                     <div>
                                         <h3 className="text-xl font-semibold mb-4">The Brand Name</h3>
@@ -391,7 +391,7 @@ export default function BrandPage() {
                     </section>
 
                     {/* 06. BUTTONS & COMPONENTS */}
-                    <section className="min-h-screen flex flex-col justify-center py-20 sticky top-0 z-[70] bg-background">
+                    <section className="min-h-screen flex flex-col justify-center py-20 relative md:sticky md:top-0 z-[70] bg-background">
                         <SectionHeader number="06" title="Buttons & Components" />
                         <div className="max-w-7xl mx-auto w-full space-y-24">
 
@@ -501,7 +501,7 @@ export default function BrandPage() {
                         </div>
                     </section>
                     {/* 07. SOCIAL MEDIA KITS */}
-                    <section className="min-h-screen flex flex-col justify-center py-20 sticky top-0 z-[70] bg-background">
+                    <section className="min-h-screen flex flex-col justify-center py-20 relative md:sticky md:top-0 z-[70] bg-background">
                         <SectionHeader number="07" title="Social Media Kits" />
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -910,6 +910,7 @@ function ButtonRuleCard({ children, title, description, status }: any) {
 }
 
 // Dynamic horizontal scroll based on children count
+// Dynamic horizontal scroll based on children count (Desktop only)
 function HorizontalScrollSection({ children, className }: { children: ReactNode, className?: string }) {
     const targetRef = useRef<HTMLDivElement>(null)
     const childrenCount = React.Children.count(children)
@@ -918,22 +919,25 @@ function HorizontalScrollSection({ children, className }: { children: ReactNode,
         target: targetRef,
     })
 
-    // Calculate the translation needed: (total slides - 1) * 100% / total slides
-    // But since the container is w-[N * 100%], each slide is 1/N of total width.
-    // So we translate by -((N-1)/N) * 100%
     const transformValue = `-${((childrenCount - 1) / childrenCount) * 100}%`
     const x = useTransform(scrollYProgress, [0, 1], ["0%", transformValue])
 
     return (
         <section
             ref={targetRef}
-            className={cn("relative bg-background text-foreground", className)}
-            style={{ height: `${childrenCount * 100}vh` }}
+            className={cn("relative bg-background text-foreground h-auto md:h-[var(--dynamic-height)]", className)}
+            style={{
+                "--dynamic-height": `${childrenCount * 100}vh`,
+            } as React.CSSProperties}
         >
-            <div className="sticky top-0 h-screen flex items-center overflow-hidden bg-background">
+            <div className="md:sticky md:top-0 md:h-screen md:overflow-hidden bg-background">
+                {/* Mobile: Vertical Stack (flex-col). Desktop: Horizontal Row (flex-row) with transform */}
                 <motion.div
-                    style={{ x, width: `${childrenCount * 100}%` }}
-                    className="flex h-full"
+                    style={{
+                        x,
+                        "--dynamic-width": `${childrenCount * 100}%`
+                    } as any}
+                    className="flex flex-col md:flex-row h-auto md:h-full w-full md:w-[var(--dynamic-width)] max-md:!transform-none"
                 >
                     {children}
                 </motion.div>
