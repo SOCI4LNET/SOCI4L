@@ -176,14 +176,48 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
 
   // --- Premium Blur Wrapper ---
   const PremiumContent = ({ children }: { children: React.ReactNode }) => {
+    // If user has access, show real content without blur
     if (hasAccess) return <>{children}</>;
 
-    return (
-      <div className="relative group">
-        {/* Content with Strong Gaussian Blur */}
-        <div className="pointer-events-none select-none opacity-40 blur-xl transition-all duration-700 filter grayscale-[0.2]">
-          {children}
+    // MOCK DATA FOR PREVIEW (To prevent leaking real stats)
+    const MockPreview = () => (
+      <div className="space-y-8 select-none pointer-events-none filter grayscale-[0.2] opacity-50 blur-md transition-all duration-700">
+        {/* Fake Source Attribution */}
+        <Card className="bg-card border-border/60 shadow-sm">
+          <CardHeader className="pb-3 px-6"><div className="h-4 w-24 bg-muted rounded animate-pulse" /></CardHeader>
+          <CardContent className="px-6 pb-6 space-y-4">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="space-y-1.5">
+                <div className="flex justify-between"><div className="h-3 w-16 bg-muted rounded" /><div className="h-3 w-8 bg-muted rounded" /></div>
+                <div className="h-1.5 w-full bg-muted rounded-full" />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Fake Performance Breakdowns */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {[1, 2].map(j => (
+            <Card key={j} className="bg-card border border-border/60 shadow-sm h-48">
+              <CardHeader className="pb-3"><div className="h-4 w-32 bg-muted rounded animate-pulse" /></CardHeader>
+              <CardContent className="space-y-3">
+                {[1, 2, 3].map(k => (
+                  <div key={k} className="flex justify-between border-b border-border/40 pb-2">
+                    <div className="h-3 w-24 bg-muted rounded" />
+                    <div className="h-3 w-8 bg-muted rounded" />
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          ))}
         </div>
+      </div>
+    );
+
+    return (
+      <div className="relative group mt-8">
+        {/* Render Mock Content with Lighter Blur */}
+        <MockPreview />
 
         {/* Minimal Overlay */}
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6">
