@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useBalance } from "wagmi";
 import { parseEther } from "viem";
 import { Loader2, Check, ShieldCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -27,7 +27,8 @@ interface PremiumUpgradeModalProps {
 }
 
 export function PremiumUpgradeModal({ open, onOpenChange, onSuccess }: PremiumUpgradeModalProps) {
-    const { isConnected } = useAccount();
+    const { address, isConnected } = useAccount();
+    const { data: balance } = useBalance({ address });
     const [isOptimisticSuccess, setIsOptimisticSuccess] = useState(false);
 
     const { writeContractAsync, data: hash, isPending: isWritePending, error: writeError } = useWriteContract();
@@ -39,7 +40,12 @@ export function PremiumUpgradeModal({ open, onOpenChange, onSuccess }: PremiumUp
     // Handle initial write error
     useEffect(() => {
         if (writeError) {
-            toast.error("Transaction failed or rejected");
+            console.error("Write Error:", writeError);
+            if (writeError.message.includes("User rejected")) {
+                toast.error("Transaction rejected by user");
+            } else {
+                toast.error("Transaction failed. Check console for details.");
+            }
         }
     }, [writeError]);
 
@@ -63,16 +69,23 @@ export function PremiumUpgradeModal({ open, onOpenChange, onSuccess }: PremiumUp
             return;
         }
 
+        const price = parseEther("0.5");
+
+        if (balance && balance.value < price) {
+            toast.error("Insufficient Balance. You need at least 0.5 AVAX.");
+            return;
+        }
+
         try {
             await writeContractAsync({
                 address: PREMIUM_PAYMENT_ADDRESS as `0x${string}`,
                 abi: PAY_ABI,
                 functionName: "payPremium",
-                value: parseEther("0.5"),
+                value: price,
             });
         } catch (e) {
-            console.error(e);
-            // Toast handled by effect
+            console.error("Transaction Error:", e);
+            // Toast is handled by the useEffect watching writeError, or strictly here if it throws immediately before writeError state updates
         }
     };
 
