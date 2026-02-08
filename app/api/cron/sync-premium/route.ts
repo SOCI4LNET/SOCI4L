@@ -4,6 +4,8 @@ import { avalanche } from 'viem/chains'
 import { prisma } from '@/lib/prisma'
 import { PREMIUM_PAYMENT_ADDRESS } from '@/lib/contracts/PremiumPayment'
 
+export const dynamic = 'force-dynamic'
+
 // 1. Setup Viem Client
 const client = createPublicClient({
     chain: avalanche,
