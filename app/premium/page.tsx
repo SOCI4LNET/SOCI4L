@@ -21,6 +21,7 @@ import { formatDistanceToNow } from "date-fns"
 import SiteFooter from "@/components/app-shell/site-footer"
 import { HeaderActions } from "@/components/app-shell/header-actions"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { PremiumWallCta } from "@/components/premium/premium-wall-cta"
 
 // --- MOCK DATA ---
 const MOCK_SOURCES = {
@@ -410,49 +411,8 @@ export default function PremiumPage() {
                         </div>
                     </section>
 
-                    {/* FINAL CTA */}
-                    <section className="max-w-3xl mx-auto px-6 text-center mb-20">
-                        <div className="relative py-24 overflow-hidden">
-                            {/* Decorative background glow */}
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] -z-10" />
-
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                whileInView={{ opacity: 1, scale: 1 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.8 }}
-                                className="space-y-8 relative z-10"
-                            >
-                                <div className="space-y-4">
-                                    <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">
-                                        Ready to upgrade?
-                                    </h2>
-                                    <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                                        Join hundreds of creators who own their data and understand their audience.
-                                    </p>
-                                </div>
-
-                                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                                    <Button
-                                        onClick={handleUpgradeClick}
-                                        size="lg"
-                                        className="h-14 px-8 rounded-full text-lg font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95"
-                                    >
-                                        Get Premium Now
-                                        <ChevronRight className="w-5 h-5 ml-2" />
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="lg"
-                                        onClick={() => window.open('https://docs.soci4l.id', '_blank')}
-                                        className="h-14 px-8 rounded-full text-lg font-medium border-border/50 hover:bg-muted/50 transition-all hover:border-foreground/20"
-                                    >
-                                        Read Documentation
-                                    </Button>
-                                </div>
-                            </motion.div>
-                        </div>
-                    </section>
+                    {/* FINAL CTA with WALL BACKGROUND */}
+                    <PremiumWallCta onUpgrade={handleUpgradeClick} />
 
                     <SiteFooter />
 
