@@ -21,6 +21,7 @@ export interface ProfileData {
   secondaryRoles?: string[]
   statusMessage?: string | null
   socialLinks?: string | null
+  premiumExpiresAt?: Date | null
 }
 
 /**
@@ -56,6 +57,7 @@ export async function getProfileByAddress(address: string): Promise<ProfileData 
     secondaryRoles: profile.secondaryRoles,
     statusMessage: profile.statusMessage,
     socialLinks: profile.socialLinks,
+    premiumExpiresAt: profile.premiumExpiresAt,
   }
 }
 
@@ -155,5 +157,6 @@ export async function getProfileBySlug(slug: string): Promise<ProfileData | null
     secondaryRoles: profile.secondaryRoles,
     statusMessage: profile.statusMessage,
     socialLinks: profile.socialLinks,
+    premiumExpiresAt: profile.premiumExpiresAt,
   }
 }

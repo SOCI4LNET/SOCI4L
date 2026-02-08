@@ -109,6 +109,7 @@ export default function ProfilePage({ params }: PageProps) {
     isBanned?: boolean
     isVerified?: boolean
     socialLinks?: Array<{ id?: string; platform?: string; type?: string; url: string; label?: string; verified?: boolean; enabled?: boolean }> | null
+    premiumExpiresAt?: string | null
   } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -254,6 +255,7 @@ export default function ProfilePage({ params }: PageProps) {
               isBanned: data.profile.isBanned,
               isVerified: data.profile.isVerified,
               socialLinks: data.profile.socialLinks,
+              premiumExpiresAt: data.profile.premiumExpiresAt,
             })
           } else {
             // If status is COOLDOWN, profile might be null
@@ -818,6 +820,23 @@ export default function ProfilePage({ params }: PageProps) {
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p>Rank: {profile.role === 'ADMIN' ? 'Team Member' : 'Verified Builder'}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+
+                        {/* Premium Badge */}
+                        {!profile?.isBanned && profile?.premiumExpiresAt && new Date(profile.premiumExpiresAt) > new Date() && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge variant="default" className="text-[11px] px-2 py-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold border-0 shadow-sm flex items-center gap-1">
+                                  <Sparkles className="h-3 w-3 fill-white/20" />
+                                  Pro
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent side="bottom">
+                                <p>Premium Membership Active</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>

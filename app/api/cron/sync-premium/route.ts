@@ -15,7 +15,7 @@ const EVENT = parseAbiItem('event PremiumPurchased(address indexed user, uint256
 
 // 3. Helper: Resolve Start Block
 // If lastSyncedBlock is 0, start from contract deployment block (or recent safe block)
-const DEFAULT_START_BLOCK = 53000000n // Recent block to avoid deep query (Avalanche C-Chain)
+const DEFAULT_START_BLOCK = 77000000n // Recent block (~Feb 2026) to avoid deep query
 
 interface SyncResult {
     processed: number
