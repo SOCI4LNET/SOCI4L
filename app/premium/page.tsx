@@ -137,7 +137,7 @@ export default function PremiumPage() {
                 <header className="fixed top-0 w-full z-50 border-b border-border/40 bg-background/80 backdrop-blur-md">
                     <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
                         <div className="flex items-center gap-2 cursor-pointer group" onClick={() => router.push('/')}>
-                            <Soci4LLogo variant="icon" className="w-8 h-8 text-foreground invert-0 transition-transform group-hover:scale-110" />
+                            <Soci4LLogo variant="icon" className="w-8 h-8 transition-transform group-hover:scale-110" />
                             <span className="font-bold text-xl tracking-tight">SOCI4L</span>
                         </div>
                         <div className="flex items-center gap-4">
@@ -382,7 +382,7 @@ export default function PremiumPage() {
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                                                                     <div className="flex items-center gap-1.5 text-xs text-foreground">
-                                                                        <Badge variant="secondary" className="px-1.5 py-0 h-5 font-mono text-[10px] bg-zinc-800 text-zinc-300 border-zinc-700">
+                                                                        <Badge variant="secondary" className="px-1.5 py-0 h-5 font-mono text-[10px] bg-muted text-muted-foreground border-border">
                                                                             {act.visitor}
                                                                         </Badge>
                                                                         <span className="text-muted-foreground">{act.action}</span>
