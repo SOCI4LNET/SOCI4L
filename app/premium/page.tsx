@@ -9,17 +9,15 @@ import {
     ShieldCheck,
     TrendingUp,
     Zap,
-    Globe,
     MousePointerClick,
     Eye,
     ChevronRight,
     CheckCircle2,
-    Share2
+    Wallet // Added Wallet icon
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PremiumUpgradeModal } from "@/components/premium/premium-upgrade-modal"
 import { Soci4LLogo } from "@/components/logos/soci4l-logo"
 import { formatDistanceToNow } from "date-fns"
@@ -49,12 +47,12 @@ const MOCK_CATEGORIES = [
 ]
 
 const MOCK_ACTIVITY = [
-    { type: "profile_view", timestamp: new Date().toISOString(), label: "Profile View" },
-    { type: "link_click", timestamp: new Date(Date.now() - 1000 * 60 * 2).toISOString(), label: "Link Click", linkTitle: "My Portfolio Website" },
-    { type: "profile_view", timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(), label: "Profile View" },
-    { type: "link_click", timestamp: new Date(Date.now() - 1000 * 60 * 12).toISOString(), label: "Link Click", linkTitle: "Latest YouTube Video" },
-    { type: "profile_view", timestamp: new Date(Date.now() - 1000 * 60 * 18).toISOString(), label: "Profile View" },
-    { type: "link_click", timestamp: new Date(Date.now() - 1000 * 60 * 25).toISOString(), label: "Link Click", linkTitle: "Gumroad Store" },
+    { type: "profile_view", timestamp: new Date().toISOString(), label: "New Visit", visitor: "0x71C...9A2", location: "New York, US" },
+    { type: "link_click", timestamp: new Date(Date.now() - 1000 * 60 * 2).toISOString(), label: "Link Click", visitor: "0x3B2...1C4", linkTitle: "My Portfolio Website", location: "London, UK" },
+    { type: "profile_view", timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(), label: "New Visit", visitor: "0x9A1...2D3", location: "Berlin, DE" },
+    { type: "link_click", timestamp: new Date(Date.now() - 1000 * 60 * 12).toISOString(), label: "Link Click", visitor: "0x4F5...8E1", linkTitle: "Latest YouTube Video", location: "Tokyo, JP" },
+    { type: "profile_view", timestamp: new Date(Date.now() - 1000 * 60 * 18).toISOString(), label: "New Visit", visitor: "0x123...456", location: "Paris, FR" },
+    { type: "link_click", timestamp: new Date(Date.now() - 1000 * 60 * 25).toISOString(), label: "Link Click", visitor: "0x890...ABC", linkTitle: "Gumroad Store", location: "Toronto, CA" },
 ]
 
 export default function PremiumPage() {
@@ -66,7 +64,7 @@ export default function PremiumPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#0A0A0A] text-foreground font-sans selection:bg-brand-500/30">
+        <div className="min-h-screen bg-[#0A0A0A] text-foreground font-sans selection:bg-white/30">
 
             {/* HEADER / NAVIGATION */}
             <header className="fixed top-0 w-full z-50 border-b border-white/5 bg-[#0A0A0A]/80 backdrop-blur-md">
@@ -85,7 +83,7 @@ export default function PremiumPage() {
                         </Button>
                         <Button
                             onClick={handleUpgradeClick}
-                            className="bg-brand-500 hover:bg-brand-600 text-white font-medium rounded-full px-6 shadow-lg shadow-brand-500/20"
+                            className="bg-white hover:bg-zinc-200 text-black font-medium rounded-full px-6 shadow-lg shadow-white/5"
                         >
                             Upgrade
                         </Button>
@@ -95,33 +93,33 @@ export default function PremiumPage() {
 
             <main className="pt-32 pb-20">
                 {/* HERO SECTION */}
-                <section className="max-w-4xl mx-auto px-6 text-center mb-32">
+                <section className="max-w-5xl mx-auto px-6 text-center mb-32">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8 }}
                     >
-                        <Badge className="mb-6 bg-brand-500/10 text-brand-500 border-brand-500/20 px-4 py-1.5 rounded-full text-sm hover:bg-brand-500/20 transition-colors">
+                        <Badge variant="outline" className="mb-6 border-white/20 text-white px-4 py-1.5 rounded-full text-sm hover:bg-white/5 transition-colors">
                             <ShieldCheck className="w-3.5 h-3.5 mr-2" />
                             Official Premium Upgrade
                         </Badge>
                         <h1 className="text-5xl md:text-7xl font-semibold tracking-tight mb-8 text-white">
-                            Turn your data into <br /> <span className="text-brand-500">identity capital.</span>
+                            Turn your reputation into <br /> <span className="text-zinc-500">identity capital.</span>
                         </h1>
                         <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-                            Gain deep visibility into your audience with source breakdowns, referrer tracking, and real-time history. One-time payment, forever yours.
+                            Gain deep visibility into your audience with source breakdowns, referrer tracking, and real-time history.
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                             <Button
                                 onClick={handleUpgradeClick}
                                 size="lg"
-                                className="h-14 px-10 rounded-full text-lg font-semibold bg-white text-black hover:bg-gray-100 transition-all"
+                                className="h-14 px-10 rounded-full text-lg font-semibold bg-white text-black hover:bg-zinc-200 transition-all shadow-xl shadow-white/5"
                             >
                                 Unlock for 0.5 AVAX
                                 <ChevronRight className="w-5 h-5 ml-2" />
                             </Button>
-                            <p className="text-xs text-muted-foreground mt-4 sm:mt-0 sm:ml-4 font-mono">
-                                LIFETIME ACCESS • NO RECURRING FEES
+                            <p className="text-xs text-muted-foreground mt-4 sm:mt-0 sm:ml-4 font-mono uppercase tracking-wider">
+                                Lifetime Access
                             </p>
                         </div>
                     </motion.div>
@@ -136,13 +134,13 @@ export default function PremiumPage() {
                             viewport={{ once: true }}
                             transition={{ duration: 0.8 }}
                         >
-                            <div className="flex items-center gap-2 text-brand-500 mb-4">
+                            <div className="flex items-center gap-2 text-white mb-4">
                                 <TrendingUp className="w-5 h-5" />
-                                <span className="font-mono text-xs uppercase tracking-widest">Analytics</span>
+                                <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Analytics</span>
                             </div>
                             <h2 className="text-3xl font-semibold mb-4 text-white">Know exactly where your traffic comes from.</h2>
                             <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
-                                Stop guessing. See precise breakdowns of your traffic sources. The interface is identical to your dashboard, providing a seamless experience.
+                                Stop guessing. See precise breakdowns of your traffic sources.
                             </p>
                         </motion.div>
 
@@ -176,7 +174,7 @@ export default function PremiumPage() {
                                                         <span className="font-mono text-foreground/80">{percentage.toFixed(0)}%</span>
                                                     </div>
                                                     <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                                                        <div className="h-full bg-primary/60 rounded-full" style={{ width: `${percentage}%` }} />
+                                                        <div className="h-full bg-white rounded-full" style={{ width: `${percentage}%` }} />
                                                     </div>
                                                 </div>
                                             )
@@ -184,8 +182,8 @@ export default function PremiumPage() {
                                     </div>
                                 </CardContent>
                             </Card>
-                            {/* Glow effect behind */}
-                            <div className="absolute -inset-4 bg-brand-500/10 rounded-3xl blur-2xl z-0" />
+                            {/* Subtle Glow effect behind (White) */}
+                            <div className="absolute -inset-4 bg-white/5 rounded-3xl blur-2xl z-0" />
                         </motion.div>
                     </div>
                 </section>
@@ -228,8 +226,8 @@ export default function PremiumPage() {
                                     </CardContent>
                                 </Card>
                             </div>
-                            {/* Glow effect */}
-                            <div className="absolute -inset-4 bg-brand-500/10 rounded-3xl blur-2xl z-0" />
+                            {/* Subtle Glow effect (White) */}
+                            <div className="absolute -inset-4 bg-white/5 rounded-3xl blur-2xl z-0" />
                         </motion.div>
 
                         {/* Text Side */}
@@ -240,19 +238,19 @@ export default function PremiumPage() {
                             transition={{ duration: 0.8 }}
                             className="order-1 md:order-2"
                         >
-                            <div className="flex items-center gap-2 text-brand-500 mb-4">
+                            <div className="flex items-center gap-2 text-white mb-4">
                                 <BarChart2 className="w-5 h-5" />
-                                <span className="font-mono text-xs uppercase tracking-widest">Performance</span>
+                                <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Performance</span>
                             </div>
                             <h2 className="text-3xl font-semibold mb-4 text-white">Identify what resonates. Eliminate what doesn't.</h2>
                             <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
-                                Discover your highest-performing links and content categories. Understand user intent and restructure your profile to maximize engagement where it matters most.
+                                Discover your highest-performing links and content categories. Understand user intent and restructure your profile.
                             </p>
                         </motion.div>
                     </div>
                 </section>
 
-                {/* FEATURE 3: REAL-TIME ACTIVITY (1:1 with InsightsPanel) */}
+                {/* FEATURE 3: REAL-TIME ACTIVITY (Updated with Wallet IDs) */}
                 <section className="max-w-6xl mx-auto px-6 mb-32">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
                         <motion.div
@@ -261,13 +259,13 @@ export default function PremiumPage() {
                             viewport={{ once: true }}
                             transition={{ duration: 0.8 }}
                         >
-                            <div className="flex items-center gap-2 text-brand-500 mb-4">
+                            <div className="flex items-center gap-2 text-white mb-4">
                                 <Zap className="w-5 h-5" />
-                                <span className="font-mono text-xs uppercase tracking-widest">Real-time</span>
+                                <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Real-time</span>
                             </div>
-                            <h2 className="text-3xl font-semibold mb-4 text-white">Pulse of your audience. <br /> In real-time.</h2>
+                            <h2 className="text-3xl font-semibold mb-4 text-white">Track on-chain identities. <br /> In real-time.</h2>
                             <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
-                                Watch interactions as they happen. The Real-time Event Log gives you a live feed of who is viewing your profile and what they are clicking on, exactly when it happens.
+                                See exactly who is interacting with your profile. Premium insights reveal the wallet addresses and locations of your visitors.
                             </p>
                         </motion.div>
 
@@ -278,43 +276,50 @@ export default function PremiumPage() {
                             transition={{ duration: 0.8 }}
                             className="relative"
                         >
-                            {/* EXACT REPLICA OF ACTIVITY CARD */}
-                            <Card className="bg-card border border-border/60 shadow-sm relative z-10 h-[380px] overflow-hidden">
-                                <div className="flex items-center justify-between p-6 border-b border-border/40">
-                                    <div>
-                                        <h3 className="font-semibold leading-none tracking-tight">Recent Activity</h3>
-                                        <p className="text-sm text-muted-foreground">Real-time event log</p>
-                                    </div>
-                                </div>
+                            {/* ACTIVITY CARD WITH WALLET DETAILS */}
+                            <Card className="bg-card border border-border/60 shadow-sm relative z-10 h-[400px] overflow-hidden">
+                                <CardHeader className="pb-3 border-b border-white/5">
+                                    <CardTitle className="text-base flex items-center justify-between">
+                                        <span>Recent Activity</span>
+                                        <Badge variant="outline" className="text-[10px] font-mono opacity-50">Live Feed</Badge>
+                                    </CardTitle>
+                                </CardHeader>
                                 <CardContent className="pt-6">
                                     {MOCK_ACTIVITY.map((act, i) => (
-                                        <div key={i} className="flex items-center gap-3 mb-4 text-xs last:mb-0">
-                                            <div className={`w-2 h-2 rounded-full ${act.type === 'profile_view' ? 'bg-blue-500' : 'bg-green-500'}`} />
-                                            <div className="flex-1">
-                                                <div className="flex justify-between">
-                                                    <span className="font-medium capitalize flex items-center gap-1">
-                                                        {act.type === 'profile_view' ? <Eye className="w-3 h-3" /> : <MousePointerClick className="w-3 h-3" />}
-                                                        {act.type.replace('_', ' ')}
+                                        <div key={i} className="flex items-start gap-3 mb-5 last:mb-0">
+                                            <div className={`mt-1 w-2 h-2 rounded-full ${act.type === 'profile_view' ? 'bg-indigo-500' : 'bg-emerald-500'}`} />
+                                            <div className="flex-1 space-y-1">
+                                                <div className="flex justify-between items-center text-xs">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-mono text-foreground font-medium">{act.visitor}</span>
+                                                        <span className="text-muted-foreground/50">•</span>
+                                                        <span className="text-muted-foreground">{act.location}</span>
+                                                    </div>
+                                                    <span className="text-muted-foreground font-mono text-[10px]">
+                                                        {formatDistanceToNow(new Date(act.timestamp), { addSuffix: true })}
                                                     </span>
-                                                    <span className="text-muted-foreground">{formatDistanceToNow(new Date(act.timestamp), { addSuffix: true })}</span>
                                                 </div>
-                                                {act.linkTitle && <div className="text-muted-foreground mt-0.5 truncate max-w-[200px]">{act.linkTitle}</div>}
+                                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                                    {act.type === 'profile_view' ? <Eye className="w-3 h-3" /> : <MousePointerClick className="w-3 h-3" />}
+                                                    <span className="text-foreground/80">{act.label}</span>
+                                                    {act.linkTitle && <span className="text-muted-foreground/60">- {act.linkTitle}</span>}
+                                                </div>
                                             </div>
                                         </div>
                                     ))}
                                 </CardContent>
                                 {/* Fade out bottom to indicate scroll/flow */}
-                                <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-card via-card/80 to-transparent" />
+                                <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black via-black/90 to-transparent" />
                             </Card>
-                            {/* Glow effect */}
-                            <div className="absolute -inset-4 bg-brand-500/10 rounded-3xl blur-2xl z-0" />
+                            {/* Glow effect (White) */}
+                            <div className="absolute -inset-4 bg-white/5 rounded-3xl blur-2xl z-0" />
                         </motion.div>
                     </div>
                 </section>
 
                 {/* FINAL CTA */}
                 <section className="max-w-3xl mx-auto px-6 text-center mb-20">
-                    <Card className="bg-gradient-to-b from-brand-500/10 to-transparent border-brand-500/20 backdrop-blur-sm">
+                    <Card className="bg-gradient-to-b from-white/5 to-transparent border-white/10 backdrop-blur-sm">
                         <CardContent className="pt-12 pb-12">
                             <h2 className="text-3xl font-semibold mb-6 text-white">Ready to upgrade?</h2>
                             <p className="text-muted-foreground mb-8 text-lg">
@@ -323,7 +328,7 @@ export default function PremiumPage() {
                             <Button
                                 onClick={handleUpgradeClick}
                                 size="lg"
-                                className="bg-white text-black hover:bg-white/90 px-12 h-12 rounded-full font-semibold shadow-xl shadow-brand-500/10"
+                                className="bg-white text-black hover:bg-zinc-200 px-12 h-12 rounded-full font-semibold shadow-xl shadow-white/5"
                             >
                                 Get Premium Now
                             </Button>
@@ -334,15 +339,15 @@ export default function PremiumPage() {
                 <footer className="max-w-7xl mx-auto px-6 py-8 border-t border-white/5 text-center text-sm text-muted-foreground">
                     <p>&copy; {new Date().getFullYear()} SOCI4L. Built on Avalanche.</p>
                 </footer>
-            </main>
 
-            <PremiumUpgradeModal
-                open={showUpgradeModal}
-                onOpenChange={setShowUpgradeModal}
-                onSuccess={() => {
-                    router.push('/dashboard')
-                }}
-            />
+                <PremiumUpgradeModal
+                    open={showUpgradeModal}
+                    onOpenChange={setShowUpgradeModal}
+                    onSuccess={() => {
+                        router.push('/dashboard')
+                    }}
+                />
+            </main>
         </div>
     )
 }
