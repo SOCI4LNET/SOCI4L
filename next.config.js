@@ -37,6 +37,13 @@ const nextConfig = {
       'viem': require('path').resolve(__dirname, 'node_modules/viem'),
     }
 
+    // Enable WebAssembly support for libraries like secp256k1
+    config.experiments = {
+      ...config.experiments,
+      asyncWebAssembly: true,
+      layers: true,
+    }
+
     return config
   },
   async headers() {
