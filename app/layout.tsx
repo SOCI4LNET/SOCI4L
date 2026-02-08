@@ -13,7 +13,7 @@ const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfa
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://soci4l.com'),
+  metadataBase: new URL('https://soci4l.net'),
   title: {
     default: "SOCI4L - Web3 Profile & Link Hub",
     template: "%s | SOCI4L"
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://soci4l.com',
+    url: 'https://soci4l.net',
     siteName: 'SOCI4L',
     title: 'SOCI4L - Web3 Profile & Link Hub',
     description: 'Turn your wallet into a measurable, privacy-first public profile',

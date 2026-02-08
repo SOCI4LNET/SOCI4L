@@ -35,7 +35,7 @@ const EXAMPLE_PROFILE_ADDRESS = '0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1'
 const navigationItems = [
   { label: 'Overview', href: '/', exact: true },
   { label: 'Try Demo', href: '/demo' },
-  { label: 'Docs', href: 'https://docs.soci4l.com', external: true },
+  { label: 'Docs', href: 'https://docs.soci4l.net', external: true },
 ]
 
 /**

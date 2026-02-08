@@ -14,8 +14,8 @@ export function StructuredData({ type, data }: StructuredDataProps) {
                 '@context': 'https://schema.org',
                 '@type': 'Organization',
                 name: 'SOCI4L',
-                url: 'https://soci4l.com',
-                logo: 'https://soci4l.com/logos/icon.png',
+                url: 'https://soci4l.net',
+                logo: 'https://soci4l.net/logos/icon.png',
                 description: 'Web3 Profile & Link Hub - Turn your wallet into a measurable, privacy-first public profile',
                 sameAs: [
                     // Add social media links here if available
@@ -28,7 +28,7 @@ export function StructuredData({ type, data }: StructuredDataProps) {
                 '@context': 'https://schema.org',
                 '@type': 'Person',
                 name: data.displayName || 'SOCI4L User',
-                url: `https://soci4l.com/p/${data.slug}`,
+                url: `https://soci4l.net/p/${data.slug}`,
                 description: data.bio || '',
                 identifier: data.address,
                 ...(data.avatar && { image: data.avatar }),
@@ -50,7 +50,7 @@ export function StructuredData({ type, data }: StructuredDataProps) {
                     name: 'SOCI4L',
                     logo: {
                         '@type': 'ImageObject',
-                        url: 'https://soci4l.com/logos/icon.png',
+                        url: 'https://soci4l.net/logos/icon.png',
                     },
                 },
                 datePublished: data.publishedAt || new Date().toISOString(),

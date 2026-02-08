@@ -14,6 +14,6 @@ export default function robots(): MetadataRoute.Robots {
                 ],
             },
         ],
-        sitemap: 'https://soci4l.com/sitemap.xml',
+        sitemap: 'https://soci4l.net/sitemap.xml',
     }
 }

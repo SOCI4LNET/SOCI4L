@@ -27,7 +27,7 @@ const footerLinks = {
         { label: 'Dashboard', href: '/dashboard' },
     ] as FooterLink[],
     resources: [
-        { label: 'Docs', href: 'https://docs.soci4l.com', external: true },
+        { label: 'Docs', href: 'https://docs.soci4l.net', external: true },
         { label: 'Support', href: '#', external: false }, // Link removed as requested
         { label: 'Privacy', href: '/privacy', external: false },
         { label: 'Terms', href: '/terms', external: false },

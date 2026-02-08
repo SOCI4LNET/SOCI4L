@@ -221,7 +221,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
 
             if (res.ok) {
                 toast.success("Profile synced automatically!", { id: "seamless-sync-success" });
-                window.location.reload();
+                if (!showCelebration) window.location.reload();
             } else {
                 console.error("Seamless sync failed, falling back to manual");
                 // Don't toast error here, user will see the "Sync Required" manual button if it fails
@@ -235,7 +235,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
 
     // Auto-Repair Effect: If DB has slug but Chain has none, clear DB automatically
     useEffect(() => {
-        if (isStale && address && !isAutoRepairing && !repairFailed && !isWritePending && !isConfirming && !pendingAction) {
+        if (isStale && address && !isAutoRepairing && !repairFailed && !isWritePending && !isConfirming && !pendingAction && !showCelebration) {
             const autoRepair = async () => {
                 setIsAutoRepairing(true);
                 try {
@@ -251,7 +251,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                     if (res.ok) {
                         toast.success("Profile synced with blockchain", { id: "repair-success" });
                         // Smooth reload to update state
-                        window.location.reload();
+                        if (!showCelebration) window.location.reload();
                     } else {
                         console.error("Auto-repair API returned error:", res.status);
                         setRepairFailed(true);
@@ -331,7 +331,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
     useEffect(() => {
         if (!currentSlug && activeSlugHash && activeSlugHash !== ZERO_HASH && inputSlug && validateSlugFormat(inputSlug)) {
             const typedHash = hashSlug(inputSlug);
-            if (typedHash === activeSlugHash && !pendingAction && !isAutoSyncing) {
+            if (typedHash === activeSlugHash && !pendingAction && !isAutoSyncing && !showCelebration) {
                 console.log("[Slug Manager] Input matches on-chain hash. Triggering seamless auto-sync.");
                 handleAutoSync(inputSlug);
             }
@@ -340,7 +340,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
 
     // Proactive Sync Trigger: If we found a zombie slug, automatically prompt for sync
     useEffect(() => {
-        if (recoveredSlug && !currentSlug && !isWritePending && !isConfirming && !pendingAction && !isAutoSyncing && hasAttemptedRecovery) {
+        if (recoveredSlug && !currentSlug && !isWritePending && !isConfirming && !pendingAction && !isAutoSyncing && hasAttemptedRecovery && !showCelebration) {
             // Optional: Add a delay
             const timer = setTimeout(() => {
                 handleAutoSync(recoveredSlug);
@@ -432,7 +432,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
             <CardHeader>
                 <CardTitle className="text-base">Custom Profile Link</CardTitle>
                 <CardDescription>
-                    Claim a unique short URL for your profile (e.g. soci4l.com/p/{currentSlug || "your-name"}).
+                    Claim a unique short URL for your profile (e.g. soci4l.net/p/{currentSlug || "your-name"}).
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -552,7 +552,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                                 <Label>Desired Handle</Label>
                                 <div className="flex gap-2">
                                     <div className="relative flex-1">
-                                        <span className="absolute left-3 top-2.5 text-muted-foreground font-mono text-sm">soci4l.com/p/</span>
+                                        <span className="absolute left-3 top-2.5 text-muted-foreground font-mono text-sm">soci4l.net/p/</span>
                                         <Input
                                             value={inputSlug}
                                             onChange={(e) => setInputSlug(e.target.value)}

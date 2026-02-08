@@ -22,7 +22,7 @@ export default function PrivyProviderWrapper({
                 appearance: {
                     theme: 'light',
                     accentColor: '#676FFF',
-                    logo: 'https://soci4l.com/icon.svg',
+                    logo: 'https://soci4l.net/icon.svg',
                 },
                 embeddedWallets: {
                     createOnLogin: 'off',

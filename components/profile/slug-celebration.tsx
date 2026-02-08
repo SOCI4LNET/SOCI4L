@@ -39,8 +39,8 @@ export function SlugCelebration({ slug, onClose }: SlugCelebrationProps) {
         return () => clearInterval(interval);
     }, []);
 
-    const shareUrl = `https://soci4l.com/p/${slug}`;
-    const shareText = `Just claimed my custom profile handle on SOCI4L! Say hi at ${shareUrl} 🚀 @SOCI4LNET #SOCI4L`;
+    const shareUrl = `https://soci4l.net/p/${slug}`;
+    const shareText = `Just claimed my custom profile handle on SOCI4L! Say hi at ${shareUrl} 🚀 @SOCI4L_AVAX #SOCI4L #Avalanche #Avax`;
     const xShareLink = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
 
     const handleShare = () => {
@@ -83,7 +83,7 @@ export function SlugCelebration({ slug, onClose }: SlugCelebrationProps) {
                                         /p/{slug}
                                     </p>
                                     <div className="mt-2 text-xs text-muted-foreground">
-                                        soci4l.com/p/{slug}
+                                        soci4l.net/p/{slug}
                                     </div>
                                 </div>
                                 <p className="mt-6 text-sm text-muted-foreground leading-relaxed px-4">
