@@ -27,7 +27,7 @@ interface PremiumUpgradeModalProps {
 }
 
 export function PremiumUpgradeModal({ open, onOpenChange, onSuccess }: PremiumUpgradeModalProps) {
-    const { isConnected, chainId } = useAccount();
+    const { isConnected } = useAccount();
     const [isOptimisticSuccess, setIsOptimisticSuccess] = useState(false);
 
     const { writeContractAsync, data: hash, isPending: isWritePending, error: writeError } = useWriteContract();
@@ -78,58 +78,63 @@ export function PremiumUpgradeModal({ open, onOpenChange, onSuccess }: PremiumUp
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-yellow-500" />
+            <DialogContent className="sm:max-w-md bg-[#09090b] border border-border/20 text-white shadow-2xl">
+                <DialogHeader className="pt-2">
+                    <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
+                        <Sparkles className="w-5 h-5 text-yellow-400 fill-yellow-400 animate-pulse" />
                         Unlock Premium Insights
                     </DialogTitle>
-                    <DialogDescription>
+                    <DialogDescription className="text-zinc-400 text-sm">
                         Get advanced analytics and insights for 1 year.
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="py-6 space-y-6">
                     {/* Benefits List */}
-                    <ul className="space-y-3">
-                        <li className="flex items-start gap-2 text-sm">
+                    <ul className="space-y-4">
+                        <li className="flex items-start gap-3 text-sm">
                             <Check className="w-4 h-4 text-green-500 mt-0.5" />
-                            <span>Detailed Visitor Analytics (Country, Device, Referrer)</span>
+                            <span className="text-zinc-200">Detailed Visitor Analytics (Country, Device, Referrer)</span>
                         </li>
-                        <li className="flex items-start gap-2 text-sm">
+                        <li className="flex items-start gap-3 text-sm">
                             <Check className="w-4 h-4 text-green-500 mt-0.5" />
-                            <span>30-Day History Retention</span>
+                            <span className="text-zinc-200">30-Day History Retention</span>
                         </li>
-                        <li className="flex items-start gap-2 text-sm">
+                        <li className="flex items-start gap-3 text-sm">
                             <Check className="w-4 h-4 text-green-500 mt-0.5" />
-                            <span>Advanced Graph Breakdowns</span>
+                            <span className="text-zinc-200">Advanced Graph Breakdowns</span>
                         </li>
-                        <li className="flex items-start gap-2 text-sm">
+                        <li className="flex items-start gap-3 text-sm">
                             <ShieldCheck className="w-4 h-4 text-green-500 mt-0.5" />
-                            <span>Immutable License (On-Chain Proof)</span>
+                            <span className="text-zinc-200">Immutable License (On-Chain Proof)</span>
                         </li>
                     </ul>
 
                     {/* Price Tag */}
-                    <div className="bg-muted/50 p-4 rounded-lg flex items-center justify-between border">
-                        <div className="text-sm font-medium">1 Year Access</div>
-                        <div className="text-xl font-bold font-mono">0.5 AVAX</div>
+                    <div className="bg-zinc-900/50 p-5 rounded-xl flex items-center justify-between border border-white/5">
+                        <div className="text-sm font-medium text-white">1 Year Access</div>
+                        <div className="text-xl font-bold font-mono text-white tracking-tight">0.5 AVAX</div>
                     </div>
                 </div>
 
-                <DialogFooter className="flex-col sm:flex-row gap-2">
-                    <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isWritePending || isConfirming}>
+                <DialogFooter className="flex-col sm:flex-row gap-2 pb-2">
+                    <Button
+                        variant="outline"
+                        onClick={() => onOpenChange(false)}
+                        disabled={isWritePending || isConfirming}
+                        className="border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                    >
                         Cancel
                     </Button>
                     <Button
                         onClick={handleUpgrade}
                         disabled={isWritePending || isConfirming || isOptimisticSuccess}
-                        className="bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white border-0"
+                        className="bg-[#D9A51F] hover:bg-[#C29218] text-black font-semibold border-0 transition-all active:scale-95"
                     >
                         {isWritePending ? (
                             <>
                                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                Confirm in Wallet...
+                                Confirming...
                             </>
                         ) : isConfirming ? (
                             <>
