@@ -344,13 +344,7 @@ export async function GET(request: NextRequest) {
       linkId: event.linkId || undefined,
       visitorWallet: event.visitorWallet || undefined,
       referrer: event.referrer || undefined,
-      source:
-        event.source === 'profile' ||
-          event.source === 'qr' ||
-          event.source === 'copy' ||
-          event.source === 'extension'
-          ? (event.source as 'profile' | 'qr' | 'copy' | 'extension')
-          : ('unknown' as const),
+      source: event.source,
     }))
 
     return NextResponse.json({

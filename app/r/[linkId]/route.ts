@@ -1,19 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getSourceFromUrl } from '@/lib/analytics'
 
-/**
- * Parse analytics source from URL query parameters
- * Server-safe version (doesn't use localStorage)
- */
-function getSourceFromUrl(searchParams: URLSearchParams): 'profile' | 'qr' | 'copy' | 'unknown' {
-  const source = searchParams.get('source')
 
-  if (source === 'profile' || source === 'qr' || source === 'copy') {
-    return source
-  }
-
-  return 'unknown'
-}
 
 /**
  * Redirect endpoint for tracking link clicks

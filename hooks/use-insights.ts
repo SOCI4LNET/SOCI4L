@@ -31,7 +31,7 @@ export type AnalyticsData = {
         linkId?: string
         visitorWallet?: string
         referrer?: string
-        source?: 'profile' | 'qr' | 'copy' | 'extension' | 'unknown'
+        source?: string
     }>
     sourceBreakdown: Record<string, number>
     linkClickCounts: Record<string, number>

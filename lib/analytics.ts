@@ -11,7 +11,29 @@
  * Standardized analytics source attribution
  * Used consistently across all analytics events
  */
-export type AnalyticsSource = 'profile' | 'qr' | 'copy' | 'extension' | 'unknown'
+// Allow any string for source tracking (e.g. 'twitter', 'linkedin', 'newsletter')
+export type AnalyticsSource = string
+
+export function getSourceFromUrl(searchParams: URLSearchParams | string): AnalyticsSource {
+  const params = typeof searchParams === 'string'
+    ? new URLSearchParams(searchParams)
+    : searchParams
+
+  const source = (
+    params.get('source') ||
+    params.get('Source') ||
+    params.get('utm_source') ||
+    params.get('ref')
+  )?.toLowerCase()
+
+  if (source) {
+    // Basic sanitization: strict alphanumeric + hyphens/underscores, max 32 chars
+    const sanitized = source.replace(/[^a-z0-9-_]/g, '').substring(0, 32)
+    if (sanitized) return sanitized
+  }
+
+  return 'unknown'
+}
 
 // Legacy type aliases for backward compatibility
 export type ProfileViewSource = AnalyticsSource
@@ -261,26 +283,5 @@ export function getTotalLinkClicks(profileId: string, days: number = 7): number 
   return 0
 }
 
-/**
- * Parse analytics source from URL query parameters
- * Supports: ?source=profile|qr|copy
- * Falls back to 'unknown' if not present or invalid
- */
-export function getSourceFromUrl(searchParams: URLSearchParams | string): AnalyticsSource {
-  const params = typeof searchParams === 'string'
-    ? new URLSearchParams(searchParams)
-    : searchParams
 
-  const source = (
-    params.get('source') ||
-    params.get('Source') ||
-    params.get('utm_source')
-  )?.toLowerCase()
-
-  if (source === 'profile' || source === 'qr' || source === 'copy' || source === 'extension') {
-    return source as AnalyticsSource
-  }
-
-  return 'unknown'
-}
 
