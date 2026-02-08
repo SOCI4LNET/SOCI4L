@@ -5,15 +5,10 @@ import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import {
     BarChart2,
-    Lock,
     ShieldCheck,
     TrendingUp,
     Zap,
-    MousePointerClick,
-    Eye,
     ChevronRight,
-    CheckCircle2,
-    Wallet,
     Info
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -24,7 +19,7 @@ import { PremiumUpgradeModal } from "@/components/premium/premium-upgrade-modal"
 import { Soci4LLogo } from "@/components/logos/soci4l-logo"
 import { formatDistanceToNow } from "date-fns"
 
-// --- MOCK DATA MATCHING INSIGHTS PANEL STRUCTURE ---
+// --- MOCK DATA ---
 const MOCK_SOURCES = {
     "Twitter / X": 450,
     "Instagram": 300,
@@ -48,14 +43,85 @@ const MOCK_CATEGORIES = [
     { id: 4, name: "Contact", totalClicks: 600, share: 0.1 },
 ]
 
+// Updated Mock Activity to match "Real" Feed style
 const MOCK_ACTIVITY = [
-    { type: "profile_view", timestamp: new Date().toISOString(), label: "New Visit", linkTitle: null },
-    { type: "link_click", timestamp: new Date(Date.now() - 1000 * 60 * 2).toISOString(), label: "Link Click", linkTitle: "My Portfolio Website" },
-    { type: "profile_view", timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(), label: "New Visit", linkTitle: null },
-    { type: "link_click", timestamp: new Date(Date.now() - 1000 * 60 * 12).toISOString(), label: "Link Click", linkTitle: "Latest YouTube Video" },
-    { type: "profile_view", timestamp: new Date(Date.now() - 1000 * 60 * 18).toISOString(), label: "New Visit", linkTitle: null },
-    { type: "link_click", timestamp: new Date(Date.now() - 1000 * 60 * 25).toISOString(), label: "Link Click", linkTitle: "Gumroad Store" },
+    {
+        id: 1,
+        visitor: "0x8a80...1dC7",
+        fullVisitor: "0x8a809876543210abcdef1234567890abcdef1dC7",
+        action: "viewed your Profile",
+        timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString() // 5 mins ago
+    },
+    {
+        id: 2,
+        visitor: "0x71C7...99A2",
+        fullVisitor: "0x71C7656EC7ab88b098defB751B7401B5f6d899A2",
+        action: "viewed your Profile",
+        timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString()
+    },
+    {
+        id: 3,
+        visitor: "0x3B28...f12C",
+        fullVisitor: "0x3B289134567890abcdef1234567890abcdef12",
+        action: "viewed your Profile",
+        timestamp: new Date(Date.now() - 1000 * 60 * 32).toISOString()
+    },
+    {
+        id: 4,
+        visitor: "0x9A12...1234",
+        fullVisitor: "0x9A1234567890abcdef1234567890abcdef1234",
+        action: "viewed your Profile",
+        timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString()
+    },
+    {
+        id: 5,
+        visitor: "0x4F56...7890",
+        fullVisitor: "0x4F567890abcdef1234567890abcdef12345678",
+        action: "viewed your Profile",
+        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 1.5).toISOString() // 1.5 hours ago
+    },
+    {
+        id: 6,
+        visitor: "0x1234...5678",
+        fullVisitor: "0x1234567890abcdef1234567890abcdef123456",
+        action: "viewed your Profile",
+        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString()
+    },
+    {
+        id: 7,
+        visitor: "0x890a...bcde",
+        fullVisitor: "0x890abcdef1234567890abcdef1234567890abc",
+        action: "viewed your Profile",
+        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString()
+    },
 ]
+
+// Simple generative visual for avatar (mimics Blockies)
+const PixelAvatar = ({ address }: { address: string }) => {
+    // Generate a simple deterministic color/pattern from address char codes
+    const seed = address.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+    const hue = seed % 360
+    const saturation = 50 + (seed % 30) // 50-80%
+    const lightness = 40 + (seed % 20)  // 40-60%
+    const colorSearch = `hsl(${hue}, ${saturation}%, ${lightness}%)`
+    const colorBg = `hsl(${(hue + 180) % 360}, ${saturation}%, 20%)`
+
+    return (
+        <div
+            className="w-8 h-8 rounded-full overflow-hidden relative border border-white/10"
+            style={{ backgroundColor: colorBg }}
+        >
+            {/* Simple symmetrical pixel pattern simulation */}
+            <div className="absolute inset-1 grid grid-cols-2 grid-rows-2 gap-[1px] opacity-80">
+                <div style={{ backgroundColor: colorSearch }} />
+                <div style={{ backgroundColor: colorSearch, opacity: 0.5 }} />
+                <div style={{ backgroundColor: colorSearch, opacity: 0.5 }} />
+                <div style={{ backgroundColor: colorSearch }} />
+            </div>
+        </div>
+    )
+}
+
 
 // Animated List Item Component
 const AnimatedListItem = ({ children, index }: { children: React.ReactNode, index: number }) => (
@@ -139,7 +205,7 @@ export default function PremiumPage() {
                         </motion.div>
                     </section>
 
-                    {/* FEATURE 1: SOURCE ATTRIBUTION (1:1 with InsightsPanel) */}
+                    {/* FEATURE 1: SOURCE ATTRIBUTION */}
                     <section className="max-w-6xl mx-auto px-6 mb-32">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
                             <motion.div
@@ -164,7 +230,6 @@ export default function PremiumPage() {
                                 viewport={{ once: true }}
                                 transition={{ duration: 0.5 }}
                             >
-                                {/* EXACT REPLICA OF SOURCE ATTRIBUTION CARD */}
                                 <Card className="bg-card border-border/60 shadow-none relative z-10">
                                     <CardHeader className="pb-3 px-6">
                                         <div className="flex items-center justify-between">
@@ -224,7 +289,7 @@ export default function PremiumPage() {
                         </div>
                     </section>
 
-                    {/* FEATURE 2: PERFORMANCE BREAKDOWNS (1:1 with InsightsPanel) */}
+                    {/* FEATURE 2: PERFORMANCE BREAKDOWNS */}
                     <section className="max-w-6xl mx-auto px-6 mb-32">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
                             {/* Visual Side (Left on Desktop) */}
@@ -288,7 +353,7 @@ export default function PremiumPage() {
                         </div>
                     </section>
 
-                    {/* FEATURE 3: REAL-TIME ACTIVITY (1:1 with InsightsPanel) */}
+                    {/* FEATURE 3: REAL-TIME ACTIVITY (Timeline Style Reconstruction) */}
                     <section className="max-w-6xl mx-auto px-6 mb-32">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
                             <motion.div
@@ -314,30 +379,43 @@ export default function PremiumPage() {
                                 transition={{ duration: 0.5 }}
                                 className="relative"
                             >
-                                {/* EXACT REPLICA FROM INSIGHTS PANEL */}
+                                {/* ACTIVITY FEED CARD (TIMELINE STYLE) */}
                                 <Card className="bg-card border border-border/60 shadow-none relative z-10 h-[380px] overflow-hidden">
-                                    <CardHeader className="pb-3 border-b border-white/5">
-                                        <CardTitle className="text-base">Recent Activity</CardTitle>
-                                        <CardDescription className="text-xs">Real-time event log</CardDescription>
+                                    <CardHeader className="pb-3 border-b border-border/40">
+                                        <CardTitle className="text-base text-white">Recent Activity</CardTitle>
+                                        <CardDescription className="text-xs">Latest events timeline (verified real-time activity)</CardDescription>
                                     </CardHeader>
-                                    <CardContent className="pt-6">
-                                        {MOCK_ACTIVITY.map((act, i) => (
-                                            <AnimatedListItem key={i} index={i}>
-                                                <div className="flex items-center gap-3 mb-4 text-xs last:mb-0">
-                                                    <div className={`w-2 h-2 rounded-full ${act.type === 'profile_view' ? 'bg-blue-500' : 'bg-green-500'}`} />
-                                                    <div className="flex-1">
-                                                        <div className="flex justify-between">
-                                                            <span className="font-medium capitalize flex items-center gap-1">
-                                                                {act.type === 'profile_view' ? <Eye className="w-3 h-3" /> : <MousePointerClick className="w-3 h-3" />}
-                                                                {act.type.replace('_', ' ')}
-                                                            </span>
-                                                            <span className="text-muted-foreground">{formatDistanceToNow(new Date(act.timestamp), { addSuffix: true })}</span>
+                                    <CardContent className="pt-6 relative">
+                                        {/* Timeline Vertical Line */}
+                                        <div className="absolute left-[38px] top-6 bottom-0 w-[1px] bg-border/40 h-full" />
+
+                                        <div className="space-y-6">
+                                            {MOCK_ACTIVITY.map((act, i) => (
+                                                <AnimatedListItem key={act.id} index={i}>
+                                                    <div className="flex items-start gap-3 relative">
+                                                        {/* Status Indicator Dot (on the timeline) */}
+                                                        <div className="absolute left-[-5px] top-[14px] w-2.5 h-2.5 rounded-full bg-border border-2 border-card z-10" />
+
+                                                        <div className="flex items-start gap-3 w-full pl-2">
+                                                            <PixelAvatar address={act.fullVisitor} />
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                                                    <div className="flex items-center gap-1.5 text-xs text-white">
+                                                                        <Badge variant="secondary" className="px-1.5 py-0 h-5 font-mono text-[10px] bg-zinc-800 text-zinc-300 border-zinc-700">
+                                                                            {act.visitor}
+                                                                        </Badge>
+                                                                        <span className="text-muted-foreground">{act.action}</span>
+                                                                    </div>
+                                                                    <span className="text-[10px] text-muted-foreground font-mono">
+                                                                        {formatDistanceToNow(new Date(act.timestamp), { addSuffix: true })}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                        {act.linkTitle && <div className="text-muted-foreground mt-0.5 truncate max-w-[200px]">{act.linkTitle}</div>}
                                                     </div>
-                                                </div>
-                                            </AnimatedListItem>
-                                        ))}
+                                                </AnimatedListItem>
+                                            ))}
+                                        </div>
                                     </CardContent>
                                     {/* Fade out bottom to indicate scroll/flow */}
                                     <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-card via-card/80 to-transparent pointer-events-none" />
