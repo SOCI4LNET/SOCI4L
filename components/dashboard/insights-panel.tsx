@@ -239,25 +239,8 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
           </Card>
         </div>
 
-        {/* Geographic & Device Breakdown (Added to match Modal Features) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <Card className="bg-card border border-border/60 shadow-sm h-48">
-            <CardHeader className="pb-3"><div className="h-4 w-32 bg-foreground/10 rounded" /></CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between border-b border-border/40 pb-2 text-xs">
-                <span className="text-foreground/70">United States</span>
-                <span className="text-foreground/70">32%</span>
-              </div>
-              <div className="flex justify-between border-b border-border/40 pb-2 text-xs">
-                <span className="text-foreground/70">Turkey</span>
-                <span className="text-foreground/70">18%</span>
-              </div>
-              <div className="flex justify-between border-b border-border/40 pb-2 text-xs">
-                <span className="text-foreground/70">Germany</span>
-                <span className="text-foreground/70">12%</span>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Device Breakdown (Mocking Premium Features) */}
+        <div className="grid grid-cols-1 gap-4">
           <Card className="bg-card border border-border/60 shadow-sm h-48">
             <CardHeader className="pb-3"><div className="h-4 w-32 bg-foreground/10 rounded" /></CardHeader>
             <CardContent className="space-y-3">

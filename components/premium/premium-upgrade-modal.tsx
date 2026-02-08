@@ -107,7 +107,7 @@ export function PremiumUpgradeModal({ open, onOpenChange, onSuccess }: PremiumUp
                     <ul className="space-y-4">
                         <li className="flex items-start gap-3 text-sm">
                             <Check className="w-4 h-4 text-green-500 mt-0.5" />
-                            <span className="text-foreground/90">Detailed Visitor Analytics (Country, Device, Referrer)</span>
+                            <span className="text-foreground/90">Detailed Visitor Analytics (Device, Referrer)</span>
                         </li>
                         <li className="flex items-start gap-3 text-sm">
                             <Check className="w-4 h-4 text-green-500 mt-0.5" />
