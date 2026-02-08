@@ -99,22 +99,42 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
     if (!hasAccess && address) {
       const lastSync = localStorage.getItem(`last_premium_sync_${address}`);
       const now = Date.now();
-      const COOLDOWN = 10 * 60 * 1000; // 10 minutes
+      const COOLDOWN = 1 * 60 * 1000; // 1 minute (more aggressive for better UX)
 
       if (!lastSync || now - Number(lastSync) > COOLDOWN) {
-        console.log('[InsightsPanel] Triggering background premium sync...');
-        // Fire and forget
-        fetch('/api/cron/sync-premium')
+        console.log('[InsightsPanel] Triggering background premium sync (force)...');
+        // Fire and forget, but force=true to ensure deep scan if needed
+        fetch('/api/cron/sync-premium?force=true')
           .then(res => res.json())
-          .then(data => console.log('[InsightsPanel] Sync result:', data))
+          .then(data => {
+            console.log('[InsightsPanel] Sync result:', data)
+            if (data.updatedProfiles > 0) {
+              toast.success("Premium status synced!")
+              router.refresh()
+            }
+          })
           .catch(e => console.error('[InsightsPanel] Background sync failed', e))
           .finally(() => {
             localStorage.setItem(`last_premium_sync_${address}`, now.toString());
           });
       }
     }
-  }, [hasAccess, address]);
+  }, [hasAccess, address, router]);
 
+
+  // When upgrade succeeds, we optimistically unlock
+  // But also trigger a real sync
+  const handleUpgradeSuccess = () => {
+    setOptimisticPremium(true);
+    toast.success("Welcome to Premium! Syncing blockchain...");
+    // Trigger sync immediately
+    fetch('/api/cron/sync-premium?force=true')
+      .then(() => {
+        setTimeout(() => {
+          router.refresh()
+        }, 2000)
+      })
+  }
 
   const analytics: GlobalAnalytics = useMemo(() => {
     if (!analyticsData) {
@@ -537,11 +557,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
         <PremiumUpgradeModal
           open={showUpgradeModal}
           onOpenChange={setShowUpgradeModal}
-          onSuccess={() => {
-            setOptimisticPremium(true);
-            // Trigger a sync immediately in background too
-            fetch('/api/cron/sync-premium');
-          }}
+          onSuccess={handleUpgradeSuccess}
         />
       </div>
     </PageShell>
