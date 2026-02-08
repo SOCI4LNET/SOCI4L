@@ -255,7 +255,7 @@ export async function GET(request: NextRequest) {
       const cat = stat.categoryId ? categoryMap.get(stat.categoryId) : null
       return {
         id: stat.categoryId || 'unknown',
-        name: cat?.name || (stat.categoryId === 'general' ? 'General' : 'Unknown'),
+        name: cat?.name || (stat.categoryId === 'general' ? 'General' : 'Uncategorized'),
         clicks: stat._count._all,
         share: totalLinkClicks > 0 ? stat._count._all / totalLinkClicks : 0,
       }
@@ -281,7 +281,16 @@ export async function GET(request: NextRequest) {
 
     const sourceBreakdown: Record<string, number> = {}
     sourceStats.forEach(stat => {
-      sourceBreakdown[stat.source] = stat._count._all
+      let sourceName = stat.source
+
+      if (sourceName === 'unknown') {
+        sourceName = 'Direct / Other'
+      } else {
+        // Capitalize first letter
+        sourceName = sourceName.charAt(0).toUpperCase() + sourceName.slice(1)
+      }
+
+      sourceBreakdown[sourceName] = (sourceBreakdown[sourceName] || 0) + stat._count._all
     })
 
     // Top external referrers

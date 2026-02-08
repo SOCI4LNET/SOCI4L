@@ -139,7 +139,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
       maxCategoryClicks: Math.max(...analyticsData.topCategories.map(c => c.clicks), 0),
       recentActivity: analyticsData.recentActivity.map(a => ({
         ...a,
-        source: a.source as AnalyticsSource || 'unknown'
+        source: (a.source === 'unknown' ? 'Direct' : a.source) as AnalyticsSource || 'Direct'
       })),
       categoryRows: analyticsData.topCategories.map(c => ({
         id: c.id,
