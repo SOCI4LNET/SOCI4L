@@ -334,14 +334,15 @@ export default function PremiumPage() {
                 <footer className="max-w-7xl mx-auto px-6 py-8 border-t border-white/5 text-center text-sm text-muted-foreground">
                     <p>&copy; {new Date().getFullYear()} SOCI4L. Built on Avalanche.</p>
                 </footer>
+            </main>
 
-                <PremiumUpgradeModal
-                    open={showUpgradeModal}
-                    onOpenChange={setShowUpgradeModal}
-                    onSuccess={() => {
-                        router.push('/dashboard')
-                    }}
-                />
+            <PremiumUpgradeModal
+                open={showUpgradeModal}
+                onOpenChange={setShowUpgradeModal}
+                onSuccess={() => {
+                    router.push('/dashboard')
+                }}
+            />
         </div>
     )
 }
