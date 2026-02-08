@@ -480,44 +480,42 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                     )}
 
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="text-sm text-foreground/90 truncate flex items-center gap-1.5">
-                          <div className="flex items-center gap-1.5 group/address">
-                            <span className="font-semibold text-foreground">
-                              {act.visitorWallet ? formatAddress(act.visitorWallet) : 'Anonymous'}
-                            </span>
-                            {act.visitorWallet && (
-                              <div className="flex items-center opacity-0 group-hover/address:opacity-100 transition-opacity gap-0.5">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-5 w-5 text-muted-foreground hover:text-foreground"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigator.clipboard.writeText(act.visitorWallet!);
-                                    toast.success('Address copied');
-                                  }}
-                                >
-                                  <Copy className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-5 w-5 text-muted-foreground hover:text-foreground"
-                                  asChild
-                                >
-                                  <a href={`/p/${act.visitorWallet}`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-                                    <ExternalLink className="h-3 w-3" />
-                                  </a>
-                                </Button>
+                      <div className="flex flex-col gap-1">
+                        <div className="text-sm text-foreground/90 flex items-center gap-2 flex-wrap">
+                          {act.visitorWallet ? (
+                            <div className="group/address relative flex items-center">
+                              <div
+                                className="flex items-center gap-2 px-2 py-0.5 rounded-md bg-muted/50 border border-border/50 hover:bg-muted transition-colors cursor-pointer group-hover/address:border-foreground/20"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigator.clipboard.writeText(act.visitorWallet!);
+                                  toast.success('Address copied');
+                                }}
+                              >
+                                <span className="font-mono text-xs text-foreground/80 font-medium">
+                                  {formatAddress(act.visitorWallet)}
+                                </span>
+                                <Copy className="h-3 w-3 text-muted-foreground group-hover/address:text-foreground transition-colors" />
                               </div>
-                            )}
-                          </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 ml-1 text-muted-foreground hover:text-foreground opacity-0 group-hover/address:opacity-100 transition-opacity absolute -right-7"
+                                asChild
+                              >
+                                <a href={`/p/${act.visitorWallet}`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                                  <ExternalLink className="h-3 w-3" />
+                                </a>
+                              </Button>
+                            </div>
+                          ) : (
+                            <span className="font-semibold text-foreground">Anonymous</span>
+                          )}
                           <span className="text-muted-foreground">
                             {act.type === 'profile_view' ? 'viewed your Profile' : `clicked on ${act.linkTitle || 'a link'}`}
                           </span>
                         </div>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
+                        <span className="text-[10px] text-muted-foreground">
                           {formatDistanceToNow(new Date(act.timestamp), { addSuffix: true })}
                         </span>
                       </div>
