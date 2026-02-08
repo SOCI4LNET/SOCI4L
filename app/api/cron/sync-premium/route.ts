@@ -57,92 +57,92 @@ export async function GET(request: NextRequest) {
         }
 
         // Safety: Limit range to avoid RPC timeout (Public RPC limit is often 2048)
-        // If gap is huge, we sync in chunks.
         const MAX_RANGE = BigInt(2000)
-        let toBlock = currentBlock
-        if (toBlock - fromBlock > MAX_RANGE) {
-            toBlock = fromBlock + MAX_RANGE
-        }
+        const MAX_ITERATIONS = 50 // Max chunks per run to avoid Vercel timeout (50 * 2000 = 100k blocks)
 
-        if (fromBlock > toBlock) {
-            return NextResponse.json({ message: 'Already synced', block: currentBlock.toString() })
-        }
+        let iteration = 0
+        let totalLogs = 0
+        let totalProcessed = 0
 
-        console.log(`[Sync Premium] Syncing from ${fromBlock} to ${toBlock}`)
+        while (fromBlock < currentBlock && iteration < MAX_ITERATIONS) {
+            let toBlock = currentBlock
+            if (toBlock - fromBlock > MAX_RANGE) {
+                toBlock = fromBlock + MAX_RANGE
+            }
 
-        // --- 2. Fetch Logs ---
-        const logs = await client.getLogs({
-            address: PREMIUM_PAYMENT_ADDRESS as `0x${string}`,
-            event: EVENT,
-            fromBlock,
-            toBlock
-        })
+            console.log(`[Sync Premium] Scanning ${fromBlock} to ${toBlock} (Iteration ${iteration + 1}/${MAX_ITERATIONS})`)
 
-        console.log(`[Sync Premium] Found ${logs.length} events`)
-
-        // --- 3. Process Logs (Idempotent) ---
-        let processed = 0
-
-        for (const log of logs) {
-            const { args, transactionHash, logIndex } = log
-            if (!args.user || !args.expiresAt) continue
-
-            const userAddress = args.user.toLowerCase()
-            const newExpiresAt = new Date(Number(args.expiresAt) * 1000)
-
-            // Database Update: Extend expiration (Max logic)
-            // Database Update: Upsert Profile
-            // If profile exists, update expiry (max logic).
-            // If not, create new UNCLAIMED profile with expiry.
-
-            const existingProfile = await prisma.profile.findUnique({
-                where: { address: userAddress }
+            const logs = await client.getLogs({
+                address: PREMIUM_PAYMENT_ADDRESS as `0x${string}`,
+                event: EVENT,
+                fromBlock,
+                toBlock
             })
 
-            if (existingProfile) {
-                // Determine new expiry: max(current, new)
-                let finalExpiresAt = newExpiresAt
-                if (existingProfile.premiumExpiresAt && existingProfile.premiumExpiresAt > newExpiresAt) {
-                    finalExpiresAt = existingProfile.premiumExpiresAt
-                }
+            totalLogs += logs.length
 
-                await prisma.profile.update({
-                    where: { address: userAddress },
-                    data: {
-                        premiumExpiresAt: finalExpiresAt,
-                        // Ensure status doesn't change implicitly
-                    }
+            for (const log of logs) {
+                const { args } = log
+                if (!args.user || !args.expiresAt) continue
+
+                const userAddress = args.user.toLowerCase()
+                const newExpiresAt = new Date(Number(args.expiresAt) * 1000)
+
+                // Database Update: Upsert Profile
+                const existingProfile = await prisma.profile.findUnique({
+                    where: { address: userAddress }
                 })
-                processed++
-            } else {
-                // Create new UNCLAIMED profile
-                console.log(`[Sync Premium] Creating new profile for ${userAddress}`)
-                await prisma.profile.create({
-                    data: {
-                        address: userAddress,
-                        status: 'UNCLAIMED',
-                        premiumExpiresAt: newExpiresAt,
-                        // Basic defaults
-                        isPublic: false,
-                        displayName: userAddress.slice(0, 6), // Placeholder
+
+                if (existingProfile) {
+                    let finalExpiresAt = newExpiresAt
+                    if (existingProfile.premiumExpiresAt && existingProfile.premiumExpiresAt > newExpiresAt) {
+                        finalExpiresAt = existingProfile.premiumExpiresAt
                     }
-                })
-                processed++
+
+                    await prisma.profile.update({
+                        where: { address: userAddress },
+                        data: { premiumExpiresAt: finalExpiresAt }
+                    })
+                    totalProcessed++
+                } else {
+                    console.log(`[Sync Premium] Creating new profile for ${userAddress}`)
+                    await prisma.profile.create({
+                        data: {
+                            address: userAddress,
+                            status: 'UNCLAIMED',
+                            premiumExpiresAt: newExpiresAt,
+                            isPublic: false,
+                            displayName: userAddress.slice(0, 6)
+                        }
+                    })
+                    totalProcessed++
+                }
             }
+
+            // Update Indexer State after each chunk to save progress?
+            // Safer to do it at the end to avoid write spam, but if we timeout we lose progress.
+            // Let's rely on final update for now.
+
+            // Advance pointers
+            const lastProcessedBlock = toBlock
+            fromBlock = toBlock + BigInt(1)
+            iteration++
         }
 
         // --- 4. Update State ---
+        // We update to the LAST block we successfully scanned (fromBlock - 1)
         await prisma.indexerState.update({
             where: { key: INDEXER_KEY },
-            data: { lastSyncedBlock: toBlock }
+            data: { lastSyncedBlock: fromBlock - BigInt(1) }
         })
 
         return NextResponse.json({
             success: true,
-            fromBlock: fromBlock.toString(),
-            toBlock: toBlock.toString(),
-            processedLogs: logs.length,
-            updatedProfiles: processed
+            latestSyncedBlock: (fromBlock - BigInt(1)).toString(),
+            currentBlock: currentBlock.toString(),
+            processedLogs: totalLogs,
+            updatedProfiles: totalProcessed,
+            iterations: iteration
         })
 
     } catch (error: any) {
