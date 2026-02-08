@@ -12,6 +12,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { formatAddress } from '@/lib/utils'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useInsights } from '@/hooks/use-insights'
 import { useLinks } from '@/hooks/use-links'
 import { useProfile } from '@/hooks/use-profile'
@@ -404,11 +406,27 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                 {/* Top Links */}
                 <Card className="bg-card border border-border/60 shadow-sm">
                   <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Top Links</CardTitle></CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-3">
                     {analytics.topLinks.slice(0, 5).map((link, i) => (
-                      <div key={link.id} className="flex justify-between py-2 border-b border-border/40 last:border-0 text-sm">
-                        <span className="truncate max-w-[200px]">{link.title}</span>
-                        <span className="font-mono">{link.clicks}</span>
+                      <div key={link.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors group">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex-shrink-0 w-6 h-6 rounded-full bg-background border border-border flex items-center justify-center text-[10px] font-bold text-muted-foreground">
+                            {i + 1}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium truncate">{link.title}</span>
+                              {link.isDeleted && <Badge variant="destructive" className="text-[9px] px-1 py-0 h-4">DELETED</Badge>}
+                            </div>
+                            <div className="text-xs text-muted-foreground truncate max-w-[200px]">{link.url}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 pl-2">
+                          <div className="text-xs font-mono font-medium">{link.clicks} clicks</div>
+                          <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2 opacity-0 group-hover:opacity-100 transition-opacity" asChild>
+                            <a href={link.url} target="_blank" rel="noopener noreferrer">View</a>
+                          </Button>
+                        </div>
                       </div>
                     ))}
                     {!analytics.topLinks.length && <div className="text-center text-xs text-muted-foreground py-4">No activity</div>}
@@ -417,11 +435,25 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                 {/* Top Categories */}
                 <Card className="bg-card border border-border/60 shadow-sm">
                   <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Top Categories</CardTitle></CardHeader>
-                  <CardContent>
-                    {analytics.categoryRows.map((cat) => (
-                      <div key={cat.id} className="flex justify-between py-2 border-b border-border/40 last:border-0 text-sm">
-                        <span>{cat.name}</span>
-                        <span className="font-mono">{cat.totalClicks}</span>
+                  <CardContent className="space-y-5">
+                    {analytics.categoryRows.map((cat, i) => (
+                      <div key={cat.id} className="space-y-2">
+                        <div className="flex justify-between items-end text-sm">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{cat.name}</span>
+                            {i === 0 && <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4 bg-primary/10 text-primary border-primary/20">TOP</Badge>}
+                          </div>
+                          <div className="flex items-center gap-3 text-xs">
+                            <span className="font-mono font-medium">{cat.totalClicks}</span>
+                            <span className="text-muted-foreground w-8 text-right">{cat.percentageShare.toFixed(0)}%</span>
+                          </div>
+                        </div>
+                        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-foreground rounded-full transition-all duration-500 ease-out"
+                            style={{ width: `${cat.percentageShare}%` }}
+                          />
+                        </div>
                       </div>
                     ))}
                     {!analytics.categoryRows.length && <div className="text-center text-xs text-muted-foreground py-4">No activity</div>}
@@ -432,27 +464,46 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
 
             {/* Activity Timeline */}
             <section className="space-y-4">
-              <SectionHeader title="Recent Activity" description="Real-time event log" />
-              <Card className="bg-card border border-border/60 shadow-sm">
-                <CardContent className="pt-6">
-                  {analytics.recentActivity.slice(0, 10).map((act, i) => (
-                    <div key={i} className="flex items-center gap-3 mb-4 text-xs last:mb-0">
-                      <div className={`w-2 h-2 rounded-full ${act.type === 'profile_view' ? 'bg-blue-500' : 'bg-green-500'}`} />
-                      <div className="flex-1">
-                        <div className="flex justify-between">
-                          <span className="font-medium capitalize flex items-center gap-1">
-                            {act.type === 'profile_view' ? <Eye className="w-3 h-3" /> : <MousePointerClick className="w-3 h-3" />}
-                            {act.type.replace('_', ' ')}
+              <SectionHeader title="Recent Activity" description="Latest events timeline (verified real-time activity)" />
+              <div className="space-y-2">
+                {analytics.recentActivity.slice(0, 10).map((act, i) => (
+                  <div key={i} className="flex items-center gap-4 p-4 bg-muted/10 rounded-lg border border-border/40 hover:bg-muted/20 transition-colors">
+                    {act.visitorWallet ? (
+                      <Avatar className="h-9 w-9 border border-border/50">
+                        <AvatarImage src={`https://effigy.im/a/${act.visitorWallet}.svg`} />
+                        <AvatarFallback><User className="h-4 w-4 text-muted-foreground" /></AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center border border-border/50">
+                        {act.type === 'profile_view' ? <User className="h-4 w-4 text-muted-foreground" /> : <MousePointerClick className="h-4 w-4 text-muted-foreground" />}
+                      </div>
+                    )}
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-4">
+                        <p className="text-sm text-foreground/90 truncate">
+                          <span className="font-mono font-medium text-foreground">
+                            {act.visitorWallet ? formatAddress(act.visitorWallet) : 'Anonymous'}
                           </span>
-                          <span className="text-muted-foreground">{formatDistanceToNow(new Date(act.timestamp), { addSuffix: true })}</span>
-                        </div>
-                        {act.linkTitle && <div className="text-muted-foreground mt-0.5 truncate max-w-[200px]">{act.linkTitle}</div>}
+                          <span className="text-muted-foreground ml-1.5">
+                            {act.type === 'profile_view' ? 'viewed your Profile' : `clicked on ${act.linkTitle || 'a link'}`}
+                          </span>
+                        </p>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
+                          {formatDistanceToNow(new Date(act.timestamp), { addSuffix: true })}
+                        </span>
                       </div>
                     </div>
-                  ))}
-                  {!analytics.recentActivity.length && <div className="text-center text-xs text-muted-foreground py-4">No activity yet</div>}
-                </CardContent>
-              </Card>
+                  </div>
+                ))}
+                {!analytics.recentActivity.length && (
+                  <Card className="bg-card border-border/60 shadow-sm">
+                    <CardContent className="py-8 text-center text-sm text-muted-foreground">
+                      No activity recorded yet
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
             </section>
           </div>
         </PremiumContent>
