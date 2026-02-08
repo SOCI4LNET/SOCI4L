@@ -47,18 +47,28 @@ export async function GET(request: NextRequest) {
 
         const currentBlock = await client.getBlockNumber()
 
-        // Force Sync: Ignore DB state
+        // Force Sync: Prioritize RECENT blocks (last 24-48h) to ensure immediate UX
+        // during purchases, even if the main indexer is lagging behind.
         const force = request.nextUrl.searchParams.get('force') === 'true'
         let fromBlock = state.lastSyncedBlock + BigInt(1)
 
         if (force) {
-            fromBlock = DEFAULT_START_BLOCK
-            console.log('[Sync Premium] Force sync enabled, scanning from default start block')
+            // Scan last 30,000 blocks (~16 hours) to catch any recent payments immediately.
+            // This ensures "Just bought but not appearing" fixes in 2-3 seconds.
+            const RECENT_WINDOW = BigInt(30000)
+            const recentStart = currentBlock - RECENT_WINDOW
+            fromBlock = recentStart < DEFAULT_START_BLOCK ? DEFAULT_START_BLOCK : recentStart
+            console.log(`[Sync Premium] Force sync: scanning RECENT window from ${fromBlock}`)
         }
 
-        // Safety: Limit range to avoid RPC timeout (Public RPC limit is often 2048)
+        // Safety: Limit range to avoid RPC timeout
         const MAX_RANGE = BigInt(2000)
-        const MAX_ITERATIONS = 50 // Max chunks per run to avoid Vercel timeout (50 * 2000 = 100k blocks)
+        // If it's a cron run (not force), stay small to avoid timeout.
+        // If it's a force run from dashboard, we can afford a bit more or less iteration.
+        const MAX_ITERATIONS = force ? 15 : 100
+
+        // Note: 100 iterations * 2000 blocks = 200,000 blocks catch-up per daily cron run.
+        // Avalanche creates ~43k blocks/day, so 200k is 4x speed catch-up.
 
         let iteration = 0
         let totalLogs = 0
@@ -93,6 +103,12 @@ export async function GET(request: NextRequest) {
                     where: { address: userAddress }
                 })
 
+                // --- Telegram Notification Logic ---
+                // We only notify if this is a "new" premium status being detected
+                // (e.g., current expiresAt is null or in the past)
+                const isNewlyPremium = !existingProfile?.premiumExpiresAt ||
+                    (existingProfile.premiumExpiresAt < new Date());
+
                 if (existingProfile) {
                     let finalExpiresAt = newExpiresAt
                     if (existingProfile.premiumExpiresAt && existingProfile.premiumExpiresAt > newExpiresAt) {
@@ -117,6 +133,29 @@ export async function GET(request: NextRequest) {
                     })
                     totalProcessed++
                 }
+
+                if (isNewlyPremium) {
+                    try {
+                        const { sendTelegramNotification, getAvaxPrice } = require('@/lib/telegram');
+                        const price = await getAvaxPrice();
+                        const amount = 0.5; // Shared constant
+                        const usdValue = (amount * price).toFixed(2);
+
+                        const msg = [
+                            `🚀 <b>New Premium Purchase Detected!</b>`,
+                            ``,
+                            `👤 <b>Wallet:</b> <code>${userAddress}</code>`,
+                            `💰 <b>Amount:</b> ${amount} AVAX (~$${usdValue})`,
+                            `📅 <b>Expires:</b> ${newExpiresAt.toLocaleDateString()}`,
+                            ``,
+                            `🔗 <a href="https://soci4l.net/p/${userAddress}">View Profile</a>`
+                        ].join('\n');
+
+                        await sendTelegramNotification(msg);
+                    } catch (err) {
+                        console.error('[Sync Premium] Telegram notification failed:', err);
+                    }
+                }
             }
 
             // Update Indexer State after each chunk to save progress?
@@ -129,11 +168,16 @@ export async function GET(request: NextRequest) {
             iteration++
         }
 
-        // --- 4. Update State ---
-        // We update to the LAST block we successfully scanned (fromBlock - 1)
+        // --- 5. Update State ---
+        // CRITICAL: Internal force syncs (which scan only recent blocks) 
+        // should NOT move the global indexer state BACKWARDS.
+        const finalSyncedBlock = fromBlock > state.lastSyncedBlock ? fromBlock : state.lastSyncedBlock
+
         await prisma.indexerState.update({
             where: { key: INDEXER_KEY },
-            data: { lastSyncedBlock: fromBlock - BigInt(1) }
+            data: {
+                lastSyncedBlock: finalSyncedBlock
+            }
         })
 
         return NextResponse.json({
