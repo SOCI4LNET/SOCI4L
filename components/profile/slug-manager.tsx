@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { CUSTOM_SLUG_REGISTRY_ADDRESS, CUSTOM_SLUG_REGISTRY_ABI } from "@/lib/contracts/CustomSlugRegistry";
 import { normalizeSlug, validateSlugFormat, hashSlug } from "@/lib/utils/slug";
+import { SlugCelebration } from "./slug-celebration";
 
 const ABI = parseAbi(CUSTOM_SLUG_REGISTRY_ABI);
 
@@ -37,6 +38,8 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
     const [isAutoSyncing, setIsAutoSyncing] = useState(false);
     const [repairFailed, setRepairFailed] = useState(false);
     const [hasAttemptedRecovery, setHasAttemptedRecovery] = useState(false);
+    const [showCelebration, setShowCelebration] = useState(false);
+    const [celebratedSlug, setCelebratedSlug] = useState("");
 
     // Debounce input
     useEffect(() => {
@@ -369,11 +372,15 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
 
                     if (!res.ok) throw new Error("API update failed");
 
-                    toast.dismiss(pendingAction === "claim" ? "claim-toast" : "release-toast");
-                    toast.success(pendingAction === "claim" ? "Slug claimed!" : "Slug released!");
-
-                    // Force reload or callback to update parent state
-                    window.location.reload();
+                    if (pendingAction === "claim") {
+                        setCelebratedSlug(debouncedSlug);
+                        setShowCelebration(true);
+                        // We don't reload immediately for claims, wait for celebration close
+                    } else {
+                        toast.dismiss("release-toast");
+                        toast.success("Slug released!");
+                        window.location.reload();
+                    }
                 } catch (e) {
                     toast.error("Slug updated on-chain but failed to sync locally. Please refresh.");
                 } finally {
@@ -627,6 +634,12 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                 )
                 }
             </CardContent >
+            {showCelebration && (
+                <SlugCelebration
+                    slug={celebratedSlug}
+                    onClose={() => window.location.reload()}
+                />
+            )}
         </Card >
     );
 }
