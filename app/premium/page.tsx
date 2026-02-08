@@ -12,23 +12,26 @@ import {
     Globe,
     MousePointerClick,
     Eye,
-    ExternalLink,
     ChevronRight,
-    CheckCircle2
+    CheckCircle2,
+    Share2
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PremiumUpgradeModal } from "@/components/premium/premium-upgrade-modal"
-import { PageShell } from "@/components/dashboard/page-shell"
+import { Soci4LLogo } from "@/components/logos/soci4l-logo"
+import { formatDistanceToNow } from "date-fns"
 
-// --- MOCK DATA FOR PREMIUM SHOWCASE ---
-const MOCK_SOURCES = [
-    { name: "Twitter / X", value: 45, color: "bg-blue-500" },
-    { name: "Instagram", value: 30, color: "bg-pink-500" },
-    { name: "Direct", value: 15, color: "bg-green-500" },
-    { name: "LinkedIn", value: 10, color: "bg-blue-700" },
-]
+// --- MOCK DATA MATCHING INSIGHTS PANEL STRUCTURE ---
+const MOCK_SOURCES = {
+    "Twitter / X": 450,
+    "Instagram": 300,
+    "Direct": 150,
+    "LinkedIn": 100
+}
+const TOTAL_VIEWS_MOCK = 1000
 
 const MOCK_TOP_LINKS = [
     { id: 1, title: "My Portfolio Website", clicks: 1245 },
@@ -39,18 +42,19 @@ const MOCK_TOP_LINKS = [
 ]
 
 const MOCK_CATEGORIES = [
-    { id: 1, name: "Socials", totalClicks: 2100 },
-    { id: 2, name: "Work", totalClicks: 1500 },
-    { id: 3, name: "Content", totalClicks: 900 },
-    { id: 4, name: "Contact", totalClicks: 600 },
+    { id: 1, name: "Socials", totalClicks: 2100, share: 0.4 },
+    { id: 2, name: "Work", totalClicks: 1500, share: 0.3 },
+    { id: 3, name: "Content", totalClicks: 900, share: 0.2 },
+    { id: 4, name: "Contact", totalClicks: 600, share: 0.1 },
 ]
 
 const MOCK_ACTIVITY = [
-    { type: "profile_view", timestamp: "Just now", label: "Profile View" },
-    { type: "link_click", timestamp: "2 mins ago", label: "Link Click", detail: "My Portfolio Website" },
-    { type: "profile_view", timestamp: "5 mins ago", label: "Profile View" },
-    { type: "link_click", timestamp: "12 mins ago", label: "Link Click", detail: "Latest YouTube Video" },
-    { type: "profile_view", timestamp: "18 mins ago", label: "Profile View" },
+    { type: "profile_view", timestamp: new Date().toISOString(), label: "Profile View" },
+    { type: "link_click", timestamp: new Date(Date.now() - 1000 * 60 * 2).toISOString(), label: "Link Click", linkTitle: "My Portfolio Website" },
+    { type: "profile_view", timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(), label: "Profile View" },
+    { type: "link_click", timestamp: new Date(Date.now() - 1000 * 60 * 12).toISOString(), label: "Link Click", linkTitle: "Latest YouTube Video" },
+    { type: "profile_view", timestamp: new Date(Date.now() - 1000 * 60 * 18).toISOString(), label: "Profile View" },
+    { type: "link_click", timestamp: new Date(Date.now() - 1000 * 60 * 25).toISOString(), label: "Link Click", linkTitle: "Gumroad Store" },
 ]
 
 export default function PremiumPage() {
@@ -62,23 +66,30 @@ export default function PremiumPage() {
     }
 
     return (
-        <div className="min-h-screen bg-black text-white font-sans selection:bg-yellow-500/30">
-            {/* Navigation / Header Placeholder (Optional, strictly speaking we might just want to be standalone) */}
-            <header className="fixed top-0 w-full z-50 border-b border-white/10 bg-black/50 backdrop-blur-md">
+        <div className="min-h-screen bg-[#0A0A0A] text-foreground font-sans selection:bg-brand-500/30">
+
+            {/* HEADER / NAVIGATION */}
+            <header className="fixed top-0 w-full z-50 border-b border-white/5 bg-[#0A0A0A]/80 backdrop-blur-md">
                 <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
-                        <div className="w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-lg flex items-center justify-center">
-                            <Zap className="w-5 h-5 text-black fill-current" />
-                        </div>
-                        SOCI4L<span className="text-yellow-500">Premium</span>
+                    <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push('/')}>
+                        <Soci4LLogo variant="icon" className="w-8 h-8 text-white invert-0" />
+                        <span className="font-bold text-xl tracking-tight">SOCI4L</span>
                     </div>
-                    <Button
-                        variant="ghost"
-                        className="text-sm text-muted-foreground hover:text-white"
-                        onClick={() => router.push('/dashboard')}
-                    >
-                        Back to Dashboard
-                    </Button>
+                    <div className="flex items-center gap-4">
+                        <Button
+                            variant="ghost"
+                            className="text-sm text-muted-foreground hover:text-white hidden sm:flex"
+                            onClick={() => router.push('/dashboard')}
+                        >
+                            Dashboard
+                        </Button>
+                        <Button
+                            onClick={handleUpgradeClick}
+                            className="bg-brand-500 hover:bg-brand-600 text-white font-medium rounded-full px-6 shadow-lg shadow-brand-500/20"
+                        >
+                            Upgrade
+                        </Button>
+                    </div>
                 </div>
             </header>
 
@@ -90,12 +101,12 @@ export default function PremiumPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.8 }}
                     >
-                        <Badge className="mb-6 bg-yellow-500/10 text-yellow-500 border-yellow-500/20 px-4 py-1.5 rounded-full text-sm hover:bg-yellow-500/20 transition-colors">
+                        <Badge className="mb-6 bg-brand-500/10 text-brand-500 border-brand-500/20 px-4 py-1.5 rounded-full text-sm hover:bg-brand-500/20 transition-colors">
                             <ShieldCheck className="w-3.5 h-3.5 mr-2" />
                             Official Premium Upgrade
                         </Badge>
-                        <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent">
-                            Unlock the full power <br /> of your digital identity.
+                        <h1 className="text-5xl md:text-7xl font-semibold tracking-tight mb-8 text-white">
+                            Turn your data into <br /> <span className="text-brand-500">identity capital.</span>
                         </h1>
                         <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
                             Gain deep visibility into your audience with source breakdowns, referrer tracking, and real-time history. One-time payment, forever yours.
@@ -104,19 +115,19 @@ export default function PremiumPage() {
                             <Button
                                 onClick={handleUpgradeClick}
                                 size="lg"
-                                className="h-14 px-10 rounded-full text-lg font-semibold bg-white text-black hover:bg-gray-100 transition-all shadow-2xl shadow-yellow-500/20"
+                                className="h-14 px-10 rounded-full text-lg font-semibold bg-white text-black hover:bg-gray-100 transition-all"
                             >
                                 Unlock for 0.5 AVAX
                                 <ChevronRight className="w-5 h-5 ml-2" />
                             </Button>
-                            <p className="text-xs text-muted-foreground mt-4 sm:mt-0 sm:ml-4">
-                                Lifetime Access • No Recurring Fees
+                            <p className="text-xs text-muted-foreground mt-4 sm:mt-0 sm:ml-4 font-mono">
+                                LIFETIME ACCESS • NO RECURRING FEES
                             </p>
                         </div>
                     </motion.div>
                 </section>
 
-                {/* FEATURE 1: SOURCE ATTRIBUTION */}
+                {/* FEATURE 1: SOURCE ATTRIBUTION (1:1 with InsightsPanel) */}
                 <section className="max-w-6xl mx-auto px-6 mb-32">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
                         <motion.div
@@ -125,18 +136,14 @@ export default function PremiumPage() {
                             viewport={{ once: true }}
                             transition={{ duration: 0.8 }}
                         >
-                            <h2 className="text-3xl font-bold mb-4">Know exactly where your traffic comes from.</h2>
+                            <div className="flex items-center gap-2 text-brand-500 mb-4">
+                                <TrendingUp className="w-5 h-5" />
+                                <span className="font-mono text-xs uppercase tracking-widest">Analytics</span>
+                            </div>
+                            <h2 className="text-3xl font-semibold mb-4 text-white">Know exactly where your traffic comes from.</h2>
                             <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
-                                Stop guessing. See precise breakdowns of your traffic sources—whether it's from Twitter, Instagram bio links, or direct QR code scans. Optimize your reach with data-backed decisions.
+                                Stop guessing. See precise breakdowns of your traffic sources. The interface is identical to your dashboard, providing a seamless experience.
                             </p>
-                            <ul className="space-y-4 mb-8">
-                                {['Granular source tracking', 'Referrer analysis', 'Platform-specific breakdown'].map((item, i) => (
-                                    <li key={i} className="flex items-center gap-3 text-sm font-medium">
-                                        <CheckCircle2 className="w-5 h-5 text-yellow-500" />
-                                        {item}
-                                    </li>
-                                ))}
-                            </ul>
                         </motion.div>
 
                         <motion.div
@@ -144,43 +151,46 @@ export default function PremiumPage() {
                             whileInView={{ opacity: 1, scale: 1 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.8 }}
-                            className="relative"
                         >
-                            <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500/30 to-orange-600/30 rounded-2xl blur-2xl opacity-50" />
-                            <Card className="bg-black/90 border border-white/10 backdrop-blur-xl relative">
-                                <CardHeader>
+                            {/* EXACT REPLICA OF SOURCE ATTRIBUTION CARD */}
+                            <Card className="bg-card border-border/60 shadow-sm relative z-10">
+                                <CardHeader className="pb-3 px-6">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <CardTitle className="text-base">Top Sources</CardTitle>
-                                            <CardDescription className="text-xs">Traffic attribution by origin</CardDescription>
+                                            <CardTitle className="text-sm font-semibold">Top Sources</CardTitle>
+                                            <CardDescription className="text-[11px]">Traffic attribution by origin</CardDescription>
                                         </div>
-                                        <Badge variant="outline" className="border-yellow-500/30 text-yellow-500">Premium</Badge>
+                                        <Badge variant="outline" className="text-[10px] font-medium opacity-70">
+                                            Measurable Profile
+                                        </Badge>
                                     </div>
                                 </CardHeader>
-                                <CardContent className="space-y-6">
-                                    {MOCK_SOURCES.map((source) => (
-                                        <div key={source.name} className="space-y-2">
-                                            <div className="flex justify-between text-sm">
-                                                <span className="font-medium">{source.name}</span>
-                                                <span className="text-muted-foreground">{source.value}%</span>
-                                            </div>
-                                            <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                                                <motion.div
-                                                    initial={{ width: 0 }}
-                                                    whileInView={{ width: `${source.value}%` }}
-                                                    transition={{ duration: 1, delay: 0.2 }}
-                                                    className={`h-full ${source.color}`}
-                                                />
-                                            </div>
-                                        </div>
-                                    ))}
+                                <CardContent className="px-6 pb-6">
+                                    <div className="space-y-4">
+                                        {Object.entries(MOCK_SOURCES).map(([key, val]) => {
+                                            const percentage = (val / TOTAL_VIEWS_MOCK) * 100
+                                            return (
+                                                <div key={key} className="space-y-1.5">
+                                                    <div className="flex items-center justify-between text-xs">
+                                                        <span className="font-medium text-muted-foreground capitalize">{key}</span>
+                                                        <span className="font-mono text-foreground/80">{percentage.toFixed(0)}%</span>
+                                                    </div>
+                                                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                                                        <div className="h-full bg-primary/60 rounded-full" style={{ width: `${percentage}%` }} />
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
                                 </CardContent>
                             </Card>
+                            {/* Glow effect behind */}
+                            <div className="absolute -inset-4 bg-brand-500/10 rounded-3xl blur-2xl z-0" />
                         </motion.div>
                     </div>
                 </section>
 
-                {/* FEATURE 2: PERFORMANCE BREAKDOWNS */}
+                {/* FEATURE 2: PERFORMANCE BREAKDOWNS (1:1 with InsightsPanel) */}
                 <section className="max-w-6xl mx-auto px-6 mb-32">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
                         {/* Visual Side (Left on Desktop) */}
@@ -191,33 +201,35 @@ export default function PremiumPage() {
                             transition={{ duration: 0.8 }}
                             className="relative order-2 md:order-1"
                         >
-                            <div className="absolute -inset-1 bg-gradient-to-l from-blue-500/20 to-purple-600/20 rounded-2xl blur-2xl opacity-50" />
-                            <div className="grid gap-4 relative">
+                            <div className="grid gap-4 relative z-10">
                                 {/* Top Links Card */}
-                                <Card className="bg-black/90 border border-white/10 backdrop-blur-xl">
-                                    <CardHeader className="pb-3"><CardTitle className="text-sm">Top Links</CardTitle></CardHeader>
+                                <Card className="bg-card border border-border/60 shadow-sm">
+                                    <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Top Links</CardTitle></CardHeader>
                                     <CardContent>
-                                        {MOCK_TOP_LINKS.slice(0, 3).map((link) => (
-                                            <div key={link.id} className="flex justify-between py-3 border-b border-white/5 last:border-0 text-sm">
-                                                <span className="truncate">{link.title}</span>
-                                                <span className="font-mono text-muted-foreground">{link.clicks}</span>
+                                        {MOCK_TOP_LINKS.slice(0, 5).map((link) => (
+                                            <div key={link.id} className="flex justify-between py-2 border-b border-border/40 last:border-0 text-sm">
+                                                <span className="truncate max-w-[200px]">{link.title}</span>
+                                                <span className="font-mono">{link.clicks}</span>
                                             </div>
                                         ))}
                                     </CardContent>
                                 </Card>
+
                                 {/* Top Categories Card */}
-                                <Card className="bg-black/90 border border-white/10 backdrop-blur-xl">
-                                    <CardHeader className="pb-3"><CardTitle className="text-sm">Top Categories</CardTitle></CardHeader>
+                                <Card className="bg-card border border-border/60 shadow-sm">
+                                    <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Top Categories</CardTitle></CardHeader>
                                     <CardContent>
-                                        {MOCK_CATEGORIES.slice(0, 3).map((cat) => (
-                                            <div key={cat.id} className="flex justify-between py-3 border-b border-white/5 last:border-0 text-sm">
+                                        {MOCK_CATEGORIES.map((cat) => (
+                                            <div key={cat.id} className="flex justify-between py-2 border-b border-border/40 last:border-0 text-sm">
                                                 <span>{cat.name}</span>
-                                                <span className="font-mono text-muted-foreground">{cat.totalClicks}</span>
+                                                <span className="font-mono">{cat.totalClicks}</span>
                                             </div>
                                         ))}
                                     </CardContent>
                                 </Card>
                             </div>
+                            {/* Glow effect */}
+                            <div className="absolute -inset-4 bg-brand-500/10 rounded-3xl blur-2xl z-0" />
                         </motion.div>
 
                         {/* Text Side */}
@@ -228,23 +240,19 @@ export default function PremiumPage() {
                             transition={{ duration: 0.8 }}
                             className="order-1 md:order-2"
                         >
-                            <h2 className="text-3xl font-bold mb-4">Identify what resonates. Eliminate what doesn't.</h2>
+                            <div className="flex items-center gap-2 text-brand-500 mb-4">
+                                <BarChart2 className="w-5 h-5" />
+                                <span className="font-mono text-xs uppercase tracking-widest">Performance</span>
+                            </div>
+                            <h2 className="text-3xl font-semibold mb-4 text-white">Identify what resonates. Eliminate what doesn't.</h2>
                             <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
                                 Discover your highest-performing links and content categories. Understand user intent and restructure your profile to maximize engagement where it matters most.
                             </p>
-                            <ul className="space-y-4 mb-8">
-                                {['Link-level performance metrics', 'Category affinity analysis', 'Conversion tracking'].map((item, i) => (
-                                    <li key={i} className="flex items-center gap-3 text-sm font-medium">
-                                        <CheckCircle2 className="w-5 h-5 text-blue-500" />
-                                        {item}
-                                    </li>
-                                ))}
-                            </ul>
                         </motion.div>
                     </div>
                 </section>
 
-                {/* FEATURE 3: REAL-TIME ACTIVITY */}
+                {/* FEATURE 3: REAL-TIME ACTIVITY (1:1 with InsightsPanel) */}
                 <section className="max-w-6xl mx-auto px-6 mb-32">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
                         <motion.div
@@ -253,17 +261,14 @@ export default function PremiumPage() {
                             viewport={{ once: true }}
                             transition={{ duration: 0.8 }}
                         >
-                            <h2 className="text-3xl font-bold mb-4">Pulse of your audience. <br /> In real-time.</h2>
+                            <div className="flex items-center gap-2 text-brand-500 mb-4">
+                                <Zap className="w-5 h-5" />
+                                <span className="font-mono text-xs uppercase tracking-widest">Real-time</span>
+                            </div>
+                            <h2 className="text-3xl font-semibold mb-4 text-white">Pulse of your audience. <br /> In real-time.</h2>
                             <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
                                 Watch interactions as they happen. The Real-time Event Log gives you a live feed of who is viewing your profile and what they are clicking on, exactly when it happens.
                             </p>
-                            <Button
-                                variant="outline"
-                                className="border-white/10 hover:bg-white/5 text-white"
-                                onClick={handleUpgradeClick}
-                            >
-                                See it in action
-                            </Button>
                         </motion.div>
 
                         <motion.div
@@ -273,57 +278,52 @@ export default function PremiumPage() {
                             transition={{ duration: 0.8 }}
                             className="relative"
                         >
-                            <div className="absolute -inset-1 bg-gradient-to-br from-green-500/20 to-teal-600/20 rounded-2xl blur-2xl opacity-50" />
-                            <Card className="bg-black/90 border border-white/10 backdrop-blur-xl relative h-[320px] overflow-hidden">
-                                <CardHeader>
-                                    <CardTitle className="text-base flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                                        Recent Activity
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-6">
+                            {/* EXACT REPLICA OF ACTIVITY CARD */}
+                            <Card className="bg-card border border-border/60 shadow-sm relative z-10 h-[380px] overflow-hidden">
+                                <div className="flex items-center justify-between p-6 border-b border-border/40">
+                                    <div>
+                                        <h3 className="font-semibold leading-none tracking-tight">Recent Activity</h3>
+                                        <p className="text-sm text-muted-foreground">Real-time event log</p>
+                                    </div>
+                                </div>
+                                <CardContent className="pt-6">
                                     {MOCK_ACTIVITY.map((act, i) => (
-                                        <motion.div
-                                            key={i}
-                                            initial={{ opacity: 0, x: 20 }}
-                                            whileInView={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: i * 0.1 }}
-                                            className="flex items-start gap-4"
-                                        >
-                                            <div className={`mt-1 p-1.5 rounded-full ${act.type === 'profile_view' ? 'bg-blue-500/20 text-blue-500' : 'bg-green-500/20 text-green-500'}`}>
-                                                {act.type === 'profile_view' ? <Eye size={14} /> : <MousePointerClick size={14} />}
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="font-medium text-sm">{act.label}</span>
-                                                    <span className="text-xs text-muted-foreground">• {act.timestamp}</span>
+                                        <div key={i} className="flex items-center gap-3 mb-4 text-xs last:mb-0">
+                                            <div className={`w-2 h-2 rounded-full ${act.type === 'profile_view' ? 'bg-blue-500' : 'bg-green-500'}`} />
+                                            <div className="flex-1">
+                                                <div className="flex justify-between">
+                                                    <span className="font-medium capitalize flex items-center gap-1">
+                                                        {act.type === 'profile_view' ? <Eye className="w-3 h-3" /> : <MousePointerClick className="w-3 h-3" />}
+                                                        {act.type.replace('_', ' ')}
+                                                    </span>
+                                                    <span className="text-muted-foreground">{formatDistanceToNow(new Date(act.timestamp), { addSuffix: true })}</span>
                                                 </div>
-                                                {act.detail && <p className="text-xs text-muted-foreground mt-0.5">{act.detail}</p>}
+                                                {act.linkTitle && <div className="text-muted-foreground mt-0.5 truncate max-w-[200px]">{act.linkTitle}</div>}
                                             </div>
-                                        </motion.div>
+                                        </div>
                                     ))}
                                 </CardContent>
-                                {/* Fade out bottom */}
-                                <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-black via-black/80 to-transparent" />
+                                {/* Fade out bottom to indicate scroll/flow */}
+                                <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-card via-card/80 to-transparent" />
                             </Card>
+                            {/* Glow effect */}
+                            <div className="absolute -inset-4 bg-brand-500/10 rounded-3xl blur-2xl z-0" />
                         </motion.div>
                     </div>
                 </section>
 
                 {/* FINAL CTA */}
                 <section className="max-w-3xl mx-auto px-6 text-center mb-20">
-                    <Card className="bg-gradient-to-b from-yellow-900/10 to-transparent border-yellow-500/20 backdrop-blur-sm">
+                    <Card className="bg-gradient-to-b from-brand-500/10 to-transparent border-brand-500/20 backdrop-blur-sm">
                         <CardContent className="pt-12 pb-12">
-                            <h2 className="text-3xl font-bold mb-6">Ready to upgrade?</h2>
+                            <h2 className="text-3xl font-semibold mb-6 text-white">Ready to upgrade?</h2>
                             <p className="text-muted-foreground mb-8 text-lg">
                                 Join hundreds of creators who own their data and understand their audience.
-                                <br />
-                                <span className="text-white font-medium">0.5 AVAX / year. Trusted. Decentralized.</span>
                             </p>
                             <Button
                                 onClick={handleUpgradeClick}
                                 size="lg"
-                                className="bg-white text-black hover:bg-gray-100 px-12 h-12 rounded-full font-semibold shadow-xl shadow-yellow-500/10"
+                                className="bg-white text-black hover:bg-white/90 px-12 h-12 rounded-full font-semibold shadow-xl shadow-brand-500/10"
                             >
                                 Get Premium Now
                             </Button>
@@ -331,7 +331,7 @@ export default function PremiumPage() {
                     </Card>
                 </section>
 
-                <footer className="max-w-7xl mx-auto px-6 py-8 border-t border-white/10 text-center text-sm text-muted-foreground">
+                <footer className="max-w-7xl mx-auto px-6 py-8 border-t border-white/5 text-center text-sm text-muted-foreground">
                     <p>&copy; {new Date().getFullYear()} SOCI4L. Built on Avalanche.</p>
                 </footer>
 
@@ -342,7 +342,6 @@ export default function PremiumPage() {
                         router.push('/dashboard')
                     }}
                 />
-            </main>
         </div>
     )
 }
