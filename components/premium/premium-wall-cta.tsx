@@ -239,10 +239,10 @@ export function PremiumWallCta({ onUpgrade }: PremiumWallCtaProps) {
 
     return (
         <section className="relative w-full py-24 bg-background overflow-hidden">
-            {/* Column-Based Masonry Grid - Faded out at top to blend */}
-            <div className="container mx-auto px-4 relative z-0 opacity-40 pointer-events-none select-none blur-[1px] scale-95 origin-bottom">
+            {/* Column-Based Masonry Grid - Vivid and clear */}
+            <div className="container mx-auto px-4 relative z-0 opacity-70 pointer-events-none select-none origin-bottom">
                 {/* Top fade gradient */}
-                <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-background to-transparent z-10" />
+                <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-background to-transparent z-10" />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {columns.map((col, colIndex) => (
@@ -256,14 +256,15 @@ export function PremiumWallCta({ onUpgrade }: PremiumWallCtaProps) {
             </div>
 
             {/* Bottom Gradient Overlay + CTA Content */}
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/95 to-transparent z-10" />
+            {/* Bottom Gradient Overlay + CTA Content */}
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent/10 z-10" />
 
-            <div className="absolute bottom-0 inset-x-0 pb-20 md:pb-32 z-20 flex justify-center items-end h-full">
+            <div className="absolute bottom-0 inset-x-0 pb-24 z-20 flex justify-center items-end h-full pointer-events-none">
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className="text-center space-y-8 max-w-2xl px-6"
+                    className="text-center space-y-8 max-w-3xl px-6 pointer-events-auto"
                 >
                     <div className="space-y-4">
                         <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground drop-shadow-sm">
