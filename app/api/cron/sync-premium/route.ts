@@ -15,7 +15,7 @@ const EVENT = parseAbiItem('event PremiumPurchased(address indexed user, uint256
 
 // 3. Helper: Resolve Start Block
 // If lastSyncedBlock is 0, start from contract deployment block (or recent safe block)
-const DEFAULT_START_BLOCK = 41000000n // Approximate recent block to avoid deep query if fresh
+const DEFAULT_START_BLOCK = 53000000n // Recent block to avoid deep query (Avalanche C-Chain)
 
 interface SyncResult {
     processed: number
@@ -46,9 +46,9 @@ export async function GET(request: NextRequest) {
         const currentBlock = await client.getBlockNumber()
         const fromBlock = state.lastSyncedBlock + 1n
 
-        // Safety: Limit range to avoid RPC timeout (e.g. max 20k blocks per run)
+        // Safety: Limit range to avoid RPC timeout (Public RPC limit is often 2048)
         // If gap is huge, we sync in chunks.
-        const MAX_RANGE = 20000n
+        const MAX_RANGE = 2000n
         let toBlock = currentBlock
         if (toBlock - fromBlock > MAX_RANGE) {
             toBlock = fromBlock + MAX_RANGE
