@@ -15,7 +15,7 @@ const EVENT = parseAbiItem('event PremiumPurchased(address indexed user, uint256
 
 // 3. Helper: Resolve Start Block
 // If lastSyncedBlock is 0, start from contract deployment block (or recent safe block)
-const DEFAULT_START_BLOCK = 77000000n // Recent block (~Feb 2026) to avoid deep query
+const DEFAULT_START_BLOCK = BigInt(77000000) // Recent block (~Feb 2026) to avoid deep query
 
 interface SyncResult {
     processed: number
@@ -44,11 +44,19 @@ export async function GET(request: NextRequest) {
         }
 
         const currentBlock = await client.getBlockNumber()
-        const fromBlock = state.lastSyncedBlock + 1n
+
+        // Force Sync: Ignore DB state
+        const force = request.nextUrl.searchParams.get('force') === 'true'
+        let fromBlock = state.lastSyncedBlock + BigInt(1)
+
+        if (force) {
+            fromBlock = DEFAULT_START_BLOCK
+            console.log('[Sync Premium] Force sync enabled, scanning from default start block')
+        }
 
         // Safety: Limit range to avoid RPC timeout (Public RPC limit is often 2048)
         // If gap is huge, we sync in chunks.
-        const MAX_RANGE = 2000n
+        const MAX_RANGE = BigInt(2000)
         let toBlock = currentBlock
         if (toBlock - fromBlock > MAX_RANGE) {
             toBlock = fromBlock + MAX_RANGE
@@ -81,30 +89,43 @@ export async function GET(request: NextRequest) {
             const newExpiresAt = new Date(Number(args.expiresAt) * 1000)
 
             // Database Update: Extend expiration (Max logic)
-            // We find the profile first
-            const profile = await prisma.profile.findUnique({
+            // Database Update: Upsert Profile
+            // If profile exists, update expiry (max logic).
+            // If not, create new UNCLAIMED profile with expiry.
+
+            const existingProfile = await prisma.profile.findUnique({
                 where: { address: userAddress }
             })
 
-            if (profile) {
+            if (existingProfile) {
                 // Determine new expiry: max(current, new)
                 let finalExpiresAt = newExpiresAt
-                if (profile.premiumExpiresAt && profile.premiumExpiresAt > newExpiresAt) {
-                    finalExpiresAt = profile.premiumExpiresAt
+                if (existingProfile.premiumExpiresAt && existingProfile.premiumExpiresAt > newExpiresAt) {
+                    finalExpiresAt = existingProfile.premiumExpiresAt
                 }
 
                 await prisma.profile.update({
                     where: { address: userAddress },
                     data: {
-                        premiumExpiresAt: finalExpiresAt
+                        premiumExpiresAt: finalExpiresAt,
+                        // Ensure status doesn't change implicitly
                     }
                 })
                 processed++
             } else {
-                // If profile doesn't exist yet, we could create it or skip.
-                // For now, let's skip/log, as usually profile exists via connect.
-                // Or create a stub if strictly required.
-                console.warn(`[Sync Premium] User ${userAddress} not found in DB`)
+                // Create new UNCLAIMED profile
+                console.log(`[Sync Premium] Creating new profile for ${userAddress}`)
+                await prisma.profile.create({
+                    data: {
+                        address: userAddress,
+                        status: 'UNCLAIMED',
+                        premiumExpiresAt: newExpiresAt,
+                        // Basic defaults
+                        isPublic: false,
+                        displayName: userAddress.slice(0, 6), // Placeholder
+                    }
+                })
+                processed++
             }
         }
 
