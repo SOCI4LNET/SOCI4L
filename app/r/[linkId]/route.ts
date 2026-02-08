@@ -75,6 +75,7 @@ export async function GET(
     // Get source from URL query params
     const searchParams = request.nextUrl.searchParams
     const source = getSourceFromUrl(searchParams)
+    const visitorWallet = searchParams.get('wallet') || undefined
     const referer = request.headers.get('referer') || null
 
     // Record link_click server-side so master console total link clicks always increase
@@ -90,6 +91,7 @@ export async function GET(
           linkUrl: link.url,
           categoryId,
           source,
+          visitorWallet,
           referrer: referer,
         },
       })

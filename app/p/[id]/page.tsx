@@ -1272,7 +1272,7 @@ export default function ProfilePage({ params }: PageProps) {
                                           // Use direct URL for social links (JSON records, no DB ID for redirector)
                                           const redirectUrl = link.type === 'social'
                                             ? link.url
-                                            : `/r/${link.id}?source=profile`
+                                            : `/r/${link.id}?source=profile${connectedAddress ? `&wallet=${connectedAddress}` : ''}`
 
                                           // Format displayed URL (strip protocol and www)
                                           let displayUrl = link.url

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Activity, BarChart2, Share2, TrendingUp, Eye, Lock, MousePointerClick, User, Link as LinkIcon, Check } from 'lucide-react'
+import { Activity, BarChart2, Share2, TrendingUp, Eye, Lock, MousePointerClick, User, Link as LinkIcon, Check, Copy, ExternalLink } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
 import { PageShell } from '@/components/app-shell/page-shell'
@@ -445,13 +445,13 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                           </div>
                           <div className="flex items-center gap-3 text-xs">
                             <span className="font-mono font-medium">{cat.totalClicks}</span>
-                            <span className="text-muted-foreground w-8 text-right">{cat.percentageShare.toFixed(0)}%</span>
+                            <span className="text-muted-foreground w-8 text-right">{(cat.percentageShare * 100).toFixed(0)}%</span>
                           </div>
                         </div>
                         <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                           <div
                             className="h-full bg-foreground rounded-full transition-all duration-500 ease-out"
-                            style={{ width: `${cat.percentageShare}%` }}
+                            style={{ width: `${cat.percentageShare * 100}%` }}
                           />
                         </div>
                       </div>
@@ -481,14 +481,42 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-4">
-                        <p className="text-sm text-foreground/90 truncate">
-                          <span className="font-mono font-medium text-foreground">
-                            {act.visitorWallet ? formatAddress(act.visitorWallet) : 'Anonymous'}
-                          </span>
-                          <span className="text-muted-foreground ml-1.5">
+                        <div className="text-sm text-foreground/90 truncate flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5 group/address">
+                            <span className="font-semibold text-foreground">
+                              {act.visitorWallet ? formatAddress(act.visitorWallet) : 'Anonymous'}
+                            </span>
+                            {act.visitorWallet && (
+                              <div className="flex items-center opacity-0 group-hover/address:opacity-100 transition-opacity gap-0.5">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-5 w-5 text-muted-foreground hover:text-foreground"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigator.clipboard.writeText(act.visitorWallet!);
+                                    toast.success('Address copied');
+                                  }}
+                                >
+                                  <Copy className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-5 w-5 text-muted-foreground hover:text-foreground"
+                                  asChild
+                                >
+                                  <a href={`/p/${act.visitorWallet}`} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                                    <ExternalLink className="h-3 w-3" />
+                                  </a>
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                          <span className="text-muted-foreground">
                             {act.type === 'profile_view' ? 'viewed your Profile' : `clicked on ${act.linkTitle || 'a link'}`}
                           </span>
-                        </p>
+                        </div>
                         <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
                           {formatDistanceToNow(new Date(act.timestamp), { addSuffix: true })}
                         </span>
