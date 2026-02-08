@@ -48,8 +48,6 @@ const MOCK_CATEGORIES = [
     { id: 4, name: "Contact", totalClicks: 600, share: 0.1 },
 ]
 
-// Updated to match exactly what's available in InsightsPanel
-// It uses `visitor` (likely generic) or just renders types
 const MOCK_ACTIVITY = [
     { type: "profile_view", timestamp: new Date().toISOString(), label: "New Visit", linkTitle: null },
     { type: "link_click", timestamp: new Date(Date.now() - 1000 * 60 * 2).toISOString(), label: "Link Click", linkTitle: "My Portfolio Website" },
@@ -99,7 +97,7 @@ export default function PremiumPage() {
                             </Button>
                             <Button
                                 onClick={handleUpgradeClick}
-                                className="bg-white hover:bg-zinc-200 text-black font-medium rounded-full px-6 transition-all hover:scale-105 active:scale-95"
+                                className="bg-white hover:bg-zinc-200 text-black font-medium rounded-full px-6 transition-all hover:scale-105 active:scale-95 shadow-none hover:shadow-none"
                             >
                                 Upgrade
                             </Button>
@@ -129,7 +127,7 @@ export default function PremiumPage() {
                                 <Button
                                     onClick={handleUpgradeClick}
                                     size="lg"
-                                    className="h-14 px-10 rounded-full text-lg font-semibold bg-white text-black hover:bg-zinc-200 transition-all hover:scale-105 active:scale-95"
+                                    className="h-14 px-10 rounded-full text-lg font-semibold bg-white text-black hover:bg-zinc-200 transition-all hover:scale-105 active:scale-95 shadow-none"
                                 >
                                     Unlock for 0.5 AVAX
                                     <ChevronRight className="w-5 h-5 ml-2" />
@@ -167,7 +165,7 @@ export default function PremiumPage() {
                                 transition={{ duration: 0.5 }}
                             >
                                 {/* EXACT REPLICA OF SOURCE ATTRIBUTION CARD */}
-                                <Card className="bg-card border-border/60 shadow-sm relative z-10">
+                                <Card className="bg-card border-border/60 shadow-none relative z-10">
                                     <CardHeader className="pb-3 px-6">
                                         <div className="flex items-center justify-between">
                                             <div>
@@ -239,7 +237,7 @@ export default function PremiumPage() {
                             >
                                 <div className="grid gap-4 relative z-10">
                                     {/* Top Links Card */}
-                                    <Card className="bg-card border border-border/60 shadow-sm">
+                                    <Card className="bg-card border border-border/60 shadow-none">
                                         <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Top Links</CardTitle></CardHeader>
                                         <CardContent>
                                             {MOCK_TOP_LINKS.slice(0, 5).map((link, i) => (
@@ -254,7 +252,7 @@ export default function PremiumPage() {
                                     </Card>
 
                                     {/* Top Categories Card */}
-                                    <Card className="bg-card border border-border/60 shadow-sm">
+                                    <Card className="bg-card border border-border/60 shadow-none">
                                         <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Top Categories</CardTitle></CardHeader>
                                         <CardContent>
                                             {MOCK_CATEGORIES.map((cat, i) => (
@@ -317,7 +315,7 @@ export default function PremiumPage() {
                                 className="relative"
                             >
                                 {/* EXACT REPLICA FROM INSIGHTS PANEL */}
-                                <Card className="bg-card border border-border/60 shadow-sm relative z-10 h-[380px] overflow-hidden">
+                                <Card className="bg-card border border-border/60 shadow-none relative z-10 h-[380px] overflow-hidden">
                                     <CardHeader className="pb-3 border-b border-white/5">
                                         <CardTitle className="text-base">Recent Activity</CardTitle>
                                         <CardDescription className="text-xs">Real-time event log</CardDescription>
@@ -359,7 +357,7 @@ export default function PremiumPage() {
                                 <Button
                                     onClick={handleUpgradeClick}
                                     size="lg"
-                                    className="bg-white text-black hover:bg-zinc-200 px-12 h-12 rounded-full font-semibold shadow-xl shadow-white/5 transition-all hover:scale-105 active:scale-95"
+                                    className="bg-white text-black hover:bg-zinc-200 px-12 h-12 rounded-full font-semibold shadow-none transition-all hover:scale-105 active:scale-95"
                                 >
                                     Get Premium Now
                                 </Button>
