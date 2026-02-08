@@ -179,37 +179,64 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
     // If user has access, show real content without blur
     if (hasAccess) return <>{children}</>;
 
-    // MOCK DATA FOR PREVIEW (To prevent leaking real stats)
+    // MOCK DATA FOR PREVIEW (Realistic blurred content)
     const MockPreview = () => (
-      <div className="space-y-8 select-none pointer-events-none filter grayscale-[0.2] opacity-50 blur-md transition-all duration-700">
+      <div className="space-y-8 select-none pointer-events-none filter blur-sm grayscale-[0.5] opacity-60 transition-all duration-700">
         {/* Fake Source Attribution */}
         <Card className="bg-card border-border/60 shadow-sm">
-          <CardHeader className="pb-3 px-6"><div className="h-4 w-24 bg-muted rounded animate-pulse" /></CardHeader>
+          <CardHeader className="pb-3 px-6"><div className="h-4 w-24 bg-foreground/10 rounded" /></CardHeader>
           <CardContent className="px-6 pb-6 space-y-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="space-y-1.5">
-                <div className="flex justify-between"><div className="h-3 w-16 bg-muted rounded" /><div className="h-3 w-8 bg-muted rounded" /></div>
-                <div className="h-1.5 w-full bg-muted rounded-full" />
-              </div>
-            ))}
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs"><span className="text-foreground/70">Direct</span><span className="text-foreground/70">1,204</span></div>
+              <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden"><div className="h-full bg-foreground/30 w-[65%]" /></div>
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs"><span className="text-foreground/70">Twitter / X</span><span className="text-foreground/70">856</span></div>
+              <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden"><div className="h-full bg-foreground/30 w-[45%]" /></div>
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs"><span className="text-foreground/70">Google Organic</span><span className="text-foreground/70">342</span></div>
+              <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden"><div className="h-full bg-foreground/30 w-[20%]" /></div>
+            </div>
           </CardContent>
         </Card>
 
         {/* Fake Performance Breakdowns */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {[1, 2].map(j => (
-            <Card key={j} className="bg-card border border-border/60 shadow-sm h-48">
-              <CardHeader className="pb-3"><div className="h-4 w-32 bg-muted rounded animate-pulse" /></CardHeader>
-              <CardContent className="space-y-3">
-                {[1, 2, 3].map(k => (
-                  <div key={k} className="flex justify-between border-b border-border/40 pb-2">
-                    <div className="h-3 w-24 bg-muted rounded" />
-                    <div className="h-3 w-8 bg-muted rounded" />
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          ))}
+          <Card className="bg-card border border-border/60 shadow-sm h-48">
+            <CardHeader className="pb-3"><div className="h-4 w-32 bg-foreground/10 rounded" /></CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex justify-between border-b border-border/40 pb-2 text-xs">
+                <span className="text-foreground/70">/p/0x123...890</span>
+                <span className="text-foreground/70">432</span>
+              </div>
+              <div className="flex justify-between border-b border-border/40 pb-2 text-xs">
+                <span className="text-foreground/70">/p/vitalik.eth</span>
+                <span className="text-foreground/70">215</span>
+              </div>
+              <div className="flex justify-between border-b border-border/40 pb-2 text-xs">
+                <span className="text-foreground/70">Portfolio Site</span>
+                <span className="text-foreground/70">189</span>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card border border-border/60 shadow-sm h-48">
+            <CardHeader className="pb-3"><div className="h-4 w-32 bg-foreground/10 rounded" /></CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex justify-between border-b border-border/40 pb-2 text-xs">
+                <span className="text-foreground/70">Social Profiles</span>
+                <span className="text-foreground/70">850</span>
+              </div>
+              <div className="flex justify-between border-b border-border/40 pb-2 text-xs">
+                <span className="text-foreground/70">NFT Galleries</span>
+                <span className="text-foreground/70">420</span>
+              </div>
+              <div className="flex justify-between border-b border-border/40 pb-2 text-xs">
+                <span className="text-foreground/70">DeFi Positions</span>
+                <span className="text-foreground/70">310</span>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
@@ -221,11 +248,11 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
 
         {/* Minimal Overlay */}
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6">
-          <div className="flex flex-col items-center text-center max-w-[320px] animate-in fade-in zoom-in duration-500 delay-100">
+          <div className="flex flex-col items-center text-center max-w-[320px]">
 
             {/* Icon Container */}
-            <div className="w-10 h-10 bg-gradient-to-br from-yellow-500/20 to-orange-500/10 rounded-full flex items-center justify-center mb-3 ring-1 ring-yellow-500/20 backdrop-blur-md">
-              <Lock className="w-4 h-4 text-yellow-500" />
+            <div className="w-10 h-10 bg-muted/50 rounded-full flex items-center justify-center mb-3 ring-1 ring-border backdrop-blur-md">
+              <Lock className="w-4 h-4 text-foreground/80" />
             </div>
 
             <h3 className="font-semibold text-lg mb-1 tracking-tight">Unlock Premium Insights</h3>
@@ -236,7 +263,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
             <Button
               onClick={() => setShowUpgradeModal(true)}
               size="sm"
-              className="bg-[#F8FAFC] hover:bg-[#F1F5F9] text-black font-medium border border-white/10 shadow-xl shadow-yellow-900/5 transition-all px-8 h-9 rounded-full"
+              className="bg-foreground hover:bg-foreground/90 text-background font-medium border border-white/10 shadow-sm transition-all px-8 h-9 rounded-full"
             >
               Unlock for 0.5 AVAX
             </Button>

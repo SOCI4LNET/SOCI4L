@@ -94,7 +94,7 @@ export function PremiumUpgradeModal({ open, onOpenChange, onSuccess }: PremiumUp
             <DialogContent className="sm:max-w-md bg-background border border-border/20 text-foreground shadow-2xl">
                 <DialogHeader className="pt-2">
                     <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
-                        <Sparkles className="w-5 h-5 text-yellow-400 fill-yellow-400 animate-pulse" />
+                        <Sparkles className="w-5 h-5 text-foreground fill-foreground animate-pulse" />
                         Unlock Premium Insights
                     </DialogTitle>
                     <DialogDescription className="text-muted-foreground text-sm">
@@ -142,7 +142,7 @@ export function PremiumUpgradeModal({ open, onOpenChange, onSuccess }: PremiumUp
                     <Button
                         onClick={handleUpgrade}
                         disabled={isWritePending || isConfirming || isOptimisticSuccess}
-                        className="bg-[#D9A51F] hover:bg-[#C29218] text-black font-semibold border-0 transition-all active:scale-95"
+                        className="bg-foreground hover:bg-foreground/90 text-background font-semibold border-0 transition-all active:scale-95"
                     >
                         {isWritePending ? (
                             <>
