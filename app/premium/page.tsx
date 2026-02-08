@@ -50,10 +50,10 @@ const MOCK_CATEGORIES = [
 const MOCK_ACTIVITY = [
     {
         id: 1,
-        visitor: "0x8a80...1dC7",
-        fullVisitor: "0x8a809876543210abcdef1234567890abcdef1dC7",
-        action: "clicked on Portfolio Website",
-        timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString() // 5 mins ago
+        visitor: "0x8a80...1234",
+        fullVisitor: "0x8a809876543210abcdef1234567890abcdef1234",
+        action: "Shared your Profile",
+        timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString()
     },
     {
         id: 2,
@@ -65,7 +65,7 @@ const MOCK_ACTIVITY = [
     {
         id: 3,
         visitor: "0x3B28...f12C",
-        fullVisitor: "0x3B289134567890abcdef1234567890abcdef12",
+        fullVisitor: "0x3B289134567890abcdef1234567890abcdef55",
         action: "copied your Wallet Address",
         timestamp: new Date(Date.now() - 1000 * 60 * 32).toISOString()
     },
@@ -80,31 +80,32 @@ const MOCK_ACTIVITY = [
         id: 5,
         visitor: "0x4F56...7890",
         fullVisitor: "0x4F567890abcdef1234567890abcdef12345678",
-        action: "viewed your Profile",
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 1.5).toISOString() // 1.5 hours ago
+        action: "scanned your QR Code",
+        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 1.5).toISOString()
     },
     {
         id: 6,
         visitor: "0x1234...5678",
         fullVisitor: "0x1234567890abcdef1234567890abcdef123456",
-        action: "clicked on Instagram",
+        action: "clicked on Portfolio Website",
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString()
     },
     {
         id: 7,
         visitor: "0x890a...bcde",
-        fullVisitor: "0x890abcdef1234567890abcdef1234567890abc",
-        action: "viewed your Profile",
+        fullVisitor: "0x890abcdef1234567890abcdef1234567890aa",
+        action: "analyzed your Profile",
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString()
     },
 ]
 
 // Updated Avatar component using consistent App style (Effigy.im)
+// Updated Avatar component using DiceBear for reliability
 const PixelAvatar = ({ address }: { address: string }) => {
     return (
-        <Avatar className="h-8 w-8 border border-border/50">
-            <AvatarImage src={`https://effigy.im/a/${address}.svg`} alt={address} />
-            <AvatarFallback>{address.slice(2, 4).toUpperCase()}</AvatarFallback>
+        <Avatar className="h-8 w-8 border border-border/50 ring-2 ring-background transition-transform hover:scale-105">
+            <AvatarImage src={`https://api.dicebear.com/7.x/identicon/svg?seed=${address}`} alt={address} />
+            <AvatarFallback className="bg-muted text-[10px]">{address.slice(2, 4).toUpperCase()}</AvatarFallback>
         </Avatar>
     )
 }
@@ -366,28 +367,32 @@ export default function PremiumPage() {
                                         <CardTitle className="text-base text-foreground">Recent Activity</CardTitle>
                                         <CardDescription className="text-xs">Latest events timeline (verified real-time activity)</CardDescription>
                                     </CardHeader>
-                                    <CardContent className="pt-6 relative">
+                                    <CardContent className="pt-6 relative pl-10">
                                         {/* Timeline Vertical Line */}
-                                        <div className="absolute left-[38px] top-6 bottom-0 w-[1px] bg-border/40 h-full" />
+                                        <div className="absolute left-[24px] top-6 bottom-0 w-[1px] bg-border/40 h-full" />
 
                                         <div className="space-y-6">
                                             {MOCK_ACTIVITY.map((act, i) => (
                                                 <AnimatedListItem key={act.id} index={i}>
-                                                    <div className="flex items-start gap-3 relative">
+                                                    <div className="flex items-start gap-4 relative group/item hover:bg-muted/30 p-2 rounded-lg -mx-2 transition-all duration-300">
                                                         {/* Status Indicator Dot (on the timeline) */}
-                                                        <div className="absolute left-[-5px] top-[14px] w-2.5 h-2.5 rounded-full bg-border border-2 border-card z-10" />
+                                                        <div className="absolute left-[-28px] top-[14px] w-2.5 h-2.5 rounded-full bg-border border-2 border-background z-10 group-hover/item:bg-primary group-hover/item:scale-125 transition-all duration-300 shadow-[0_0_10px_rgba(var(--primary),0.3)]" />
 
-                                                        <div className="flex items-start gap-3 w-full pl-2">
-                                                            <PixelAvatar address={act.fullVisitor} />
-                                                            <div className="flex-1 min-w-0">
+                                                        <div className="flex items-start gap-3 w-full">
+                                                            <div className="relative">
+                                                                <PixelAvatar address={act.fullVisitor} />
+                                                                {/* Online dot indicator */}
+                                                                <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-background animate-pulse" />
+                                                            </div>
+                                                            <div className="flex-1 min-w-0 pt-0.5">
                                                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                                                                    <div className="flex items-center gap-1.5 text-xs text-foreground">
-                                                                        <Badge variant="secondary" className="px-1.5 py-0 h-5 font-mono text-[10px] bg-muted text-muted-foreground border-border">
+                                                                    <div className="flex items-center gap-1.5 text-xs text-foreground font-medium">
+                                                                        <Badge variant="secondary" className="px-1.5 py-0 h-5 font-mono text-[10px] bg-muted/50 text-muted-foreground border-border group-hover/item:border-primary/30 transition-colors">
                                                                             {act.visitor}
                                                                         </Badge>
-                                                                        <span className="text-muted-foreground">{act.action}</span>
+                                                                        <span className="text-muted-foreground group-hover/item:text-foreground transition-colors">{act.action}</span>
                                                                     </div>
-                                                                    <span className="text-[10px] text-muted-foreground font-mono">
+                                                                    <span className="text-[10px] text-muted-foreground/60 font-mono group-hover/item:text-primary/60 transition-colors">
                                                                         {formatDistanceToNow(new Date(act.timestamp), { addSuffix: true })}
                                                                     </span>
                                                                 </div>
@@ -407,21 +412,46 @@ export default function PremiumPage() {
 
                     {/* FINAL CTA */}
                     <section className="max-w-3xl mx-auto px-6 text-center mb-20">
-                        <Card className="bg-gradient-to-b from-foreground/5 to-transparent border-border/10 backdrop-blur-sm transition-all duration-500">
-                            <CardContent className="pt-12 pb-12">
-                                <h2 className="text-3xl font-semibold mb-6 text-foreground">Ready to upgrade?</h2>
-                                <p className="text-muted-foreground mb-8 text-lg">
-                                    Join hundreds of creators who own their data and understand their audience.
-                                </p>
-                                <Button
-                                    onClick={handleUpgradeClick}
-                                    size="lg"
-                                    className="bg-foreground text-background hover:bg-foreground/90 px-12 h-12 rounded-full font-semibold shadow-none transition-all hover:scale-105 active:scale-95"
-                                >
-                                    Get Premium Now
-                                </Button>
-                            </CardContent>
-                        </Card>
+                        <div className="relative py-24 overflow-hidden">
+                            {/* Decorative background glow */}
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] -z-10" />
+
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                whileInView={{ opacity: 1, scale: 1 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.8 }}
+                                className="space-y-8 relative z-10"
+                            >
+                                <div className="space-y-4">
+                                    <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">
+                                        Ready to upgrade?
+                                    </h2>
+                                    <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                                        Join hundreds of creators who own their data and understand their audience.
+                                    </p>
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                    <Button
+                                        onClick={handleUpgradeClick}
+                                        size="lg"
+                                        className="h-14 px-8 rounded-full text-lg font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95"
+                                    >
+                                        Get Premium Now
+                                        <ChevronRight className="w-5 h-5 ml-2" />
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="lg"
+                                        onClick={() => window.open('https://docs.soci4l.id', '_blank')}
+                                        className="h-14 px-8 rounded-full text-lg font-medium border-border/50 hover:bg-muted/50 transition-all hover:border-foreground/20"
+                                    >
+                                        Read Documentation
+                                    </Button>
+                                </div>
+                            </motion.div>
+                        </div>
                     </section>
 
                     <SiteFooter />
