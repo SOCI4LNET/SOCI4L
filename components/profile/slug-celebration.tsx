@@ -16,31 +16,24 @@ export function SlugCelebration({ slug, onClose }: SlugCelebrationProps) {
     const [isVisible, setIsVisible] = useState(true);
 
     useEffect(() => {
-        // Fire confetti
-        const duration = 3 * 1000;
-        const animationEnd = Date.now() + duration;
-        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+        // Fire confetti immediately with multiple bursts
+        const fire = (particleRatio: number, opts: any) => {
+            confetti({
+                ...opts,
+                particleCount: Math.floor(200 * particleRatio),
+                zIndex: 10000,
+            });
+        };
 
-        const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
-
-        const interval: any = setInterval(function () {
-            const timeLeft = animationEnd - Date.now();
-
-            if (timeLeft <= 0) {
-                return clearInterval(interval);
-            }
-
-            const particleCount = 50 * (timeLeft / duration);
-            // since particles fall down, start a bit higher than random
-            confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
-            confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
-        }, 250);
-
-        return () => clearInterval(interval);
+        fire(0.25, { spread: 26, startVelocity: 55 });
+        fire(0.2, { spread: 60 });
+        fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+        fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+        fire(0.1, { spread: 120, startVelocity: 45 });
     }, []);
 
     const shareUrl = `https://soci4l.net/p/${slug}`;
-    const shareText = `Just claimed my custom profile handle on SOCI4L! Say hi at ${shareUrl} 🚀 @SOCI4L_AVAX #SOCI4L #Avalanche #Avax`;
+    const shareText = `Just claimed my custom profile handle on SOCI4L!\n\nSay hi at ${shareUrl} 🚀 @soci4lnet #soci4l`;
     const xShareLink = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
 
     const handleShare = () => {
@@ -59,12 +52,20 @@ export function SlugCelebration({ slug, onClose }: SlugCelebrationProps) {
                         className="w-full max-w-md"
                     >
                         <Card className="relative overflow-hidden border-2 border-primary/20 shadow-2xl bg-gradient-to-b from-card to-card/95">
-                            {/* Decorative elements */}
-                            <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-                                <Sparkles className="w-16 h-16 text-primary" />
-                            </div>
+                            {/* Close Button */}
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="absolute top-2 right-2 z-10 text-muted-foreground hover:text-foreground rounded-full h-8 w-8"
+                                onClick={() => {
+                                    setIsVisible(false);
+                                    setTimeout(onClose, 200);
+                                }}
+                            >
+                                <X className="w-4 h-4" />
+                            </Button>
 
-                            <CardHeader className="text-center pb-2">
+                            <CardHeader className="text-center pb-2 pt-8">
                                 <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                                     <Check className="w-8 h-8 text-primary" />
                                 </div>
@@ -94,7 +95,7 @@ export function SlugCelebration({ slug, onClose }: SlugCelebrationProps) {
                             <CardFooter className="flex flex-col gap-3 pb-8">
                                 <Button
                                     onClick={handleShare}
-                                    className="w-full bg-[#000000] hover:bg-[#1a1a1a] text-white gap-2 h-12 text-base font-semibold transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                    className="w-full bg-white hover:bg-white/90 text-black border border-white/20 gap-2 h-12 text-base font-bold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-md"
                                 >
                                     <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
                                         <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
