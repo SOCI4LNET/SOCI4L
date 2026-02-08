@@ -31,6 +31,7 @@ export type UserProfile = {
     ownerAddress?: string
     layout?: any
     appearance?: any
+    premiumExpiresAt?: string | null // ISO string from backend
 }
 
 export function useProfile(targetAddress?: string) {
@@ -98,7 +99,8 @@ export function useProfile(targetAddress?: string) {
                 isPublic: p.visibility === 'PUBLIC',
                 ownerAddress: p.ownerAddress,
                 layout: data.layout,
-                appearance: data.appearance
+                appearance: data.appearance,
+                premiumExpiresAt: p.premiumExpiresAt // Include premium data
             } as UserProfile
         },
         enabled: (!!address) || isDemo // Enable if demo mode

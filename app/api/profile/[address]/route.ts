@@ -32,6 +32,7 @@ export async function GET(
                 bio: profile.bio || null,
                 role: profile.role,
                 updatedAt: profile.updatedAt.getTime(),
+                premiumExpiresAt: profile.premiumExpiresAt,
             },
         })
     } catch (error) {

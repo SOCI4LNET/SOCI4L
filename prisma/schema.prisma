@@ -34,6 +34,7 @@ model Profile {
   socialLinks      String?  // JSON array of social links
   layoutConfig     String?  // JSON ProfileLayoutConfig
   appearanceConfig String?  // JSON ProfileAppearanceConfig
+  premiumExpiresAt DateTime? // For Premium Payment System
   createdAt        DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
