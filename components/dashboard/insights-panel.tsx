@@ -179,28 +179,33 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
     if (hasAccess) return <>{children}</>;
 
     return (
-      <div className="relative overflow-hidden rounded-lg group">
-        <div className="blur-sm select-none pointer-events-none opacity-50 transition-all duration-500 filter grayscale-[0.5]">
+      <div className="relative group">
+        {/* Content with Strong Gaussian Blur */}
+        <div className="pointer-events-none select-none opacity-40 blur-xl transition-all duration-700 filter grayscale-[0.2]">
           {children}
         </div>
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/20 backdrop-blur-[2px]">
-          <div className="bg-card/90 p-8 rounded-2xl border border-yellow-500/20 shadow-2xl flex flex-col items-center text-center max-w-sm animate-in fade-in zoom-in duration-300">
-            <div className="w-12 h-12 bg-yellow-500/10 rounded-full flex items-center justify-center mb-4">
-              <Lock className="w-6 h-6 text-yellow-500" />
+
+        {/* Minimal Overlay */}
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6">
+          <div className="flex flex-col items-center text-center max-w-[320px] animate-in fade-in zoom-in duration-500 delay-100">
+
+            {/* Icon Container */}
+            <div className="w-10 h-10 bg-gradient-to-br from-yellow-500/20 to-orange-500/10 rounded-full flex items-center justify-center mb-3 ring-1 ring-yellow-500/20 backdrop-blur-md">
+              <Lock className="w-4 h-4 text-yellow-500" />
             </div>
-            <h3 className="font-bold text-xl mb-2">Unlock Premium Insights</h3>
-            <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-              Gain deep visibility into your audience with source breakdowns, referrer tracking, and 30-day history.
+
+            <h3 className="font-semibold text-lg mb-1 tracking-tight">Unlock Premium Insights</h3>
+            <p className="text-xs text-muted-foreground mb-5 leading-normal max-w-[260px]">
+              See who's viewing your profile with advanced source breakdown and detailed history.
             </p>
+
             <Button
               onClick={() => setShowUpgradeModal(true)}
-              className="bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white font-semibold border-0 w-full shadow-lg hover:shadow-yellow-500/20 transition-all"
+              size="sm"
+              className="bg-[#F8FAFC] hover:bg-[#F1F5F9] text-black font-medium border border-white/10 shadow-xl shadow-yellow-900/5 transition-all px-8 h-9 rounded-full"
             >
-              Unlock Insights — 0.5 AVAX / yr
+              Unlock for 0.5 AVAX
             </Button>
-            <p className="text-[10px] text-muted-foreground mt-3">
-              Decentralized. Immutable. One-time payment.
-            </p>
           </div>
         </div>
       </div>
