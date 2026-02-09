@@ -301,17 +301,6 @@ export function PremiumWallCta({ onUpgrade, isPremium }: PremiumWallCtaProps) {
                                     Read Documentation
                                 </Button>
                             </div>
-
-                            <div className="pt-4 flex items-center justify-center gap-6 text-sm text-muted-foreground">
-                                <div className="flex items-center gap-2">
-                                    <Check className="w-4 h-4 text-emerald-500" />
-                                    <span>Cancel anytime</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Check className="w-4 h-4 text-emerald-500" />
-                                    <span>30-day guarantee</span>
-                                </div>
-                            </div>
                         </>
                     ) : (
                         <div className="bg-background/40 backdrop-blur-md px-8 py-4 rounded-full border border-primary/20 shadow-xl shadow-primary/5 flex items-center gap-3 animate-in fade-in zoom-in duration-700">
