@@ -132,7 +132,7 @@ export function PremiumUpgradeModal({ open, onOpenChange, onSuccess }: PremiumUp
                         </li>
                         <li className="flex items-start gap-3 text-sm">
                             <Check className="w-4 h-4 text-green-500 mt-0.5" />
-                            <span className="text-foreground/90">30-Day History Retention</span>
+                            <span className="text-foreground/90">Full History Access</span>
                         </li>
                         <li className="flex items-start gap-3 text-sm">
                             <Check className="w-4 h-4 text-green-500 mt-0.5" />

@@ -61,6 +61,7 @@ type GlobalAnalytics = {
   maxCategoryClicks: number
   recentActivity: RecentActivity[]
   sourceBreakdown: Record<AnalyticsSource, number>
+  deviceBreakdown: Record<string, number>
   topReferrers: Array<{ name: string; count: number }>
 }
 
@@ -148,9 +149,13 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
         maxCategoryClicks: 0,
         recentActivity: [],
         sourceBreakdown: { profile: 0, qr: 0, copy: 0, unknown: 0, extension: 0 } as any,
+        deviceBreakdown: {},
         topReferrers: []
       }
     }
+
+    const sourceBreakdown = analyticsData?.sourceBreakdown || {} as Record<AnalyticsSource, number>
+    const deviceBreakdown = analyticsData?.deviceBreakdown || {} as Record<string, number>
 
     return {
       ...analyticsData,
@@ -168,7 +173,8 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
         percentageShare: c.share,
         topLinkLabel: c.topLinkLabel
       })),
-      sourceBreakdown: analyticsData.sourceBreakdown as any
+      sourceBreakdown,
+      deviceBreakdown
     }
   }, [analyticsData])
 
@@ -480,6 +486,57 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
                   </CardContent>
                 </Card>
               </div>
+            </section>
+
+            {/* Device Breakdown */}
+            <section className="space-y-4">
+              <SectionHeader title="Device Distribution" description="Visitor traffic by device type" />
+              <Card className="bg-card border-border/60 shadow-sm">
+                <CardContent className="px-6 py-6">
+                  {Object.keys(analytics.deviceBreakdown).length === 0 ? (
+                    <div className="py-6 text-center text-xs text-muted-foreground italic">No data available</div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {/* Simple List */}
+                      <div className="space-y-4">
+                        {Object.entries(analytics.deviceBreakdown)
+                          .sort(([, a], [, b]) => b - a)
+                          .map(([device, count]) => {
+                            const total = Object.values(analytics.deviceBreakdown).reduce((a, b) => a + b, 0);
+                            const percentage = (count / total) * 100;
+                            return (
+                              <div key={device} className="space-y-1.5">
+                                <div className="flex items-center justify-between text-xs">
+                                  <div className="flex items-center gap-2">
+                                    <div className={`w-2 h-2 rounded-full ${device === 'Desktop' ? 'bg-primary' : device === 'Mobile' ? 'bg-foreground/60' : 'bg-muted-foreground'}`} />
+                                    <span className="font-medium text-muted-foreground">{device}</span>
+                                  </div>
+                                  <span className="font-mono text-foreground/80">{count} views ({percentage.toFixed(0)}%)</span>
+                                </div>
+                                <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                                  <div
+                                    className={`h-full rounded-full transition-all duration-500 ${device === 'Desktop' ? 'bg-primary/60' : device === 'Mobile' ? 'bg-foreground/30' : 'bg-muted-foreground/30'}`}
+                                    style={{ width: `${percentage}%` }}
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })}
+                      </div>
+
+                      {/* Visual summary */}
+                      <div className="flex items-center justify-center p-4 bg-muted/10 rounded-xl border border-border/40">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-foreground">
+                            {Object.values(analytics.deviceBreakdown).reduce((a, b) => a + b, 0)}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">Total Verified Views</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </section>
 
             {/* Activity Timeline */}

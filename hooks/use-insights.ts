@@ -34,6 +34,7 @@ export type AnalyticsData = {
         source?: string
     }>
     sourceBreakdown: Record<string, number>
+    deviceBreakdown: Record<string, number>
     linkClickCounts: Record<string, number>
     topReferrers: Array<{ name: string; count: number }>
 }
@@ -69,6 +70,11 @@ export function useInsights(targetAddress?: string) {
             'profile': 800,
             'qr': 200,
             'unknown': 250
+        },
+        deviceBreakdown: {
+            'Desktop': 750,
+            'Mobile': 450,
+            'Tablet': 50
         },
         linkClickCounts: {
             '1': 342,
@@ -118,7 +124,8 @@ export function useInsights(targetAddress?: string) {
             return {
                 ...raw,
                 linkClickCounts,
-                sourceBreakdown: raw.sourceBreakdown || {}
+                sourceBreakdown: raw.sourceBreakdown || {},
+                deviceBreakdown: raw.deviceBreakdown || {}
             } as AnalyticsData
         },
         enabled: (!!address) || isDemo

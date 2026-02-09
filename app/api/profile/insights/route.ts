@@ -384,6 +384,21 @@ export async function GET(request: NextRequest) {
         recentActivity,
         sourceBreakdown,
         topReferrers,
+        deviceBreakdown: await (async () => {
+          const stats = await prisma.analyticsEvent.groupBy({
+            by: ['device'],
+            where: {
+              profileId: resolvedAddress!,
+              ...selfActivityFilter,
+            },
+            _count: { _all: true }
+          })
+          const breakdown: Record<string, number> = {}
+          stats.forEach(s => {
+            if (s.device) breakdown[s.device] = s._count._all
+          })
+          return breakdown
+        })()
       },
     })
   } catch (error) {
