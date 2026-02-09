@@ -230,7 +230,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
               size="sm"
               className="bg-foreground hover:bg-foreground/90 text-background font-medium border border-white/10 shadow-sm transition-all px-8 h-9 rounded-full"
             >
-              Unlock for 0.5 AVAX
+              Get Premium Access
             </Button>
           </div>
         </div>
