@@ -205,12 +205,58 @@ export default function LinkInsightsPage({ params }: PageProps) {
   const PremiumContent = ({ children }: { children: React.ReactNode }) => {
     if (hasAccess) return <>{children}</>;
 
+    // MOCK DATA FOR PREVIEW (Realistic blurred content)
+    const MockPreview = () => (
+      <div className="space-y-6 select-none pointer-events-none filter blur-[4px] grayscale-[0.5] opacity-50 transition-all duration-700">
+        {/* Fake Source Breakdown */}
+        <Card className="bg-card border border-border/60 shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Source breakdown</CardTitle>
+            <CardDescription className="text-xs">Where clicks originated from</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs"><span className="text-muted-foreground">Twitter / X</span><span className="font-mono">42%</span></div>
+              <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden"><div className="h-full bg-primary/40 w-[42%]" /></div>
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs"><span className="text-muted-foreground">Direct</span><span className="font-mono">31%</span></div>
+              <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden"><div className="h-full bg-primary/40 w-[31%]" /></div>
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs"><span className="text-muted-foreground">Google</span><span className="font-mono">18%</span></div>
+              <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden"><div className="h-full bg-primary/40 w-[18%]" /></div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Fake Recent Clicks */}
+        <Card className="bg-card border border-border/60 shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Recent Clicks</CardTitle>
+            <CardDescription className="text-xs">Latest recognized activity</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center gap-3 p-3 bg-muted/20 rounded-lg border border-border/40">
+                <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center border border-border/50">
+                  <MousePointerClick className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="h-3 w-24 bg-foreground/10 rounded mb-1.5" />
+                  <div className="h-2 w-16 bg-foreground/5 rounded" />
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    );
+
     return (
       <div className="relative group mt-8">
-        {/* Blurred Content */}
-        <div className="select-none pointer-events-none filter blur-sm grayscale-[0.5] opacity-60 transition-all duration-700">
-          {children}
-        </div>
+        {/* Render Mock Content with Blur */}
+        <MockPreview />
 
         {/* Minimal Overlay */}
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6">
@@ -222,7 +268,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
 
             <h3 className="font-semibold text-lg mb-1 tracking-tight text-foreground">Unlock Premium Insights</h3>
             <p className="text-xs text-muted-foreground mb-5 leading-normal max-w-[260px]">
-              See who's viewing your profile with advanced source breakdown and detailed history.
+              See who's clicking your links with detailed source attribution and visitor history.
             </p>
 
             <Button
