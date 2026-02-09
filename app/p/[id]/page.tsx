@@ -455,26 +455,7 @@ export default function ProfilePage({ params }: PageProps) {
     }
   }
 
-  if (isNotFound) {
-    return (
-      <div className="container mx-auto px-4 py-12 max-w-2xl">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-4xl text-center">404</CardTitle>
-            <CardDescription className="text-center">Profile not found</CardDescription>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <p className="text-muted-foreground">
-              The profile <strong>{params.id}</strong> does not exist.
-            </p>
-            <Link href="/">
-              <Button variant="outline">Back to Home</Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
+
 
   if (profileStatus === 'COOLDOWN' && cooldownInfo) {
     const endsAt = new Date(cooldownInfo.cooldownEndsAt)
@@ -738,6 +719,27 @@ export default function ProfilePage({ params }: PageProps) {
   const headerClasses = getThemeHeaderClasses(effectiveAppearanceConfig.theme)
   const titleClasses = getThemeTextClasses(effectiveAppearanceConfig.theme, 'title')
   const avatarSize = effectiveAppearanceConfig.theme === 'spotlight' ? 'h-16 w-16' : 'h-12 w-12'
+
+  if (isNotFound) {
+    return (
+      <div className="container mx-auto px-4 py-12 max-w-2xl">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-4xl text-center">404</CardTitle>
+            <CardDescription className="text-center">Profile not found</CardDescription>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <p className="text-muted-foreground">
+              The profile <strong>{params.id}</strong> does not exist.
+            </p>
+            <Link href="/">
+              <Button variant="outline">Back to Home</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
