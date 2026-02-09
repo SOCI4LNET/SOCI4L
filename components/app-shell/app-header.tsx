@@ -133,7 +133,7 @@ export function AppHeader({ showSidebarTrigger = false, sticky = true, showNavig
                 {item.badge && (
                   <Badge
                     variant="secondary"
-                    className="ml-2 px-1 py-0 h-4 text-[9px] font-bold bg-brand/10 text-brand border-brand/20"
+                    className="ml-2 px-1 py-0 h-4 text-[9px] font-bold bg-brand text-white border-brand/20 shadow-sm"
                   >
                     {item.badge}
                   </Badge>
