@@ -206,44 +206,32 @@ export default function LinkInsightsPage({ params }: PageProps) {
     if (hasAccess) return <>{children}</>;
 
     return (
-      <div className="relative group/premium">
+      <div className="relative group mt-8">
         {/* Blurred Content */}
         <div className="select-none pointer-events-none filter blur-sm grayscale-[0.5] opacity-60 transition-all duration-700">
           {children}
         </div>
 
-        {/* Lock Overlay */}
-        <div className="absolute inset-0 z-20 flex items-center justify-center p-6">
-          <div className="bg-background/80 backdrop-blur-md border border-border/60 rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl transform transition-all duration-500 group-hover/premium:scale-[1.02] border-primary/20">
-            <div className="mb-4 flex justify-center">
-              <div className="relative">
-                <div className="absolute -inset-4 bg-primary/20 blur-xl rounded-full animate-pulse" />
-                <div className="relative h-14 w-14 bg-background border-2 border-primary/30 rounded-full flex items-center justify-center shadow-inner">
-                  <Lock className="h-6 w-6 text-primary" />
-                </div>
-              </div>
+        {/* Minimal Overlay */}
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-6">
+          <div className="flex flex-col items-center text-center max-w-[320px]">
+            {/* Icon Container */}
+            <div className="w-10 h-10 bg-muted/50 rounded-full flex items-center justify-center mb-3 ring-1 ring-border backdrop-blur-md">
+              <Lock className="w-4 h-4 text-foreground/80" />
             </div>
 
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 mb-4">
-              <ShieldCheck className="h-3 w-3 text-primary" />
-              <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Premium Feature</span>
-            </div>
-
-            <h3 className="text-lg font-bold mb-2 text-foreground tracking-tight">Unlock Deep Insights</h3>
-            <p className="text-xs text-muted-foreground mb-6 leading-relaxed">
-              Get detailed traffic source attribution and real-time visitor history with SOCI4L Premium.
+            <h3 className="font-semibold text-lg mb-1 tracking-tight text-foreground">Unlock Premium Insights</h3>
+            <p className="text-xs text-muted-foreground mb-5 leading-normal max-w-[260px]">
+              See who's viewing your profile with advanced source breakdown and detailed history.
             </p>
 
             <Button
               onClick={() => setShowUpgradeModal(true)}
-              className="w-full h-11 bg-foreground hover:bg-foreground/90 text-background font-bold rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/10"
+              size="sm"
+              className="bg-foreground hover:bg-foreground/90 text-background font-medium border border-white/10 shadow-sm transition-all px-8 h-9 rounded-full"
             >
-              Upgrade Now
+              Unlock for 0.5 AVAX
             </Button>
-
-            <p className="mt-4 text-[10px] text-muted-foreground font-medium">
-              Join the elite network for <span className="text-foreground">0.5 AVAX / year</span>
-            </p>
           </div>
         </div>
       </div>
