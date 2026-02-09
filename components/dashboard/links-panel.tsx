@@ -936,6 +936,19 @@ export function LinksPanel() {
 
     try {
       setCategoriesSaving(true)
+
+      // Get nonce
+      const nonceResponse = await fetch('/api/auth/nonce')
+      if (!nonceResponse.ok) throw new Error('Failed to get nonce')
+      const { nonce } = await nonceResponse.json()
+
+      // Sign message
+      showTransactionLoader("Confirm in Wallet...")
+      const message = `Update categories for ${targetAddress.toLowerCase()}. Nonce: ${nonce}`
+      const signature = await signMessageAsync({ message })
+
+      showTransactionLoader("Saving categories...")
+
       const response = await fetch('/api/profile/categories', {
         method: 'POST',
         headers: {
@@ -952,6 +965,7 @@ export function LinksPanel() {
             isVisible: cat.isVisible !== undefined ? cat.isVisible : true,
             isDefault: cat.isDefault || false,
           })),
+          signature, // Included for future backend verification
         }),
       })
 
@@ -975,18 +989,23 @@ export function LinksPanel() {
           order: cat.order ?? 0,
           isVisible: cat.isVisible ?? true,
           isDefault: cat.isDefault ?? false,
-          linkCount: cat.linkCount || 0,
+          linkCount: cat._count?.links || cat.linkCount || 0,
           createdAt: cat.createdAt || new Date().toISOString(),
           updatedAt: cat.updatedAt || new Date().toISOString(),
         }))
       )
       return true
-    } catch (error) {
+    } catch (error: any) {
       console.error('[LinksPanel] Failed to save categories', error)
-      toast.error('Failed to save categories. Please try again.')
+      if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
+        toast.error('Transaction rejected')
+      } else {
+        toast.error('Failed to save categories. Please try again.')
+      }
       return false
     } finally {
       setCategoriesSaving(false)
+      hideTransactionLoader()
     }
   }
 
@@ -998,6 +1017,19 @@ export function LinksPanel() {
 
     try {
       setSaving(true)
+
+      // Get nonce
+      const nonceResponse = await fetch('/api/auth/nonce')
+      if (!nonceResponse.ok) throw new Error('Failed to get nonce')
+      const { nonce } = await nonceResponse.json()
+
+      // Sign message - MUST MATCH BACKEND EXPECTATION
+      showTransactionLoader("Confirm in Wallet...")
+      const message = `Update links for ${targetAddress.toLowerCase()}. Nonce: ${nonce}`
+      const signature = await signMessageAsync({ message })
+
+      showTransactionLoader("Saving links...")
+
       const response = await fetch('/api/profile/links', {
         method: 'POST',
         headers: {
@@ -1013,6 +1045,7 @@ export function LinksPanel() {
             categoryId: link.categoryId || null,
             order: link.order !== undefined ? link.order : index,
           })),
+          signature,
         }),
       })
 
@@ -1041,12 +1074,17 @@ export function LinksPanel() {
         }))
       )
       return true
-    } catch (error) {
+    } catch (error: any) {
       console.error('[LinksPanel] Failed to save links', error)
-      toast.error('Failed to save links. Please try again.')
+      if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
+        toast.error('Transaction rejected')
+      } else {
+        toast.error('Failed to save links. Please try again.')
+      }
       return false
     } finally {
       setSaving(false)
+      hideTransactionLoader()
     }
   }
 
