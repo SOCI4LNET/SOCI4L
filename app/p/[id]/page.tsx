@@ -113,6 +113,7 @@ export default function ProfilePage({ params }: PageProps) {
   } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isNotFound, setIsNotFound] = useState(false)
   const [qrModalOpen, setQrModalOpen] = useState(false)
   const [profileLinks, setProfileLinks] = useState<ProfileLink[]>([])
   const [linkCategories, setLinkCategories] = useState<Array<{ id: string; name: string; slug: string; description: string | null; order: number; isVisible?: boolean }>>([])
@@ -215,7 +216,9 @@ export default function ProfilePage({ params }: PageProps) {
           // Need to check for cooldown handling in API response even if error present?
           // API returns success JSON with profileStatus='COOLDOWN' if cooldown found, not error.
           if (response.status === 404 && !isAddress) {
-            setError('Profile not found')
+            setIsNotFound(true)
+            setLoading(false)
+            return
           } else {
             setError(data.error)
           }
@@ -450,6 +453,27 @@ export default function ProfilePage({ params }: PageProps) {
           </Badge>
         )
     }
+  }
+
+  if (isNotFound) {
+    return (
+      <div className="container mx-auto px-4 py-12 max-w-2xl">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-4xl text-center">404</CardTitle>
+            <CardDescription className="text-center">Profile not found</CardDescription>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <p className="text-muted-foreground">
+              The profile <strong>{params.id}</strong> does not exist.
+            </p>
+            <Link href="/">
+              <Button variant="outline">Back to Home</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   if (profileStatus === 'COOLDOWN' && cooldownInfo) {
