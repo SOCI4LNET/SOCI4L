@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 import { HeaderActions } from './header-actions'
+import { Badge } from '@/components/ui/badge'
+import { Sparkles } from 'lucide-react'
 import { PAGE_GUTTER } from '@/lib/layout-constants'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -33,9 +35,10 @@ interface AppHeaderProps {
 const EXAMPLE_PROFILE_ADDRESS = '0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1'
 
 const navigationItems = [
-  { label: 'Overview', href: '/', exact: true },
-  { label: 'Try Demo', href: '/demo' },
-  { label: 'Docs', href: 'https://docs.soci4l.net', external: true },
+  { label: 'Product', href: '/', exact: true },
+  { label: 'Premium', href: '/premium' },
+  { label: 'Documentation', href: 'https://soci4l.net/docs', external: true },
+  { label: 'Live Demo', href: '/demo', badge: 'NEW' },
 ]
 
 /**
@@ -120,13 +123,21 @@ export function AppHeader({ showSidebarTrigger = false, sticky = true, showNavig
                 size="sm"
                 onClick={() => router.push(item.href)}
                 className={cn(
-                  'text-sm font-medium transition-colors',
+                  'text-sm font-medium transition-colors relative',
                   'hover:bg-accent hover:text-accent-foreground',
                   'h-9 px-4',
                   active && 'bg-accent text-accent-foreground'
                 )}
               >
                 {item.label}
+                {item.badge && (
+                  <Badge
+                    variant="secondary"
+                    className="ml-2 px-1 py-0 h-4 text-[9px] font-bold bg-brand/10 text-brand border-brand/20"
+                  >
+                    {item.badge}
+                  </Badge>
+                )}
               </Button>
             )
           })}
@@ -134,7 +145,7 @@ export function AppHeader({ showSidebarTrigger = false, sticky = true, showNavig
       )}
 
       {/* Right: Header Actions (Connect Wallet / Avatar Dropdown) */}
-      <div className="flex flex-1 items-center justify-end gap-2 shrink-0">
+      <div className="flex flex-1 items-center justify-end gap-3 shrink-0">
         <HeaderActions />
       </div>
     </header>
