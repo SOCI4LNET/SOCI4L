@@ -104,6 +104,10 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
 
       if (!lastSync || now - Number(lastSync) > COOLDOWN) {
         console.log('[InsightsPanel] Triggering background premium sync (force)...');
+
+        // Optimistically set the lock to prevent race conditions (double firing)
+        localStorage.setItem(`last_premium_sync_${address}`, now.toString());
+
         // Fire and forget, but force=true to ensure deep scan if needed
         fetch('/api/cron/sync-premium?force=true')
           .then(res => res.json())
@@ -114,9 +118,11 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
               router.refresh()
             }
           })
-          .catch(e => console.error('[InsightsPanel] Background sync failed', e))
-          .finally(() => {
-            localStorage.setItem(`last_premium_sync_${address}`, now.toString());
+          .catch(e => {
+            console.error('[InsightsPanel] Background sync failed', e)
+            // If failed, maybe remove the lock so it tries again next time?
+            // checking e.name !== 'AbortError' if we had specific cancellation
+            localStorage.removeItem(`last_premium_sync_${address}`);
           });
       }
     }

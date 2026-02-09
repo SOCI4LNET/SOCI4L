@@ -1,0 +1,62 @@
+[
+  {
+    "pid": 20182,
+    "locktype": "advisory",
+    "mode": "ExclusiveLock",
+    "granted": true,
+    "objid": "72707369",
+    "usename": "prisma_migration",
+    "application_name": "",
+    "client_addr": "10.0.53.242",
+    "state": "idle",
+    "query": "SELECT \"id\", \"checksum\", \"finished_at\", \"migration_name\", \"logs\", \"rolled_back_at\", \"started_at\", \"applied_steps_count\" FROM \"_prisma_migrations\" ORDER BY \"started_at\" ASC"
+  },
+  {
+    "pid": 20220,
+    "locktype": "advisory",
+    "mode": "ExclusiveLock",
+    "granted": false,
+    "objid": "72707369",
+    "usename": "prisma_migration",
+    "application_name": "",
+    "client_addr": "10.0.53.242",
+    "state": "active",
+    "query": "SELECT pg_advisory_lock(72707369)"
+  },
+  {
+    "pid": 20194,
+    "locktype": "advisory",
+    "mode": "ExclusiveLock",
+    "granted": false,
+    "objid": "72707369",
+    "usename": "prisma_migration",
+    "application_name": "",
+    "client_addr": "10.0.53.242",
+    "state": "active",
+    "query": "SELECT pg_advisory_lock(72707369)"
+  },
+  {
+    "pid": 20216,
+    "locktype": "advisory",
+    "mode": "ExclusiveLock",
+    "granted": false,
+    "objid": "72707369",
+    "usename": "prisma_migration",
+    "application_name": "",
+    "client_addr": "10.0.53.242",
+    "state": "active",
+    "query": "SELECT pg_advisory_lock(72707369)"
+  },
+  {
+    "pid": 20199,
+    "locktype": "advisory",
+    "mode": "ExclusiveLock",
+    "granted": false,
+    "objid": "72707369",
+    "usename": "prisma_migration",
+    "application_name": "",
+    "client_addr": "10.0.53.242",
+    "state": "active",
+    "query": "SELECT pg_advisory_lock(72707369)"
+  }
+]

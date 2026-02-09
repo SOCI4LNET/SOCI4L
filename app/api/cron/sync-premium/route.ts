@@ -75,112 +75,141 @@ export async function GET(request: NextRequest) {
                 const { args, transactionHash, logIndex } = log
                 const logIndexInt = Number(logIndex) // Ensure it's a number
 
-                // 2.2 Deduplication Check
-                const existingEvent = await prisma.processedEvent.findUnique({
-                    where: {
-                        txHash_logIndex_eventName: {
-                            txHash: transactionHash,
-                            logIndex: logIndexInt,
-                            eventName: 'PremiumPurchased'
-                        }
-                    }
-                })
-
-                if (existingEvent) {
-                    console.log(`[Sync Premium] Skipping processed event: ${transactionHash}-${logIndexInt}`)
-                    continue
-                }
-
-                if (!args.user || !args.expiresAt) continue
-
-                const userAddress = args.user.toLowerCase()
-                const newExpiresAt = new Date(Number(args.expiresAt) * 1000)
-
-                // Database Update: Upsert Profile
-                const existingProfile = await prisma.profile.findUnique({
-                    where: { address: userAddress }
-                })
-
-                const isNewlyPremium = !existingProfile?.premiumExpiresAt ||
-                    (existingProfile.premiumExpiresAt < new Date());
-
-                if (existingProfile) {
-                    let finalExpiresAt = newExpiresAt
-                    if (existingProfile.premiumExpiresAt && existingProfile.premiumExpiresAt > newExpiresAt) {
-                        finalExpiresAt = existingProfile.premiumExpiresAt
-                    }
-
-                    await prisma.profile.update({
-                        where: { address: userAddress },
-                        data: {
-                            premiumExpiresAt: finalExpiresAt,
-                            premiumLastTxHash: transactionHash // Always update tx hash
-                        }
-                    })
-                    totalProcessed++
-                } else {
-                    console.log(`[Sync Premium] Creating new profile for ${userAddress}`)
-                    await prisma.profile.create({
-                        data: {
-                            address: userAddress,
-                            status: 'UNCLAIMED',
-                            premiumExpiresAt: newExpiresAt,
-                            premiumLastTxHash: transactionHash, // Set initial tx hash
-                            isPublic: false,
-                            displayName: userAddress.slice(0, 6)
-                        }
-                    })
-                    totalProcessed++
-                }
-
-                // 2.3 Mark Event as Processed
-                await prisma.processedEvent.create({
-                    data: {
-                        txHash: transactionHash,
-                        logIndex: logIndexInt,
-                        eventName: 'PremiumPurchased'
-                    }
-                })
-
-                if (isNewlyPremium) {
-                    try {
-                        const { sendTelegramNotification, getAvaxPrice } = require('@/lib/telegram');
-                        const price = await getAvaxPrice();
-                        const amount = 0.5;
-                        const usdValue = (amount * price).toFixed(2);
-
-                        const totalPremium = await prisma.profile.count({
+                try {
+                    await prisma.$transaction(async (tx) => {
+                        // 2.2 Deduplication Check (Atomic)
+                        const existingEvent = await tx.processedEvent.findUnique({
                             where: {
-                                premiumExpiresAt: {
-                                    gt: new Date()
+                                txHash_logIndex_eventName: {
+                                    txHash: transactionHash,
+                                    logIndex: logIndexInt,
+                                    eventName: 'PremiumPurchased'
                                 }
                             }
-                        });
+                        })
 
-                        const txHash = log.transactionHash;
-                        const explorerUrl = `https://snowtrace.io/tx/${txHash}`;
+                        if (existingEvent) {
+                            console.log(`[Sync Premium] Skipping processed event: ${transactionHash}-${logIndexInt}`)
+                            return // Skip rest of transaction
+                        }
 
-                        const profileIdentity = existingProfile?.slug
-                            ? `<b>${existingProfile.slug}</b> (<code>${userAddress}</code>)`
-                            : `<code>${userAddress}</code>`;
+                        // 2.3 Mark Event as Processed (Locks this event)
+                        await tx.processedEvent.create({
+                            data: {
+                                txHash: transactionHash,
+                                logIndex: logIndexInt,
+                                eventName: 'PremiumPurchased'
+                            }
+                        })
 
-                        const msg = [
-                            `🚀 <b>New Premium Purchase!</b>`,
-                            ``,
-                            `👤 <b>User:</b> ${profileIdentity}`,
-                            `💰 <b>Amount:</b> ${amount} AVAX (~$${usdValue})`,
-                            `📅 <b>Expires:</b> ${newExpiresAt.toLocaleDateString()}`,
-                            `🏆 <b>Total Premium:</b> ${totalPremium}`,
-                            ``,
-                            `⛓️ <a href="${explorerUrl}">View on Snowtrace</a>`,
-                            `🔗 <a href="https://soci4l.net/p/${existingProfile?.slug || userAddress}">View Profile</a>`
-                        ].join('\n');
+                        if (!args.user || !args.expiresAt) return
 
-                        await sendTelegramNotification(msg);
-                    } catch (err) {
-                        console.error('[Sync Premium] Telegram notification failed:', err);
+                        const userAddress = args.user.toLowerCase()
+                        const newExpiresAt = new Date(Number(args.expiresAt) * 1000)
+
+                        // Database Update: Upsert Profile
+                        const existingProfile = await tx.profile.findUnique({
+                            where: { address: userAddress }
+                        })
+
+                        const isNewlyPremium = !existingProfile?.premiumExpiresAt ||
+                            (existingProfile.premiumExpiresAt < new Date());
+
+                        if (existingProfile) {
+                            let finalExpiresAt = newExpiresAt
+                            if (existingProfile.premiumExpiresAt && existingProfile.premiumExpiresAt > newExpiresAt) {
+                                finalExpiresAt = existingProfile.premiumExpiresAt
+                            }
+
+                            await tx.profile.update({
+                                where: { address: userAddress },
+                                data: {
+                                    premiumExpiresAt: finalExpiresAt,
+                                    premiumLastTxHash: transactionHash // Always update tx hash
+                                }
+                            })
+                            totalProcessed++
+                        } else {
+                            console.log(`[Sync Premium] Creating new profile for ${userAddress}`)
+                            await tx.profile.create({
+                                data: {
+                                    address: userAddress,
+                                    status: 'UNCLAIMED',
+                                    premiumExpiresAt: newExpiresAt,
+                                    premiumLastTxHash: transactionHash, // Set initial tx hash
+                                    isPublic: false,
+                                    displayName: userAddress.slice(0, 6)
+                                }
+                            })
+                            totalProcessed++
+                        }
+
+                        // Trigger Notification ONLY if it's a new/renewed premium
+                        // We do this check inside, but send outside or use a flag,
+                        // but since notification is side-effect, we can just do it here carefully.
+                        // Ideally, we return a flag from transaction.
+                        if (isNewlyPremium) {
+                            // We'll return this info to trigger notification AFTER transaction commits
+                            // to avoid sending if DB fails.
+                            // Throwing here would rollback.
+                            // We need a way to pass "shouldNotify" out.
+                            // For now, let's attach it to a temporary object or just use a local variable
+                            // defined outside scope? No, parallel executions share scope? No, request scope.
+                            // Actually, let's just return the necessary data.
+                            return { shouldNotify: true, userAddress, newExpiresAt, existingProfile, transactionHash, logIndexInt };
+                        }
+                    }).then(async (result) => {
+                        if (result && result.shouldNotify) {
+                            try {
+                                const { sendTelegramNotification, getAvaxPrice } = require('@/lib/telegram');
+                                const price = await getAvaxPrice();
+                                const amount = 0.5;
+                                const usdValue = (amount * price).toFixed(2);
+
+                                const totalPremium = await prisma.profile.count({
+                                    where: {
+                                        premiumExpiresAt: {
+                                            gt: new Date()
+                                        }
+                                    }
+                                });
+
+                                const txHash = result.transactionHash;
+                                const explorerUrl = `https://snowtrace.io/tx/${txHash}`;
+
+                                const profileIdentity = result.existingProfile?.slug
+                                    ? `<b>${result.existingProfile.slug}</b> (<code>${result.userAddress}</code>)`
+                                    : `<code>${result.userAddress}</code>`;
+
+                                const msg = [
+                                    `🚀 <b>New Premium Purchase!</b>`,
+                                    ``,
+                                    `👤 <b>User:</b> ${profileIdentity}`,
+                                    `💰 <b>Amount:</b> ${amount} AVAX (~$${usdValue})`,
+                                    `📅 <b>Expires:</b> ${result.newExpiresAt.toLocaleDateString()}`,
+                                    `🏆 <b>Total Premium:</b> ${totalPremium}`,
+                                    ``,
+                                    `⛓️ <a href="${explorerUrl}">View on Snowtrace</a>`,
+                                    `🔗 <a href="https://soci4l.net/p/${result.existingProfile?.slug || result.userAddress}">View Profile</a>`
+                                ].join('\n');
+
+                                await sendTelegramNotification(msg);
+                            } catch (err) {
+                                console.error('[Sync Premium] Telegram notification failed:', err);
+                            }
+                        }
+                    });
+                } catch (error) {
+                    // specific error handling for unique constraint violation (P2002)
+                    // which means another worker processed it. All good.
+                    if ((error as any).code === 'P2002') {
+                        console.log(`[Sync Premium] Concurrency: Event ${transactionHash}-${logIndexInt} processed by another worker.`);
+                    } else {
+                        throw error;
                     }
                 }
+
+                // Notification moved to transaction callback
             }
 
             fromBlock = toBlock + BigInt(1)
