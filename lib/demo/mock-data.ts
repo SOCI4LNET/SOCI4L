@@ -17,10 +17,12 @@ export const DATASETS: Record<string, { profile: DemoProfile; walletData: DemoWa
       primaryRole: 'Builder',
       secondaryRoles: ['Engineer', 'Contributor'],
       statusMessage: 'Shipping v2 soon 🚢',
+      isPremium: true,
       socialLinks: [
         { id: '1', platform: 'twitter', url: 'https://twitter.com/avalancheavax', label: '@avalancheavax', category: 'Social' },
         { id: '2', platform: 'github', url: 'https://github.com/ava-labs', label: 'ava-labs', category: 'Portfolio' },
         { id: '3', platform: 'website', url: 'https://avax.network', label: 'avax.network', category: 'Social' },
+        { id: '4', platform: 'linkedin', url: 'https://linkedin.com', label: 'Professional Profile', category: 'Portfolio' },
       ],
     },
     walletData: {
@@ -29,11 +31,14 @@ export const DATASETS: Record<string, { profile: DemoProfile; walletData: DemoWa
       tokenBalances: [
         { contractAddress: '0x1', name: 'Wrapped AVAX', symbol: 'WAVAX', balance: '500.00', decimals: 18 },
         { contractAddress: '0x2', name: 'USDC', symbol: 'USDC', balance: '2500.00', decimals: 6 },
-        { contractAddress: '0x3', name: 'JOE', symbol: 'JOE', balance: '1200.00', decimals: 18 },
+        { contractAddress: '0x3', name: 'JOE', symbol: 'JOE', balance: '1280.45', decimals: 18 },
+        { contractAddress: '0x4', name: 'GMX', symbol: 'GMX', balance: '45.20', decimals: 18 },
+        { contractAddress: '0x5', name: 'QiDAO', symbol: 'QI', balance: '15400.00', decimals: 18 },
       ],
       nfts: [
-        { contractAddress: '0x4', tokenId: '1', name: 'Avax Build #42', collectionName: 'Build Hq' },
-        { contractAddress: '0x5', tokenId: '101', name: 'Summit 2024 POAP', collectionName: 'POAP' },
+        { contractAddress: '0x4', tokenId: '1', name: 'Avax Build #42', collectionName: 'Build Hq', image: 'https://placehold.co/400x400/1e1b4b/white?text=Avax+Build+42' },
+        { contractAddress: '0x5', tokenId: '101', name: 'Summit 2024 POAP', collectionName: 'POAP', image: 'https://placehold.co/400x400/4c1d95/white?text=Summit+POAP' },
+        { contractAddress: '0x6', tokenId: '77', name: 'Subnet Contributor', collectionName: 'Contributor Badge', image: 'https://placehold.co/400x400/064e3b/white?text=Contributor' },
       ],
       transactions: Array(15).fill(null).map((_, i) => ({
         hash: `0x${Math.random().toString(16).slice(2)}`,
@@ -64,6 +69,7 @@ export const DATASETS: Record<string, { profile: DemoProfile; walletData: DemoWa
       primaryRole: 'Creator',
       secondaryRoles: ['Artist', 'Designer'],
       statusMessage: 'New drop live! 🎨',
+      isPremium: true,
       socialLinks: [
         { id: '1', platform: 'instagram', url: 'https://instagram.com/avalanche', label: 'IG', category: 'Social' },
         { id: '2', platform: 'website', url: 'https://artblocks.io', label: 'Portfolio', category: 'Portfolio' },
@@ -76,10 +82,10 @@ export const DATASETS: Record<string, { profile: DemoProfile; walletData: DemoWa
         { contractAddress: '0x1', name: 'Wrapped AVAX', symbol: 'WAVAX', balance: '120.00', decimals: 18 },
       ],
       nfts: [
-        { contractAddress: '0x6', tokenId: '88', name: 'Gen Art #88', collectionName: 'Gen Art Collection', image: 'https://placehold.co/400x400/purple/white?text=NFT' },
-        { contractAddress: '0x6', tokenId: '89', name: 'Gen Art #89', collectionName: 'Gen Art Collection', image: 'https://placehold.co/400x400/blue/white?text=NFT' },
-        { contractAddress: '0x6', tokenId: '90', name: 'Gen Art #90', collectionName: 'Gen Art Collection', image: 'https://placehold.co/400x400/pink/white?text=NFT' },
-        { contractAddress: '0x7', tokenId: '12', name: 'Community Pass', collectionName: 'Access' },
+        { contractAddress: '0x6', tokenId: '88', name: 'Gen Art #88', collectionName: 'Gen Art Collection', image: 'https://placehold.co/400x400/purple/white?text=GenArt+88' },
+        { contractAddress: '0x6', tokenId: '89', name: 'Gen Art #89', collectionName: 'Gen Art Collection', image: 'https://placehold.co/400x400/blue/white?text=GenArt+89' },
+        { contractAddress: '0x6', tokenId: '90', name: 'Gen Art #90', collectionName: 'Gen Art Collection', image: 'https://placehold.co/400x400/pink/white?text=GenArt+90' },
+        { contractAddress: '0x7', tokenId: '12', name: 'Community Pass', collectionName: 'Access', image: 'https://placehold.co/400x400/312e81/white?text=Pass' },
       ],
       transactions: Array(8).fill(null).map((_, i) => ({
         hash: `0x${Math.random().toString(16).slice(2)}`,
@@ -110,6 +116,7 @@ export const DATASETS: Record<string, { profile: DemoProfile; walletData: DemoWa
       primaryRole: 'Collector',
       secondaryRoles: ['Investor', 'Whale'],
       statusMessage: 'Looking for OGs',
+      isPremium: true,
       socialLinks: [],
     },
     walletData: {
@@ -121,7 +128,7 @@ export const DATASETS: Record<string, { profile: DemoProfile; walletData: DemoWa
         tokenId: `${i}`,
         name: `Blue Chip #${i}`,
         collectionName: 'Blue Chip Collection',
-        image: `https://placehold.co/400x400/orange/white?text=Rare+${i}`
+        image: `https://placehold.co/400x400/431407/white?text=Rare+NFT+${i}`
       })),
       transactions: Array(20).fill(null).map((_, i) => ({
         hash: `0x${Math.random().toString(16).slice(2)}`,
@@ -152,6 +159,7 @@ export const DATASETS: Record<string, { profile: DemoProfile; walletData: DemoWa
       primaryRole: 'Trader',
       secondaryRoles: ['Farmer', 'Speculator'],
       statusMessage: 'Watching GMX',
+      isPremium: true,
       socialLinks: [
         { id: '1', platform: 'telegram', url: 'https://t.me/avalanche', label: 'Alpha Group', category: 'Social' },
       ],
@@ -163,6 +171,8 @@ export const DATASETS: Record<string, { profile: DemoProfile; walletData: DemoWa
         { contractAddress: '0x2', name: 'USDC', symbol: 'USDC', balance: '54000.00', decimals: 6 },
         { contractAddress: '0x3', name: 'GMX', symbol: 'GMX', balance: '250.00', decimals: 18 },
         { contractAddress: '0x4', name: 'BTC.b', symbol: 'BTC.b', balance: '0.45', decimals: 8 },
+        { contractAddress: '0x5', name: 'Trader Joe', symbol: 'JOE', balance: '125000.00', decimals: 18 },
+        { contractAddress: '0x6', name: 'Pangolin', symbol: 'PNG', balance: '3400.00', decimals: 18 },
       ],
       nfts: [],
       transactions: Array(50).fill(null).map((_, i) => ({

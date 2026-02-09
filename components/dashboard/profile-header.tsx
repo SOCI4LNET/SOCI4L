@@ -14,7 +14,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Copy, ExternalLink, Share2, Twitter, QrCode, Check, X, Pencil } from "lucide-react"
+import { Copy, ExternalLink, Share2, Twitter, QrCode, Check, X, Pencil, Sparkles } from "lucide-react"
 import { formatAddress } from "@/lib/utils"
 import Link from "next/link"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -172,6 +172,20 @@ export function ProfileHeader({
                                                     {role}
                                                 </Badge>
                                             ))}
+                                            {profile?.isPremium && (
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <div className="flex items-center justify-center p-1 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-200 shadow-sm border border-amber-500/20 cursor-help">
+                                                                <Sparkles className="h-3 w-3 text-amber-900" />
+                                                            </div>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p className="text-[10px] font-bold">Premium Profile</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            )}
                                             {profile?.statusMessage && (
                                                 <span className="text-xs text-muted-foreground italic ml-1">
                                                     {profile.statusMessage}

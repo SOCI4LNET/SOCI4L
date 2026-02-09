@@ -15,6 +15,7 @@ export interface DemoProfile {
     statusMessage?: string | null
     socialLinks?: Array<{ id: string; platform: string; url: string; label?: string; category?: 'Social' | 'Portfolio' | 'Contact' | 'Other' }> | null
     theme?: string
+    isPremium?: boolean
 }
 
 export interface DemoWalletData {
