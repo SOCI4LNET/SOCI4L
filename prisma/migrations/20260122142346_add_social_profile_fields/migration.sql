@@ -8,12 +8,12 @@ CREATE TABLE "Profile" (
     "status" TEXT NOT NULL DEFAULT 'UNCLAIMED',
     "visibility" TEXT NOT NULL DEFAULT 'PUBLIC',
     "isPublic" BOOLEAN NOT NULL DEFAULT false,
-    "claimedAt" DATETIME,
+    "claimedAt" TIMESTAMP,
     "displayName" TEXT,
     "bio" TEXT,
     "socialLinks" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP NOT NULL
 );
 
 -- CreateTable
@@ -22,7 +22,7 @@ CREATE TABLE "ShowcaseItem" (
     "profileId" TEXT NOT NULL,
     "tokenId" TEXT NOT NULL,
     "contractAddress" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "ShowcaseItem_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "Profile" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 

@@ -72,7 +72,25 @@ export async function GET(request: NextRequest) {
             totalLogs += logs.length
 
             for (const log of logs) {
-                const { args } = log
+                const { args, transactionHash, logIndex } = log
+                const logIndexInt = Number(logIndex) // Ensure it's a number
+
+                // 2.2 Deduplication Check
+                const existingEvent = await prisma.processedEvent.findUnique({
+                    where: {
+                        txHash_logIndex_eventName: {
+                            txHash: transactionHash,
+                            logIndex: logIndexInt,
+                            eventName: 'PremiumPurchased'
+                        }
+                    }
+                })
+
+                if (existingEvent) {
+                    console.log(`[Sync Premium] Skipping processed event: ${transactionHash}-${logIndexInt}`)
+                    continue
+                }
+
                 if (!args.user || !args.expiresAt) continue
 
                 const userAddress = args.user.toLowerCase()
@@ -94,7 +112,10 @@ export async function GET(request: NextRequest) {
 
                     await prisma.profile.update({
                         where: { address: userAddress },
-                        data: { premiumExpiresAt: finalExpiresAt }
+                        data: {
+                            premiumExpiresAt: finalExpiresAt,
+                            premiumLastTxHash: transactionHash // Always update tx hash
+                        }
                     })
                     totalProcessed++
                 } else {
@@ -104,12 +125,22 @@ export async function GET(request: NextRequest) {
                             address: userAddress,
                             status: 'UNCLAIMED',
                             premiumExpiresAt: newExpiresAt,
+                            premiumLastTxHash: transactionHash, // Set initial tx hash
                             isPublic: false,
                             displayName: userAddress.slice(0, 6)
                         }
                     })
                     totalProcessed++
                 }
+
+                // 2.3 Mark Event as Processed
+                await prisma.processedEvent.create({
+                    data: {
+                        txHash: transactionHash,
+                        logIndex: logIndexInt,
+                        eventName: 'PremiumPurchased'
+                    }
+                })
 
                 if (isNewlyPremium) {
                     try {

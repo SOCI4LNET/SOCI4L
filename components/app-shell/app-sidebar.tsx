@@ -20,7 +20,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { LayoutDashboard, Wallet, Activity, Settings, Users, Wand2, Link2, BarChart3, ChevronDown, User, Shield } from 'lucide-react'
+import { LayoutDashboard, Wallet, Activity, Settings, Users, Wand2, Link2, BarChart3, ChevronDown, User, Shield, CreditCard } from 'lucide-react'
 import { sanitizeQueryParams } from '@/lib/query-params'
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 import { cn } from '@/lib/utils'
@@ -76,6 +76,11 @@ const accountItems = [
     title: 'Settings',
     icon: Settings,
     value: 'settings',
+  },
+  {
+    title: 'Billing',
+    icon: CreditCard,
+    value: 'billing',
   },
 ]
 

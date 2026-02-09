@@ -386,6 +386,7 @@ export async function GET(request: NextRequest) {
         secondaryRoles: profile.secondaryRoles || [],
         statusMessage: profile.statusMessage || null,
         premiumExpiresAt: profile.premiumExpiresAt || null,
+        premiumLastTxHash: profile.premiumLastTxHash || null,
         socialLinks: profile.socialLinks ? (() => {
           try {
             const parsed = JSON.parse(profile.socialLinks)

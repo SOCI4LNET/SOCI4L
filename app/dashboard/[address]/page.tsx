@@ -21,6 +21,7 @@ import { BuilderPanel } from '@/components/dashboard/builder-panel'
 import { LinksPanel } from '@/components/dashboard/links-panel'
 import { InsightsPanel } from '@/components/dashboard/insights-panel'
 import { SafetyPanel } from '@/components/dashboard/safety-panel'
+import { BillingPanel } from '@/components/dashboard/billing-panel'
 import { PageShell } from '@/components/app-shell/page-shell'
 import { sanitizeQueryParams } from '@/lib/query-params'
 import { isProfileClaimed } from '@/lib/profile/isProfileClaimed'
@@ -87,7 +88,7 @@ export default function DashboardAddressPage() {
   const currentTab = searchParams.get('tab') || 'overview'
 
   // Validate tab value
-  const validTabs = ['overview', 'assets', 'activity', 'social', 'settings', 'builder', 'links', 'insights', 'safety']
+  const validTabs = ['overview', 'assets', 'activity', 'social', 'settings', 'builder', 'links', 'insights', 'safety', 'billing']
   const activeTab = validTabs.includes(currentTab) ? currentTab : 'overview'
 
   useEffect(() => {
@@ -603,6 +604,13 @@ export default function DashboardAddressPage() {
       case 'safety':
         // Constrained layout: Safety settings
         return <SafetyPanel />
+      case 'billing':
+        // Constrained layout: Billing
+        return (
+          <PageShell title="Billing" subtitle="Manage your Premium subscription">
+            <BillingPanel profile={profile} walletData={walletData} address={normalizedAddress} />
+          </PageShell>
+        )
       default:
         // Constrained layout: Default to Overview with PageShell constrained mode
         return <OverviewPanel

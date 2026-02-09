@@ -3,7 +3,7 @@ CREATE TABLE "Follow" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "followerAddress" TEXT NOT NULL,
     "followingAddress" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- CreateIndex
