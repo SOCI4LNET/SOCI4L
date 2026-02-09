@@ -10,7 +10,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { MoreVertical, Info } from 'lucide-react'
+import { MoreVertical, Info, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { formatAddress } from '@/lib/utils'
 import {
@@ -41,6 +41,7 @@ interface ConnectionCardProps {
     onAddToList?: (address: string) => void
     showRemoveFollower?: boolean
     onRemoveFollower?: (address: string) => void
+    isPremium?: boolean
 }
 
 export function ConnectionCard({
@@ -61,6 +62,7 @@ export function ConnectionCard({
     onRemoveFollower,
     onMute,
     onAddToList,
+    isPremium = false,
 }: ConnectionCardProps) {
     const normalizedAddr = address.toLowerCase()
     const fallbackText = address.slice(2, 4).toUpperCase()
@@ -101,7 +103,15 @@ export function ConnectionCard({
 
             {/* Identity + Labels */}
             <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{primaryLabel}</p>
+                <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium truncate">{primaryLabel}</p>
+                    {isPremium && (
+                        <Badge variant="default" className="text-[10px] h-4 px-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold border-0 shadow-sm flex items-center gap-0.5">
+                            <Sparkles className="h-2.5 w-2.5 fill-white/20" />
+                            Pro
+                        </Badge>
+                    )}
+                </div>
                 <p className="text-xs font-mono text-muted-foreground truncate">
                     {shortAddress}
                 </p>

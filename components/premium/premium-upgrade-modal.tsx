@@ -119,7 +119,7 @@ export function PremiumUpgradeModal({ open, onOpenChange, onSuccess }: PremiumUp
                         Unlock Premium Insights
                     </DialogTitle>
                     <DialogDescription className="text-muted-foreground text-sm">
-                        Get advanced analytics and insights for 1 year.
+                        0.5 AVAX / year — on-chain license
                     </DialogDescription>
                 </DialogHeader>
 
@@ -140,13 +140,13 @@ export function PremiumUpgradeModal({ open, onOpenChange, onSuccess }: PremiumUp
                         </li>
                         <li className="flex items-start gap-3 text-sm">
                             <ShieldCheck className="w-4 h-4 text-green-500 mt-0.5" />
-                            <span className="text-foreground/90">Immutable License (On-Chain Proof)</span>
+                            <span className="text-foreground/90">Immutable License (365 Days Access)</span>
                         </li>
                     </ul>
 
                     {/* Price Tag */}
                     <div className="bg-muted/50 p-5 rounded-xl flex items-center justify-between border border-border/10">
-                        <div className="text-sm font-medium text-foreground">1 Year Access</div>
+                        <div className="text-sm font-medium text-foreground">365 Days Access</div>
                         <div className="text-xl font-bold font-mono text-foreground tracking-tight">0.5 AVAX</div>
                     </div>
                 </div>

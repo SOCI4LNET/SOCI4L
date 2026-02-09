@@ -53,6 +53,7 @@ export async function GET(
       statusMessage?: string | null
       score?: number
       reason?: string
+      isPremium?: boolean
     }> = []
 
     // Calculate date thresholds for filters
@@ -123,6 +124,7 @@ export async function GET(
             role: true,
             primaryRole: true,
             statusMessage: true,
+            premiumExpiresAt: true,
           },
         })
 
@@ -180,6 +182,7 @@ export async function GET(
             updatedAt: profile?.updatedAt || null,
             primaryRole: profile?.primaryRole || null,
             statusMessage: profile?.statusMessage || null,
+            isPremium: !!(profile?.premiumExpiresAt && new Date(profile.premiumExpiresAt) > new Date()),
             score: Math.min(score, 100),
             reason: reasons.length > 0 ? reasons.join(' • ') : undefined
           }
@@ -198,7 +201,7 @@ export async function GET(
           )
         }
 
-        follows = followsWithProfile.map(({ address, createdAt, displayName, slug, primaryRole, statusMessage, score, reason }) => ({
+        follows = followsWithProfile.map(({ address, createdAt, displayName, slug, primaryRole, statusMessage, score, reason, isPremium }) => ({
           address,
           createdAt,
           displayName,
@@ -206,7 +209,8 @@ export async function GET(
           primaryRole,
           statusMessage,
           score,
-          reason
+          reason,
+          isPremium
         }))
       } else {
         // Build where clause based on filters
@@ -268,6 +272,7 @@ export async function GET(
             role: true,
             primaryRole: true,
             statusMessage: true,
+            premiumExpiresAt: true,
           },
         })
 
@@ -329,6 +334,7 @@ export async function GET(
             updatedAt: profile?.updatedAt || null,
             primaryRole: profile?.primaryRole || null,
             statusMessage: profile?.statusMessage || null,
+            isPremium: !!(profile?.premiumExpiresAt && new Date(profile.premiumExpiresAt) > new Date()),
             score: Math.min(score, 100),
             reason: reasons.length > 0 ? reasons.join(' • ') : undefined
           }
@@ -347,7 +353,7 @@ export async function GET(
           )
         }
 
-        follows = followsWithProfile.map(({ address, createdAt, displayName, slug, primaryRole, statusMessage, score, reason }) => ({
+        follows = followsWithProfile.map(({ address, createdAt, displayName, slug, primaryRole, statusMessage, score, reason, isPremium }) => ({
           address,
           createdAt,
           displayName,
@@ -355,7 +361,8 @@ export async function GET(
           primaryRole,
           statusMessage,
           score,
-          reason
+          reason,
+          isPremium
         }))
       }
     } catch (dbError) {

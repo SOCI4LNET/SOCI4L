@@ -42,6 +42,7 @@ interface FollowItem {
   primaryRole?: RoleTag
   statusMessage?: string | null
   isBlocked?: boolean
+  isPremium?: boolean
 }
 
 import { RoleTag } from '@/components/dashboard/connection-card'
@@ -494,6 +495,7 @@ export function SocialPanel({ address }: SocialPanelProps) {
               connectionReason={s.reason}
               followedAt={new Date(s.createdAt)}
               dateLabel="Joined"
+              isPremium={s.isPremium}
             // No showUnfollow since these are suggestions
             />
           ))}
@@ -576,6 +578,7 @@ export function SocialPanel({ address }: SocialPanelProps) {
             primaryRole={item.primaryRole}
             statusMessage={item.statusMessage}
             dateLabel={dateLabel}
+            isPremium={item.isPremium}
           />
         ))}
         {/* Suggestions appended to list */}

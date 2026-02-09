@@ -56,12 +56,14 @@ export async function GET(request: NextRequest) {
                 bio: true,
                 role: true,
                 createdAt: true,
+                premiumExpiresAt: true,
             }
         })
 
         // Enhance with "reason"
         const enhancedSuggestions = suggestions.map(profile => ({
             ...profile,
+            isPremium: !!(profile.premiumExpiresAt && new Date(profile.premiumExpiresAt) > new Date()),
             reason: profile.role === 'ADMIN' || profile.role === 'BUILDER'
                 ? `Recommended ${profile.role.toLowerCase()}`
                 : 'Recently joined'
