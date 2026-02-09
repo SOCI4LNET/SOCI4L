@@ -36,9 +36,9 @@ export const DATASETS: Record<string, { profile: DemoProfile; walletData: DemoWa
         { contractAddress: '0x5', name: 'QiDAO', symbol: 'QI', balance: '15400.00', decimals: 18 },
       ],
       nfts: [
-        { contractAddress: '0x4', tokenId: '1', name: 'Avax Build #42', collectionName: 'Build Hq', image: 'https://placehold.co/400x400/1e1b4b/white?text=Avax+Build+42' },
-        { contractAddress: '0x5', tokenId: '101', name: 'Summit 2024 POAP', collectionName: 'POAP', image: 'https://placehold.co/400x400/4c1d95/white?text=Summit+POAP' },
-        { contractAddress: '0x6', tokenId: '77', name: 'Subnet Contributor', collectionName: 'Contributor Badge', image: 'https://placehold.co/400x400/064e3b/white?text=Contributor' },
+        { contractAddress: '0x4', tokenId: '1', name: 'Avax Build #42', collectionName: 'Build Hq', image: 'https://images.unsplash.com/photo-1634117622592-114e3024ff27?auto=format&fit=crop&q=80&w=400&h=400' },
+        { contractAddress: '0x5', tokenId: '101', name: 'Summit 2024 POAP', collectionName: 'POAP', image: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?auto=format&fit=crop&q=80&w=400&h=400' },
+        { contractAddress: '0x6', tokenId: '77', name: 'Subnet Contributor', collectionName: 'Contributor Badge', image: 'https://images.unsplash.com/photo-1622737133809-d95047b9e673?auto=format&fit=crop&q=80&w=400&h=400' },
       ],
       transactions: Array(15).fill(null).map((_, i) => ({
         hash: `0x${Math.random().toString(16).slice(2)}`,
@@ -82,10 +82,10 @@ export const DATASETS: Record<string, { profile: DemoProfile; walletData: DemoWa
         { contractAddress: '0x1', name: 'Wrapped AVAX', symbol: 'WAVAX', balance: '120.00', decimals: 18 },
       ],
       nfts: [
-        { contractAddress: '0x6', tokenId: '88', name: 'Gen Art #88', collectionName: 'Gen Art Collection', image: 'https://placehold.co/400x400/purple/white?text=GenArt+88' },
-        { contractAddress: '0x6', tokenId: '89', name: 'Gen Art #89', collectionName: 'Gen Art Collection', image: 'https://placehold.co/400x400/blue/white?text=GenArt+89' },
-        { contractAddress: '0x6', tokenId: '90', name: 'Gen Art #90', collectionName: 'Gen Art Collection', image: 'https://placehold.co/400x400/pink/white?text=GenArt+90' },
-        { contractAddress: '0x7', tokenId: '12', name: 'Community Pass', collectionName: 'Access', image: 'https://placehold.co/400x400/312e81/white?text=Pass' },
+        { contractAddress: '0x6', tokenId: '88', name: 'Gen Art #88', collectionName: 'Gen Art Collection', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=400&h=400' },
+        { contractAddress: '0x6', tokenId: '89', name: 'Gen Art #89', collectionName: 'Gen Art Collection', image: 'https://images.unsplash.com/photo-1633167606207-d840b5070fc2?auto=format&fit=crop&q=80&w=400&h=400' },
+        { contractAddress: '0x6', tokenId: '90', name: 'Gen Art #90', collectionName: 'Gen Art Collection', image: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&q=80&w=400&h=400' },
+        { contractAddress: '0x7', tokenId: '12', name: 'Community Pass', collectionName: 'Access', image: 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?auto=format&fit=crop&q=80&w=400&h=400' },
       ],
       transactions: Array(8).fill(null).map((_, i) => ({
         hash: `0x${Math.random().toString(16).slice(2)}`,
@@ -126,9 +126,9 @@ export const DATASETS: Record<string, { profile: DemoProfile; walletData: DemoWa
       nfts: Array(12).fill(null).map((_, i) => ({
         contractAddress: `0x${i}`,
         tokenId: `${i}`,
-        name: `Blue Chip #${i}`,
-        collectionName: 'Blue Chip Collection',
-        image: `https://placehold.co/400x400/431407/white?text=Rare+NFT+${i}`
+        name: `Rare Artifact #${i}`,
+        collectionName: 'Ancient Vault',
+        image: `https://images.unsplash.com/photo-1635322966219-b75ed372eb3c?auto=format&fit=crop&q=80&w=400&h=400&sig=${i}`
       })),
       transactions: Array(20).fill(null).map((_, i) => ({
         hash: `0x${Math.random().toString(16).slice(2)}`,

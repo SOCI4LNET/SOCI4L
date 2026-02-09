@@ -173,18 +173,10 @@ export function ProfileHeader({
                                                 </Badge>
                                             ))}
                                             {profile?.isPremium && (
-                                                <TooltipProvider>
-                                                    <Tooltip>
-                                                        <TooltipTrigger asChild>
-                                                            <div className="flex items-center justify-center p-1 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-200 shadow-sm border border-amber-500/20 cursor-help">
-                                                                <Sparkles className="h-3 w-3 text-amber-900" />
-                                                            </div>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent>
-                                                            <p className="text-[10px] font-bold">Premium Profile</p>
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </TooltipProvider>
+                                                <Badge variant="default" className="text-[10px] h-5 px-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold border-0 shadow-sm flex items-center gap-1">
+                                                    <Sparkles className="h-3 w-3 fill-white/20" />
+                                                    Pro
+                                                </Badge>
                                             )}
                                             {profile?.statusMessage && (
                                                 <span className="text-xs text-muted-foreground italic ml-1">
