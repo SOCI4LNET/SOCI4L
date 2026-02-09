@@ -10,8 +10,12 @@ import {
     Zap,
     ChevronRight,
     Info,
-    Link2
+    Link2,
+    ArrowRight
 } from "lucide-react"
+import { useAccount } from "wagmi"
+import { useProfile } from "@/hooks/use-profile"
+import { useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -126,7 +130,14 @@ const AnimatedListItem = ({ children, index }: { children: React.ReactNode, inde
 
 export default function PremiumPage() {
     const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+    const { address: connectedAddress } = useAccount()
+    const { profile } = useProfile(connectedAddress)
     const router = useRouter()
+
+    const isPremium = useMemo(() => {
+        if (!profile?.premiumExpiresAt) return false;
+        return new Date(profile.premiumExpiresAt) > new Date();
+    }, [profile?.premiumExpiresAt]);
 
     const handleUpgradeClick = () => {
         setShowUpgradeModal(true)
@@ -144,12 +155,20 @@ export default function PremiumPage() {
                             <span className="font-bold text-xl tracking-tight">SOCI4L</span>
                         </div>
                         <div className="flex items-center gap-4">
-                            <Button
-                                onClick={handleUpgradeClick}
-                                className="bg-foreground hover:bg-foreground/90 text-background font-medium rounded-full px-6 transition-all hover:scale-105 active:scale-95 shadow-none hover:shadow-none hidden sm:flex"
-                            >
-                                Upgrade
-                            </Button>
+                            {!isPremium && (
+                                <Button
+                                    onClick={handleUpgradeClick}
+                                    className="bg-foreground hover:bg-foreground/90 text-background font-medium rounded-full px-6 transition-all hover:scale-105 active:scale-95 shadow-none hover:shadow-none hidden sm:flex"
+                                >
+                                    Upgrade
+                                </Button>
+                            )}
+                            {isPremium && (
+                                <Badge variant="outline" className="bg-primary/5 border-primary/20 text-primary rounded-full px-4 py-1 hidden sm:flex items-center gap-1.5 font-semibold">
+                                    <ShieldCheck className="w-3.5 h-3.5" />
+                                    Premium active
+                                </Badge>
+                            )}
                             <HeaderActions />
                         </div>
                     </div>
@@ -173,19 +192,41 @@ export default function PremiumPage() {
                             <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
                                 Gain deep visibility into your audience with source breakdowns, referrer tracking, and real-time history.
                             </p>
-                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                                <Button
-                                    onClick={handleUpgradeClick}
-                                    size="lg"
-                                    className="h-14 px-10 rounded-full text-lg font-semibold bg-foreground text-background hover:bg-foreground/90 transition-all hover:scale-105 active:scale-95 shadow-none"
-                                >
-                                    Unlock for 0.5 AVAX
-                                    <ChevronRight className="w-5 h-5 ml-2" />
-                                </Button>
-                                <p className="text-xs text-muted-foreground mt-4 sm:mt-0 sm:ml-4 font-mono uppercase tracking-wider">
-                                    1 Year Access
-                                </p>
-                            </div>
+                            {!isPremium ? (
+                                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                    <Button
+                                        onClick={handleUpgradeClick}
+                                        size="lg"
+                                        className="h-14 px-10 rounded-full text-lg font-semibold bg-foreground text-background hover:bg-foreground/90 transition-all hover:scale-105 active:scale-95 shadow-none"
+                                    >
+                                        Unlock for 0.5 AVAX
+                                        <ChevronRight className="w-5 h-5 ml-2" />
+                                    </Button>
+                                    <p className="text-xs text-muted-foreground mt-4 sm:mt-0 sm:ml-4 font-mono uppercase tracking-wider">
+                                        1 Year Access
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center gap-4">
+                                    <div className="bg-primary/10 text-primary border border-primary/20 rounded-2xl px-8 py-4 flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center shadow-lg shadow-primary/10">
+                                            <ShieldCheck className="w-6 h-6" />
+                                        </div>
+                                        <div className="text-left">
+                                            <h3 className="text-lg font-bold">Premium Unlocked</h3>
+                                            <p className="text-sm opacity-80 max-w-xs">All features are active. You can access detailed analytics on your dashboard.</p>
+                                        </div>
+                                    </div>
+                                    <Button
+                                        onClick={() => router.push('/dashboard')}
+                                        variant="outline"
+                                        className="rounded-full px-8 h-12 border-border/60 hover:bg-muted"
+                                    >
+                                        Go to Dashboard
+                                        <ArrowRight className="w-4 h-4 ml-2" />
+                                    </Button>
+                                </div>
+                            )}
                         </motion.div>
                     </section>
 
@@ -488,7 +529,7 @@ export default function PremiumPage() {
                     </section>
 
                     {/* FINAL CTA with WALL BACKGROUND */}
-                    <PremiumWallCta onUpgrade={handleUpgradeClick} />
+                    <PremiumWallCta onUpgrade={handleUpgradeClick} isPremium={isPremium} />
 
                     <SiteFooter />
 

@@ -24,6 +24,7 @@ const footerLinks = {
     product: [
         { label: 'Overview', href: '/' },
         { label: 'Try Demo', href: '/demo' },
+        { label: 'Premium', href: '/premium' },
         { label: 'Dashboard', href: '/dashboard' },
     ] as FooterLink[],
     resources: [

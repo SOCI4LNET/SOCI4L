@@ -203,9 +203,10 @@ function PremiumProfileCard({ data, index }: { data: ProfileData; index: number 
 
 interface PremiumWallCtaProps {
     onUpgrade: () => void;
+    isPremium?: boolean;
 }
 
-export function PremiumWallCta({ onUpgrade }: PremiumWallCtaProps) {
+export function PremiumWallCta({ onUpgrade, isPremium }: PremiumWallCtaProps) {
     const [columns, setColumns] = useState<ProfileData[][]>([[], [], [], []])
 
     useEffect(() => {
@@ -240,7 +241,10 @@ export function PremiumWallCta({ onUpgrade }: PremiumWallCtaProps) {
     return (
         <section className="relative w-full py-24 bg-background overflow-hidden">
             {/* Column-Based Masonry Grid - Vivid and clear */}
-            <div className="container mx-auto px-4 relative z-0 opacity-70 pointer-events-none select-none origin-bottom">
+            <div className={cn(
+                "container mx-auto px-4 relative z-0 origin-bottom transition-all duration-1000",
+                isPremium ? "opacity-100" : "opacity-70 pointer-events-none select-none"
+            )}>
                 {/* Top fade gradient */}
                 <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-background to-transparent z-10" />
 
@@ -256,8 +260,10 @@ export function PremiumWallCta({ onUpgrade }: PremiumWallCtaProps) {
             </div>
 
             {/* Bottom Gradient Overlay + CTA Content */}
-            {/* Bottom Gradient Overlay + CTA Content */}
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent/10 z-10" />
+            <div className={cn(
+                "absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent/10 z-10 transition-opacity duration-1000",
+                isPremium ? "opacity-40" : "opacity-100"
+            )} />
 
             <div className="absolute bottom-0 inset-x-0 pb-24 z-20 flex justify-center items-end h-full pointer-events-none">
                 <motion.div
@@ -266,45 +272,58 @@ export function PremiumWallCta({ onUpgrade }: PremiumWallCtaProps) {
                     viewport={{ once: true }}
                     className="text-center space-y-8 max-w-3xl px-6 pointer-events-auto"
                 >
-                    <div className="space-y-4">
-                        <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground drop-shadow-sm">
-                            Ready to upgrade?
-                        </h2>
-                        <p className="text-xl text-muted-foreground leading-relaxed">
-                            Join hundreds of premium creators who own their data and understand their audience.
-                        </p>
-                    </div>
+                    {!isPremium ? (
+                        <>
+                            <div className="space-y-4">
+                                <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground drop-shadow-sm">
+                                    Ready to upgrade?
+                                </h2>
+                                <p className="text-xl text-muted-foreground leading-relaxed">
+                                    Join hundreds of premium creators who own their data and understand their audience.
+                                </p>
+                            </div>
 
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                        <Button
-                            onClick={onUpgrade}
-                            size="lg"
-                            className="h-14 px-8 rounded-full text-lg font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto"
-                        >
-                            Get Premium Now
-                            <ChevronRight className="w-5 h-5 ml-2" />
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="lg"
-                            onClick={() => window.open('https://docs.soci4l.id', '_blank')}
-                            className="h-14 px-8 rounded-full text-lg font-medium border-border/50 hover:bg-muted/50 transition-all hover:border-foreground/20 w-full sm:w-auto bg-background/50 backdrop-blur-sm"
-                        >
-                            Read Documentation
-                        </Button>
-                    </div>
+                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                <Button
+                                    onClick={onUpgrade}
+                                    size="lg"
+                                    className="h-14 px-8 rounded-full text-lg font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto"
+                                >
+                                    Get Premium Now
+                                    <ChevronRight className="w-5 h-5 ml-2" />
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="lg"
+                                    onClick={() => window.open('https://docs.soci4l.id', '_blank')}
+                                    className="h-14 px-8 rounded-full text-lg font-medium border-border/50 hover:bg-muted/50 transition-all hover:border-foreground/20 w-full sm:w-auto bg-background/50 backdrop-blur-sm"
+                                >
+                                    Read Documentation
+                                </Button>
+                            </div>
 
-                    <div className="pt-4 flex items-center justify-center gap-6 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                            <Check className="w-4 h-4 text-emerald-500" />
-                            <span>Cancel anytime</span>
+                            <div className="pt-4 flex items-center justify-center gap-6 text-sm text-muted-foreground">
+                                <div className="flex items-center gap-2">
+                                    <Check className="w-4 h-4 text-emerald-500" />
+                                    <span>Cancel anytime</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Check className="w-4 h-4 text-emerald-500" />
+                                    <span>30-day guarantee</span>
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="bg-background/40 backdrop-blur-md px-8 py-4 rounded-full border border-primary/20 shadow-xl shadow-primary/5 flex items-center gap-3 animate-in fade-in zoom-in duration-700">
+                            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                                <ShieldCheck className="w-5 h-5 text-primary" />
+                            </div>
+                            <div className="text-left">
+                                <p className="font-bold text-foreground leading-tight">SOCI4L Premium Active</p>
+                                <p className="text-xs text-muted-foreground">Thank you for being part of the ecosystem.</p>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Check className="w-4 h-4 text-emerald-500" />
-                            <span>30-day guarantee</span>
-                        </div>
-                    </div>
-
+                    )}
                 </motion.div>
             </div>
         </section>
