@@ -9,7 +9,8 @@ import {
     TrendingUp,
     Zap,
     ChevronRight,
-    Info
+    Info,
+    Link2
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -407,6 +408,81 @@ export default function PremiumPage() {
                                     {/* Fade out bottom to indicate scroll/flow */}
                                     <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-card via-card/80 to-transparent pointer-events-none" />
                                 </Card>
+                            </motion.div>
+                        </div>
+                    </section>
+
+                    {/* FEATURE 4: INDIVIDUAL LINK ANALYTICS */}
+                    <section className="max-w-6xl mx-auto px-6 mb-32">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                            {/* Visual Side (Left on Desktop) */}
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                whileInView={{ opacity: 1, scale: 1 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.5 }}
+                                className="relative order-2"
+                            >
+                                <div className="grid gap-4 relative z-10">
+                                    <Card className="bg-card border border-border/60 shadow-none">
+                                        <CardHeader className="pb-3 px-6">
+                                            <div className="flex items-center justify-between">
+                                                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                                                    Source Breakdown
+                                                    <Badge variant="outline" className="text-[10px] bg-primary/5 text-primary border-primary/20">Link Specific</Badge>
+                                                </CardTitle>
+                                            </div>
+                                        </CardHeader>
+                                        <CardContent className="px-6 pb-6">
+                                            <div className="space-y-4">
+                                                <div className="space-y-1.5">
+                                                    <div className="flex justify-between text-xs"><span className="text-muted-foreground">Twitter / X</span><span className="text-foreground">65%</span></div>
+                                                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden"><div className="h-full bg-white w-[65%]" /></div>
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    <div className="flex justify-between text-xs"><span className="text-muted-foreground">Direct / Copy</span><span className="text-foreground">25%</span></div>
+                                                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden"><div className="h-full bg-white w-[25%]" /></div>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+
+                                    <Card className="bg-card border border-border/60 shadow-none">
+                                        <CardHeader className="pb-3 px-6">
+                                            <CardTitle className="text-sm font-semibold">Visitor History</CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="px-6 pb-4">
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between items-center text-xs pb-2 border-b border-border/40">
+                                                    <span className="font-mono text-primary">0x123...890</span>
+                                                    <span className="text-muted-foreground">2m ago</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-xs">
+                                                    <span className="font-mono text-primary">0xabc...def</span>
+                                                    <span className="text-muted-foreground">15m ago</span>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            </motion.div>
+
+                            {/* Text Side */}
+                            <motion.div
+                                initial={{ opacity: 0, x: -50 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.8 }}
+                                className="order-1"
+                            >
+                                <div className="flex items-center gap-2 text-foreground mb-4">
+                                    <Link2 className="w-5 h-5" />
+                                    <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Link Analytics</span>
+                                </div>
+                                <h2 className="text-3xl font-semibold mb-4 text-foreground">Detailed Link Performance. <br /> Down to the click.</h2>
+                                <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
+                                    Gain surgical precision with link-specific insights. Track source attribution, visitor wallets, and referrers for every single link in your profile.
+                                </p>
                             </motion.div>
                         </div>
                     </section>
