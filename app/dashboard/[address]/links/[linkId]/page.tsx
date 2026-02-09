@@ -832,236 +832,236 @@ export default function LinkInsightsPage({ params }: PageProps) {
           </CardContent>
         </Card>
 
-        {/* Source breakdown */}
+        {/* Premium Gated Analytics */}
         <PremiumContent>
-          <Card className="bg-card border border-border/60 shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Source breakdown</CardTitle>
-              <CardDescription className="text-xs">
-                Where clicks originated from in the selected time range.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {analytics.totalClicks === 0 ? (
-                <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-4 text-center text-xs text-muted-foreground">
-                  No clicks yet for this link. Share your profile or redirect link to start
-                  collecting analytics.
-                  <div className="mt-3">
-                    <Button type="button" size="sm" variant="outline" onClick={handleCopyRedirect}>
-                      <Copy className="mr-2 h-3.5 w-3.5" />
-                      Copy redirect link
-                    </Button>
+          <div className="space-y-6">
+            {/* Source breakdown */}
+            <Card className="bg-card border border-border/60 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Source breakdown</CardTitle>
+                <CardDescription className="text-xs">
+                  Where clicks originated from in the selected time range.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {analytics.totalClicks === 0 ? (
+                  <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-4 text-center text-xs text-muted-foreground">
+                    No clicks yet for this link. Share your profile or redirect link to start
+                    collecting analytics.
+                    <div className="mt-3">
+                      <Button type="button" size="sm" variant="outline" onClick={handleCopyRedirect}>
+                        <Copy className="mr-2 h-3.5 w-3.5" />
+                        Copy redirect link
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="border-b border-border/60 text-muted-foreground">
-                        <th className="py-2 text-left font-medium">Source</th>
-                        <th className="py-2 text-right font-medium">Clicks</th>
-                        <th className="py-2 text-right font-medium">Share</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(['profile', 'copy', 'qr', 'unknown'] as const).map((source) => {
-                        const count = analytics.sourceCounts[source] || 0
-                        const share =
-                          analytics.totalClicks > 0
-                            ? ((count / analytics.totalClicks) * 100).toFixed(1) + '%'
-                            : '—'
-                        const label =
-                          source === 'profile'
-                            ? 'Profile'
-                            : source === 'copy'
-                              ? 'Copy'
-                              : source === 'qr'
-                                ? 'QR code'
-                                : 'Unknown'
-                        return (
-                          <tr key={source} className="border-b border-border/40 last:border-0">
-                            <td className="py-2 text-left">{label}</td>
-                            <td className="py-2 text-right">
-                              {count.toLocaleString('en-US')}
-                            </td>
-                            <td className="py-2 text-right text-muted-foreground">{share}</td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </PremiumContent>
-
-        {/* Recent Clicks - Identity Aware */}
-        <PremiumContent>
-          <Card className="bg-card border border-border/60 shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Recent Clicks</CardTitle>
-              <CardDescription className="text-xs">
-                Latest recognized activity on this link.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {analytics.totalClicks === 0 ? (
-                <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-4 text-center text-xs text-muted-foreground">
-                  No activity recorded yet for this link.
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="border-b border-border/60 text-muted-foreground">
-                        <th className="py-2 text-left font-medium">Time</th>
-                        <th className="py-2 text-left font-medium">Visitor</th>
-                        <th className="py-2 text-left font-medium">Referrer</th>
-                        <th className="py-2 text-right font-medium">Source</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {/* Access linkEvents from filter logic (need to duplicate logic or memoize differently if not accessible) 
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="border-b border-border/60 text-muted-foreground">
+                          <th className="py-2 text-left font-medium">Source</th>
+                          <th className="py-2 text-right font-medium">Clicks</th>
+                          <th className="py-2 text-right font-medium">Share</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(['profile', 'copy', 'qr', 'unknown'] as const).map((source) => {
+                          const count = analytics.sourceCounts[source] || 0
+                          const share =
+                            analytics.totalClicks > 0
+                              ? ((count / analytics.totalClicks) * 100).toFixed(1) + '%'
+                              : '—'
+                          const label =
+                            source === 'profile'
+                              ? 'Profile'
+                              : source === 'copy'
+                                ? 'Copy'
+                                : source === 'qr'
+                                  ? 'QR code'
+                                  : 'Unknown'
+                          return (
+                            <tr key={source} className="border-b border-border/40 last:border-0">
+                              <td className="py-2 text-left">{label}</td>
+                              <td className="py-2 text-right">
+                                {count.toLocaleString('en-US')}
+                              </td>
+                              <td className="py-2 text-right text-muted-foreground">{share}</td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            {/* Recent Clicks - Identity Aware */}
+            <Card className="bg-card border border-border/60 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Recent Clicks</CardTitle>
+                <CardDescription className="text-xs">
+                  Latest recognized activity on this link.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {analytics.totalClicks === 0 ? (
+                  <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-4 text-center text-xs text-muted-foreground">
+                    No activity recorded yet for this link.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="border-b border-border/60 text-muted-foreground">
+                          <th className="py-2 text-left font-medium">Time</th>
+                          <th className="py-2 text-left font-medium">Visitor</th>
+                          <th className="py-2 text-left font-medium">Referrer</th>
+                          <th className="py-2 text-right font-medium">Source</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {/* Access linkEvents from filter logic (need to duplicate logic or memoize differently if not accessible) 
                           Actually we can access 'analytics.linkEvents' if we expose it in the useMemo above.
                           Let's check if we exposed it. We didn't. 
                           We will rely on serverEvents filtering here since we are inside the component.
                       */}
-                      {(() => {
-                        const now = Date.now()
-                        const fromTs = range === 'all'
-                          ? 0
-                          : range === '24h'
-                            ? now - 24 * 60 * 60 * 1000
-                            : range === '7d'
-                              ? now - 7 * 24 * 60 * 60 * 1000
-                              : now - 30 * 24 * 60 * 60 * 1000
+                        {(() => {
+                          const now = Date.now()
+                          const fromTs = range === 'all'
+                            ? 0
+                            : range === '24h'
+                              ? now - 24 * 60 * 60 * 1000
+                              : range === '7d'
+                                ? now - 7 * 24 * 60 * 60 * 1000
+                                : now - 30 * 24 * 60 * 60 * 1000
 
-                        const filteredEvents = (serverEvents || [])
-                          .filter(e => e.type === 'link_click' && e.linkId === linkId && e.ts >= fromTs)
-                          .sort((a, b) => b.ts - a.ts)
+                          const filteredEvents = (serverEvents || [])
+                            .filter(e => e.type === 'link_click' && e.linkId === linkId && e.ts >= fromTs)
+                            .sort((a, b) => b.ts - a.ts)
 
-                        const totalIds = filteredEvents.length
-                        const totalPages = Math.ceil(totalIds / CLICKS_PER_PAGE)
-                        const startIdx = (clickPage - 1) * CLICKS_PER_PAGE
-                        const paginatedEvents = filteredEvents.slice(startIdx, startIdx + CLICKS_PER_PAGE)
+                          const totalIds = filteredEvents.length
+                          const totalPages = Math.ceil(totalIds / CLICKS_PER_PAGE)
+                          const startIdx = (clickPage - 1) * CLICKS_PER_PAGE
+                          const paginatedEvents = filteredEvents.slice(startIdx, startIdx + CLICKS_PER_PAGE)
 
-                        if (paginatedEvents.length === 0) {
-                          return (
-                            <tr>
-                              <td colSpan={4} className="py-4 text-center text-muted-foreground py-2">{clickPage === 1 ? 'No clicks in this time range.' : 'No more clicks.'}</td>
-                            </tr>
-                          )
-                        }
-
-                        return (
-                          <>
-                            {paginatedEvents.map((event: any) => (
-                              <tr key={`${event.ts}-${Math.random()}`} className="border-b border-border/40 last:border-0 hover:bg-muted/30">
-                                <td className="py-2 text-left text-muted-foreground">
-                                  {formatDistanceToNow(new Date(event.ts), { addSuffix: true })}
-                                </td>
-                                <td className="py-2 text-left font-mono">
-                                  {event.visitorWallet ? (
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="text-primary bg-primary/10 px-1.5 py-0.5 rounded text-[10px]">
-                                        {event.visitorWallet.slice(0, 6)}...{event.visitorWallet.slice(-4)}
-                                      </span>
-                                      <TooltipProvider>
-                                        <Tooltip>
-                                          <TooltipTrigger asChild>
-                                            <Button
-                                              variant="ghost"
-                                              className="h-4 w-4 p-0 hover:bg-transparent text-muted-foreground/50 hover:text-foreground"
-                                              onClick={() => {
-                                                navigator.clipboard.writeText(event.visitorWallet!)
-                                                toast.success('Address copied')
-                                              }}
-                                            >
-                                              <Copy className="h-2.5 w-2.5" />
-                                            </Button>
-                                          </TooltipTrigger>
-                                          <TooltipContent>Copy address</TooltipContent>
-                                        </Tooltip>
-                                        <Tooltip>
-                                          <TooltipTrigger asChild>
-                                            <Button
-                                              variant="ghost"
-                                              className="h-4 w-4 p-0 hover:bg-transparent text-muted-foreground/50 hover:text-foreground"
-                                              onClick={() => window.open(`/dashboard/${event.visitorWallet}`, '_blank')}
-                                            >
-                                              <ExternalLink className="h-2.5 w-2.5" />
-                                            </Button>
-                                          </TooltipTrigger>
-                                          <TooltipContent>Go to profile</TooltipContent>
-                                        </Tooltip>
-                                      </TooltipProvider>
-                                    </div>
-                                  ) : (
-                                    <span className="text-muted-foreground opacity-50 italic">Anonymous</span>
-                                  )}
-                                </td>
-                                <td className="py-2 text-left max-w-[120px] truncate" title={event.referrer || ''}>
-                                  {event.referrer ? (
-                                    <span className="font-mono text-[10px] text-muted-foreground">
-                                      {(() => {
-                                        try {
-                                          return new URL(event.referrer).hostname.replace('www.', '')
-                                        } catch {
-                                          return event.referrer
-                                        }
-                                      })()}
-                                    </span>
-                                  ) : (
-                                    <span className="text-muted-foreground/30">-</span>
-                                  )}
-                                </td>
-                                <td className="py-2 text-right capitalize text-muted-foreground">
-                                  {event.source}
-                                </td>
-                              </tr>
-                            ))}
-                            {/* Pagination Controls */}
-                            {totalIds > CLICKS_PER_PAGE && (
+                          if (paginatedEvents.length === 0) {
+                            return (
                               <tr>
-                                <td colSpan={4} className="pt-4 pb-2">
-                                  <div className="flex items-center justify-between">
-                                    <div className="text-xs text-muted-foreground">
-                                      Showing {startIdx + 1}-{Math.min(startIdx + CLICKS_PER_PAGE, totalIds)} of {totalIds}
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="h-7 text-xs"
-                                        disabled={clickPage === 1}
-                                        onClick={() => setClickPage(p => p - 1)}
-                                      >
-                                        Previous
-                                      </Button>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="h-7 text-xs"
-                                        disabled={clickPage >= totalPages}
-                                        onClick={() => setClickPage(p => p + 1)}
-                                      >
-                                        Next
-                                      </Button>
-                                    </div>
-                                  </div>
-                                </td>
+                                <td colSpan={4} className="py-4 text-center text-muted-foreground py-2">{clickPage === 1 ? 'No clicks in this time range.' : 'No more clicks.'}</td>
                               </tr>
-                            )}
-                          </>
-                        )
-                      })()}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                            )
+                          }
+
+                          return (
+                            <>
+                              {paginatedEvents.map((event: any) => (
+                                <tr key={`${event.ts}-${Math.random()}`} className="border-b border-border/40 last:border-0 hover:bg-muted/30">
+                                  <td className="py-2 text-left text-muted-foreground">
+                                    {formatDistanceToNow(new Date(event.ts), { addSuffix: true })}
+                                  </td>
+                                  <td className="py-2 text-left font-mono">
+                                    {event.visitorWallet ? (
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="text-primary bg-primary/10 px-1.5 py-0.5 rounded text-[10px]">
+                                          {event.visitorWallet.slice(0, 6)}...{event.visitorWallet.slice(-4)}
+                                        </span>
+                                        <TooltipProvider>
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <Button
+                                                variant="ghost"
+                                                className="h-4 w-4 p-0 hover:bg-transparent text-muted-foreground/50 hover:text-foreground"
+                                                onClick={() => {
+                                                  navigator.clipboard.writeText(event.visitorWallet!)
+                                                  toast.success('Address copied')
+                                                }}
+                                              >
+                                                <Copy className="h-2.5 w-2.5" />
+                                              </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>Copy address</TooltipContent>
+                                          </Tooltip>
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <Button
+                                                variant="ghost"
+                                                className="h-4 w-4 p-0 hover:bg-transparent text-muted-foreground/50 hover:text-foreground"
+                                                onClick={() => window.open(`/dashboard/${event.visitorWallet}`, '_blank')}
+                                              >
+                                                <ExternalLink className="h-2.5 w-2.5" />
+                                              </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>Go to profile</TooltipContent>
+                                          </Tooltip>
+                                        </TooltipProvider>
+                                      </div>
+                                    ) : (
+                                      <span className="text-muted-foreground opacity-50 italic">Anonymous</span>
+                                    )}
+                                  </td>
+                                  <td className="py-2 text-left max-w-[120px] truncate" title={event.referrer || ''}>
+                                    {event.referrer ? (
+                                      <span className="font-mono text-[10px] text-muted-foreground">
+                                        {(() => {
+                                          try {
+                                            return new URL(event.referrer).hostname.replace('www.', '')
+                                          } catch {
+                                            return event.referrer
+                                          }
+                                        })()}
+                                      </span>
+                                    ) : (
+                                      <span className="text-muted-foreground/30">-</span>
+                                    )}
+                                  </td>
+                                  <td className="py-2 text-right capitalize text-muted-foreground">
+                                    {event.source}
+                                  </td>
+                                </tr>
+                              ))}
+                              {/* Pagination Controls */}
+                              {totalIds > CLICKS_PER_PAGE && (
+                                <tr>
+                                  <td colSpan={4} className="pt-4 pb-2">
+                                    <div className="flex items-center justify-between">
+                                      <div className="text-xs text-muted-foreground">
+                                        Showing {startIdx + 1}-{Math.min(startIdx + CLICKS_PER_PAGE, totalIds)} of {totalIds}
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-7 text-xs"
+                                          disabled={clickPage === 1}
+                                          onClick={() => setClickPage(p => p - 1)}
+                                        >
+                                          Previous
+                                        </Button>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-7 text-xs"
+                                          disabled={clickPage >= totalPages}
+                                          onClick={() => setClickPage(p => p + 1)}
+                                        >
+                                          Next
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </>
+                          )
+                        })()}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </PremiumContent>
         <PremiumUpgradeModal
           open={showUpgradeModal}
