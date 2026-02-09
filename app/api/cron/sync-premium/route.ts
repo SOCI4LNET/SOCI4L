@@ -16,26 +16,16 @@ const client = createPublicClient({
 const EVENT = parseAbiItem('event PremiumPurchased(address indexed user, uint256 paidAt, uint256 expiresAt, uint256 amount)')
 
 // 3. Helper: Resolve Start Block
-// If lastSyncedBlock is 0, start from contract deployment block (or recent safe block)
-const DEFAULT_START_BLOCK = BigInt(77000000) // Recent block (~Feb 2026) to avoid deep query
-
-interface SyncResult {
-    processed: number
-    errors: number
-    latestBlock: string
-}
+const DEFAULT_START_BLOCK = BigInt(77000000)
 
 export async function GET(request: NextRequest) {
     try {
-        // --- 1. Get Indexer State ---
-        // We use a unique key for this indexer
         const INDEXER_KEY = 'premium_payment_v1'
 
         let state = await prisma.indexerState.findUnique({
             where: { key: INDEXER_KEY }
         })
 
-        // On first run, create state
         if (!state) {
             state = await prisma.indexerState.create({
                 data: {
@@ -47,28 +37,18 @@ export async function GET(request: NextRequest) {
 
         const currentBlock = await client.getBlockNumber()
 
-        // Force Sync: Prioritize RECENT blocks (last 24-48h) to ensure immediate UX
-        // during purchases, even if the main indexer is lagging behind.
         const force = request.nextUrl.searchParams.get('force') === 'true'
         let fromBlock = state.lastSyncedBlock + BigInt(1)
 
         if (force) {
-            // Scan last 30,000 blocks (~16 hours) to catch any recent payments immediately.
-            // This ensures "Just bought but not appearing" fixes in 2-3 seconds.
             const RECENT_WINDOW = BigInt(30000)
             const recentStart = currentBlock - RECENT_WINDOW
             fromBlock = recentStart < DEFAULT_START_BLOCK ? DEFAULT_START_BLOCK : recentStart
             console.log(`[Sync Premium] Force sync: scanning RECENT window from ${fromBlock}`)
         }
 
-        // Safety: Limit range to avoid RPC timeout
         const MAX_RANGE = BigInt(2000)
-        // If it's a cron run (not force), stay small to avoid timeout.
-        // If it's a force run from dashboard, we can afford a bit more or less iteration.
         const MAX_ITERATIONS = force ? 15 : 100
-
-        // Note: 100 iterations * 2000 blocks = 200,000 blocks catch-up per daily cron run.
-        // Avalanche creates ~43k blocks/day, so 200k is 4x speed catch-up.
 
         let iteration = 0
         let totalLogs = 0
@@ -103,9 +83,6 @@ export async function GET(request: NextRequest) {
                     where: { address: userAddress }
                 })
 
-                // --- Telegram Notification Logic ---
-                // We only notify if this is a "new" premium status being detected
-                // (e.g., current expiresAt is null or in the past)
                 const isNewlyPremium = !existingProfile?.premiumExpiresAt ||
                     (existingProfile.premiumExpiresAt < new Date());
 
@@ -138,17 +115,34 @@ export async function GET(request: NextRequest) {
                     try {
                         const { sendTelegramNotification, getAvaxPrice } = require('@/lib/telegram');
                         const price = await getAvaxPrice();
-                        const amount = 0.5; // Shared constant
+                        const amount = 0.5;
                         const usdValue = (amount * price).toFixed(2);
 
+                        const totalPremium = await prisma.profile.count({
+                            where: {
+                                premiumExpiresAt: {
+                                    gt: new Date()
+                                }
+                            }
+                        });
+
+                        const txHash = log.transactionHash;
+                        const explorerUrl = `https://snowtrace.io/tx/${txHash}`;
+
+                        const profileIdentity = existingProfile?.slug
+                            ? `<b>${existingProfile.slug}</b> (<code>${userAddress}</code>)`
+                            : `<code>${userAddress}</code>`;
+
                         const msg = [
-                            `🚀 <b>New Premium Purchase Detected!</b>`,
+                            `🚀 <b>New Premium Purchase!</b>`,
                             ``,
-                            `👤 <b>Wallet:</b> <code>${userAddress}</code>`,
+                            `👤 <b>User:</b> ${profileIdentity}`,
                             `💰 <b>Amount:</b> ${amount} AVAX (~$${usdValue})`,
                             `📅 <b>Expires:</b> ${newExpiresAt.toLocaleDateString()}`,
+                            `🏆 <b>Total Premium:</b> ${totalPremium}`,
                             ``,
-                            `🔗 <a href="https://soci4l.net/p/${userAddress}">View Profile</a>`
+                            `⛓️ <a href="${explorerUrl}">View on Snowtrace</a>`,
+                            `🔗 <a href="https://soci4l.net/p/${existingProfile?.slug || userAddress}">View Profile</a>`
                         ].join('\n');
 
                         await sendTelegramNotification(msg);
@@ -158,19 +152,10 @@ export async function GET(request: NextRequest) {
                 }
             }
 
-            // Update Indexer State after each chunk to save progress?
-            // Safer to do it at the end to avoid write spam, but if we timeout we lose progress.
-            // Let's rely on final update for now.
-
-            // Advance pointers
-            const lastProcessedBlock = toBlock
             fromBlock = toBlock + BigInt(1)
             iteration++
         }
 
-        // --- 5. Update State ---
-        // CRITICAL: Internal force syncs (which scan only recent blocks) 
-        // should NOT move the global indexer state BACKWARDS.
         const finalSyncedBlock = fromBlock > state.lastSyncedBlock ? fromBlock : state.lastSyncedBlock
 
         await prisma.indexerState.update({
