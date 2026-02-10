@@ -27,7 +27,7 @@ export function BillingPanel({ profile, address }: BillingPanelProps) {
             if (stored) {
                 // You might want to store { hash, timestamp, address } to be safer
                 // For now assuming simple string or checking if we need to parse
-                let hash = stored
+                let hash: string | null = stored
                 try {
                     const parsed = JSON.parse(stored)
                     if (parsed.address && parsed.address.toLowerCase() === address.toLowerCase()) {
@@ -74,10 +74,10 @@ export function BillingPanel({ profile, address }: BillingPanelProps) {
     }
 
     return (
-        <div className="space-y-6 max-w-4xl">
-            <div className="grid gap-6 md:grid-cols-2">
+        <div className="space-y-6 w-full">
+            <div className="grid gap-6 lg:grid-cols-2">
                 {/* Plan Status Card */}
-                <Card>
+                <Card className="h-full">
                     <CardHeader>
                         <CardTitle className="flex items-center justify-between">
                             Premium Plan
@@ -87,30 +87,30 @@ export function BillingPanel({ profile, address }: BillingPanelProps) {
                             Your subscription status
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-6">
                         {isPremium ? (
                             <div className="space-y-1">
                                 <p className="text-sm font-medium text-muted-foreground">Valid until</p>
-                                <p className="text-2xl font-bold">
-                                    {premiumExpiresAt ? format(premiumExpiresAt, 'MMMM d, yyyy') : 'Conversational Life'}
+                                <p className="text-3xl font-bold tracking-tight">
+                                    {premiumExpiresAt ? format(premiumExpiresAt, 'MMMM d, yyyy') : 'Unlimited Access'}
                                 </p>
-                                <p className="text-xs text-muted-foreground mt-1">
+                                <p className="text-sm text-muted-foreground/60 mt-1">
                                     {format(premiumExpiresAt!, 'h:mm a')}
                                 </p>
                             </div>
                         ) : pendingTx ? (
-                            <div className="flex flex-col gap-2 py-2">
+                            <div className="flex flex-col gap-3 py-2">
                                 <div className="flex items-center gap-2 text-yellow-500">
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                    <span className="font-medium">Payment Pending</span>
+                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                    <span className="font-semibold">Payment Processing</span>
                                 </div>
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-sm text-muted-foreground leading-relaxed">
                                     We detected a recent transaction. It may take a few minutes for the blockchain to confirm and our indexer to update your status.
                                     <br />
-                                    <span className="text-xs opacity-70">Tx: {pendingTx.slice(0, 6)}...{pendingTx.slice(-4)}</span>
+                                    <span className="text-xs font-mono opacity-60 mt-2 block bg-muted p-2 rounded">Tx: {pendingTx}</span>
                                 </p>
                                 <Button variant="outline" size="sm" className="w-full mt-2" onClick={() => window.location.reload()}>
-                                    Refresh Status
+                                    Check Update
                                 </Button>
                             </div>
                         ) : (
@@ -120,38 +120,38 @@ export function BillingPanel({ profile, address }: BillingPanelProps) {
                                     <span>No active premium subscription</span>
                                 </div>
                                 <Link href="/premium">
-                                    <Button className="w-full">Upgrade to Premium</Button>
+                                    <Button className="w-full shadow-lg shadow-primary/10 transition-all hover:scale-[1.01]">Upgrade to Premium</Button>
                                 </Link>
                             </div>
                         )}
 
-                        <div className="pt-4 border-t border-border/50">
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="text-muted-foreground">Price</span>
-                                <span className="font-medium">0.5 AVAX / year</span>
+                        <div className="pt-6 border-t border-border/50">
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm text-muted-foreground font-medium">Annual Price</span>
+                                <span className="text-lg font-bold">0.5 AVAX</span>
                             </div>
-                            <p className="text-xs text-muted-foreground mt-2">
-                                On-chain license. Payments are final and non-refundable.
+                            <p className="text-xs text-muted-foreground/60 mt-2 leading-relaxed">
+                                Lifetime on-chain license. All payments are final and secured by smart contract.
                             </p>
                         </div>
                     </CardContent>
                 </Card>
 
-                <div className="space-y-6">
+                <div className="flex flex-col gap-6">
                     {/* Receipt Card */}
-                    <Card>
+                    <Card className="flex-1">
                         <CardHeader>
-                            <CardTitle>Last Receipt</CardTitle>
-                            <CardDescription>Transaction proof on Avalanche</CardDescription>
+                            <CardTitle>Payment Receipt</CardTitle>
+                            <CardDescription>Verified transaction proof on Avalanche</CardDescription>
                         </CardHeader>
                         <CardContent>
                             {txHash && isValidTxHash(txHash) ? (
                                 <div className="space-y-4">
-                                    <div className="p-3 bg-muted/50 rounded-lg space-y-1">
-                                        <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Transaction Hash</p>
-                                        <p className="font-mono text-sm break-all">{txHash}</p>
+                                    <div className="p-4 bg-muted/30 rounded-xl border border-border/10 space-y-2">
+                                        <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Transaction Hash</p>
+                                        <p className="font-mono text-xs break-all text-foreground/80 leading-relaxed">{txHash}</p>
                                     </div>
-                                    <Button variant="outline" className="w-full" asChild>
+                                    <Button variant="outline" className="w-full group" asChild>
                                         <a
                                             href={`https://snowtrace.io/tx/${txHash}`}
                                             target="_blank"
@@ -159,14 +159,15 @@ export function BillingPanel({ profile, address }: BillingPanelProps) {
                                             className="flex items-center justify-center gap-2"
                                         >
                                             View on Snowtrace
-                                            <ExternalLink className="h-4 w-4" />
+                                            <ExternalLink className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                                         </a>
                                     </Button>
                                 </div>
                             ) : (
-                                <div className="text-sm text-muted-foreground flex flex-col items-center justify-center py-6 text-center">
-                                    <Clock className="h-8 w-8 mb-2 opacity-20" />
-                                    <p>No receipt available</p>
+                                <div className="text-sm text-muted-foreground flex flex-col items-center justify-center py-10 text-center rounded-xl bg-muted/10 border border-dashed border-border/50">
+                                    <Clock className="h-10 w-10 mb-3 opacity-10" />
+                                    <p className="font-medium">No recent purchase record found</p>
+                                    <p className="text-xs mt-1 opacity-60">History will appear after your first claim.</p>
                                 </div>
                             )}
                         </CardContent>
@@ -174,22 +175,24 @@ export function BillingPanel({ profile, address }: BillingPanelProps) {
 
                     {/* Network Info */}
                     <Card>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-sm font-medium">Network</CardTitle>
+                        <CardHeader className="py-4">
+                            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                                <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
+                                Network Status
+                            </CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="pb-4">
                             <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <div className="h-2 w-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"></div>
-                                    <span className="font-medium">Avalanche C-Chain</span>
-                                </div>
-                                <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded-full">Mainnet</span>
+                                <span className="text-sm font-medium text-muted-foreground">Avalanche C-Chain</span>
+                                <Badge variant="secondary" className="bg-emerald-500/5 text-emerald-500 border-emerald-500/10 text-[10px] uppercase font-bold tracking-tight">Mainnet Online</Badge>
                             </div>
                         </CardContent>
                     </Card>
-
-                    <TransactionHistory address={address} />
                 </div>
+            </div>
+
+            <div className="pt-2">
+                <TransactionHistory address={address} />
             </div>
         </div>
     )

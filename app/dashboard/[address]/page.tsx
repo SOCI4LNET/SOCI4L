@@ -605,9 +605,9 @@ export default function DashboardAddressPage() {
         // Constrained layout: Safety settings
         return <SafetyPanel />
       case 'billing':
-        // Constrained layout: Billing
+        // Full-width layout: Billing
         return (
-          <PageShell title="Billing" subtitle="Manage your Premium subscription">
+          <PageShell title="Billing" subtitle="Manage your Premium subscription" mode="full-width">
             <BillingPanel profile={profile} walletData={walletData} address={normalizedAddress} />
           </PageShell>
         )

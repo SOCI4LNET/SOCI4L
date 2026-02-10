@@ -170,52 +170,58 @@ export function TransactionHistory({ address }: TransactionHistoryProps) {
                         <p>No transaction history found for this account.</p>
                     </div>
                 ) : (
-                    <div className="rounded-md border border-border/50 overflow-hidden">
+                    <div className="rounded-xl border border-border/40 overflow-hidden bg-card/50 backdrop-blur-sm shadow-sm">
                         <Table>
-                            <TableHeader className="bg-muted/30">
-                                <TableRow>
-                                    <TableHead>Description</TableHead>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>Amount</TableHead>
-                                    <TableHead className="text-right">Proof</TableHead>
+                            <TableHeader className="bg-muted/40">
+                                <TableRow className="hover:bg-transparent border-border/40">
+                                    <TableHead className="h-14 px-6 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Activity</TableHead>
+                                    <TableHead className="h-14 px-6 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Date & Time</TableHead>
+                                    <TableHead className="h-14 px-6 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Value</TableHead>
+                                    <TableHead className="h-14 px-6 text-right text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">Explorer</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {transactions.map((tx) => (
-                                    <TableRow key={tx.id} className="hover:bg-muted/30 transition-colors">
-                                        <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                <Badge
-                                                    variant="outline"
-                                                    className={
-                                                        tx.type === "PREMIUM"
-                                                            ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-                                                            : "bg-blue-500/10 text-blue-600 border-blue-500/20"
-                                                    }
-                                                >
-                                                    {tx.type === "PREMIUM" ? "SUBSCRIPTION" : "IDENTITY"}
-                                                </Badge>
-                                                <span className="font-medium text-foreground/90">{tx.description}</span>
+                                    <TableRow key={tx.id} className="hover:bg-muted/20 border-border/10 transition-colors group">
+                                        <TableCell className="py-5 px-6">
+                                            <div className="flex flex-col gap-2">
+                                                <div className="flex items-center gap-2">
+                                                    <Badge
+                                                        variant="outline"
+                                                        className={
+                                                            tx.type === "PREMIUM"
+                                                                ? "bg-primary/5 text-primary border-primary/20 text-[9px] h-5 px-1.5 font-bold tracking-tight lowercase"
+                                                                : "bg-blue-500/5 text-blue-500 border-blue-500/20 text-[9px] h-5 px-1.5 font-bold tracking-tight lowercase"
+                                                        }
+                                                    >
+                                                        #{tx.type === "PREMIUM" ? "subscription" : "identity"}
+                                                    </Badge>
+                                                    <span className="font-semibold text-foreground tracking-tight">{tx.description}</span>
+                                                </div>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="text-muted-foreground text-sm">
-                                            {tx.timestamp.toLocaleDateString()}
-                                            <span className="text-xs opacity-50 ml-1.5 hidden sm:inline-block">
-                                                ({formatDistanceToNow(tx.timestamp, { addSuffix: true })})
+                                        <TableCell className="py-5 px-6">
+                                            <div className="flex flex-col gap-0.5">
+                                                <span className="text-sm font-medium text-foreground/90">{tx.timestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                                <span className="text-[11px] text-muted-foreground/60 font-medium">
+                                                    {formatDistanceToNow(tx.timestamp, { addSuffix: true })}
+                                                </span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="py-5 px-6">
+                                            <span className="font-mono text-sm font-semibold text-foreground/90 tabular-nums">
+                                                {tx.amount}
                                             </span>
                                         </TableCell>
-                                        <TableCell className="font-mono text-sm">
-                                            {tx.amount}
-                                        </TableCell>
-                                        <TableCell className="text-right">
+                                        <TableCell className="py-5 px-6 text-right">
                                             <a
                                                 href={`https://snowtrace.io/tx/${tx.hash}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border/50 bg-background/50 text-[11px] font-bold text-muted-foreground hover:text-primary hover:border-primary/30 transition-all group/link shadow-sm"
                                             >
-                                                {tx.hash.slice(0, 6)}...{tx.hash.slice(-4)}
-                                                <ExternalLink className="w-3 h-3" />
+                                                {tx.hash.slice(0, 6)}
+                                                <ExternalLink className="w-3 h-3 transition-transform group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" />
                                             </a>
                                         </TableCell>
                                     </TableRow>
