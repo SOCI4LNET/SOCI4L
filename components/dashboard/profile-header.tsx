@@ -122,7 +122,7 @@ export function ProfileHeader({
         <>
             <Card className="bg-card border border-border/60 shadow-sm">
                 <CardContent className="p-4">
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex flex-wrap items-start justify-between gap-4">
                         {/* Left: Avatar + Name/Bio */}
                         <div className="flex items-start gap-4 min-w-0 flex-1">
                             <Avatar className="h-12 w-12 flex-shrink-0">
@@ -146,7 +146,7 @@ export function ProfileHeader({
                                 ) : (
                                     <>
                                         {/* Header Row */}
-                                        <div className="flex items-center gap-2 mb-1 min-h-[28px]">
+                                        <div className="flex flex-wrap items-center gap-2 mb-1 min-h-[28px]">
                                             {isEditing ? (
                                                 <Input
                                                     value={editName}
