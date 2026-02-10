@@ -26,8 +26,8 @@ export default function BrandPage() {
     const [isTypeHierarchyOpen, setIsTypeHierarchyOpen] = useState(false)
 
     return (
-        <div className="min-h-screen bg-background pt-24 pb-20">
-            <div className="container mx-auto px-4 md:px-6 max-w-7xl">
+        <div className="min-h-screen bg-background pt-24 pb-20 overflow-x-hidden">
+            <div className="mx-auto px-4 md:px-6 max-w-7xl">
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -51,7 +51,7 @@ export default function BrandPage() {
 
                     {/* 01. LOGOMARK (ICON) */}
                     {/* 01. LOGOMARK (ICON) */}
-                    <section className="min-h-screen flex flex-col justify-center py-20 relative md:sticky md:top-0 z-10 bg-background">
+                    <section className="min-h-[calc(100vh-4rem)] flex flex-col justify-center py-20 relative md:sticky md:top-16 z-10 bg-background">
                         <SectionHeader number="01" title="Logomark" />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <LogoCard
@@ -78,7 +78,7 @@ export default function BrandPage() {
 
                     {/* 02. COMBINATION MARK */}
                     {/* 02. COMBINATION MARK */}
-                    <section className="min-h-screen flex flex-col justify-center py-20 relative md:sticky md:top-0 z-20 bg-background">
+                    <section className="min-h-[calc(100vh-4rem)] flex flex-col justify-center py-20 relative md:sticky md:top-16 z-20 bg-background">
                         <SectionHeader number="02" title="Combination Mark" />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <LogoCard
@@ -123,63 +123,48 @@ export default function BrandPage() {
                             </div>
                         </div>
                     </section>
+                </motion.div>
+            </div>
 
-                    {/* 03. COLOR ARCHITECTURE (Scroll-Linked) */}
-
-                    <HorizontalScrollSection className="z-30">
-                        {/* Slide A: Core Identity */}
-                        <div className="w-full min-h-screen md:w-screen md:h-screen flex flex-col justify-center px-4 md:px-20 relative snap-center overflow-y-auto py-20">
-                            <SectionHeader number="03" title="Color Architecture — Core Identity" />
-                            <div className="w-full max-w-7xl mx-auto space-y-8">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <ColorCard
-                                        name="Brand Blue"
-                                        hex="#2845D6"
-                                        bg="bg-brand-500"
-                                        text="text-white"
-                                        border="border-transparent"
-                                    />
-                                    <ColorCard
-                                        name="Dark Surface"
-                                        hex="#0A0A0A"
-                                        bg="bg-background"
-                                        text="text-foreground"
-                                        border="border-border"
-                                    />
-                                    <ColorCard
-                                        name="Light Surface"
-                                        hex="#FFFFFF"
-                                        bg="bg-white"
-                                        text="text-black"
-                                        border="border-transparent"
-                                    />
-                                </div>
-                                <div className="space-y-4">
-                                    <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">Primary Scale</h3>
-                                    <div className="grid grid-cols-5 md:grid-cols-11 gap-2">
-                                        {[50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950].map((step) => (
-                                            <PaletteChip
-                                                key={step}
-                                                shade={step}
-                                                // Use calculated hex style instead of class
-                                                style={{
-                                                    backgroundColor: {
-                                                        50: "#EEF2FF",
-                                                        100: "#E0E7FF",
-                                                        200: "#C7D2FE",
-                                                        300: "#A5B4FC",
-                                                        400: "#818CF8",
-                                                        500: "#2845D6",
-                                                        600: "#4F46E5",
-                                                        700: "#4338CA",
-                                                        800: "#3730A3",
-                                                        900: "#312E81",
-                                                        950: "#1E1B4B"
-                                                    }[step]
-                                                }}
-                                                text={step > 400 ? "text-white/90" : "text-black/90"}
-                                                label={step === 500 ? "Main" : undefined}
-                                                hex={{
+            <HorizontalScrollSection className="z-30">
+                {/* Slide A: Core Identity */}
+                <div className="w-full min-h-[calc(100vh-4rem)] md:w-screen md:h-[calc(100vh-4rem)] flex flex-col justify-center relative snap-center overflow-y-auto py-20">
+                    <div className="container mx-auto px-4 md:px-20 max-w-7xl">
+                        <SectionHeader number="03" title="Color Architecture — Core Identity" />
+                        <div className="w-full max-w-7xl mx-auto space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <ColorCard
+                                    name="Brand Blue"
+                                    hex="#2845D6"
+                                    bg="bg-brand-500"
+                                    text="text-white"
+                                    border="border-transparent"
+                                />
+                                <ColorCard
+                                    name="Dark Surface"
+                                    hex="#0A0A0A"
+                                    bg="bg-background"
+                                    text="text-foreground"
+                                    border="border-border"
+                                />
+                                <ColorCard
+                                    name="Light Surface"
+                                    hex="#FFFFFF"
+                                    bg="bg-white"
+                                    text="text-black"
+                                    border="border-transparent"
+                                />
+                            </div>
+                            <div className="space-y-4">
+                                <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">Primary Scale</h3>
+                                <div className="grid grid-cols-5 md:grid-cols-11 gap-2">
+                                    {[50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950].map((step) => (
+                                        <PaletteChip
+                                            key={step}
+                                            shade={step}
+                                            // Use calculated hex style instead of class
+                                            style={{
+                                                backgroundColor: {
                                                     50: "#EEF2FF",
                                                     100: "#E0E7FF",
                                                     200: "#C7D2FE",
@@ -191,441 +176,459 @@ export default function BrandPage() {
                                                     800: "#3730A3",
                                                     900: "#312E81",
                                                     950: "#1E1B4B"
-                                                }[step]}
-                                            />
-                                        ))}
+                                                }[step]
+                                            }}
+                                            text={step > 400 ? "text-white/90" : "text-black/90"}
+                                            label={step === 500 ? "Main" : undefined}
+                                            hex={{
+                                                50: "#EEF2FF",
+                                                100: "#E0E7FF",
+                                                200: "#C7D2FE",
+                                                300: "#A5B4FC",
+                                                400: "#818CF8",
+                                                500: "#2845D6",
+                                                600: "#4F46E5",
+                                                700: "#4338CA",
+                                                800: "#3730A3",
+                                                900: "#312E81",
+                                                950: "#1E1B4B"
+                                            }[step]}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Slide C: Neutral Colors */}
+                <div className="w-full min-h-[calc(100vh-4rem)] md:w-screen md:h-[calc(100vh-4rem)] flex flex-col justify-center relative snap-center overflow-y-auto py-20">
+                    <div className="container mx-auto px-4 md:px-20 max-w-7xl">
+                        <SectionHeader number="03" title="Color Architecture — Neutral" />
+                        <div className="w-full max-w-7xl mx-auto space-y-8">
+                            <div className="flex items-center gap-4 mb-8">
+                                <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">Neutral Scale</h3>
+                                <div className="h-px bg-border/50 flex-1"></div>
+                            </div>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                                <div className="space-y-4">
+                                    <div className="text-sm font-mono text-muted-foreground">Base Colors</div>
+                                    <div className="divide-y divide-white/5 border-t border-b border-white/5">
+                                        <CopyableItem label="Background" variable="--background" light="#FFFFFF" dark="#0A0A0A" desc="Main page background" />
+                                        <CopyableItem label="Muted" variable="--muted" light="#F4F4F5" dark="#27272A" desc="Subtle backgrounds for sections or containers" />
+                                        <CopyableItem label="Secondary" variable="--secondary" light="#F4F4F5" dark="#27272A" desc="Secondary actions and muted elements" />
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="text-sm font-mono text-muted-foreground">Components</div>
+                                    <div className="divide-y divide-white/5 border-t border-b border-white/5">
+                                        <CopyableItem label="Border" variable="--border" light="#E4E4E7" dark="#27272A" desc="Used for inputs, dividers, and card borders" />
+                                        <CopyableItem label="Accent" variable="--accent" light="#F4F4F5" dark="#27272A" desc="Used for hover states and secondary interactions" />
+                                        <CopyableItem label="Popover" variable="--popover" light="#FFFFFF" dark="#0A0A0A" desc="Background for dialogs, tooltips, and dropdowns" />
+                                        <CopyableItem label="Card" variable="--card" light="#FFFFFF" dark="#0A0A0A" desc="Background for cards and elevated surfaces" />
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </HorizontalScrollSection>
 
-                        {/* Slide C: Neutral Colors */}
-                        <div className="w-full min-h-screen md:w-screen md:h-screen flex flex-col justify-center px-4 md:px-20 relative snap-center overflow-y-auto py-20">
-                            <SectionHeader number="03" title="Color Architecture — Neutral" />
-                            <div className="w-full max-w-7xl mx-auto space-y-8">
-                                <div className="flex items-center gap-4 mb-8">
-                                    <h3 className="text-sm font-mono text-muted-foreground uppercase tracking-widest">Neutral Scale</h3>
-                                    <div className="h-px bg-border/50 flex-1"></div>
+            <HorizontalScrollSection className="z-40">
+                {/* Slide 1: Primary Font */}
+                <div className="w-full min-h-[calc(100vh-4rem)] md:w-screen md:h-[calc(100vh-4rem)] flex flex-col justify-center relative snap-center overflow-y-auto py-20">
+                    <div className="container mx-auto px-8 md:px-20 max-w-7xl">
+                        <SectionHeader number="04" title="Typography — Primary" />
+                        <div className="max-w-4xl mx-auto w-full">
+                            <div className="pb-4 border-b border-border/20 flex justify-between items-baseline mb-8">
+                                <span className="text-sm font-mono text-muted-foreground">Primary Font</span>
+                                <h3 className="text-2xl font-semibold">Geist Sans</h3>
+                            </div>
+                            <div className="space-y-6">
+                                <div className="flex items-end gap-4">
+                                    <span className="text-6xl font-bold leading-none font-sans">Aa</span>
+                                    <span className="text-sm font-mono text-muted-foreground mb-1">Bold (700)</span>
                                 </div>
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                                    <div className="space-y-4">
-                                        <div className="text-sm font-mono text-muted-foreground">Base Colors</div>
-                                        <div className="divide-y divide-white/5 border-t border-b border-white/5">
-                                            <CopyableItem label="Background" variable="--background" light="#FFFFFF" dark="#0A0A0A" desc="Main page background" />
-                                            <CopyableItem label="Muted" variable="--muted" light="#F4F4F5" dark="#27272A" desc="Subtle backgrounds for sections or containers" />
-                                            <CopyableItem label="Secondary" variable="--secondary" light="#F4F4F5" dark="#27272A" desc="Secondary actions and muted elements" />
-                                        </div>
-                                    </div>
-                                    <div className="space-y-4">
-                                        <div className="text-sm font-mono text-muted-foreground">Components</div>
-                                        <div className="divide-y divide-white/5 border-t border-b border-white/5">
-                                            <CopyableItem label="Border" variable="--border" light="#E4E4E7" dark="#27272A" desc="Used for inputs, dividers, and card borders" />
-                                            <CopyableItem label="Accent" variable="--accent" light="#F4F4F5" dark="#27272A" desc="Used for hover states and secondary interactions" />
-                                            <CopyableItem label="Popover" variable="--popover" light="#FFFFFF" dark="#0A0A0A" desc="Background for dialogs, tooltips, and dropdowns" />
-                                            <CopyableItem label="Card" variable="--card" light="#FFFFFF" dark="#0A0A0A" desc="Background for cards and elevated surfaces" />
-                                        </div>
-                                    </div>
+                                <div className="flex items-end gap-4">
+                                    <span className="text-6xl font-medium leading-none font-sans">Aa</span>
+                                    <span className="text-sm font-mono text-muted-foreground mb-1">Medium (500)</span>
+                                </div>
+                                <div className="space-y-1 pt-4">
+                                    <p className="text-2xl font-sans">The quick brown fox jumps over the lazy dog.</p>
+                                    <p className="text-lg text-muted-foreground">
+                                        Used for all headlines, UI text, and clear communication.
+                                    </p>
                                 </div>
                             </div>
                         </div>
-                    </HorizontalScrollSection>
+                    </div>
+                </div>
 
-                    {/* 04. TYPOGRAPHY (Scroll-Linked) */}
-                    <HorizontalScrollSection className="z-40">
-
-                        {/* Slide 1: Primary Font */}
-                        <div className="w-full min-h-screen md:w-screen md:h-screen flex flex-col justify-center px-8 md:px-20 relative snap-center overflow-y-auto py-20">
-                            <SectionHeader number="04" title="Typography — Primary" />
-                            <div className="max-w-4xl mx-auto w-full">
-                                <div className="pb-4 border-b border-border/20 flex justify-between items-baseline mb-8">
-                                    <span className="text-sm font-mono text-muted-foreground">Primary Font</span>
-                                    <h3 className="text-2xl font-semibold">Geist Sans</h3>
+                {/* Slide 2: Monospace Font */}
+                <div className="w-full min-h-[calc(100vh-4rem)] md:w-screen md:h-[calc(100vh-4rem)] flex flex-col justify-center relative snap-center overflow-y-auto py-20">
+                    <div className="container mx-auto px-8 md:px-20 max-w-7xl">
+                        <SectionHeader number="04" title="Typography — Monospace" />
+                        <div className="max-w-4xl mx-auto w-full">
+                            <div className="pb-4 border-b border-border/20 flex justify-between items-baseline mb-8">
+                                <span className="text-sm font-mono text-muted-foreground">Monospace Font</span>
+                                <h3 className="text-2xl font-mono">Geist Mono</h3>
+                            </div>
+                            <div className="space-y-6">
+                                <div className="flex items-end gap-4">
+                                    <span className="text-6xl font-mono font-bold leading-none">Aa</span>
+                                    <span className="text-sm font-mono text-muted-foreground mb-1">Bold (700)</span>
                                 </div>
-                                <div className="space-y-6">
-                                    <div className="flex items-end gap-4">
-                                        <span className="text-6xl font-bold leading-none font-sans">Aa</span>
-                                        <span className="text-sm font-mono text-muted-foreground mb-1">Bold (700)</span>
+                                <div className="flex items-end gap-4">
+                                    <span className="text-6xl font-mono font-medium leading-none">Aa</span>
+                                    <span className="text-sm font-mono text-muted-foreground mb-1">Medium (500)</span>
+                                </div>
+                                <div className="space-y-1 pt-4">
+                                    <p className="text-2xl font-mono">0123456789</p>
+                                    <p className="text-lg text-muted-foreground">
+                                        Used for code blocks, data display, and technical details.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Slide 3: Scale & Spacing */}
+                <div className="w-full min-h-[calc(100vh-4rem)] md:w-screen md:h-[calc(100vh-4rem)] flex flex-col justify-center relative snap-center overflow-y-auto py-20">
+                    <div className="container mx-auto px-8 md:px-20 max-w-7xl">
+                        <div className="max-w-4xl mx-auto w-full pb-8">
+                            <SectionHeader number="04" title="Typography — Scale" />
+                            <div className="space-y-6">
+                                {/* H1 */}
+                                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-6 items-center hover:bg-muted/10 transition-colors rounded-xl">
+                                    <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
+                                        <div className="font-bold text-foreground mb-1">Geist Sans</div>
+                                        <div className="font-semibold text-foreground">H1 Display</div>
+                                        <div>text-3xl (30px) / 4xl (36px)</div>
                                     </div>
-                                    <div className="flex items-end gap-4">
-                                        <span className="text-6xl font-medium leading-none font-sans">Aa</span>
-                                        <span className="text-sm font-mono text-muted-foreground mb-1">Medium (500)</span>
+                                    <div className="md:col-span-9">
+                                        <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
+                                            Turn your wallet into identity.
+                                        </h1>
                                     </div>
-                                    <div className="space-y-1 pt-4">
-                                        <p className="text-2xl font-sans">The quick brown fox jumps over the lazy dog.</p>
-                                        <p className="text-lg text-muted-foreground">
-                                            Used for all headlines, UI text, and clear communication.
+                                </div>
+                                {/* H2 */}
+                                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-6 items-center hover:bg-muted/10 transition-colors rounded-xl">
+                                    <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
+                                        <div className="font-bold text-foreground mb-1">Geist Sans</div>
+                                        <div className="font-semibold text-foreground">H2 Section</div>
+                                        <div>text-2xl (24px) / 3xl (30px)</div>
+                                    </div>
+                                    <div className="md:col-span-9">
+                                        <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
+                                            Grow on-chain.
+                                        </h2>
+                                    </div>
+                                </div>
+                                {/* H3 */}
+                                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-6 items-center hover:bg-muted/10 transition-colors rounded-xl">
+                                    <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
+                                        <div className="font-bold text-foreground mb-1">Geist Sans</div>
+                                        <div className="font-semibold text-foreground">H3 Title</div>
+                                        <div>text-xl (20px)</div>
+                                    </div>
+                                    <div className="md:col-span-9">
+                                        <h3 className="text-xl font-semibold">
+                                            Smart Contract Verification
+                                        </h3>
+                                    </div>
+                                </div>
+                                {/* Body */}
+                                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-6 items-center hover:bg-muted/10 transition-colors rounded-xl">
+                                    <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
+                                        <div className="font-bold text-foreground mb-1">Geist Sans</div>
+                                        <div className="font-semibold text-foreground">Body & Subtext</div>
+                                        <div>text-sm (14px) / base (16px)</div>
+                                    </div>
+                                    <div className="md:col-span-9">
+                                        <p className="max-w-xl text-sm text-muted-foreground md:text-base">
+                                            Showcase on-chain assets, add links, and share everything as one public page.
                                         </p>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </HorizontalScrollSection>
 
-                        {/* Slide 2: Monospace Font */}
-                        <div className="w-full min-h-screen md:w-screen md:h-screen flex flex-col justify-center px-8 md:px-20 relative snap-center overflow-y-auto py-20">
-                            <SectionHeader number="04" title="Typography — Monospace" />
-                            <div className="max-w-4xl mx-auto w-full">
-                                <div className="pb-4 border-b border-border/20 flex justify-between items-baseline mb-8">
-                                    <span className="text-sm font-mono text-muted-foreground">Monospace Font</span>
-                                    <h3 className="text-2xl font-mono">Geist Mono</h3>
+            <div className="mx-auto px-4 md:px-6 max-w-7xl">
+                {/* 05. NAMING CONVENTION */}
+                {/* 05. NAMING CONVENTION */}
+                <section className="min-h-[calc(100vh-4rem)] flex flex-col justify-center py-20 relative md:sticky md:top-16 z-50 bg-background overflow-hidden">
+                    <SectionHeader number="05" title="Naming Convention" />
+                    <div className="space-y-16">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-16">
+                            <div className="space-y-8">
+                                <div>
+                                    <h3 className="text-xl font-semibold mb-4">The Brand Name</h3>
+                                    <p className="text-muted-foreground leading-relaxed">
+                                        Our name is always written in uppercase with a numeric "4" replacing the "A".
+                                        This reflects our roots in Web3 and on-chain intelligence.
+                                    </p>
                                 </div>
-                                <div className="space-y-6">
-                                    <div className="flex items-end gap-4">
-                                        <span className="text-6xl font-mono font-bold leading-none">Aa</span>
-                                        <span className="text-sm font-mono text-muted-foreground mb-1">Bold (700)</span>
+                                <div className="p-8 rounded-3xl border border-border/50 bg-muted/10 inline-block font-mono text-5xl tracking-tighter">
+                                    SOCI4L
+                                </div>
+                            </div>
+                            <div className="space-y-6">
+                                <h3 className="text-xl font-semibold mb-4">Don'ts</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <DontCard title="Do not capitalize only first letter">
+                                        <div className="font-mono text-2xl text-muted-foreground line-through decoration-red-500/50">Soci4l</div>
+                                    </DontCard>
+                                    <DontCard title="Do not use normal 'A'">
+                                        <div className="font-mono text-2xl text-white line-through decoration-red-500/50">SOCIAL</div>
+                                    </DontCard>
+                                    <DontCard title="Do not use lowercase">
+                                        <div className="font-mono text-2xl text-muted-foreground line-through decoration-red-500/50">soci4l</div>
+                                    </DontCard>
+                                    <DontCard title="Do not mix fonts">
+                                        <div className="font-sans text-2xl text-muted-foreground line-through decoration-red-500/50 font-bold">SOCI4L</div>
+                                    </DontCard>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* 06. BUTTONS & COMPONENTS */}
+                <section className="min-h-[calc(100vh-4rem)] flex flex-col justify-center py-20 relative md:sticky md:top-16 z-[60] bg-background">
+                    <SectionHeader number="06" title="Buttons & Components" />
+                    <div className="max-w-7xl mx-auto w-full space-y-24">
+
+
+                        {/* Detailed Specs Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                            {/* Rounded Rect */}
+                            <div className="space-y-6 p-8 bg-black/40 border border-white/5 rounded-3xl relative overflow-hidden">
+                                <div className="absolute top-6 left-6 w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                                </div>
+                                <div className="flex items-center justify-center h-32">
+                                    <div className="bg-black border border-white/10 rounded-md px-4 py-2 flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-white/20"></div>
+                                        <span className="text-[10px] font-mono text-white/40">Label</span>
                                     </div>
-                                    <div className="flex items-end gap-4">
-                                        <span className="text-6xl font-mono font-medium leading-none">Aa</span>
-                                        <span className="text-sm font-mono text-muted-foreground mb-1">Medium (500)</span>
-                                    </div>
-                                    <div className="space-y-1 pt-4">
-                                        <p className="text-2xl font-mono">0123456789</p>
-                                        <p className="text-lg text-muted-foreground">
-                                            Used for code blocks, data display, and technical details.
-                                        </p>
-                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <h4 className="font-semibold text-base text-foreground">Contrast Rule</h4>
+                                    <p className="text-xs text-muted-foreground/60 leading-relaxed">Buttons must contrast perfectly with their background. White button on dark, black button on light.</p>
+                                </div>
+                            </div>
+
+                            {/* Brand Color */}
+                            <div className="space-y-6 p-8 bg-black/40 border border-white/5 rounded-3xl relative overflow-hidden">
+                                <div className="absolute top-6 left-6 w-6 h-6 rounded-full bg-yellow-500/10 flex items-center justify-center">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-yellow-500"></div>
+                                </div>
+                                <div className="flex items-center justify-center h-32">
+                                    <button className="bg-[#2845D6] text-white px-4 py-2 rounded-md text-xs font-medium">
+                                        Special
+                                    </button>
+                                </div>
+                                <div className="space-y-2">
+                                    <h4 className="font-semibold text-base text-foreground">Brand Color</h4>
+                                    <p className="text-xs text-muted-foreground/60 leading-relaxed">Use Brand Blue (#2845D6) ONLY for special 'Magic' actions or highlights.</p>
+                                </div>
+                            </div>
+
+                            {/* Shadow Usage */}
+                            <div className="space-y-6 p-8 bg-black/40 border border-white/5 rounded-3xl relative overflow-hidden">
+                                <div className="absolute top-6 left-6 w-6 h-6 rounded-full bg-yellow-500/10 flex items-center justify-center">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-yellow-500"></div>
+                                </div>
+                                <div className="flex items-center justify-center h-32 relative">
+                                    <div className="w-20 h-8 bg-brand-500 rounded-md shadow-[0_10px_20px_-5px_rgba(79,70,229,0.5)] opacity-50"></div>
+                                </div>
+                                <div className="space-y-2">
+                                    <h4 className="font-semibold text-base text-foreground">Shadow Usage</h4>
+                                    <p className="text-xs text-muted-foreground/60 leading-relaxed">Never use blurred/soft shadows in dark mode. Use crisp borders or simple flat colors.</p>
+                                </div>
+                            </div>
+
+                            {/* Radius & Weight */}
+                            <div className="space-y-6 p-8 bg-black/40 border border-white/5 rounded-3xl relative overflow-hidden">
+                                <div className="absolute top-6 left-6 w-6 h-6 rounded-full bg-blue-500/10 flex items-center justify-center">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                                </div>
+                                <div className="flex items-center justify-center h-32">
+                                    <div className="w-10 h-10 border border-dashed border-white/20 rounded-md"></div>
+                                </div>
+                                <div className="space-y-2">
+                                    <h4 className="font-semibold text-base text-foreground">Radius & Weight</h4>
+                                    <p className="text-xs text-muted-foreground/60 leading-relaxed">Standard Radius: 0.375rem (6px). Font Weight: Medium (500).</p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Slide 3: Scale & Spacing */}
-                        <div className="w-full min-h-screen md:w-screen md:h-screen flex flex-col justify-center px-8 md:px-20 relative snap-center overflow-y-auto py-20">
-                            <div className="max-w-4xl mx-auto w-full pb-8">
-                                <SectionHeader number="04" title="Typography — Scale" />
-                                <div className="space-y-6">
-                                    {/* H1 */}
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-6 items-center hover:bg-muted/10 transition-colors rounded-xl">
-                                        <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
-                                            <div className="font-bold text-foreground mb-1">Geist Sans</div>
-                                            <div className="font-semibold text-foreground">H1 Display</div>
-                                            <div>text-3xl (30px) / 4xl (36px)</div>
-                                        </div>
-                                        <div className="md:col-span-9">
-                                            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
-                                                Turn your wallet into identity.
-                                            </h1>
-                                        </div>
-                                    </div>
-                                    {/* H2 */}
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-6 items-center hover:bg-muted/10 transition-colors rounded-xl">
-                                        <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
-                                            <div className="font-bold text-foreground mb-1">Geist Sans</div>
-                                            <div className="font-semibold text-foreground">H2 Section</div>
-                                            <div>text-2xl (24px) / 3xl (30px)</div>
-                                        </div>
-                                        <div className="md:col-span-9">
-                                            <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
-                                                Grow on-chain.
-                                            </h2>
-                                        </div>
-                                    </div>
-                                    {/* H3 */}
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-6 items-center hover:bg-muted/10 transition-colors rounded-xl">
-                                        <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
-                                            <div className="font-bold text-foreground mb-1">Geist Sans</div>
-                                            <div className="font-semibold text-foreground">H3 Title</div>
-                                            <div>text-xl (20px)</div>
-                                        </div>
-                                        <div className="md:col-span-9">
-                                            <h3 className="text-xl font-semibold">
-                                                Smart Contract Verification
-                                            </h3>
-                                        </div>
-                                    </div>
-                                    {/* Body */}
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-6 items-center hover:bg-muted/10 transition-colors rounded-xl">
-                                        <div className="md:col-span-3 text-sm font-mono text-muted-foreground">
-                                            <div className="font-bold text-foreground mb-1">Geist Sans</div>
-                                            <div className="font-semibold text-foreground">Body & Subtext</div>
-                                            <div>text-sm (14px) / base (16px)</div>
-                                        </div>
-                                        <div className="md:col-span-9">
-                                            <p className="max-w-xl text-sm text-muted-foreground md:text-base">
-                                                Showcase on-chain assets, add links, and share everything as one public page.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-
-                    </HorizontalScrollSection>
-
-                    {/* 05. NAMING CONVENTION */}
-                    {/* 05. NAMING CONVENTION */}
-                    <section className="min-h-screen flex flex-col justify-center py-20 relative md:sticky md:top-0 z-50 bg-background overflow-hidden">
-                        <SectionHeader number="05" title="Naming Convention" />
-                        <div className="space-y-16">
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-16">
-                                <div className="space-y-8">
-                                    <div>
-                                        <h3 className="text-xl font-semibold mb-4">The Brand Name</h3>
-                                        <p className="text-muted-foreground leading-relaxed">
-                                            Our name is always written in uppercase with a numeric "4" replacing the "A".
-                                            This reflects our roots in Web3 and on-chain intelligence.
-                                        </p>
-                                    </div>
-                                    <div className="p-8 rounded-3xl border border-border/50 bg-muted/10 inline-block font-mono text-5xl tracking-tighter">
-                                        SOCI4L
-                                    </div>
-                                </div>
-                                <div className="space-y-6">
-                                    <h3 className="text-xl font-semibold mb-4">Don'ts</h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <DontCard title="Do not capitalize only first letter">
-                                            <div className="font-mono text-2xl text-muted-foreground line-through decoration-red-500/50">Soci4l</div>
-                                        </DontCard>
-                                        <DontCard title="Do not use normal 'A'">
-                                            <div className="font-mono text-2xl text-white line-through decoration-red-500/50">SOCIAL</div>
-                                        </DontCard>
-                                        <DontCard title="Do not use lowercase">
-                                            <div className="font-mono text-2xl text-muted-foreground line-through decoration-red-500/50">soci4l</div>
-                                        </DontCard>
-                                        <DontCard title="Do not mix fonts">
-                                            <div className="font-sans text-2xl text-muted-foreground line-through decoration-red-500/50 font-bold">SOCI4L</div>
-                                        </DontCard>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* 06. BUTTONS & COMPONENTS */}
-                    <section className="min-h-screen flex flex-col justify-center py-20 relative md:sticky md:top-0 z-[70] bg-background">
-                        <SectionHeader number="06" title="Buttons & Components" />
-                        <div className="max-w-7xl mx-auto w-full space-y-24">
-
-
-                            {/* Detailed Specs Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                                {/* Rounded Rect */}
-                                <div className="space-y-6 p-8 bg-black/40 border border-white/5 rounded-3xl relative overflow-hidden">
-                                    <div className="absolute top-6 left-6 w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-                                    </div>
-                                    <div className="flex items-center justify-center h-32">
-                                        <div className="bg-black border border-white/10 rounded-md px-4 py-2 flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-white/20"></div>
-                                            <span className="text-[10px] font-mono text-white/40">Label</span>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <h4 className="font-semibold text-base text-foreground">Contrast Rule</h4>
-                                        <p className="text-xs text-muted-foreground/60 leading-relaxed">Buttons must contrast perfectly with their background. White button on dark, black button on light.</p>
-                                    </div>
-                                </div>
-
-                                {/* Brand Color */}
-                                <div className="space-y-6 p-8 bg-black/40 border border-white/5 rounded-3xl relative overflow-hidden">
-                                    <div className="absolute top-6 left-6 w-6 h-6 rounded-full bg-yellow-500/10 flex items-center justify-center">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-yellow-500"></div>
-                                    </div>
-                                    <div className="flex items-center justify-center h-32">
-                                        <button className="bg-[#2845D6] text-white px-4 py-2 rounded-md text-xs font-medium">
-                                            Special
+                        {/* Component Library */}
+                        <div className="space-y-8 pt-6">
+                            <h3 className="text-lg font-semibold text-muted-foreground">Component Library</h3>
+                            <div className="w-full overflow-x-auto scrollbar-hide pb-4 -mx-4 px-4">
+                                <div className="flex gap-8 items-start min-w-max">
+                                    <div className="space-y-3">
+                                        <button className="bg-white hover:bg-white/90 text-black font-medium h-9 px-4 rounded-md text-sm transition-colors shadow-none">
+                                            Default Button
                                         </button>
+                                        <div className="text-[10px] font-mono text-muted-foreground/50">variant="default"</div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <h4 className="font-semibold text-base text-foreground">Brand Color</h4>
-                                        <p className="text-xs text-muted-foreground/60 leading-relaxed">Use Brand Blue (#2845D6) ONLY for special 'Magic' actions or highlights.</p>
+                                    <div className="space-y-3">
+                                        <button className="bg-white/5 hover:bg-white/10 text-white font-medium h-9 px-4 rounded-md text-sm border border-white/10 transition-colors">
+                                            Secondary
+                                        </button>
+                                        <div className="text-[10px] font-mono text-muted-foreground/50">variant="secondary"</div>
                                     </div>
-                                </div>
-
-                                {/* Shadow Usage */}
-                                <div className="space-y-6 p-8 bg-black/40 border border-white/5 rounded-3xl relative overflow-hidden">
-                                    <div className="absolute top-6 left-6 w-6 h-6 rounded-full bg-yellow-500/10 flex items-center justify-center">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-yellow-500"></div>
+                                    <div className="space-y-3">
+                                        <button className="bg-transparent hover:bg-white/5 text-white font-medium h-9 px-4 rounded-md text-sm border border-white/20 transition-colors">
+                                            Outline
+                                        </button>
+                                        <div className="text-[10px] font-mono text-muted-foreground/50">variant="outline"</div>
                                     </div>
-                                    <div className="flex items-center justify-center h-32 relative">
-                                        <div className="w-20 h-8 bg-brand-500 rounded-md shadow-[0_10px_20px_-5px_rgba(79,70,229,0.5)] opacity-50"></div>
+                                    <div className="space-y-3">
+                                        <button className="bg-transparent hover:bg-white/5 text-white font-medium h-9 px-4 rounded-md text-sm transition-colors">
+                                            Ghost
+                                        </button>
+                                        <div className="text-[10px] font-mono text-muted-foreground/50">variant="ghost"</div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <h4 className="font-semibold text-base text-foreground">Shadow Usage</h4>
-                                        <p className="text-xs text-muted-foreground/60 leading-relaxed">Never use blurred/soft shadows in dark mode. Use crisp borders or simple flat colors.</p>
-                                    </div>
-                                </div>
-
-                                {/* Radius & Weight */}
-                                <div className="space-y-6 p-8 bg-black/40 border border-white/5 rounded-3xl relative overflow-hidden">
-                                    <div className="absolute top-6 left-6 w-6 h-6 rounded-full bg-blue-500/10 flex items-center justify-center">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-                                    </div>
-                                    <div className="flex items-center justify-center h-32">
-                                        <div className="w-10 h-10 border border-dashed border-white/20 rounded-md"></div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <h4 className="font-semibold text-base text-foreground">Radius & Weight</h4>
-                                        <p className="text-xs text-muted-foreground/60 leading-relaxed">Standard Radius: 0.375rem (6px). Font Weight: Medium (500).</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Component Library */}
-                            <div className="space-y-8 pt-6">
-                                <h3 className="text-lg font-semibold text-muted-foreground">Component Library</h3>
-                                <div className="w-full overflow-x-auto scrollbar-hide pb-4 -mx-4 px-4">
-                                    <div className="flex gap-8 items-start min-w-max">
-                                        <div className="space-y-3">
-                                            <button className="bg-white hover:bg-white/90 text-black font-medium h-9 px-4 rounded-md text-sm transition-colors shadow-none">
-                                                Default Button
-                                            </button>
-                                            <div className="text-[10px] font-mono text-muted-foreground/50">variant="default"</div>
-                                        </div>
-                                        <div className="space-y-3">
-                                            <button className="bg-white/5 hover:bg-white/10 text-white font-medium h-9 px-4 rounded-md text-sm border border-white/10 transition-colors">
-                                                Secondary
-                                            </button>
-                                            <div className="text-[10px] font-mono text-muted-foreground/50">variant="secondary"</div>
-                                        </div>
-                                        <div className="space-y-3">
-                                            <button className="bg-transparent hover:bg-white/5 text-white font-medium h-9 px-4 rounded-md text-sm border border-white/20 transition-colors">
-                                                Outline
-                                            </button>
-                                            <div className="text-[10px] font-mono text-muted-foreground/50">variant="outline"</div>
-                                        </div>
-                                        <div className="space-y-3">
-                                            <button className="bg-transparent hover:bg-white/5 text-white font-medium h-9 px-4 rounded-md text-sm transition-colors">
-                                                Ghost
-                                            </button>
-                                            <div className="text-[10px] font-mono text-muted-foreground/50">variant="ghost"</div>
-                                        </div>
-                                        <div className="space-y-3">
-                                            <button className="bg-[#991b1b] hover:bg-[#7f1d1d] text-white font-medium h-9 px-4 rounded-md text-sm border border-red-500/20 transition-colors">
-                                                Destructive
-                                            </button>
-                                            <div className="text-[10px] font-mono text-muted-foreground/50">variant="destructive"</div>
-                                        </div>
+                                    <div className="space-y-3">
+                                        <button className="bg-[#991b1b] hover:bg-[#7f1d1d] text-white font-medium h-9 px-4 rounded-md text-sm border border-red-500/20 transition-colors">
+                                            Destructive
+                                        </button>
+                                        <div className="text-[10px] font-mono text-muted-foreground/50">variant="destructive"</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </section>
-                    {/* 07. SOCIAL MEDIA KITS */}
-                    <section className="min-h-screen flex flex-col justify-center py-20 relative md:sticky md:top-0 z-[70] bg-background">
-                        <SectionHeader number="07" title="Social Media Kits" />
+                    </div>
+                </section>
+                {/* 07. SOCIAL MEDIA KITS */}
+                <section className="min-h-[calc(100vh-4rem)] flex flex-col justify-center py-20 relative md:sticky md:top-16 z-[70] bg-background">
+                    <SectionHeader number="07" title="Social Media Kits" />
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {/* X Banner */}
-                            <div className="p-1 rounded-3xl border border-border/50 bg-card group overflow-hidden">
-                                <div className="aspect-[3/1] rounded-2xl bg-[#0A0A0A] relative flex items-center justify-center overflow-hidden">
-                                    <img src="/brand/kits/SOCI4L_X_HEADER.png" alt="SOCI4L X Header" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                </div>
-                                <div className="p-4 flex justify-between items-center">
-                                    <div>
-                                        <h4 className="font-medium">X (Twitter) Banner</h4>
-                                        <p className="text-xs text-muted-foreground">1500 x 500 px</p>
-                                    </div>
-                                    <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
-                                        <a href="/brand/kits/SOCI4L_X_HEADER.png" download>
-                                            <Download className="w-4 h-4" />
-                                        </a>
-                                    </Button>
-                                </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {/* X Banner */}
+                        <div className="p-1 rounded-3xl border border-border/50 bg-card group overflow-hidden">
+                            <div className="aspect-[3/1] rounded-2xl bg-[#0A0A0A] relative flex items-center justify-center overflow-hidden">
+                                <img src="/brand/kits/SOCI4L_X_HEADER.png" alt="SOCI4L X Header" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                             </div>
-
-                            {/* Profile Frame */}
-                            <div className="p-1 rounded-3xl border border-border/50 bg-card group overflow-hidden">
-                                <div className="aspect-square rounded-2xl bg-[#FAFAFA] relative flex items-center justify-center overflow-hidden">
-                                    <img src="/brand/kits/x_logo.png" alt="Profile Photo" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            <div className="p-4 flex justify-between items-center">
+                                <div>
+                                    <h4 className="font-medium">X (Twitter) Banner</h4>
+                                    <p className="text-xs text-muted-foreground">1500 x 500 px</p>
                                 </div>
-                                <div className="p-4 flex justify-between items-center">
-                                    <div>
-                                        <h4 className="font-medium">Profile Photo</h4>
-                                        <p className="text-xs text-muted-foreground">400 x 400 px</p>
-                                    </div>
-                                    <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
-                                        <a href="/brand/kits/x_logo.png" download>
-                                            <Download className="w-4 h-4" />
-                                        </a>
-                                    </Button>
-                                </div>
-                            </div>
-
-                            {/* Powered by Badge */}
-                            <div className="p-1 rounded-3xl border border-border/50 bg-card group overflow-hidden">
-                                <div className="aspect-square rounded-2xl bg-[#0A0A0A] border border-white/5 relative flex flex-col items-center justify-center gap-6 overflow-hidden">
-                                    <img src="/brand/kits/Black_PoweredBy.png" alt="Powered By Dark" className="w-3/4 object-contain shadow-2xl" />
-                                    <img src="/brand/kits/White_PoweredBy.png" alt="Powered By Light" className="w-3/4 object-contain shadow-2xl" />
-                                </div>
-                                <div className="p-4 flex justify-between items-center">
-                                    <div>
-                                        <h4 className="font-medium">Community Badges</h4>
-                                        <p className="text-xs text-muted-foreground">PNG & SVG Variants</p>
-                                    </div>
-                                    <div className="flex gap-1">
-                                        <DropdownMenu modal={false}>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-500 hover:text-foreground" title="Download PNG">
-                                                    <FileImage className="w-4 h-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className="z-[100]">
-                                                <DropdownMenuItem asChild>
-                                                    <a href="/brand/kits/Black_PoweredBy.png" download className="flex items-center gap-2 cursor-pointer">
-                                                        <div className="w-2 h-2 rounded-full bg-black border border-white/20" />
-                                                        <span>Dark (PNG)</span>
-                                                    </a>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem asChild>
-                                                    <a href="/brand/kits/White_PoweredBy.png" download className="flex items-center gap-2 cursor-pointer">
-                                                        <div className="w-2 h-2 rounded-full bg-white border border-black/10" />
-                                                        <span>Light (PNG)</span>
-                                                    </a>
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-
-                                        <DropdownMenu modal={false}>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-500 hover:text-foreground" title="Download SVG">
-                                                    <FileCode className="w-4 h-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className="z-[100]">
-                                                <DropdownMenuItem asChild>
-                                                    <a href="/brand/kits/Black_PoweredBy.svg" download className="flex items-center gap-2 cursor-pointer">
-                                                        <div className="w-2 h-2 rounded-full bg-black border border-white/20" />
-                                                        <span>Dark (SVG)</span>
-                                                    </a>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem asChild>
-                                                    <a href="/brand/kits/White_PoweredBy.svg" download className="flex items-center gap-2 cursor-pointer">
-                                                        <div className="w-2 h-2 rounded-full bg-white border border-black/10" />
-                                                        <span>Light (SVG)</span>
-                                                    </a>
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </div>
-                                </div>
+                                <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
+                                    <a href="/brand/kits/SOCI4L_X_HEADER.png" download>
+                                        <Download className="w-4 h-4" />
+                                    </a>
+                                </Button>
                             </div>
                         </div>
 
-                        <div className="mt-12 p-8 rounded-3xl border border-brand-500/20 bg-brand-500/5 flex flex-col md:flex-row items-center justify-between gap-8">
-                            <div className="max-w-xl">
-                                <div className="flex items-center gap-2 text-brand-500 mb-2">
-                                    <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden="true">
-                                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
-                                    </svg>
-                                    <span className="font-bold uppercase tracking-widest text-xs">Community Kit</span>
-                                </div>
-                                <h3 className="text-xl font-semibold mb-2">Build your identity everywhere.</h3>
-                                <p className="text-sm text-muted-foreground leading-relaxed">
-                                    Download the complete Social Media Graphics kit to unify your on-chain and off-chain presence. Includes high-res renders and vector badges.
-                                </p>
+                        {/* Profile Frame */}
+                        <div className="p-1 rounded-3xl border border-border/50 bg-card group overflow-hidden">
+                            <div className="aspect-square rounded-2xl bg-[#FAFAFA] relative flex items-center justify-center overflow-hidden">
+                                <img src="/brand/kits/x_logo.png" alt="Profile Photo" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                             </div>
-                            <Button className="bg-brand-500 text-white hover:bg-brand-600 gap-2 px-8 py-6 rounded-2xl" asChild>
-                                <a href="/brand/kits/SOCI4L_Community_Kit.zip" download>
-                                    <Download className="w-5 h-5" />
-                                    Download Complete Kit
-                                </a>
-                            </Button>
+                            <div className="p-4 flex justify-between items-center">
+                                <div>
+                                    <h4 className="font-medium">Profile Photo</h4>
+                                    <p className="text-xs text-muted-foreground">400 x 400 px</p>
+                                </div>
+                                <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
+                                    <a href="/brand/kits/x_logo.png" download>
+                                        <Download className="w-4 h-4" />
+                                    </a>
+                                </Button>
+                            </div>
                         </div>
-                    </section>
 
+                        {/* Powered by Badge */}
+                        <div className="p-1 rounded-3xl border border-border/50 bg-card group overflow-hidden">
+                            <div className="aspect-square rounded-2xl bg-[#0A0A0A] border border-white/5 relative flex flex-col items-center justify-center gap-6 overflow-hidden">
+                                <img src="/brand/kits/Black_PoweredBy.png" alt="Powered By Dark" className="w-3/4 object-contain shadow-2xl" />
+                                <img src="/brand/kits/White_PoweredBy.png" alt="Powered By Light" className="w-3/4 object-contain shadow-2xl" />
+                            </div>
+                            <div className="p-4 flex justify-between items-center">
+                                <div>
+                                    <h4 className="font-medium">Community Badges</h4>
+                                    <p className="text-xs text-muted-foreground">PNG & SVG Variants</p>
+                                </div>
+                                <div className="flex gap-1">
+                                    <DropdownMenu modal={false}>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-500 hover:text-foreground" title="Download PNG">
+                                                <FileImage className="w-4 h-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end" className="z-[100]">
+                                            <DropdownMenuItem asChild>
+                                                <a href="/brand/kits/Black_PoweredBy.png" download className="flex items-center gap-2 cursor-pointer">
+                                                    <div className="w-2 h-2 rounded-full bg-black border border-white/20" />
+                                                    <span>Dark (PNG)</span>
+                                                </a>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                                <a href="/brand/kits/White_PoweredBy.png" download className="flex items-center gap-2 cursor-pointer">
+                                                    <div className="w-2 h-2 rounded-full bg-white border border-black/10" />
+                                                    <span>Light (PNG)</span>
+                                                </a>
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
 
+                                    <DropdownMenu modal={false}>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-9 w-9 text-zinc-500 hover:text-foreground" title="Download SVG">
+                                                <FileCode className="w-4 h-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end" className="z-[100]">
+                                            <DropdownMenuItem asChild>
+                                                <a href="/brand/kits/Black_PoweredBy.svg" download className="flex items-center gap-2 cursor-pointer">
+                                                    <div className="w-2 h-2 rounded-full bg-black border border-white/20" />
+                                                    <span>Dark (SVG)</span>
+                                                </a>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                                <a href="/brand/kits/White_PoweredBy.svg" download className="flex items-center gap-2 cursor-pointer">
+                                                    <div className="w-2 h-2 rounded-full bg-white border border-black/10" />
+                                                    <span>Light (SVG)</span>
+                                                </a>
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                </motion.div>
+                    <div className="mt-12 p-8 rounded-3xl border border-brand-500/20 bg-brand-500/5 flex flex-col md:flex-row items-center justify-between gap-8">
+                        <div className="max-w-xl">
+                            <div className="flex items-center gap-2 text-brand-500 mb-2">
+                                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden="true">
+                                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
+                                </svg>
+                                <span className="font-bold uppercase tracking-widest text-xs">Community Kit</span>
+                            </div>
+                            <h3 className="text-xl font-semibold mb-2">Build your identity everywhere.</h3>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                                Download the complete Social Media Graphics kit to unify your on-chain and off-chain presence. Includes high-res renders and vector badges.
+                            </p>
+                        </div>
+                        <Button className="bg-brand-500 text-white hover:bg-brand-600 gap-2 px-8 py-6 rounded-2xl" asChild>
+                            <a href="/brand/kits/SOCI4L_Community_Kit.zip" download>
+                                <Download className="w-5 h-5" />
+                                Download Complete Kit
+                            </a>
+                        </Button>
+                    </div>
+                </section>
 
                 <footer className="mt-20 py-24 border-t border-border/10 text-center">
                     <div className="text-[10px] md:text-xs font-mono uppercase tracking-[0.3em] text-muted-foreground/60 max-w-2xl mx-auto space-y-4">
@@ -925,12 +928,12 @@ function HorizontalScrollSection({ children, className }: { children: ReactNode,
     return (
         <section
             ref={targetRef}
-            className={cn("relative bg-background text-foreground h-auto md:h-[var(--dynamic-height)]", className)}
+            className={cn("relative bg-background text-foreground h-auto md:h-[var(--dynamic-height)] w-full", className)}
             style={{
                 "--dynamic-height": `${childrenCount * 100}vh`,
             } as React.CSSProperties}
         >
-            <div className="md:sticky md:top-0 md:h-screen md:overflow-hidden bg-background">
+            <div className="md:sticky md:top-16 md:h-[calc(100vh-4rem)] md:overflow-hidden bg-background">
                 {/* Mobile: Vertical Stack (flex-col). Desktop: Horizontal Row (flex-row) with transform */}
                 <motion.div
                     style={{
