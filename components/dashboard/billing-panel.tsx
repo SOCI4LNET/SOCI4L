@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Loader2, ExternalLink, CheckCircle2, XCircle, Clock } from 'lucide-react'
 import Link from 'next/link'
 import { format } from 'date-fns'
+import { TransactionHistory } from '@/components/dashboard/billing/transaction-history'
 
 interface BillingPanelProps {
     profile: any
@@ -186,6 +187,8 @@ export function BillingPanel({ profile, address }: BillingPanelProps) {
                             </div>
                         </CardContent>
                     </Card>
+
+                    <TransactionHistory address={address} />
                 </div>
             </div>
         </div>
