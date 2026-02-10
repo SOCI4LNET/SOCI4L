@@ -328,3 +328,18 @@ model ProcessedEvent {
   @@unique([txHash, logIndex, eventName])
   @@index([txHash])
 }
+
+model BillingInteraction {
+  id          String   @id @default(cuid())
+  userAddress String   // wallet address (lowercase)
+  type        String   // 'PREMIUM' | 'SLUG_CLAIM'
+  description String
+  amount      String   
+  txHash      String   @unique
+  timestamp   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([userAddress])
+  @@index([type])
+  @@index([timestamp])
+}

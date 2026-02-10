@@ -22,12 +22,12 @@ export async function GET(request: NextRequest) {
     try {
         const INDEXER_KEY = 'premium_payment_v1'
 
-        let state = await prisma.indexerState.findUnique({
+        let state = await (prisma as any).indexerState.findUnique({
             where: { key: INDEXER_KEY }
         })
 
         if (!state) {
-            state = await prisma.indexerState.create({
+            state = await (prisma as any).indexerState.create({
                 data: {
                     key: INDEXER_KEY,
                     lastSyncedBlock: DEFAULT_START_BLOCK
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
         const currentBlock = await client.getBlockNumber()
 
         const force = request.nextUrl.searchParams.get('force') === 'true'
-        let fromBlock = state.lastSyncedBlock + BigInt(1)
+        let fromBlock = BigInt(state.lastSyncedBlock) + BigInt(1)
 
         if (force) {
             const RECENT_WINDOW = BigInt(30000)
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
                 const logIndexInt = Number(logIndex) // Ensure it's a number
 
                 try {
-                    await prisma.$transaction(async (tx) => {
+                    await (prisma as any).$transaction(async (tx: any) => {
                         // 2.2 Deduplication Check (Atomic)
                         const existingEvent = await tx.processedEvent.findUnique({
                             where: {
@@ -144,21 +144,28 @@ export async function GET(request: NextRequest) {
                             totalProcessed++
                         }
 
-                        // Trigger Notification ONLY if it's a new/renewed premium
-                        // We do this check inside, but send outside or use a flag,
-                        // but since notification is side-effect, we can just do it here carefully.
-                        // Ideally, we return a flag from transaction.
+                        // Save to BillingInteraction for persistent history
+                        const paidAt = args.paidAt ? Number(args.paidAt) : Math.floor(Date.now() / 1000)
+                        const amount = args.amount ? Number(args.amount) / 1e18 : 0.5
+
+                        await tx.billingInteraction.upsert({
+                            where: { txHash: transactionHash },
+                            update: {},
+                            create: {
+                                userAddress,
+                                type: 'PREMIUM',
+                                description: 'Premium Plan (365 Days)',
+                                amount: `${amount.toFixed(1)} AVAX`,
+                                txHash: transactionHash,
+                                timestamp: new Date(paidAt * 1000)
+                            }
+                        })
+
+                        // Return info for notification AFTER transaction commits
                         if (isNewlyPremium) {
-                            // We'll return this info to trigger notification AFTER transaction commits
-                            // to avoid sending if DB fails.
-                            // Throwing here would rollback.
-                            // We need a way to pass "shouldNotify" out.
-                            // For now, let's attach it to a temporary object or just use a local variable
-                            // defined outside scope? No, parallel executions share scope? No, request scope.
-                            // Actually, let's just return the necessary data.
                             return { shouldNotify: true, userAddress, newExpiresAt, existingProfile, transactionHash, logIndexInt };
                         }
-                    }).then(async (result) => {
+                    }).then(async (result: any) => {
                         if (result && result.shouldNotify) {
                             try {
                                 const { sendTelegramNotification, getAvaxPrice } = require('@/lib/telegram');
@@ -166,7 +173,7 @@ export async function GET(request: NextRequest) {
                                 const amount = 0.5;
                                 const usdValue = (amount * price).toFixed(2);
 
-                                const totalPremium = await prisma.profile.count({
+                                const totalPremium = await (prisma as any).profile.count({
                                     where: {
                                         premiumExpiresAt: {
                                             gt: new Date()
@@ -200,25 +207,21 @@ export async function GET(request: NextRequest) {
                         }
                     });
                 } catch (error) {
-                    // specific error handling for unique constraint violation (P2002)
-                    // which means another worker processed it. All good.
                     if ((error as any).code === 'P2002') {
                         console.log(`[Sync Premium] Concurrency: Event ${transactionHash}-${logIndexInt} processed by another worker.`);
                     } else {
                         throw error;
                     }
                 }
-
-                // Notification moved to transaction callback
             }
 
             fromBlock = toBlock + BigInt(1)
             iteration++
         }
 
-        const finalSyncedBlock = fromBlock > state.lastSyncedBlock ? fromBlock : state.lastSyncedBlock
+        const finalSyncedBlock = fromBlock > BigInt(state.lastSyncedBlock) ? fromBlock : BigInt(state.lastSyncedBlock)
 
-        await prisma.indexerState.update({
+        await (prisma as any).indexerState.update({
             where: { key: INDEXER_KEY },
             data: {
                 lastSyncedBlock: finalSyncedBlock

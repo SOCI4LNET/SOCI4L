@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge"
 // --- Configuration ---
 const PREMIUM_CONTRACT = "0x9bA02537447E6DcdeF72D0e98a4C82E6B73E3cCC"
 const SLUG_CONTRACT = "0xC894a2677C7E619E9692E3bF4AFF58bE53173aA1"
-
 const RPC_URL = "https://api.avax.network/ext/bc/C/rpc"
 
 // --- Types ---
@@ -40,63 +39,44 @@ export function TransactionHistory({ address }: TransactionHistoryProps) {
             setIsLoading(true)
             setError(null)
             try {
-                const client = createPublicClient({
-                    chain: avalanche,
-                    transport: http(RPC_URL)
-                })
+                // 1. Fetch persistent history from Database API
+                const apiResponse = await fetch(`/api/profile/${address}/billing-history`)
+                const apiData = await apiResponse.json()
 
-                const currentBlock = await client.getBlockNumber()
-                // Limit: RPC allows 2048 blocks per request.
-                // We'll scan the last ~300,000 blocks (~1 week) to ensure good performance without an indexer.
-                // Scanning from 40M (genesis of contract) to 77M is feasible only with an indexer or thousands of requests.
-                const scanRange = 300000n
-                const fromBlock = currentBlock - scanRange
-                const chunkSize = 2040n // Keeping slight buffer under 2048
+                const dbTxs: Transaction[] = (apiData.history || []).map((tx: any) => ({
+                    ...tx,
+                    timestamp: new Date(tx.timestamp)
+                }))
 
-                const fetchLogsInChunks = async (address: string, event: any, args: any) => {
-                    const logs: any[] = []
-                    // Iterate from current down to fromBlock to show newest first, or standard loop
-                    // Standard loop: from -> to
-                    for (let i = fromBlock; i < currentBlock; i += chunkSize) {
-                        const to = (i + chunkSize > currentBlock) ? currentBlock : i + chunkSize
-                        try {
-                            const chunkLogs = await client.getLogs({
-                                address: address as `0x${string}`,
-                                event,
-                                args,
-                                fromBlock: i,
-                                toBlock: to
-                            })
-                            logs.push(...chunkLogs)
-                        } catch (e) {
-                            console.warn(`Failed to fetch chunk ${i}-${to}`, e)
-                            // Continue best effort
-                        }
-                    }
-                    return logs
-                }
+                // 2. Scan a very small RECENT window from RPC (fallback/immediate-feedback)
+                // We scan only the last 5000 blocks (approx 1.5 hours) for pending indexer updates
+                let recentTxs: Transaction[] = []
+                try {
+                    const client = createPublicClient({
+                        chain: avalanche,
+                        transport: http(RPC_URL)
+                    })
+                    const currentBlock = await client.getBlockNumber()
+                    const fromBlock = currentBlock - 5000n
 
-                // Parallel fetch for both contracts
-                const [premiumLogs, slugLogs] = await Promise.all([
-                    fetchLogsInChunks(
-                        PREMIUM_CONTRACT,
-                        parseAbiItem('event PremiumPurchased(address indexed user, uint256 paidAt, uint256 expiresAt, uint256 amount)'),
-                        { user: address as `0x${string}` }
-                    ),
-                    fetchLogsInChunks(
-                        SLUG_CONTRACT,
-                        parseAbiItem('event SlugClaimed(bytes32 indexed slugHash, address indexed owner, uint256 timestamp)'),
-                        { owner: address as `0x${string}` }
-                    )
-                ])
+                    const [premiumLogs, slugLogs] = await Promise.all([
+                        client.getLogs({
+                            address: PREMIUM_CONTRACT as `0x${string}`,
+                            event: parseAbiItem('event PremiumPurchased(address indexed user, uint256 paidAt, uint256 expiresAt, uint256 amount)'),
+                            args: { user: address as `0x${string}` },
+                            fromBlock
+                        }),
+                        client.getLogs({
+                            address: SLUG_CONTRACT as `0x${string}`,
+                            event: parseAbiItem('event SlugClaimed(bytes32 indexed slugHash, address indexed owner, uint256 timestamp)'),
+                            args: { owner: address as `0x${string}` },
+                            fromBlock
+                        })
+                    ])
 
-                const formattedTxs: Transaction[] = []
-
-                // Process Premium Logs
-                for (const log of premiumLogs) {
-                    const { paidAt, amount } = log.args
-                    if (paidAt && amount) {
-                        formattedTxs.push({
+                    for (const log of premiumLogs) {
+                        const { paidAt, amount } = log.args as any
+                        recentTxs.push({
                             id: log.transactionHash + "-premium",
                             type: "PREMIUM",
                             description: "Premium Plan (365 Days)",
@@ -106,13 +86,10 @@ export function TransactionHistory({ address }: TransactionHistoryProps) {
                             status: "CONFIRMED"
                         })
                     }
-                }
 
-                // Process Slug Logs
-                for (const log of slugLogs) {
-                    const { timestamp } = log.args
-                    if (timestamp) {
-                        formattedTxs.push({
+                    for (const log of slugLogs) {
+                        const { timestamp } = log.args as any
+                        recentTxs.push({
                             id: log.transactionHash + "-slug",
                             type: "SLUG_CLAIM",
                             description: "Identity Handle Claim",
@@ -122,15 +99,25 @@ export function TransactionHistory({ address }: TransactionHistoryProps) {
                             status: "CONFIRMED"
                         })
                     }
+                } catch (rpcErr) {
+                    console.warn("RPC recent scan failed, falling back to DB only", rpcErr)
                 }
 
-                // Sort by date desc
-                formattedTxs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+                // 3. Merge and Deduplicate
+                const allTxs = [...dbTxs]
+                recentTxs.forEach(rtx => {
+                    if (!allTxs.find(tx => tx.hash === rtx.hash)) {
+                        allTxs.push(rtx)
+                    }
+                })
 
-                setTransactions(formattedTxs)
+                // Sort by date desc
+                allTxs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+
+                setTransactions(allTxs)
             } catch (err) {
                 console.error("Error fetching transaction history:", err)
-                setError("Failed to load full history. (RPC Limit)")
+                setError("Failed to load history.")
             } finally {
                 setIsLoading(false)
             }
@@ -151,14 +138,14 @@ export function TransactionHistory({ address }: TransactionHistoryProps) {
                     Transaction History
                 </CardTitle>
                 <CardDescription>
-                    On-chain interactions with SOCI4L contracts
+                    Permanent archive of your on-chain interactions
                 </CardDescription>
             </CardHeader>
             <CardContent>
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                         <Loader2 className="w-8 h-8 animate-spin mb-2 opacity-50" />
-                        <p className="text-sm">Scanning Avalanche C-Chain...</p>
+                        <p className="text-sm">Loading archive...</p>
                     </div>
                 ) : error ? (
                     <div className="flex items-center gap-2 text-destructive py-8 justify-center bg-destructive/5 rounded-lg">
