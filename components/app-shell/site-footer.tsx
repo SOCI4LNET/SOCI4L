@@ -39,7 +39,6 @@ const footerLinks = {
 const socialLinks = [
     { icon: XIcon, label: 'X', href: 'https://x.com/soci4lnet', ariaLabel: 'Follow us on X' },
     { icon: Github, label: 'GitHub', href: 'https://github.com/SOCI4LNET', ariaLabel: 'View our GitHub' },
-    { icon: DiscordIcon, label: 'Discord', href: 'https://discord.gg/soci4l', ariaLabel: 'Join our Discord' },
 ]
 
 function validateEmail(email: string): boolean {

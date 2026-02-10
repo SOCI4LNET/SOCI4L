@@ -28,7 +28,7 @@ const footerLinks = {
   ] as FooterLink[],
   resources: [
     { label: 'Docs', href: 'https://docs.soci4l.net', external: true },
-    { label: 'Support', href: 'https://discord.gg/soci4l', external: true },
+    { label: 'Support', href: '#', external: false }, // Link removed
     { label: 'Privacy', href: '/privacy', external: false },
     { label: 'Terms', href: '/terms', external: false },
     { label: 'Brand Guidelines', href: '/brand', external: false },
@@ -38,7 +38,6 @@ const footerLinks = {
 const socialLinks = [
   { icon: XIcon, label: 'X', href: 'https://twitter.com/soci4l', ariaLabel: 'Follow us on X' },
   { icon: Github, label: 'GitHub', href: 'https://github.com/SOCI4LNET', ariaLabel: 'View our GitHub' },
-  { icon: DiscordIcon, label: 'Discord', href: 'https://discord.gg/soci4l', ariaLabel: 'Join our Discord' },
 ]
 
 function validateEmail(email: string): boolean {
