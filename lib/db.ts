@@ -22,6 +22,7 @@ export interface ProfileData {
   statusMessage?: string | null
   socialLinks?: string | null
   premiumExpiresAt?: Date | null
+  premiumLastTxHash?: string | null
 }
 
 /**
@@ -58,6 +59,7 @@ export async function getProfileByAddress(address: string): Promise<ProfileData 
     statusMessage: profile.statusMessage,
     socialLinks: profile.socialLinks,
     premiumExpiresAt: profile.premiumExpiresAt,
+    premiumLastTxHash: profile.premiumLastTxHash,
   }
 }
 
@@ -158,5 +160,6 @@ export async function getProfileBySlug(slug: string): Promise<ProfileData | null
     statusMessage: profile.statusMessage,
     socialLinks: profile.socialLinks,
     premiumExpiresAt: profile.premiumExpiresAt,
+    premiumLastTxHash: profile.premiumLastTxHash,
   }
 }

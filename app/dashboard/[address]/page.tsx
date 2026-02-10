@@ -38,6 +38,8 @@ interface Profile {
   bio?: string | null
   socialLinks?: Array<{ type: string; url: string; label?: string }> | null
   appearance?: any
+  premiumExpiresAt?: string | null
+  premiumLastTxHash?: string | null
 }
 
 interface WalletData {
