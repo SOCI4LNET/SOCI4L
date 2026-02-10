@@ -12,16 +12,39 @@ import { Wallet, Loader2 } from 'lucide-react'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import Link from 'next/link'
 import { ClaimProfileButton } from '@/components/claim-profile-button'
-import { OverviewPanel } from '@/components/dashboard/overview-panel'
-import { AssetsPanel } from '@/components/dashboard/assets-panel'
-import { ActivityPanel } from '@/components/dashboard/activity-panel'
-import { SettingsPanel } from '@/components/dashboard/settings-panel'
-import { SocialPanel } from '@/components/dashboard/social-panel'
-import { BuilderPanel } from '@/components/dashboard/builder-panel'
-import { LinksPanel } from '@/components/dashboard/links-panel'
-import { InsightsPanel } from '@/components/dashboard/insights-panel'
-import { SafetyPanel } from '@/components/dashboard/safety-panel'
-import { BillingPanel } from '@/components/dashboard/billing-panel'
+import dynamic from 'next/dynamic'
+
+// Lazy load dashboard panels to improve initial bundle size
+const OverviewPanel = dynamic(() => import('@/components/dashboard/overview-panel').then(mod => mod.OverviewPanel), {
+  loading: () => <div className="space-y-6"><Skeleton className="h-[200px] w-full" /><Skeleton className="h-[400px] w-full" /></div>
+})
+const AssetsPanel = dynamic(() => import('@/components/dashboard/assets-panel').then(mod => mod.AssetsPanel), {
+  loading: () => <Skeleton className="h-[600px] w-full" />
+})
+const ActivityPanel = dynamic(() => import('@/components/dashboard/activity-panel').then(mod => mod.ActivityPanel), {
+  loading: () => <Skeleton className="h-[600px] w-full" />
+})
+const SettingsPanel = dynamic(() => import('@/components/dashboard/settings-panel').then(mod => mod.SettingsPanel), {
+  loading: () => <Skeleton className="h-[600px] w-full" />
+})
+const SocialPanel = dynamic(() => import('@/components/dashboard/social-panel').then(mod => mod.SocialPanel), {
+  loading: () => <Skeleton className="h-[600px] w-full" />
+})
+const BuilderPanel = dynamic(() => import('@/components/dashboard/builder-panel').then(mod => mod.BuilderPanel), {
+  loading: () => <Skeleton className="h-[600px] w-full" />
+})
+const LinksPanel = dynamic(() => import('@/components/dashboard/links-panel').then(mod => mod.LinksPanel), {
+  loading: () => <Skeleton className="h-[600px] w-full" />
+})
+const InsightsPanel = dynamic(() => import('@/components/dashboard/insights-panel').then(mod => mod.InsightsPanel), {
+  loading: () => <Skeleton className="h-[600px] w-full" />
+})
+const SafetyPanel = dynamic(() => import('@/components/dashboard/safety-panel').then(mod => mod.SafetyPanel), {
+  loading: () => <Skeleton className="h-[600px] w-full" />
+})
+const BillingPanel = dynamic(() => import('@/components/dashboard/billing-panel').then(mod => mod.BillingPanel), {
+  loading: () => <Skeleton className="h-[600px] w-full" />
+})
 import { PageShell } from '@/components/app-shell/page-shell'
 import { sanitizeQueryParams } from '@/lib/query-params'
 import { isProfileClaimed } from '@/lib/profile/isProfileClaimed'
