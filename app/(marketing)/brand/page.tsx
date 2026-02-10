@@ -920,6 +920,7 @@ function HorizontalScrollSection({ children, className }: { children: ReactNode,
 
     const { scrollYProgress } = useScroll({
         target: targetRef,
+        offset: ["start start", "end end"]
     })
 
     const transformValue = `-${((childrenCount - 1) / childrenCount) * 100}%`
