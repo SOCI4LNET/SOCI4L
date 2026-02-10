@@ -19,6 +19,12 @@ export async function POST(req: NextRequest) {
         const sessionOwner = await getSessionAddress()
         let effectiveAddress = sessionOwner
 
+        // Checks if the requested address matches the session.
+        // If not, we ignore the session and force signature verification (Step 2).
+        if (address && sessionOwner && address.toLowerCase() !== sessionOwner.toLowerCase()) {
+            effectiveAddress = null
+        }
+
         // 2. Fallback: Signature Auth (if no session)
         if (!effectiveAddress) {
             if (!address || !signature) {

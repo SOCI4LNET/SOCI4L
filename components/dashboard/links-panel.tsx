@@ -547,6 +547,16 @@ export function LinksPanel() {
     const twitterAccount = user?.twitter
     if (twitterAccount) {
       const syncSocial = async () => {
+        // Validation: Ensure the authenticated Privy user matches the current target profile
+        // This prevents "bleeding" of social links when switching wallets but not full sessions
+        const privyWallet = user?.wallet?.address?.toLowerCase()
+        const currentTarget = targetAddress?.toLowerCase()
+
+        if (!privyWallet || !currentTarget || privyWallet !== currentTarget) {
+          console.warn('[LinksPanel] Skipping social sync: Wallet mismatch', { privy: privyWallet, target: currentTarget })
+          return
+        }
+
         // Check if we are already verified in the backend
         const twitterLink = socialLinks.find(l => l.platform === 'x' || l.platform === 'twitter')
         const isBackendVerified = twitterLink?.verified === true
@@ -569,6 +579,7 @@ export function LinksPanel() {
               platform: 'twitter',
               platformUsername: twitterAccount.username,
               platformUserId: twitterAccount.subject,
+              address: currentTarget, // Explicitly pass address for safety
             }),
           })
 
@@ -1076,7 +1087,9 @@ export function LinksPanel() {
       return true
     } catch (error: any) {
       console.error('[LinksPanel] Failed to save links', error)
-      if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
+      if (error?.message?.includes('Profile not claimed yet')) {
+        toast.error('Failed to save: You must claim your profile first.')
+      } else if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
         toast.error('Transaction rejected')
       } else {
         toast.error('Failed to save links. Please try again.')
@@ -1363,6 +1376,7 @@ export function LinksPanel() {
   }
 
   const handleToggleEnabled = async (id: string, enabled: boolean) => {
+    const previousLinks = [...links]
     const updated = links.map((link) =>
       link.id === id
         ? {
@@ -1373,15 +1387,21 @@ export function LinksPanel() {
         : link
     )
     setLinks(updated)
-    await saveLinks(updated)
+    const success = await saveLinks(updated)
+    if (!success) {
+      setLinks(previousLinks)
+    }
   }
 
   const handleDelete = async (id: string) => {
+    const previousLinks = [...links]
     const updated = links.filter((link) => link.id !== id)
     setLinks(updated)
     const success = await saveLinks(updated)
     if (success) {
-      toast.success('Link silindi')
+      toast.success('Link deleted')
+    } else {
+      setLinks(previousLinks)
     }
   }
 
@@ -1406,6 +1426,8 @@ export function LinksPanel() {
 
     const now = new Date().toISOString()
 
+    const previousLinks = [...links]
+
     if (editingLink) {
       const updated = links.map((link) =>
         link.id === editingLink.id
@@ -1423,6 +1445,8 @@ export function LinksPanel() {
       if (success) {
         toast.success('Link updated')
         setDialogOpen(false)
+      } else {
+        setLinks(previousLinks)
       }
     } else {
       const newItem: LinkItem = {
@@ -1441,6 +1465,8 @@ export function LinksPanel() {
       if (success) {
         toast.success('Link added')
         setDialogOpen(false)
+      } else {
+        setLinks(previousLinks)
       }
     }
   }
