@@ -46,30 +46,49 @@ export function TransactionHistory({ address }: TransactionHistoryProps) {
                 })
 
                 const currentBlock = await client.getBlockNumber()
-                const fromBlock = currentBlock - 2000000n // Scan last ~2 million blocks (apx 1 month) or adjust as needed for deeper history. 
-                // For a full history, we might need an indexer, but let's try a reasonable range for now or from genesis if RPC allows wide ranges.
-                // The C-Chain RPC might limit range. Let's try 500k range blocks loops if needed, but for now simple fetch.
-                // Actually, let's just try fetching from a known deployment block if possible, or just a safe recent range.
-                // Since this is a user dashboard, we care about *their* history. 
-                // Using `getLogs` with `address` filter is usually efficient.
+                // Limit: RPC allows 2048 blocks per request.
+                // We'll scan the last ~300,000 blocks (~1 week) to ensure good performance without an indexer.
+                // Scanning from 40M (genesis of contract) to 77M is feasible only with an indexer or thousands of requests.
+                const scanRange = 300000n
+                const fromBlock = currentBlock - scanRange
+                const chunkSize = 2040n // Keeping slight buffer under 2048
 
-                // 1. Fetch Premium Purchases
-                const premiumLogs = await client.getLogs({
-                    address: PREMIUM_CONTRACT,
-                    event: parseAbiItem('event PremiumPurchased(address indexed user, uint256 paidAt, uint256 expiresAt, uint256 amount)'),
-                    args: { user: address as `0x${string}` },
-                    fromBlock: 40000000n, // Approximate somewhat recent block to save time, or 0n if indexed well
-                    toBlock: 'latest'
-                })
+                const fetchLogsInChunks = async (address: string, event: any, args: any) => {
+                    const logs: any[] = []
+                    // Iterate from current down to fromBlock to show newest first, or standard loop
+                    // Standard loop: from -> to
+                    for (let i = fromBlock; i < currentBlock; i += chunkSize) {
+                        const to = (i + chunkSize > currentBlock) ? currentBlock : i + chunkSize
+                        try {
+                            const chunkLogs = await client.getLogs({
+                                address: address as `0x${string}`,
+                                event,
+                                args,
+                                fromBlock: i,
+                                toBlock: to
+                            })
+                            logs.push(...chunkLogs)
+                        } catch (e) {
+                            console.warn(`Failed to fetch chunk ${i}-${to}`, e)
+                            // Continue best effort
+                        }
+                    }
+                    return logs
+                }
 
-                // 2. Fetch Slug Claims
-                const slugLogs = await client.getLogs({
-                    address: SLUG_CONTRACT,
-                    event: parseAbiItem('event SlugClaimed(bytes32 indexed slugHash, address indexed owner, uint256 timestamp)'),
-                    args: { owner: address as `0x${string}` },
-                    fromBlock: 40000000n,
-                    toBlock: 'latest'
-                })
+                // Parallel fetch for both contracts
+                const [premiumLogs, slugLogs] = await Promise.all([
+                    fetchLogsInChunks(
+                        PREMIUM_CONTRACT,
+                        parseAbiItem('event PremiumPurchased(address indexed user, uint256 paidAt, uint256 expiresAt, uint256 amount)'),
+                        { user: address as `0x${string}` }
+                    ),
+                    fetchLogsInChunks(
+                        SLUG_CONTRACT,
+                        parseAbiItem('event SlugClaimed(bytes32 indexed slugHash, address indexed owner, uint256 timestamp)'),
+                        { owner: address as `0x${string}` }
+                    )
+                ])
 
                 const formattedTxs: Transaction[] = []
 
@@ -90,8 +109,6 @@ export function TransactionHistory({ address }: TransactionHistoryProps) {
                 }
 
                 // Process Slug Logs
-                // Note: Slug logs contain the hash, we don't know the plain text slug easily without an indexer or rainbow table.
-                // We'll display "Identity Claim" for now.
                 for (const log of slugLogs) {
                     const { timestamp } = log.args
                     if (timestamp) {
@@ -99,7 +116,7 @@ export function TransactionHistory({ address }: TransactionHistoryProps) {
                             id: log.transactionHash + "-slug",
                             type: "SLUG_CLAIM",
                             description: "Identity Handle Claim",
-                            amount: "Gas Only", // Contract doesn't charge AVAX for claim itself in the event, but user paid gas.
+                            amount: "Gas Only",
                             hash: log.transactionHash,
                             timestamp: new Date(Number(timestamp) * 1000),
                             status: "CONFIRMED"
@@ -113,7 +130,7 @@ export function TransactionHistory({ address }: TransactionHistoryProps) {
                 setTransactions(formattedTxs)
             } catch (err) {
                 console.error("Error fetching transaction history:", err)
-                setError("Failed to load on-chain history. Please try again later.")
+                setError("Failed to load full history. (RPC Limit)")
             } finally {
                 setIsLoading(false)
             }
