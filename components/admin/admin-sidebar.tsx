@@ -22,6 +22,7 @@ import {
   Mail,
   Server,
   Settings,
+  Crown,
 } from 'lucide-react'
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 
@@ -29,6 +30,7 @@ import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 const adminNav = [
   { label: 'Overview', icon: LayoutDashboard, href: '/master-console' },
   { label: 'Users', icon: Users, href: '/master-console/users' },
+  { label: 'Premium Users', icon: Crown, href: '/master-console/premium' },
   { label: 'Analytics', icon: BarChart3, href: '/master-console/analytics' },
   { label: 'Content', icon: FileText, href: '/master-console/content' },
   { label: 'Subscribers', icon: Mail, href: '/master-console/subscribers' },
