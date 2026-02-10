@@ -287,13 +287,17 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
 
                 // 2. Fallback to Blockchain Logs
                 console.log("[Slug Manager] Attempting on-chain history recovery for", address);
+                // Search in smaller chunks or from a safer block to avoid RPC timeouts
+                const CURRENT_BLOCK = await publicClient.getBlockNumber();
+                const START_BLOCK = CURRENT_BLOCK - 500000n; // Search last ~500k blocks (~15 days)
+
                 const logs = await publicClient.getLogs({
                     address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
                     event: parseAbiItem('event SlugClaimed(bytes32 indexed slugHash, address indexed owner, uint256 timestamp)'),
                     args: {
                         owner: address as `0x${string}`
                     },
-                    fromBlock: BigInt(50000000) // Search from a safe recent block to avoid RPC timeouts
+                    fromBlock: START_BLOCK > 0n ? START_BLOCK : 0n
                 });
 
                 if (logs.length > 0) {
@@ -510,16 +514,16 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                             <Alert className="border-yellow-500/50 bg-yellow-500/10 mb-4">
                                 <AlertCircle className="h-4 w-4 text-yellow-500" />
                                 <AlertTitle className="text-yellow-500">Sync Required</AlertTitle>
-                                <AlertDescription className="text-yellow-500/90">
+                                <AlertDescription className="text-yellow-500/90 space-y-3">
                                     {isRecovering || isAutoSyncing ? (
                                         <div className="flex items-center gap-2">
                                             <Loader2 className="w-4 h-4 animate-spin" />
                                             {isAutoSyncing ? "Sealing your profile records..." : "Resolving your handle from chain history..."}
                                         </div>
                                     ) : (
-                                        <>
+                                        <div className="flex flex-col gap-3">
                                             {recoveredSlug ? (
-                                                <span>
+                                                <p>
                                                     You own the handle <strong>{recoveredSlug}</strong> on-chain, but it's not synced.
                                                     {inputSlug !== recoveredSlug && (
                                                         <Button
@@ -530,18 +534,43 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                                                             Fix it now
                                                         </Button>
                                                     )}
-                                                </span>
+                                                </p>
                                             ) : (
                                                 inputSlug && hashSlug(inputSlug) === activeSlugHash ? (
-                                                    <span className="flex items-center gap-2 text-blue-500">
+                                                    <p className="flex items-center gap-2 text-blue-500">
                                                         <Check className="w-4 h-4" />
                                                         Handle identified! Syncing...
-                                                    </span>
+                                                    </p>
                                                 ) : (
-                                                    "A handle was found on-chain, but we couldn't automatically resolve the name. Please enter it below to sync."
+                                                    <p>A handle was found on-chain, but we couldn't automatically resolve the name. Please enter it below to sync, or release it to claim a new one.</p>
                                                 )
                                             )}
-                                        </>
+
+                                            <div className="flex items-center gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-8 border-yellow-500/20 bg-yellow-500/5 hover:bg-yellow-500/10 text-yellow-700 dark:text-yellow-500"
+                                                    onClick={async () => {
+                                                        setPendingAction("release");
+                                                        try {
+                                                            await writeContractAsync({
+                                                                address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
+                                                                abi: ABI,
+                                                                functionName: "release",
+                                                            });
+                                                            toast.loading("Releasing mystery slug...", { id: "release-toast" });
+                                                        } catch (e: any) {
+                                                            console.error(e);
+                                                            toast.error("Release failed");
+                                                            setPendingAction(null);
+                                                        }
+                                                    }}
+                                                >
+                                                    Release Found Handle
+                                                </Button>
+                                            </div>
+                                        </div>
                                     )}
                                 </AlertDescription>
                             </Alert>
@@ -551,22 +580,26 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                             <div className="space-y-2">
                                 <Label>Desired Handle</Label>
                                 <div className="flex gap-2">
-                                    <div className="relative flex-1">
-                                        <span className="absolute left-3 top-2.5 text-muted-foreground font-mono text-sm">soci4l.net/p/</span>
-                                        <Input
-                                            value={inputSlug}
-                                            onChange={(e) => setInputSlug(e.target.value)}
-                                            className="pl-[110px] font-mono"
-                                            placeholder="username"
-                                            disabled={isWritePending || isConfirming}
-                                        />
-                                        {/* Status Icon */}
-                                        <div className="absolute right-3 top-2.5 flex items-center gap-2">
-                                            {isChecking ? <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /> :
-                                                inputSlug && hashSlug(inputSlug) === activeSlugHash ? <Check className="w-4 h-4 text-blue-500 animate-pulse" /> :
-                                                    availability === "available" ? <Check className="w-4 h-4 text-green-500" /> :
-                                                        availability === "taken" ? <div className="text-red-500 text-xs font-medium flex items-center gap-1"><X className="w-3 h-3" /> Taken</div> :
-                                                            availability === "reserved" ? <div className="text-yellow-500 text-xs font-medium flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Reserved</div> : null}
+                                    <div className="flex-1 flex items-center h-10 rounded-md border border-input bg-background focus-within:ring-1 focus-within:ring-ring">
+                                        <div className="px-3 py-2 text-muted-foreground font-mono text-xs border-r bg-muted/30 whitespace-nowrap rounded-l-md">
+                                            soci4l.net/p/
+                                        </div>
+                                        <div className="relative flex-1">
+                                            <Input
+                                                value={inputSlug}
+                                                onChange={(e) => setInputSlug(e.target.value)}
+                                                className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 font-mono"
+                                                placeholder="username"
+                                                disabled={isWritePending || isConfirming}
+                                            />
+                                            {/* Status Icon */}
+                                            <div className="absolute right-3 top-2.5 flex items-center gap-2">
+                                                {isChecking ? <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /> :
+                                                    inputSlug && hashSlug(inputSlug) === activeSlugHash ? <Check className="w-4 h-4 text-blue-500 animate-pulse" /> :
+                                                        availability === "available" ? <Check className="w-4 h-4 text-green-500" /> :
+                                                            availability === "taken" ? <div className="text-red-500 text-xs font-medium flex items-center gap-1"><X className="w-3 h-3" /> Taken</div> :
+                                                                availability === "reserved" ? <div className="text-yellow-500 text-xs font-medium flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Reserved</div> : null}
+                                            </div>
                                         </div>
                                     </div>
                                     {slugOwner && address && (slugOwner as string).toLowerCase() === address.toLowerCase() && !currentSlug ? (
@@ -574,6 +607,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                                             onClick={() => handleSync(debouncedSlug)}
                                             disabled={!debouncedSlug || isWritePending}
                                             variant="secondary"
+                                            className="h-10"
                                         >
                                             {isWritePending && pendingAction === "claim" ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                                             Sync
@@ -582,6 +616,13 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                                         <Button
                                             onClick={async () => {
                                                 if (!debouncedSlug || availability !== "available") return;
+
+                                                // Check if user already has a slug on-chain
+                                                if (activeSlugHash && activeSlugHash !== ZERO_HASH) {
+                                                    toast.error("You already have an active handle. Please sync or release it first.");
+                                                    return;
+                                                }
+
                                                 setPendingAction("claim");
                                                 try {
                                                     await writeContractAsync({
@@ -597,7 +638,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                                                     setPendingAction(null);
                                                 }
                                             }}
-                                            disabled={availability !== "available" || isWritePending || isConfirming}
+                                            disabled={availability !== "available" || isWritePending || isConfirming || !!(activeSlugHash && activeSlugHash !== ZERO_HASH)}
                                         >
                                             {isWritePending && pendingAction === "claim" ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                                             Claim

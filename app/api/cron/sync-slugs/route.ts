@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createPublicClient, http, parseAbiItem } from 'viem'
+import { createPublicClient, http, parseAbiItem, parseAbi } from 'viem'
 import { avalanche } from 'viem/chains'
 import { prisma } from '@/lib/prisma'
-import { SLUG_REGISTRY_ADDRESS } from '@/lib/contracts/CustomSlugRegistry'
+import { hashSlug } from '@/lib/utils/slug'
+import { CUSTOM_SLUG_REGISTRY_ADDRESS } from '@/lib/contracts/CustomSlugRegistry'
 
 export const dynamic = 'force-dynamic'
 
@@ -63,7 +64,7 @@ export async function GET(request: NextRequest) {
             console.log(`[Sync Slugs] Scanning ${fromBlock} to ${toBlock} (Iteration ${iteration + 1}/${MAX_ITERATIONS})`)
 
             const logs = await client.getLogs({
-                address: SLUG_REGISTRY_ADDRESS as `0x${string}`,
+                address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
                 event: EVENT,
                 fromBlock,
                 toBlock
@@ -76,6 +77,17 @@ export async function GET(request: NextRequest) {
                 const logIndexInt = Number(logIndex)
 
                 try {
+                    // Fetch transaction to get input data (the string slug)
+                    const txData = await client.getTransaction({ hash: transactionHash })
+                    const { decodeFunctionData } = await import('viem')
+                    const { CUSTOM_SLUG_REGISTRY_ABI } = await import('@/lib/contracts/CustomSlugRegistry')
+                    const decoded = decodeFunctionData({
+                        abi: parseAbi(CUSTOM_SLUG_REGISTRY_ABI),
+                        data: txData.input
+                    })
+
+                    const slugName = decoded.args?.[0] as string
+
                     await (prisma as any).$transaction(async (tx: any) => {
                         // 2.2 Deduplication Check
                         const existingEvent = await tx.processedEvent.findUnique({
@@ -104,6 +116,21 @@ export async function GET(request: NextRequest) {
                         const userAddress = args.owner.toLowerCase()
                         const timestamp = Number(args.timestamp)
 
+                        // 2.4 Update Profile if slug is missing (Self-Healing)
+                        if (slugName) {
+                            const profile = await tx.profile.findUnique({ where: { address: userAddress } })
+                            if (profile && !profile.slug) {
+                                await tx.profile.update({
+                                    where: { address: userAddress },
+                                    data: {
+                                        slug: slugName,
+                                        slugHash: hashSlug(slugName),
+                                        slugClaimedAt: new Date(timestamp * 1000)
+                                    }
+                                })
+                            }
+                        }
+
                         // Save to BillingInteraction for persistent history
                         await tx.billingInteraction.upsert({
                             where: { txHash: transactionHash },
@@ -111,7 +138,7 @@ export async function GET(request: NextRequest) {
                             create: {
                                 userAddress,
                                 type: 'SLUG_CLAIM',
-                                description: 'Identity Handle Claim',
+                                description: slugName ? `Identity Handle Claim: ${slugName}` : 'Identity Handle Claim',
                                 amount: 'Gas Only',
                                 txHash: transactionHash,
                                 timestamp: new Date(timestamp * 1000)
