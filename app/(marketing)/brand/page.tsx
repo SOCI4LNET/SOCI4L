@@ -26,7 +26,7 @@ export default function BrandPage() {
     const [isTypeHierarchyOpen, setIsTypeHierarchyOpen] = useState(false)
 
     return (
-        <div className="min-h-screen bg-background pt-24 pb-20 overflow-x-hidden">
+        <div className="min-h-screen bg-background pt-24 pb-20">
             <div className="mx-auto px-4 md:px-6 max-w-7xl">
 
                 <motion.div
