@@ -37,7 +37,7 @@ const footerLinks = {
 
 const socialLinks = [
   { icon: XIcon, label: 'X', href: 'https://twitter.com/soci4l', ariaLabel: 'Follow us on X' },
-  { icon: Github, label: 'GitHub', href: 'https://github.com/soci4l', ariaLabel: 'View our GitHub' },
+  { icon: Github, label: 'GitHub', href: 'https://github.com/SOCI4LNET', ariaLabel: 'View our GitHub' },
   { icon: DiscordIcon, label: 'Discord', href: 'https://discord.gg/soci4l', ariaLabel: 'Join our Discord' },
 ]
 
@@ -130,7 +130,7 @@ export default function Footer15({ className }: Footer15Props = {}) {
                 <Soci4LLogo variant="combination" width={120} height={23} />
               </div>
               <p className="text-sm text-muted-foreground">
-                Wallet-first identity & links.
+                Turn your Avalanche wallet into a measurable public identity.
               </p>
             </div>
 

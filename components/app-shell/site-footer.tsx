@@ -38,8 +38,8 @@ const footerLinks = {
 
 const socialLinks = [
     { icon: XIcon, label: 'X', href: 'https://x.com/soci4lnet', ariaLabel: 'Follow us on X' },
-    { icon: Github, label: 'GitHub', href: '#', ariaLabel: 'View our GitHub' }, // Link removed
-    { icon: DiscordIcon, label: 'Discord', href: '#', ariaLabel: 'Join our Discord' }, // Link removed
+    { icon: Github, label: 'GitHub', href: 'https://github.com/SOCI4LNET', ariaLabel: 'View our GitHub' },
+    { icon: DiscordIcon, label: 'Discord', href: 'https://discord.gg/soci4l', ariaLabel: 'Join our Discord' },
 ]
 
 function validateEmail(email: string): boolean {
@@ -121,7 +121,7 @@ export default function SiteFooter({ className }: SiteFooterProps = {}) {
                                 <Soci4LLogo variant="combination" width={120} height={23} />
                             </div>
                             <p className="text-sm text-muted-foreground">
-                                Wallet-first identity & links.
+                                Turn your Avalanche wallet into a measurable public identity.
                             </p>
                         </div>
 
