@@ -164,16 +164,25 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
 
     // Create or update QR instance with current theme colors
     const createQRInstance = () => {
+      const logoUrl = theme === 'dark' ? '/logos/icon.svg' : '/logos/icon-black.svg'
+
       return new qrLibraryRef.current({
         width: 240,
         height: 240,
         type: 'svg',
         data: profileUrl,
-        margin: 20,
+        margin: 10,
         qrOptions: {
           typeNumber: 0,
           mode: 'Byte',
-          errorCorrectionLevel: 'M',
+          errorCorrectionLevel: 'H', // Use High error correction for center logo reliability
+        },
+        image: logoUrl,
+        imageOptions: {
+          hideBackgroundDots: true,
+          imageSize: 0.5, // Large, prominent logo
+          margin: 8,
+          crossOrigin: 'anonymous',
         },
         dotsOptions: {
           color: currentTheme.qrColor,
