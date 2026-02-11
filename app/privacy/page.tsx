@@ -30,7 +30,7 @@ export default function PrivacyPage() {
 
                 <h2>2. Eligibility and Minors</h2>
                 <p>
-                    The Service is <strong>not intended for individuals under the age of 18</strong>. We do not knowingly collect personal data from minors. If we become aware that a minor has provided us with personal data, we will take steps to delete such information from our off-chain servers.
+                    The Service is not intended for individuals under 18.
                 </p>
 
                 <h2>3. Blockchain Transparency</h2>
