@@ -25,7 +25,7 @@ export default function PrivacyPage() {
                     SOCI4L acts as the <strong>data controller</strong> for off-chain personal data collected through the Service.
                 </p>
                 <p>
-                    We process personal data based on <strong>user consent</strong> and our <strong>legitimate interest</strong> in operating, securing, and improving the Service. When you connect your wallet or provide profile information, you consent to the processing of your data as described in this Policy.
+                    We process personal data based on <strong>user consent</strong> and our <strong>legitimate interest</strong> in operating, securing, and improving the Service. When you connect your wallet or provide profile information, you consent to the processing of your data as described in this Policy. Where required by applicable law, we rely on user consent for analytics tracking and provide the ability to disable non-essential cookies through browser settings.
                 </p>
 
                 <h2>2. Eligibility and Minors</h2>
