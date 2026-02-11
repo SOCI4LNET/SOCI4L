@@ -58,7 +58,7 @@ export default function BrandPage() {
                                 label="Logomark (Icon)"
                                 bg="bg-brand-500"
                                 textColor="text-white"
-                                downloadLink="/logos/icon-white.svg"
+                                downloadLink="/logos/icon.svg"
                                 downloadName="SOCI4L_ICON_WHITE.svg"
                             >
                                 <Soci4LLogo variant="icon" className="w-48 h-48 text-white invert-0" />
