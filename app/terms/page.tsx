@@ -6,63 +6,118 @@ export default function TermsPage() {
         <PageContent>
             <div className="prose dark:prose-invert max-w-none">
                 <h1>Terms of Service</h1>
-                <p className="text-muted-foreground italic">Last updated: February 11, 2026</p>
+                <p className="text-muted-foreground italic">Last Updated: February 11, 2026</p>
 
                 <p>
-                    Welcome to SOCI4L. By accessing or using our platform, connecting your digital wallet, or interacting with our services, you agree to be bound by these Terms of Service.
+                    Welcome to SOCI4L (“SOCI4L”, “we”, “us”, “our”). These Terms of Service (“Terms”) govern your access to and use of the SOCI4L platform, including our website, dashboard, public profiles, smart contract integrations, and related services (collectively, the “Service”).
                 </p>
 
-                <h2>1. Acceptance of Terms</h2>
                 <p>
-                    SOCI4L provides a Web3 identity and profile management platform. By using the Service, you represent that you are of legal age and have the capacity to form a binding contract. If you do not agree to these terms, you must not access or use the Service.
+                    By accessing or using the Service, connecting a digital wallet, or interacting with SOCI4L smart contracts, you agree to be bound by these Terms.
                 </p>
 
-                <h2>2. Web3 Wallet and Security</h2>
-                <p>
-                    To use certain features of SOCI4L, you must connect a compatible digital wallet. You are solely responsible for:
+                <p className="font-bold">
+                    If you do not agree, you must not use the Service.
                 </p>
+
+                <h2>1. Eligibility</h2>
+                <p>You represent and warrant that:</p>
                 <ul>
-                    <li>Maintaining the security of your private keys, seed phrases, and wallet credentials.</li>
-                    <li>All activities that occur under your connected wallet address.</li>
-                    <li>Ensuring that your wallet is compatible with the Avalanche C-Chain.</li>
-                </ul>
-                <p>
-                    SOCI4L never has access to your private keys and cannot recover access to your wallet if lost or compromised.
-                </p>
-
-                <h2>3. User-Generated Content</h2>
-                <p>
-                    You are responsible for the information you display on your public profile, including display names, bios, and social media links. You agree not to:
-                </p>
-                <ul>
-                    <li>Post content that is illegal, defamatory, or infringes on third-party intellectual property.</li>
-                    <li>Impersonate other individuals or entities.</li>
-                    <li>Use the platform for malicious activities, including phishing or distributing malware.</li>
+                    <li>You are at least 18 years old.</li>
+                    <li>You have the legal capacity to enter into a binding agreement.</li>
+                    <li>You are not subject to sanctions or located in a jurisdiction where use of the Service would be unlawful.</li>
+                    <li>Your use of the Service does not violate any applicable laws or regulations.</li>
                 </ul>
 
-                <h2>4. Fees and Transactions</h2>
-                <p>
-                    Interactions with the blockchain may require the payment of gas fees (e.g., AVAX) to the network. These fees are not controlled by or paid to SOCI4L. Any premium features or services offered by SOCI4L will be subject to additional terms at the time of purchase.
-                </p>
+                <h2>2. Nature of the Service</h2>
+                <p>SOCI4L provides a non-custodial Web3 identity and profile platform operating on the Avalanche C-Chain.</p>
+                <p>SOCI4L:</p>
+                <ul>
+                    <li>Does not custody digital assets.</li>
+                    <li>Is not a wallet provider.</li>
+                    <li>Is not a broker, exchange, financial institution, or intermediary.</li>
+                    <li>Does not execute trades or manage user funds.</li>
+                </ul>
+                <p>All blockchain interactions occur directly between your wallet and the Avalanche network.</p>
 
-                <h2>5. Disclaimers and No Financial Advice</h2>
-                <p>
-                    The information provided on SOCI4L, including wallet balances and portfolio values, is for informational purposes only. SOCI4L does not provide financial, investment, or legal advice. Web3 and cryptocurrency involve significant risk; you should perform your own research before making any financial decisions.
-                </p>
+                <h2>3. Wallet Connection and Security</h2>
+                <p>To use certain features, you must connect a compatible digital wallet.</p>
+                <p>You are solely responsible for:</p>
+                <ul>
+                    <li>Safeguarding your private keys and seed phrases.</li>
+                    <li>All activities conducted through your wallet address.</li>
+                    <li>Reviewing and approving transactions before signing.</li>
+                    <li>Ensuring wallet compatibility with Avalanche C-Chain.</li>
+                </ul>
+                <p>SOCI4L cannot access, recover, reset, or control your wallet credentials. All blockchain transactions are irreversible.</p>
 
-                <h2>6. Limitation of Liability</h2>
-                <p>
-                    SOCI4L is provided "as is" and "as available". We do not warrant that the Service will be uninterrupted or error-free. We are not liable for any losses resulting from blockchain network failures, smart contract bugs, wallet provider issues, or unauthorized access to your wallet.
-                </p>
+                <h2>4. User-Generated Content</h2>
+                <p>You are solely responsible for content displayed on your profile, including:</p>
+                <ul>
+                    <li>Display names, Biographies, Links, Images, Descriptions, and External references.</li>
+                </ul>
+                <p>You agree not to:</p>
+                <ul>
+                    <li>Post unlawful, defamatory, or infringing content.</li>
+                    <li>Impersonate individuals or entities.</li>
+                    <li>Engage in phishing, malware distribution, or fraudulent activity.</li>
+                    <li>Use the Service for illegal purposes.</li>
+                </ul>
+                <p>We reserve the right to remove content or restrict access where violations occur.</p>
 
-                <h2>7. Modifications to Service</h2>
-                <p>
-                    We reserve the right to modify or discontinue the Service at any time without notice. We may update these Terms from time to time by posting the new version on this page.
-                </p>
+                <h2>5. Premium Features and Payments</h2>
+                <p>SOCI4L may offer premium features purchasable via on-chain payment in AVAX.</p>
+                <p>By purchasing premium access:</p>
+                <ul>
+                    <li>You acknowledge all payments are final and non-refundable.</li>
+                    <li>You understand blockchain transactions cannot be reversed.</li>
+                    <li>Premium access may be time-based or feature-based as described at purchase.</li>
+                </ul>
+                <p>Gas fees are paid to the Avalanche network and are not controlled by SOCI4L. SOCI4L is not responsible for failed transactions caused by user error, insufficient gas, network congestion, or third-party wallet issues.</p>
 
-                <h2>8. Governing Law</h2>
+                <h2>6. Intellectual Property</h2>
+                <p>All platform content, including design, code, interface elements, branding, logos, trademarks, and documentation, are owned by SOCI4L or its licensors.</p>
+                <p>You are granted a limited, non-exclusive, non-transferable license to use the Service for personal, non-commercial purposes.</p>
+                <p>You may not:</p>
+                <ul>
+                    <li>Reverse engineer the platform.</li>
+                    <li>Copy, distribute, or exploit proprietary materials.</li>
+                    <li>Use SOCI4L branding without authorization.</li>
+                </ul>
+
+                <h2>7. Experimental Technology Disclaimer</h2>
+                <p>The Service relies on blockchain infrastructure, smart contracts, RPC providers, indexing services, and third-party wallet providers. These technologies may be experimental and subject to failure.</p>
+                <p>SOCI4L does not guarantee uninterrupted availability, data accuracy, or error-free operation.</p>
+
+                <h2>8. No Financial Advice</h2>
+                <p>Information displayed on SOCI4L, including wallet balances, transaction history, and analytics, is provided for informational purposes only. SOCI4L does not provide investment, financial, legal, or tax advice. Digital assets involve significant risk. You are solely responsible for your decisions.</p>
+
+                <h2>9. Assumption of Risk</h2>
+                <p>By using the Service, you acknowledge and accept risks associated with blockchain volatility, smart contract vulnerabilities, network congestion, regulatory uncertainty, wallet compromise, and third-party infrastructure failures. You assume full responsibility for all blockchain-related risks.</p>
+
+                <h2>10. Indemnification</h2>
+                <p>You agree to indemnify and hold harmless SOCI4L and its operators from any claims, damages, liabilities, or expenses arising from your use of the Service, your violation of these Terms, or your infringement of third-party rights.</p>
+
+                <h2>11. Limitation of Liability</h2>
+                <p>The Service is provided “as is” and “as available.” To the maximum extent permitted by applicable law, SOCI4L shall not be liable for loss of digital assets, lost profits, data loss, indirect damages, or network failures. Total liability shall not exceed the total amount paid by you to SOCI4L in the twelve (12) months preceding the claim.</p>
+
+                <h2>12. Suspension and Termination</h2>
+                <p>We reserve the right to suspend access, remove content, or disable accounts violating these Terms. Termination does not affect completed blockchain transactions.</p>
+
+                <h2>13. Privacy</h2>
+                <p>Your use of the Service is also governed by our Privacy Policy. Blockchain data is public by design. SOCI4L does not control public ledger visibility.</p>
+
+                <h2>14. Modifications</h2>
+                <p>We may update these Terms at any time. Continued use of the Service constitutes acceptance of revised Terms.</p>
+
+                <h2>15. Severability</h2>
+                <p>If any provision of these Terms is found unenforceable, the remaining provisions shall remain in full force and effect.</p>
+
+                <h2>16. Contact</h2>
                 <p>
-                    These terms shall be governed by and construed in accordance with the laws applicable to decentralized digital services, without regard to conflict of law principles.
+                    For questions regarding these Terms:<br />
+                    Email: <a href="mailto:hello@soci4l.net">hello@soci4l.net</a><br />
+                    Website: <a href="https://soci4l.net">https://soci4l.net</a>
                 </p>
             </div>
         </PageContent>
