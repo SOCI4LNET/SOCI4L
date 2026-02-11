@@ -20,72 +20,81 @@ export default function PrivacyPage() {
                     By using the Service, you acknowledge and agree to the practices described in this Policy.
                 </p>
 
-                <h2>1. Blockchain Transparency</h2>
+                <h2>1. Data Controller and Legal Basis</h2>
+                <p>
+                    SOCI4L acts as the <strong>data controller</strong> for off-chain personal data collected through the Service.
+                </p>
+                <p>
+                    We process personal data based on <strong>user consent</strong> and our <strong>legitimate interest</strong> in operating, securing, and improving the Service. When you connect your wallet or provide profile information, you consent to the processing of your data as described in this Policy.
+                </p>
+
+                <h2>2. Eligibility and Minors</h2>
+                <p>
+                    The Service is <strong>not intended for individuals under the age of 18</strong>. We do not knowingly collect personal data from minors. If we become aware that a minor has provided us with personal data, we will take steps to delete such information from our off-chain servers.
+                </p>
+
+                <h2>3. Blockchain Transparency</h2>
                 <p>
                     Blockchain technology is public and immutable by design. When you use SOCI4L:
                 </p>
                 <ul>
                     <li>Your wallet address is publicly visible.</li>
-                    <li>Your on-chain transactions and digital assets are publicly accessible.</li>
+                    <li>Your on-chain transactions and digital assets are publicly accessible via the Avalanche C-Chain.</li>
                     <li>Any information you choose to display on your public profile becomes publicly viewable.</li>
                 </ul>
                 <p>
-                    SOCI4L does not control, modify, or delete data stored on the Avalanche blockchain.
+                    SOCI4L does not control, modify, or delete data stored on the blockchain. Such data remains accessible to anyone via blockchain explorers and indexing services.
                 </p>
 
-                <h2>2. Information We Collect</h2>
+                <h2>4. Information We Collect</h2>
                 <p>We collect limited information necessary to operate and improve the Service.</p>
 
                 <h3 className="text-lg font-semibold mt-4">a. Wallet Information</h3>
                 <ul>
-                    <li>Public wallet address (collected when you connect your wallet)</li>
-                    <li>On-chain data associated with that address (read-only)</li>
+                    <li>Public wallet address (collected via Privy when you connect your wallet).</li>
+                    <li>On-chain data associated with that address (read-only snapshots for profile display).</li>
                 </ul>
-                <p>We do not collect private keys or seed phrases.</p>
+                <p><strong>Security Note:</strong> We never collect or store your private keys, recovery phrases, or wallet passwords.</p>
 
                 <h3 className="text-lg font-semibold mt-4">b. Profile Information</h3>
-                <p>Information you voluntarily provide, including: Display name, Biography, Links, Social handles, and Uploaded images.</p>
+                <p>Information you voluntarily provide to customize your SOCI4L profile, including: Display name, Biography, custom Links, Social handles, and uploaded images.</p>
 
-                <h3 className="text-lg font-semibold mt-4">c. Usage Data</h3>
-                <p>Profile views, Link clicks, Page interactions, and Technical performance metrics. This data is used for platform analytics and improvement.</p>
+                <h3 className="text-lg font-semibold mt-4">c. Usage and Technical Data</h3>
+                <p>We collect data on profile views, link clicks, page interactions, and technical performance metrics. This includes <strong>IP addresses</strong> collected by our analytics providers for security and performance optimization purposes.</p>
 
-                <h2>3. Analytics and Tracking</h2>
-                <p>We use third-party analytics services to understand platform usage and improve performance.</p>
+                <h2>5. Analytics and Tracking</h2>
+                <p>We use third-party analytics services to understand platform usage:</p>
 
-                <p><strong>Yandex Metrika:</strong> May collect IP address, Browser type, Device information, and Interaction behavior. This data is used solely for internal analytics and performance optimization.</p>
+                <p><strong>Yandex Metrika:</strong> This service may collect your IP address, browser type, device information, and interaction behavior. IP addresses are processed to provide geographic insights and prevent bot activity. This data is used solely for internal analytics.</p>
 
-                <p><strong>Vercel Analytics:</strong> Used to monitor page load speed, performance metrics, and technical stability. These services may use cookies or similar technologies.</p>
+                <p><strong>Vercel Analytics:</strong> Used to monitor page load speeds and technical stability. These services may use cookies or browser local storage to track unique sessions.</p>
 
-                <h2>4. Cookies and Local Storage</h2>
-                <p>We use essential cookies and browser storage for functional purposes only.</p>
+                <h2>6. Cookies and Local Storage</h2>
                 <ul>
-                    <li><strong>Authentication:</strong> We use Privy for wallet-based authentication. Privy may set essential cookies to verify wallet signatures and maintain session integrity.</li>
-                    <li><strong>Preferences:</strong> Theme settings and certain UI preferences are stored locally in your browser.</li>
+                    <li><strong>Authentication:</strong> We use Privy for wallet-based authentication, which sets essential session cookies to verify wallet ownership.</li>
+                    <li><strong>Preferences:</strong> Theme settings (dark/light mode) and UI preferences are stored locally in your browser to enhance your experience.</li>
                 </ul>
-                <p>We do not use cookies for advertising purposes.</p>
+                <p>We do not use cookies for targeted advertising or third-party marketing.</p>
 
-                <h2>5. How We Use Information</h2>
-                <p>We use collected information to operate and maintain the Service, provide wallet-based profile functionality, improve user experience, monitor security, and analyze platform performance. We do not sell personal data.</p>
+                <h2>7. Data Storage and Transfers</h2>
+                <p>
+                    SOCI4L is a global service. Your data may be processed and stored by our third-party infrastructure providers (such as Vercel and Prisma) on servers located in various jurisdictions around the world. By using the Service, you acknowledge that your data may be transferred to and processed in countries other than your own.
+                </p>
 
-                <h2>6. Data Storage and Security</h2>
-                <p>We implement commercially reasonable technical and organizational measures to protect data stored on our servers. However, no internet transmission is completely secure and blockchain transactions are irreversible. Users are solely responsible for securing their digital wallets.</p>
+                <h2>8. Data Retention</h2>
+                <ul>
+                    <li><strong>Off-Chain Profiles:</strong> We retain your profile data as long as your account is active. If you request account deletion, off-chain data is typically removed within 30 days.</li>
+                    <li><strong>Analytics Data:</strong> We retain analytics logs for a limited period (typically up to 14 months) necessary for operational analysis and security auditing.</li>
+                    <li><strong>Blockchain Data:</strong> Data written to the blockchain is permanent and cannot be deleted or modified by SOCI4L.</li>
+                </ul>
 
-                <h2>7. Data Retention</h2>
-                <p>We retain off-chain profile data for as long as your profile remains active. You may request deletion of off-chain profile information stored on our servers. Blockchain data cannot be deleted due to its immutable nature.</p>
-
-                <h2>8. Third-Party Links</h2>
-                <p>SOCI4L allows users to display links to external websites. We are not responsible for the privacy practices or content of third-party sites. Visiting those sites is at your own risk.</p>
-
-                <h2>9. International Users</h2>
-                <p>The Service may be accessed globally. By using SOCI4L, you understand that data may be processed in jurisdictions different from your own.</p>
+                <h2>9. Data Security</h2>
+                <p>We implement commercially reasonable measures to protect off-chain data. However, users are solely responsible for the security of their own digital wallets. SOCI4L cannot recover funds or access for compromised wallets.</p>
 
                 <h2>10. Your Rights</h2>
-                <p>Depending on applicable laws, you may have the right to request access to, correction of, or deletion of off-chain personal data. Blockchain data cannot be altered or erased.</p>
+                <p>Depending on your location (e.g., EU/GDPR), you may have the right to request access to, correction of, or deletion of your off-chain personal data. Requests can be submitted to our contact email. Please note that we cannot fulfill requests to alter or erase blockchain-native data.</p>
 
-                <h2>11. Changes to This Policy</h2>
-                <p>We may update this Privacy Policy from time to time. Updated versions will be posted on this page with a revised “Last Updated” date.</p>
-
-                <h2>12. Contact</h2>
+                <h2>11. Contact</h2>
                 <p>
                     For privacy-related inquiries:<br />
                     Email: <a href="mailto:hello@soci4l.net">hello@soci4l.net</a><br />
