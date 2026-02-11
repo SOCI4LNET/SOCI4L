@@ -51,7 +51,7 @@ export default function PrivacyPage() {
 
                 <h3 className="text-lg font-semibold mt-4">a. Wallet Information</h3>
                 <ul>
-                    <li>Public wallet address (collected via Privy when you connect your wallet).</li>
+                    <li>Public wallet address.</li>
                     <li>On-chain data associated with that address (read-only snapshots for profile display).</li>
                 </ul>
                 <p><strong>Security Note:</strong> We never collect or store your private keys, recovery phrases, or wallet passwords.</p>
