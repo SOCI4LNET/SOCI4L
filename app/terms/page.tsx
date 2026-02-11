@@ -72,6 +72,7 @@ export default function TermsPage() {
                     <li>You acknowledge all payments are final and non-refundable.</li>
                     <li>You understand blockchain transactions cannot be reversed.</li>
                     <li>Premium access may be time-based or feature-based as described at purchase.</li>
+                    <li>We reserve the right to modify, suspend, or discontinue any premium features at any time without prior notice.</li>
                 </ul>
                 <p>Gas fees are paid to the Avalanche network and are not controlled by SOCI4L. SOCI4L is not responsible for failed transactions caused by user error, insufficient gas, network congestion, or third-party wallet issues.</p>
 
@@ -93,13 +94,38 @@ export default function TermsPage() {
                 <p>Information displayed on SOCI4L, including wallet balances, transaction history, and analytics, is provided for informational purposes only. SOCI4L does not provide investment, financial, legal, or tax advice. Digital assets involve significant risk. You are solely responsible for your decisions.</p>
 
                 <h2>9. Assumption of Risk</h2>
-                <p>By using the Service, you acknowledge and accept risks associated with blockchain volatility, smart contract vulnerabilities, network congestion, regulatory uncertainty, wallet compromise, and third-party infrastructure failures. You assume full responsibility for all blockchain-related risks.</p>
+                <p>By using the Service, you acknowledge and accept risks associated with:</p>
+                <ul>
+                    <li>Blockchain volatility</li>
+                    <li>Smart contract vulnerabilities</li>
+                    <li>Network congestion</li>
+                    <li>Regulatory uncertainty</li>
+                    <li>Wallet compromise</li>
+                    <li>Third-party infrastructure failures</li>
+                </ul>
+                <p>You assume full responsibility for all blockchain-related risks.</p>
 
                 <h2>10. Indemnification</h2>
-                <p>You agree to indemnify and hold harmless SOCI4L and its operators from any claims, damages, liabilities, or expenses arising from your use of the Service, your violation of these Terms, or your infringement of third-party rights.</p>
+                <p>You agree to indemnify and hold harmless SOCI4L and its operators from any claims, damages, liabilities, or expenses arising from:</p>
+                <ul>
+                    <li>Your use of the Service</li>
+                    <li>Your violation of these Terms</li>
+                    <li>Your violation of applicable law</li>
+                    <li>Your infringement of third-party rights</li>
+                </ul>
 
                 <h2>11. Limitation of Liability</h2>
-                <p>The Service is provided “as is” and “as available.” To the maximum extent permitted by applicable law, SOCI4L shall not be liable for loss of digital assets, lost profits, data loss, indirect damages, or network failures. Total liability shall not exceed the total amount paid by you to SOCI4L in the twelve (12) months preceding the claim.</p>
+                <p>The Service is provided “as is” and “as available.” To the maximum extent permitted by applicable law, SOCI4L shall not be liable for:</p>
+                <ul>
+                    <li>Loss of digital assets</li>
+                    <li>Lost profits</li>
+                    <li>Data loss</li>
+                    <li>Smart contract vulnerabilities</li>
+                    <li>Wallet compromise</li>
+                    <li>Network failures</li>
+                    <li>Indirect or consequential damages</li>
+                </ul>
+                <p>Total liability shall not exceed the total amount paid by you to SOCI4L in the twelve (12) months preceding the claim.</p>
 
                 <h2>12. Suspension and Termination</h2>
                 <p>We reserve the right to suspend access, remove content, or disable accounts violating these Terms. Termination does not affect completed blockchain transactions.</p>
