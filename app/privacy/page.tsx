@@ -84,7 +84,7 @@ export default function PrivacyPage() {
                 <h2>8. Data Retention</h2>
                 <ul>
                     <li><strong>Off-Chain Profiles:</strong> We retain your profile data as long as your account is active. If you request account deletion, off-chain data is typically removed within 30 days.</li>
-                    <li><strong>Analytics Data:</strong> We retain analytics logs for a limited period (typically up to 14 months) necessary for operational analysis and security auditing.</li>
+                    <li><strong>Analytics Data:</strong> We retain analytics logs for a limited period necessary for operational analysis and security auditing.</li>
                     <li><strong>Blockchain Data:</strong> Data written to the blockchain is permanent and cannot be deleted or modified by SOCI4L.</li>
                 </ul>
 
