@@ -115,7 +115,8 @@ export default function TermsPage() {
                 </ul>
 
                 <h2>11. Limitation of Liability</h2>
-                <p>The Service is provided “as is” and “as available.” To the maximum extent permitted by applicable law, SOCI4L shall not be liable for:</p>
+                <p className="font-bold">To the maximum extent permitted by applicable law:</p>
+                <p>The Service is provided “as is” and “as available.” SOCI4L shall not be liable for:</p>
                 <ul>
                     <li>Loss of digital assets</li>
                     <li>Lost profits</li>
