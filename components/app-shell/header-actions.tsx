@@ -258,7 +258,7 @@ export function HeaderActions() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 min-h-6 min-w-6 rounded-[6px] bg-accent text-white/50 hover:text-white"
+                    className="h-6 w-6 min-h-6 min-w-6 rounded-[6px] bg-accent text-[#F0F0F0] hover:text-white"
                     onClick={handleCopyAddress}
                   >
                     <Copy className="h-[14px] w-[14px]" strokeWidth={1} />
@@ -272,7 +272,7 @@ export function HeaderActions() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 min-h-6 min-w-6 rounded-[6px] bg-accent text-white/50 hover:text-white"
+                    className="h-6 w-6 min-h-6 min-w-6 rounded-[6px] bg-accent text-[#F0F0F0] hover:text-white"
                     onClick={handleShare}
                     disabled={!publicProfileHref}
                   >
