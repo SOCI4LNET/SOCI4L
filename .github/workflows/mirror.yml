@@ -14,6 +14,14 @@ jobs:
         with:
           fetch-depth: 0
       
-      - name: Push to Personal Repo
+      - name: Install SSH Key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: 'github.com'
+          if_key_exists: replace
+
+      - name: Mirror to Personal Repo
         run: |
-          git push -f https://xBrokkr:${{ secrets.TARGET_REPO_PAT }}@github.com/xBrokkr/SOCI4L.git main
+          git remote add personal git@github.com:xBrokkr/SOCI4L.git
+          git push -f personal main
