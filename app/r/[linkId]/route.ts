@@ -1,8 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getSourceFromUrl } from '@/lib/analytics'
 
+// Helper to extract source from URL (inline to avoid importing from 'use client' modules)
+function getSourceFromUrl(searchParams: URLSearchParams): string {
+  const source = (
+    searchParams.get('source') ||
+    searchParams.get('Source') ||
+    searchParams.get('utm_source') ||
+    searchParams.get('ref')
+  )?.toLowerCase()
 
+  if (source) {
+    // Basic sanitization: strict alphanumeric + hyphens/underscores, max 32 chars
+    const sanitized = source.replace(/[^a-z0-9-_]/g, '').substring(0, 32)
+    if (sanitized) return sanitized
+  }
+
+  return 'unknown'
+}
 
 /**
  * Redirect endpoint for tracking link clicks
@@ -11,15 +26,9 @@ import { getSourceFromUrl } from '@/lib/analytics'
  * This endpoint:
  * 1. Looks up the link by ID
  * 2. Gets the profile address for tracking
- * 3. Records the click event (client-side via localStorage)
+ * 3. Records the click event (server-side via Prisma)
  * 4. Redirects to the actual URL
- * 
- * Note: Analytics tracking happens client-side via localStorage
- * because this is a server-side redirect. The client will need to
- * call trackLinkClick after the redirect completes, or we use
- * a client-side redirect page that tracks before redirecting.
  */
-
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ linkId: string }> | { linkId: string } }
@@ -68,7 +77,6 @@ export async function GET(
     const referer = request.headers.get('referer') || null
 
     // Record link_click server-side so master console total link clicks always increase
-    // (client-side fetch often aborts when user is redirected)
     let eventId: string | undefined
     try {
       const event = await prisma.analyticsEvent.create({
