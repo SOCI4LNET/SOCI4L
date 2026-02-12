@@ -270,7 +270,7 @@ export default function ProfilePage({ params }: PageProps) {
           // Load links from API response (Option A - preferred)
           if (data.links && Array.isArray(data.links)) {
             const enabledLinks = data.links
-              // .filter((link: any) => link.enabled)
+              .filter((link: any) => link.enabled)
               .sort((a: any, b: any) => {
                 if (a.order !== b.order) {
                   return a.order - b.order
@@ -636,7 +636,7 @@ export default function ProfilePage({ params }: PageProps) {
     return link.url
   }
 
-  const enabledProfileLinks = profileLinks//.filter((link) => link.enabled)
+  const enabledProfileLinks = profileLinks.filter((link) => link.enabled)
 
   // Configs are always initialized with defaults, so no need for fallback
   const effectiveLayoutConfig = layoutConfig
