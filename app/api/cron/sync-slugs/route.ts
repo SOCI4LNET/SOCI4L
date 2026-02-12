@@ -125,7 +125,13 @@ export async function GET(request: NextRequest) {
                                     data: {
                                         slug: slugName,
                                         slugHash: hashSlug(slugName),
-                                        slugClaimedAt: new Date(timestamp * 1000)
+                                        slugClaimedAt: new Date(timestamp * 1000),
+                                        // Fix: Ensure profile is marked as CLAIMED
+                                        status: 'CLAIMED',
+                                        ownerAddress: userAddress,
+                                        owner: userAddress, // backward compatibility
+                                        claimedAt: profile.claimedAt || new Date(timestamp * 1000),
+                                        visibility: profile.visibility === 'PRIVATE' ? 'PRIVATE' : 'PUBLIC',
                                     }
                                 })
                             }
