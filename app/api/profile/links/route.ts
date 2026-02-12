@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json({
-      links: links.map((link) => ({
+      links: links.filter((link) => link.enabled !== false).map((link) => ({
         id: link.id,
         title: link.title || '',
         url: link.url,
