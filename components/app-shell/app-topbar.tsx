@@ -48,15 +48,15 @@ export function AppTopbar() {
   const tabLabel = isLinkDetailPage ? 'Link Insights' : (tabLabels[currentTab] || 'Overview')
 
   return (
-    <header className={`sticky top-0 z-50 flex h-14 min-h-[3.5rem] items-center gap-2 border-b border-border bg-background/80 ${PAGE_GUTTER} backdrop-blur transition-[width] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 group-has-data-[collapsible=icon]/sidebar-wrapper:min-h-[3rem]`}>
-      <div className="flex items-center gap-2 shrink-0">
-        <SidebarTrigger className="-ml-1" />
+    <header className={`sticky top-0 z-50 flex h-14 min-h-[3.5rem] items-center gap-2 border-b border-border bg-background/80 ${PAGE_GUTTER} backdrop-blur transition-[width] ease-linear`}>
+      <div className="flex items-center shrink-0 pl-1">
+        <SidebarTrigger className="-ml-1 mr-3" />
         <Separator
           orientation="vertical"
-          className="mr-2 h-4 shrink-0"
+          className="mr-3 h-4 shrink-0"
         />
         <Breadcrumb>
-          <BreadcrumbList>
+          <BreadcrumbList className="gap-[10px] sm:gap-[10px]">
             <BreadcrumbItem className="hidden md:block">
               {(() => {
                 const dashboardTabs = ['overview', 'assets', 'activity', 'social']

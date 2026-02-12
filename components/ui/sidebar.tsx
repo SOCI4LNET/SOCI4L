@@ -16,7 +16,7 @@ const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_LOCALSTORAGE_KEY = "soc4l_sidebar_collapsed"
 const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
-const SIDEBAR_WIDTH_ICON = "4rem"
+const SIDEBAR_WIDTH_ICON = "50px"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 const SIDEBAR_MOBILE_BREAKPOINT = 1024 // lg breakpoint
 
@@ -343,7 +343,7 @@ const SidebarTrigger = React.forwardRef<
       aria-expanded={isMobile ? openMobile : open}
       {...props}
     >
-      <PanelLeft />
+      <PanelLeft strokeWidth={1} />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   )

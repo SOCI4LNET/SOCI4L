@@ -251,17 +251,17 @@ export function HeaderActions() {
         <DropdownMenu>
           {/* Global Header Actions (Desktop) */}
           {!pathname?.startsWith('/master-console') && (
-            <div className="hidden md:flex items-center gap-1 px-2 py-1.5 rounded-md border bg-background mr-2">
+            <div className="hidden md:flex items-center gap-2 px-2 py-1.5 rounded-md border border-border bg-background mr-4">
               <span className="text-sm font-mono mr-1">{formatAddress(connectedAddress, 4)}</span>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                    className="h-8 w-8 min-h-8 min-w-8 rounded-[6px] bg-accent text-muted-foreground hover:text-foreground"
                     onClick={handleCopyAddress}
                   >
-                    <Copy className="h-3.5 w-3.5" />
+                    <Copy className="h-4 w-4" strokeWidth={1} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Copy Address</TooltipContent>
@@ -272,11 +272,11 @@ export function HeaderActions() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                    className="h-8 w-8 min-h-8 min-w-8 rounded-[6px] bg-accent text-muted-foreground hover:text-foreground"
                     onClick={handleShare}
                     disabled={!publicProfileHref}
                   >
-                    <Share2 className="h-3.5 w-3.5" />
+                    <Share2 className="h-4 w-4" strokeWidth={1} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Share Profile</TooltipContent>
