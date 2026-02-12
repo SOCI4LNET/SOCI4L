@@ -1,1 +1,1 @@
-const SNOWTRACE_API_KEY = ""
+const SNOWTRACE_API_KEY = "blablabla"
