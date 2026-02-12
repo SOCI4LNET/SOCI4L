@@ -441,10 +441,10 @@ export function FollowStats({ address }: { address: string }) {
       return response.json()
     },
     enabled: isValidAddress(address),
-    staleTime: 0, // Always consider data stale (fetch on mount)
+    staleTime: 30000, // Consider data fresh for 30 seconds
     gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
-    refetchOnMount: 'always', // Always refetch when component mounts
-    refetchOnWindowFocus: true, // Refetch when window gains focus
+    refetchOnMount: false, // Don't refetch on mount if data is fresh
+    refetchOnWindowFocus: false, // Don't refetch when window gains focus (fixes link click trigger)
   })
 
   useEffect(() => {
