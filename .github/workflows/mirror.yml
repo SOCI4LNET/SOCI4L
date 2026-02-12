@@ -16,4 +16,4 @@ jobs:
       
       - name: Push to Personal Repo
         run: |
-          git push -f https://xBrokkr:${{ secrets.TARGET_REPO_PAT }}@github.com/xBrokkr/SOCI4L.git main
+          git push -f https://xBrokkr:${{ secrets.TARGET_REPO_PAT }}@github.com/xBrokkr/SOCI4L main
