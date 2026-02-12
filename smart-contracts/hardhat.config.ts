@@ -1,4 +1,6 @@
 import { HardhatUserConfig } from "hardhat/config";
+import { SNOWTRACE_API_KEY } from "../lib/constants";
+
 import "@nomicfoundation/hardhat-toolbox";
 import * as dotenv from "dotenv";
 
@@ -27,8 +29,8 @@ const config: HardhatUserConfig = {
         // Snowtrace uses Blockscout, but hardhat-verify plugin supports it via custom chains or standard config if updated.
         // For now, we'll leave basic config.
         apiKey: {
-            avalanche: process.env.SNOWTRACE_API_KEY || "",
-            avalancheFujiTestnet: process.env.SNOWTRACE_API_KEY || "",
+            avalanche: SNOWTRACE_API_KEY || "",
+            avalancheFujiTestnet: SNOWTRACE_API_KEY || "",
         },
     },
 };

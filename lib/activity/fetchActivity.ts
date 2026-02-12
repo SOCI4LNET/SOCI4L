@@ -20,9 +20,10 @@
 
 import { formatEther, formatUnits } from 'viem'
 import { avalancheClient } from '../avalanche'
+import { SNOWTRACE_API_KEY , SNOWTRACE_API_URL } from '@/lib/constants'
 
-const SNOWTRACE_API_KEY = process.env.SNOWTRACE_API_KEY || ''
-const SNOWTRACE_API_URL = 'https://api.snowtrace.io/api'
+// const SNOWTRACE_API_KEY = process.env.SNOWTRACE_API_KEY || ''
+// const SNOWTRACE_API_URL = 'https://api.snowtrace.io/api'
 
 // Known DEX router addresses on Avalanche (for swap detection)
 const DEX_ROUTERS = [
