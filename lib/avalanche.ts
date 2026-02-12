@@ -1,9 +1,10 @@
 import { createPublicClient, http, formatEther, formatUnits } from 'viem'
 import { avalanche } from 'viem/chains'
 import { fetchAccountNfts, OpenSeaNft } from '@/lib/opensea'
+import { SNOWTRACE_API_KEY , SNOWTRACE_API_URL } from '@/lib/constants'
 
 const AVALANCHE_RPC = process.env.NEXT_PUBLIC_AVALANCHE_RPC || 'https://api.avax.network/ext/bc/C/rpc'
-const SNOWTRACE_API_KEY = process.env.SNOWTRACE_API_KEY || ''
+// const SNOWTRACE_API_KEY = process.env.SNOWTRACE_API_KEY || ''
 
 export const avalancheClient = createPublicClient({
   chain: avalanche,
@@ -95,7 +96,7 @@ export async function getWalletData(address: string): Promise<WalletData> {
         // Note: This calculates balances from transaction history, which may not be 100% accurate
         // For more accurate balances, use the tokenlist endpoint or RPC balanceOf calls
         const tokenResponse = await fetch(
-          `https://api.snowtrace.io/api?module=account&action=tokentx&address=${address}&startblock=0&endblock=99999999&sort=asc${apiKeyParam}`
+          `${SNOWTRACE_API_URL}?module=account&action=tokentx&address=${address}&startblock=0&endblock=99999999&sort=asc${apiKeyParam}`
         )
         const tokenData = await tokenResponse.json()
 

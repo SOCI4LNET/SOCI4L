@@ -19,9 +19,10 @@
 import { avalancheClient } from './avalanche'
 import { formatEther, formatUnits, parseUnits } from 'viem'
 import { getAVAXPrice, getTokenLogos, getTokenLogoUrl, getTokenLogosByAddresses, getAvalancheTokenList } from './coingecko'
+import { SNOWTRACE_API_KEY , SNOWTRACE_API_URL } from '@/lib/constants'
 
-const SNOWTRACE_API_KEY = process.env.SNOWTRACE_API_KEY || ''
-const SNOWTRACE_API_URL = 'https://api.snowtrace.io/api'
+// const SNOWTRACE_API_KEY = process.env.SNOWTRACE_API_KEY || ''
+// const SNOWTRACE_API_URL = 'https://api.snowtrace.io/api'
 
 // ERC-20 ABI for balanceOf, name, symbol, decimals
 const ERC20_ABI = [
