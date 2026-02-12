@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma'
 import { isValidAddress } from '@/lib/utils'
 import { getNonce, markNonceAsUsed, isValidNonce } from '@/lib/nonce-store'
 
+// just do it
+
 // Test mode: allow "signed-{nonce}" format for MCP tests
 const TEST_MODE = process.env.NODE_ENV === 'test' || process.env.MCP_TEST_MODE === '1'
 
