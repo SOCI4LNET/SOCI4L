@@ -14,6 +14,10 @@ jobs:
         with:
           fetch-depth: 0
       
-      - name: Push to Personal Repo
-        run: |
-          git push -f https://${{ secrets.TARGET_REPO_PAT }}@github.com/xBrokkr/SOCI4L.git main
+      - name: Mirror to Personal Repo
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.TARGET_REPO_PAT }}
+          repository: xBrokkr/SOCI4L
+          force: true
+          branch: main
