@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import { getPublicProfileHref } from '@/lib/routing'
 import Link from 'next/link'
-import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Eye, Share2, Instagram, Youtube, Sparkles, ShieldAlert, Layers, UserX, CheckCircle, MoreVertical, Ban } from 'lucide-react'
+import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Heart, Eye, Share2, Instagram, Youtube, Sparkles, ShieldAlert, Layers, UserX, CheckCircle, MoreVertical, Ban } from 'lucide-react'
 import { XIcon } from '@/components/icons/x-icon'
 import { ClaimProfileButton } from '@/components/claim-profile-button'
 import { FollowToggle, FollowStats } from '@/components/follow-toggle'
@@ -971,6 +971,20 @@ export default function ProfilePage({ params }: PageProps) {
                         isBlockedByViewer={isBlockedByViewer}
                         onBlockChange={(blocked) => setIsBlockedByViewer(blocked)}
                       />
+                    )}
+
+                    {profileAddressForFollow && !profile?.isBanned && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 gap-2 text-muted-foreground hover:text-pink-500 hover:border-pink-200 hover:bg-pink-50"
+                        onClick={() => {
+                          toast.info('Donate feature coming soon!')
+                        }}
+                      >
+                        <Heart className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline text-xs font-medium">Donate</span>
+                      </Button>
                     )}
 
                     {resolvedAddress && isValidAddress(resolvedAddress) && !profile?.isBanned && (
