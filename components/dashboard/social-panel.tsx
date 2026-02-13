@@ -459,7 +459,8 @@ export function SocialPanel({ address }: SocialPanelProps) {
     showUnfollow = false,
     suggestions: any[] = [],
     dateLabel = 'Followed on',
-    showRemoveFollower = false
+    showRemoveFollower = false,
+    showFollow = false
   ) => {
     if (loading) {
       return (
@@ -492,6 +493,7 @@ export function SocialPanel({ address }: SocialPanelProps) {
               avatarUrl={`https://effigy.im/a/${s.address.toLowerCase()}.svg`}
               primaryRole={s.primaryRole}
               statusMessage={s.statusMessage}
+              showFollow={true}
               connectionReason={s.reason}
               followedAt={new Date(s.createdAt)}
               dateLabel="Joined"
@@ -579,6 +581,7 @@ export function SocialPanel({ address }: SocialPanelProps) {
             statusMessage={item.statusMessage}
             dateLabel={dateLabel}
             isPremium={item.isPremium}
+            showFollow={showFollow}
           />
         ))}
         {/* Suggestions appended to list */}
@@ -747,7 +750,7 @@ export function SocialPanel({ address }: SocialPanelProps) {
                     Type to search...
                     {suggestionsData?.suggestions && suggestionsData.suggestions.length > 0 && (
                       <div className="mt-8">
-                        {renderList(suggestionsData.suggestions, '', '', false, [], 'Joined')}
+                        {renderList(suggestionsData.suggestions, '', '', false, [], 'Joined', false, true)}
                       </div>
                     )}
                   </div>
