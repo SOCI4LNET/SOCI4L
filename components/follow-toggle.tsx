@@ -237,46 +237,37 @@ export function FollowToggle({ address, isBlockedByViewer: initialBlocked = fals
     setIsPending(true)
     const previousState = isFollowing
 
-    // Ensure session exists (before optimistic update)
-    const hasSession = await ensureSession()
-    if (!hasSession) {
-      // Session creation failed - ensureSession already shows error toast
-      setIsPending(false)
-      return
-    }
-
-    // Additional delay to ensure cookie is written (serverless-friendly)
-    await new Promise(resolve => setTimeout(resolve, 300))
-
     // Optimistic update
     setIsFollowing(pressed)
 
     try {
+      const action = pressed ? 'follow' : 'unfollow'
+      const timestamp = Date.now()
+      const message = `I authorize ${action} on ${normalizedAddress} at ${timestamp}`
+
+      showTransactionLoader("Confirm in Wallet...")
+      const signature = await signMessageAsync({ message })
+
       showTransactionLoader(pressed ? "Following..." : "Unfollowing...")
 
       const endpoint = `/api/profile/${normalizedAddress}/follow?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`
 
-      let response
-      if (pressed) {
-        response = await fetch(endpoint, {
-          method: 'POST',
-          credentials: 'include',
-        })
-      } else {
-        response = await fetch(endpoint, {
-          method: 'DELETE',
-          credentials: 'include',
-        })
-      }
+      // Always use POST for signature-based actions to safely transmit the body
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action,
+          signature,
+          message,
+          timestamp,
+          followerAddress: normalizedConnectedAddress
+        }),
+      })
 
       if (!response.ok) {
-        // Handle auth retries if needed
-        if (response.status === 401) {
-          toast.error('Session expired. Please reconnect your wallet.')
-          setIsFollowing(previousState)
-          return
-        }
-
         const error = await response.json()
         throw new Error(error.error || 'Action failed')
       }
@@ -301,29 +292,25 @@ export function FollowToggle({ address, isBlockedByViewer: initialBlocked = fals
             followingCount: prev?.followingCount ?? 0,
             isFollowing: data.isFollowing ?? pressed,
           }
-          // console.log('[FollowToggle] Cache updated:', { prev, new: newData })
-          return newData
           return newData
         }
       )
 
-      // Mark cache as stale so it will refetch on next mount/focus
-      // Don't refetch immediately because of database transaction timing issues
-      // (the write might not be visible to read replicas yet)
-      console.log('[FollowToggle] Invalidating queries...')
+      // Mark cache as stale but don't refetch immediately
       queryClient.invalidateQueries({
         queryKey: ['follow-stats', normalizedAddress],
-        refetchType: 'none' // Mark as stale but don't refetch immediately
+        refetchType: 'none'
       })
       console.log('[FollowToggle] Follow action completed')
 
     } catch (error: any) {
       // Rollback on error
       setIsFollowing(previousState)
+      console.error('Follow toggle error:', error)
       if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
         toast.error('Transaction rejected')
       } else {
-        toast.error('Action failed. Please try again.')
+        toast.error(error.message || 'Action failed. Please try again.')
       }
     } finally {
       setIsPending(false)
