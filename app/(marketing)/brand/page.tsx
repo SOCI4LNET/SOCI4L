@@ -149,8 +149,8 @@ export default function BrandPage() {
                                 />
                                 <ColorCard
                                     name="Light Surface"
-                                    hex="#FFFFFF"
-                                    bg="bg-white"
+                                    hex="#f0f0f0"
+                                    bg="bg-[#f0f0f0]"
                                     text="text-black"
                                     border="border-transparent"
                                 />
@@ -214,18 +214,18 @@ export default function BrandPage() {
                                 <div className="space-y-4">
                                     <div className="text-sm font-mono text-muted-foreground">Base Colors</div>
                                     <div className="divide-y divide-white/5 border-t border-b border-white/5">
-                                        <CopyableItem label="Background" variable="--background" light="#FFFFFF" dark="#0A0A0A" desc="Main page background" />
-                                        <CopyableItem label="Muted" variable="--muted" light="#F4F4F5" dark="#27272A" desc="Subtle backgrounds for sections or containers" />
-                                        <CopyableItem label="Secondary" variable="--secondary" light="#F4F4F5" dark="#27272A" desc="Secondary actions and muted elements" />
+                                        <CopyableItem label="Background" variable="--background" light="#f0f0f0" dark="#0a0a0a" desc="Main page background" />
+                                        <CopyableItem label="Muted" variable="--muted" light="#f0f0f0" dark="#27272a" desc="Subtle backgrounds for sections or containers" />
+                                        <CopyableItem label="Secondary" variable="--secondary" light="#f4f4f5" dark="#27272a" desc="Secondary actions and muted elements" />
                                     </div>
                                 </div>
                                 <div className="space-y-4">
                                     <div className="text-sm font-mono text-muted-foreground">Components</div>
                                     <div className="divide-y divide-white/5 border-t border-b border-white/5">
-                                        <CopyableItem label="Border" variable="--border" light="#E4E4E7" dark="#27272A" desc="Used for inputs, dividers, and card borders" />
-                                        <CopyableItem label="Accent" variable="--accent" light="#F4F4F5" dark="#27272A" desc="Used for hover states and secondary interactions" />
-                                        <CopyableItem label="Popover" variable="--popover" light="#FFFFFF" dark="#0A0A0A" desc="Background for dialogs, tooltips, and dropdowns" />
-                                        <CopyableItem label="Card" variable="--card" light="#FFFFFF" dark="#0A0A0A" desc="Background for cards and elevated surfaces" />
+                                        <CopyableItem label="Border" variable="--border" light="#e4e4e7" dark="#27272a" desc="Used for inputs, dividers, and card borders" />
+                                        <CopyableItem label="Accent" variable="--accent" light="#e4e4e7" dark="#171717" desc="Used for hover states and secondary interactions" />
+                                        <CopyableItem label="Popover" variable="--popover" light="#f0f0f0" dark="#0a0a0a" desc="Background for dialogs, tooltips, and dropdowns" />
+                                        <CopyableItem label="Card" variable="--card" light="#f0f0f0" dark="#0a0a0a" desc="Background for cards and elevated surfaces" />
                                     </div>
                                 </div>
                             </div>
@@ -773,7 +773,7 @@ function CopyableItem({ label, variable, light, dark, desc }: any) {
                     className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white border border-black/10 cursor-pointer hover:border-brand-500/50 hover:shadow-sm transition-all group/light"
                     title="Copy Light Mode Value"
                 >
-                    <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
+                    <div className="w-2 h-2 rounded-full border border-black/5" style={{ backgroundColor: light }}></div>
                     <span className="text-xs font-mono text-black/70 group-hover/light:text-black font-medium">{light}</span>
                 </div>
 
@@ -785,7 +785,7 @@ function CopyableItem({ label, variable, light, dark, desc }: any) {
                     className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#0A0A0A] border border-white/10 cursor-pointer hover:border-brand-500/50 hover:shadow-sm transition-all group/dark"
                     title="Copy Dark Mode Value"
                 >
-                    <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+                    <div className="w-2 h-2 rounded-full border border-white/10" style={{ backgroundColor: dark }}></div>
                     <span className="text-xs font-mono text-white/70 group-hover/dark:text-white font-medium">{dark}</span>
                 </div>
             </div>
