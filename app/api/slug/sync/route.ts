@@ -165,12 +165,22 @@ export async function POST(request: Request) {
         });
 
         // 2. Upsert for target user
+        const existingProfile = await (prisma as any).profile.findUnique({
+            where: { address: targetAddress.toLowerCase() }
+        });
+
         await (prisma as any).profile.update({
             where: { address: targetAddress.toLowerCase() },
             data: {
                 slug: normalized,
                 slugHash: computedHash,
                 slugClaimedAt: new Date(),
+                // Fix: Ensure profile is marked as CLAIMED
+                status: 'CLAIMED',
+                ownerAddress: targetAddress.toLowerCase(),
+                owner: targetAddress.toLowerCase(), // backward compatibility
+                claimedAt: existingProfile?.claimedAt || new Date(),
+                visibility: existingProfile?.visibility === 'PRIVATE' ? 'PRIVATE' : 'PUBLIC', // Default to public if not set
             }
         });
 

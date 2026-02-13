@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
         }
       } else {
         // Production logic
-        const message = `Update link categories for ${normalizedAddress}. Nonce: ${nonce}`
+        const message = `Update categories for ${normalizedAddress}. Nonce: ${nonce}`
         signer = await recoverMessageAddress({
           message,
           signature: signature as `0x${string}`,

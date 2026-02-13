@@ -183,9 +183,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <Link href="/" className={`flex items-center justify-center w-full h-10 ${isCollapsed ? 'px-0' : 'px-2'} hover:opacity-80 transition-opacity`}>
           {isCollapsed ? (
-            <Soci4LLogo variant="icon" width={18} height={19} />
+            <Soci4LLogo variant="icon" width={20} height={20} />
           ) : (
-            <Soci4LLogo variant="combination" width={100} height={19} />
+            <Soci4LLogo variant="combination" width={97} height={20} />
           )}
         </Link>
       </SidebarHeader>
@@ -204,8 +204,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       onClick={() => handleTabChange(item.value)}
                       isActive={isActive}
                       tooltip={item.title}
+                      className="gap-3"
                     >
-                      <Icon />
+                      <Icon className="text-[#27272a] dark:text-[#f0f0f0]" strokeWidth={1} />
                       {!isCollapsed && <span>{item.title}</span>}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -220,12 +221,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               >
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>
-                    <SidebarMenuButton tooltip={isCollapsed ? navGroups[1].label : undefined}>
-                      <User className="h-4 w-4" />
+                    <SidebarMenuButton tooltip={isCollapsed ? navGroups[1].label : undefined} className="gap-3">
+                      <User className="h-4 w-4 text-[#27272a] dark:text-[#f0f0f0]" strokeWidth={1} />
                       {!isCollapsed && (
                         <>
                           <span>{navGroups[1].label}</span>
-                          <ChevronDown className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
+                          <ChevronDown className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" strokeWidth={1} />
                         </>
                       )}
                     </SidebarMenuButton>
@@ -241,13 +242,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                             <SidebarMenuSubButton
                               asChild
                               isActive={isActive}
+                              className="gap-3 [&>svg]:!text-[#27272a] dark:[&>svg]:!text-[#f0f0f0]"
                             >
                               <button
                                 type="button"
                                 onClick={() => handleTabChange(item.value)}
                                 className="w-full"
                               >
-                                <Icon />
+                                <Icon className="text-[#27272a] dark:text-[#f0f0f0]" strokeWidth={1} />
                                 <span>{item.title}</span>
                               </button>
                             </SidebarMenuSubButton>
@@ -267,12 +269,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               >
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>
-                    <SidebarMenuButton tooltip={isCollapsed ? navGroups[2].label : undefined}>
-                      <Settings className="h-4 w-4" />
+                    <SidebarMenuButton tooltip={isCollapsed ? navGroups[2].label : undefined} className="gap-3">
+                      <Settings className="h-4 w-4 text-[#27272a] dark:text-[#f0f0f0]" strokeWidth={1} />
                       {!isCollapsed && (
                         <>
                           <span>{navGroups[2].label}</span>
-                          <ChevronDown className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
+                          <ChevronDown className="ml-auto h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" strokeWidth={1} />
                         </>
                       )}
                     </SidebarMenuButton>
@@ -288,13 +290,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                             <SidebarMenuSubButton
                               asChild
                               isActive={isActive}
+                              className="gap-3 [&>svg]:!text-[#27272a] dark:[&>svg]:!text-[#f0f0f0]"
                             >
                               <button
                                 type="button"
                                 onClick={() => handleTabChange(item.value)}
                                 className="w-full"
                               >
-                                <Icon />
+                                <Icon className="text-[#27272a] dark:text-[#f0f0f0]" />
                                 <span>{item.title}</span>
                               </button>
                             </SidebarMenuSubButton>
