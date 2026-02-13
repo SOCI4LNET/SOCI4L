@@ -164,7 +164,12 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
 
     // Create or update QR instance with current theme colors
     const createQRInstance = () => {
-      const logoUrl = theme === 'dark' ? '/logos/icon.svg' : '/logos/icon-black.svg'
+      let logoUrl = '/logos/icon-black.svg'
+      if (theme === 'dark') {
+        logoUrl = '/logos/icon.svg'
+      } else if (theme === 'soft-gradient') {
+        logoUrl = '/logos/icon-soft.svg'
+      }
 
       return new qrLibraryRef.current({
         width: 240,
