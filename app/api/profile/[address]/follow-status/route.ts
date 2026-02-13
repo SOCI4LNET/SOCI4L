@@ -34,7 +34,6 @@ export async function GET(
       // If no session, user cannot be following anyone
       return NextResponse.json({
         isFollowing: false,
-        isAuthenticated: false,
       }, {
         headers: {
           'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
@@ -59,7 +58,6 @@ export async function GET(
       if (normalizedConnected !== normalizedSession) {
         return NextResponse.json({
           isFollowing: false,
-          isAuthenticated: false, // Session exists but doesn't match connected wallet -> treat as unauthenticated for this wallet
         }, {
           headers: {
             'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
@@ -100,7 +98,6 @@ export async function GET(
 
     return NextResponse.json({
       isFollowing: !!follow,
-      isAuthenticated: true,
     }, {
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
