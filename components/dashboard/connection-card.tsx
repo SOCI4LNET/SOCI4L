@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -20,6 +21,7 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { toast } from 'sonner'
+import { FollowToggle } from '../follow-toggle'
 
 export type RoleTag = string
 
@@ -33,6 +35,7 @@ interface ConnectionCardProps {
     connectionStrength?: number // 0-100 score (V2)
     followedAt: Date
     dateLabel?: string
+    showFollow?: boolean
     showUnfollow?: boolean
     onUnfollow?: (address: string) => void
     isBlocked?: boolean
@@ -54,6 +57,7 @@ export function ConnectionCard({
     connectionStrength,
     followedAt,
     dateLabel,
+    showFollow = false,
     showUnfollow = false,
     onUnfollow,
     isBlocked = false,
@@ -172,6 +176,11 @@ export function ConnectionCard({
 
             {/* Actions */}
             <div className="flex items-center gap-2 flex-shrink-0">
+               {showFollow && (
+                    <FollowToggle
+                        address={normalizedAddr}
+                    />
+               )}
                 <Button
                     variant="outline"
                     size="sm"
@@ -179,7 +188,7 @@ export function ConnectionCard({
                     className="h-8 text-xs"
                 >
                     <Link href={`/p/${normalizedAddr}`}>View</Link>
-                </Button>
+                </Button>                
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
