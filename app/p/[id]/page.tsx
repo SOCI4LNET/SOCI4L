@@ -24,6 +24,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
+import SiteFooter from "@/components/app-shell/site-footer"
 import { toast } from 'sonner'
 import { trackProfileView, trackLinkClick, getSourceFromUrl, getProfileViewCount } from '@/lib/analytics'
 import { type ProfileLink } from '@/lib/profile-links'
@@ -1685,6 +1686,7 @@ export default function ProfilePage({ params }: PageProps) {
           />
         )
       }
+      <SiteFooter className="mt-auto" />
     </div >
   )
 }
