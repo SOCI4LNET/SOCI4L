@@ -39,7 +39,7 @@ export function SignalsSection() {
                             </h2>
                             <h3 className="text-3xl md:text-4xl font-semibold tracking-tight text-foreground mb-6 leading-tight">
                                 Signals, <br />
-                                <span className="text-muted-foreground opacity-40 line-through decoration-border decoration-2">Vanity Metrics.</span>
+                                <span className="text-muted-foreground/40 line-through decoration-black dark:decoration-white decoration-2">Vanity Metrics.</span>
                             </h3>
                             <p className="text-lg text-muted-foreground leading-relaxed max-w-md">
                                 Measuring success by "clicks" is outdated. We provide the context of <strong className="text-foreground font-medium">who</strong> and <strong className="text-foreground font-medium">why</strong>.
