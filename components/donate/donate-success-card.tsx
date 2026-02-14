@@ -93,6 +93,15 @@ export function DonateSuccessCard({
         window.open(twitterUrl, '_blank', 'noopener,noreferrer')
     }
 
+    // Handle avatar loading errors to prevent html-to-image crashes
+    const handleAvatarError = () => {
+        // If avatar fails to load, we can try to hide it or let fallback take over
+        // But for html-to-image, we need to ensure the img tag doesn't cause a fetch error
+        const img = document.querySelector('#donate-success-card img') as HTMLImageElement
+        if (img) {
+            img.style.display = 'none' // Hide broken image so fallback shows
+        }
+    }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -122,14 +131,24 @@ export function DonateSuccessCard({
                                         fill
                                         className="object-cover"
                                         style={{ borderRadius: '6px' }}
+                                        priority
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/60 to-transparent" />
 
                                     {/* Content Overlay */}
                                     <div className="absolute inset-0 flex flex-col items-center justify-center px-8 py-12 text-center">
-                                        <Avatar className="h-14 w-14 mb-6 ring-2 ring-brand-500/50">
-                                            <AvatarImage src={recipient.avatar} />
-                                            <AvatarFallback>
+                                        <Avatar className="h-14 w-14 mb-6 ring-2 ring-brand-500/50 bg-background">
+                                            <AvatarImage
+                                                src={recipient.avatar}
+                                                onLoadingStatusChange={(status) => {
+                                                    console.log('Avatar status:', status)
+                                                }}
+                                                onError={(e) => {
+                                                    console.error('Avatar load error', e)
+                                                    e.currentTarget.style.display = 'none'
+                                                }}
+                                            />
+                                            <AvatarFallback className="bg-background text-foreground">
                                                 {recipient.displayName?.[0] || formatAddress(recipient.address).slice(0, 2)}
                                             </AvatarFallback>
                                         </Avatar>
