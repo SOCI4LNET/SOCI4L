@@ -417,10 +417,7 @@ export default function ProfilePage({ params }: PageProps) {
       return () => clearTimeout(timer)
     }
 
-    // If we have an address, track immediately
-    trackProfileView(stableProfileId, source, connectedAddress)
-    trackedProfileIdRef.current = currentTrackKey
-  }, [stableProfileId, searchParams, connectedAddress, status, isReconnecting, profileStatus])
+  }, [searchParams, profile?.address, profile?.isBanned, loading])
 
 
   const getStatusBadge = () => {
