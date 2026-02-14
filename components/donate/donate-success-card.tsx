@@ -172,29 +172,28 @@ export function DonateSuccessCard({
                             </a>
                         )}
                     </div>
-                </div>
 
-                {/* Action Buttons */}
-                <div className="grid grid-cols-2 gap-3 mt-6">
-                    <Button
-                        variant="outline"
-                        onClick={downloadAsPNG}
-                        disabled={isGenerating}
-                        className="gap-2"
-                    >
-                        <Download className="h-4 w-4" />
-                        {isGenerating ? 'Generating...' : 'Download PNG'}
-                    </Button>
-                    <Button
-                        onClick={shareOnTwitter}
-                        className="gap-2 bg-[#1DA1F2] hover:bg-[#1a8cd8] text-white"
-                    >
-                        <Share2 className="h-4 w-4" />
-                        Share on X
-                    </Button>
+                    {/* Action Buttons */}
+                    <div className="grid grid-cols-2 gap-3 mt-6">
+                        <Button
+                            variant="outline"
+                            onClick={downloadAsPNG}
+                            disabled={isGenerating}
+                            className="gap-2"
+                        >
+                            <Download className="h-4 w-4" />
+                            {isGenerating ? 'Generating...' : 'Download PNG'}
+                        </Button>
+                        <Button
+                            onClick={shareOnTwitter}
+                            className="gap-2 bg-[#1DA1F2] hover:bg-[#1a8cd8] text-white"
+                        >
+                            <Share2 className="h-4 w-4" />
+                            Share on X
+                        </Button>
+                    </div>
                 </div>
-            </div>
-        </DialogContent>
+            </DialogContent>
         </Dialog >
     )
 }
