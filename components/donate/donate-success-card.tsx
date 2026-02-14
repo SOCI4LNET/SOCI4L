@@ -46,6 +46,13 @@ export function DonateSuccessCard({
                 cacheBust: true,
                 useCORS: true,
                 backgroundColor: '#000000',
+                filter: (node) => {
+                    // Exclude images that haven't loaded successfully (naturalWidth is 0)
+                    if (node instanceof HTMLImageElement && node.naturalWidth === 0) {
+                        return false
+                    }
+                    return true
+                }
             })
 
             const link = document.createElement('a')
@@ -76,6 +83,13 @@ export function DonateSuccessCard({
                     cacheBust: true,
                     useCORS: true,
                     backgroundColor: '#000000',
+                    filter: (node) => {
+                        // Exclude images that haven't loaded successfully
+                        if (node instanceof HTMLImageElement && node.naturalWidth === 0) {
+                            return false
+                        }
+                        return true
+                    }
                 })
 
                 // Download image then open Twitter
