@@ -38,10 +38,7 @@ export function DonateSuccessCard({
         try {
             const { toPng } = await import('html-to-image')
             const element = document.getElementById('donate-success-card')
-            if (!element) {
-                console.error('Card element not found')
-                return
-            }
+            if (!element) return
 
             const dataUrl = await toPng(element, {
                 quality: 1,
@@ -57,41 +54,43 @@ export function DonateSuccessCard({
             link.click()
         } catch (error) {
             console.error('Failed to generate PNG:', error)
+            // Optional: Add toast notification here
         } finally {
             setIsGenerating(false)
         }
     }
 
     const shareOnTwitter = async () => {
+        const recipientName = recipient.displayName || formatAddress(recipient.address)
+        const tweetText = `I just donated ${parseFloat(amount).toFixed(2)} AVAX to ${recipientName} on @SOCI4L_NET! 🎉\n\nSupporting amazing creators on Avalanche. 🔺\n\n${txHash ? `https://snowtrace.io/tx/${txHash}` : 'https://soci4l.net'}`
+
         try {
-            // Generate PNG first
+            // Try to generate PNG
             const { toPng } = await import('html-to-image')
             const element = document.getElementById('donate-success-card')
-            if (!element) return
 
-            const dataUrl = await toPng(element, {
-                quality: 1,
-                pixelRatio: 2,
-                cacheBust: true,
-                useCORS: true,
-                backgroundColor: '#000000',
-            })
+            if (element) {
+                const dataUrl = await toPng(element, {
+                    quality: 1,
+                    pixelRatio: 2,
+                    cacheBust: true,
+                    useCORS: true,
+                    backgroundColor: '#000000',
+                })
 
-            // Download the image (Twitter doesn't support direct image upload from URL)
-            const link = document.createElement('a')
-            link.download = `soci4l-donation-${Date.now()}.png`
-            link.href = dataUrl
-            link.click()
-
-            // Open Twitter with text
-            const recipientName = recipient.displayName || formatAddress(recipient.address)
-            const tweetText = `I just donated ${parseFloat(amount).toFixed(2)} AVAX to ${recipientName} on @SOCI4L_NET! 🎉\n\nSupporting amazing creators on Avalanche. 🔺\n\n${txHash ? `https://snowtrace.io/tx/${txHash}` : 'https://soci4l.net'}`
-
-            const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`
-            window.open(twitterUrl, '_blank', 'noopener,noreferrer')
+                // Download image then open Twitter
+                const link = document.createElement('a')
+                link.download = `soci4l-donation-${Date.now()}.png`
+                link.href = dataUrl
+                link.click()
+            }
         } catch (error) {
-            console.error('Failed to share:', error)
+            console.error('Failed to generate PNG for sharing, proceeding with text only:', error)
         }
+
+        // Always open Twitter, even if image failed
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`
+        window.open(twitterUrl, '_blank', 'noopener,noreferrer')
     }
 
 
@@ -161,7 +160,7 @@ export function DonateSuccessCard({
                     </div>
 
                     {/* Success Message */}
-                    <div className="text-center space-y-2 mt-6">
+                    <div className="text-center space-y-2 mt-8">
                         <h2 className="text-2xl font-bold">Donation Sent! 🎉</h2>
                         <p className="text-sm text-muted-foreground">
                             Your donation has been successfully sent on Avalanche C-Chain
