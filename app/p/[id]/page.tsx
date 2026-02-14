@@ -419,6 +419,21 @@ export default function ProfilePage({ params }: PageProps) {
 
   }, [searchParams, profile?.address, profile?.isBanned, loading])
 
+  // Check for donate action in URL parameters (from extension)
+  useEffect(() => {
+    const action = searchParams.get('action')
+    console.log('[DonateModal] URL check:', { action, hasProfile: !!profile?.address, isBanned: profile?.isBanned, loading, donateModalOpen })
+
+    if (action === 'donate' && profile?.address && !profile?.isBanned && !loading && !donateModalOpen) {
+      console.log('[DonateModal] Opening modal from URL parameter')
+      // Delay to ensure page is fully rendered
+      const timer = setTimeout(() => {
+        setDonateModalOpen(true)
+      }, 1200)
+      return () => clearTimeout(timer)
+    }
+  }, [searchParams, profile?.address, profile?.isBanned, loading, donateModalOpen])
+
 
   const getStatusBadge = () => {
     const baseClass = 'text-[11px] px-2 py-0 font-normal'
