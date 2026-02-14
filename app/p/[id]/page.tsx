@@ -28,6 +28,8 @@ import SiteFooter from "@/components/app-shell/site-footer"
 import { toast } from 'sonner'
 import { trackProfileView, trackLinkClick, getSourceFromUrl, getProfileViewCount } from '@/lib/analytics'
 import { type ProfileLink } from '@/lib/profile-links'
+import { DonateModal } from '@/components/donate/donate-modal'
+import { useDonate } from '@/hooks/use-donate'
 import {
   type ProfileLayoutConfig,
   type ProfileLayoutBlock,
@@ -129,6 +131,8 @@ export default function ProfilePage({ params }: PageProps) {
   const linksBlockRef = useRef<HTMLDivElement>(null)
   const [viewCount, setViewCount] = useState<number | null>(null)
   const [isBlockedByViewer, setIsBlockedByViewer] = useState(false)
+  const [donateModalOpen, setDonateModalOpen] = useState(false)
+  const { donate, isPending: isDonating } = useDonate()
 
   // ... (keep existing code)
 
@@ -418,6 +422,16 @@ export default function ProfilePage({ params }: PageProps) {
     trackedProfileIdRef.current = currentTrackKey
   }, [stableProfileId, searchParams, connectedAddress, status, isReconnecting, profileStatus])
 
+  // Check for donate action in URL parameters (from extension)
+  useEffect(() => {
+    const action = searchParams.get('action')
+    if (action === 'donate' && profileAddressForFollow && !profile?.isBanned && !loading) {
+      // Small delay to ensure page is fully loaded
+      setTimeout(() => {
+        setDonateModalOpen(true)
+      }, 500)
+    }
+  }, [searchParams, profileAddressForFollow, profile?.isBanned, loading])
 
 
   const getStatusBadge = () => {
@@ -978,9 +992,7 @@ export default function ProfilePage({ params }: PageProps) {
                         variant="outline"
                         size="sm"
                         className="h-8 gap-2 text-muted-foreground hover:text-pink-500 hover:border-pink-200 hover:bg-pink-50"
-                        onClick={() => {
-                          toast.info('Donate feature coming soon!')
-                        }}
+                        onClick={() => setDonateModalOpen(true)}
                       >
                         <Heart className="h-3.5 w-3.5" />
                         <span className="hidden sm:inline text-xs font-medium">Donate</span>
@@ -1700,6 +1712,24 @@ export default function ProfilePage({ params }: PageProps) {
           />
         )
       }
+
+      {/* Donate Modal */}
+      {profileAddressForFollow && !profile?.isBanned && (
+        <DonateModal
+          open={donateModalOpen}
+          onOpenChange={setDonateModalOpen}
+          recipient={{
+            address: profileAddressForFollow,
+            displayName: profile?.displayName || undefined,
+            slug: profile?.slug || undefined,
+            avatar: `https://effigy.im/a/${profileAddressForFollow}.svg`,
+          }}
+          onDonate={async (amount, message) => {
+            await donate(profileAddressForFollow, amount, message)
+          }}
+        />
+      )}
+
       <SiteFooter className="mt-auto" />
     </div >
   )
