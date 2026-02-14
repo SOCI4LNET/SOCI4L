@@ -47,6 +47,7 @@ export function DonateSuccessCard({
                 quality: 1,
                 pixelRatio: 2,
                 cacheBust: true,
+                useCORS: true,
                 backgroundColor: '#000000',
             })
 
@@ -72,6 +73,7 @@ export function DonateSuccessCard({
                 quality: 1,
                 pixelRatio: 2,
                 cacheBust: true,
+                useCORS: true,
                 backgroundColor: '#000000',
             })
 
@@ -112,7 +114,7 @@ export function DonateSuccessCard({
                     {/* Success Card */}
                     <div id="donate-success-card" className="space-y-6">
                         {/* Background Image Card */}
-                        <Card className="relative overflow-hidden border-2 border-brand-500/20">
+                        <Card className="relative overflow-hidden border-2 border-muted">
                             <CardContent className="p-0">
                                 <div className="relative h-72 w-full">
                                     <Image
@@ -148,7 +150,7 @@ export function DonateSuccessCard({
                                         )}
 
                                         <div className="mt-5 flex items-center gap-2">
-                                            <span className="px-3 py-1.5 rounded-full bg-brand-500/10 text-brand-500 text-xs font-medium">
+                                            <span className="px-3 py-1.5 rounded-full bg-white text-black text-xs font-medium">
                                                 SOCI4L.NET
                                             </span>
                                         </div>
@@ -159,7 +161,7 @@ export function DonateSuccessCard({
                     </div>
 
                     {/* Success Message */}
-                    <div className="text-center space-y-2">
+                    <div className="text-center space-y-2 mt-6">
                         <h2 className="text-2xl font-bold">Donation Sent! 🎉</h2>
                         <p className="text-sm text-muted-foreground">
                             Your donation has been successfully sent on Avalanche C-Chain
