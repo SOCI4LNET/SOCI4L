@@ -96,6 +96,9 @@ export function DonateSuccessCard({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden">
+                <div className="sr-only">
+                    <DialogTitle>Donation Successful</DialogTitle>
+                </div>
                 <div className="relative px-6 pt-8 pb-6">
                     {/* Close button */}
                     <button

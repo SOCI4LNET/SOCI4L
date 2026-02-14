@@ -425,10 +425,15 @@ export default function ProfilePage({ params }: PageProps) {
     console.log('[DonateModal] URL check:', { action, hasProfile: !!profile?.address, isBanned: profile?.isBanned, loading, donateModalOpen })
 
     if (action === 'donate' && profile?.address && !profile?.isBanned && !loading && !donateModalOpen) {
-      console.log('[DonateModal] Opening modal from URL parameter')
+      console.log('[DonateModal] Opening modal from URL parameter', { action })
       // Delay to ensure page is fully rendered
       const timer = setTimeout(() => {
         setDonateModalOpen(true)
+
+        // Clean up URL parameter to prevent re-opening on refresh/navigation
+        const newUrl = new URL(window.location.href)
+        newUrl.searchParams.delete('action')
+        window.history.replaceState({}, '', newUrl.toString())
       }, 1200)
       return () => clearTimeout(timer)
     }
