@@ -422,17 +422,6 @@ export default function ProfilePage({ params }: PageProps) {
     trackedProfileIdRef.current = currentTrackKey
   }, [stableProfileId, searchParams, connectedAddress, status, isReconnecting, profileStatus])
 
-  // Check for donate action in URL parameters (from extension)
-  useEffect(() => {
-    const action = searchParams.get('action')
-    if (action === 'donate' && profileAddressForFollow && !profile?.isBanned && !loading) {
-      // Small delay to ensure page is fully loaded
-      setTimeout(() => {
-        setDonateModalOpen(true)
-      }, 500)
-    }
-  }, [searchParams, profileAddressForFollow, profile?.isBanned, loading])
-
 
   const getStatusBadge = () => {
     const baseClass = 'text-[11px] px-2 py-0 font-normal'
