@@ -159,12 +159,11 @@ export function DonateModal({ open, onOpenChange, recipient, onDonate }: DonateM
                     {/* Message Template */}
                     <div className="space-y-3">
                         <Label htmlFor="message">Message (Optional)</Label>
-                        <Select value={message} onValueChange={setMessage}>
+                        <Select value={message || undefined} onValueChange={setMessage}>
                             <SelectTrigger id="message">
                                 <SelectValue placeholder="Select a message or leave empty" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">No message</SelectItem>
                                 {MESSAGE_TEMPLATES.map((template) => (
                                     <SelectItem key={template} value={template}>
                                         {template}
