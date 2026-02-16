@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatAddress } from '@/lib/utils'
 import { Download, Share2, X } from 'lucide-react'
+import { toast } from 'sonner'
 import confetti from 'canvas-confetti'
 import Image from 'next/image'
 
@@ -32,23 +33,25 @@ export function DonateSuccessCard({
     txHash
 }: DonateSuccessCardProps) {
     const [isGenerating, setIsGenerating] = useState(false)
+    const cardRef = useRef<HTMLDivElement>(null)
 
     const downloadAsPNG = async () => {
         setIsGenerating(true)
         try {
             const { toPng } = await import('html-to-image')
-            const element = document.getElementById('donate-success-card')
-            if (!element) return
 
-            const dataUrl = await toPng(element, {
+            if (!cardRef.current) return
+
+            const dataUrl = await toPng(cardRef.current, {
                 quality: 1,
                 pixelRatio: 2,
                 cacheBust: true,
-                useCORS: true,
+                useCORS: true, // Enable CORS for cross-origin images
+                skipAutoScale: true,
                 backgroundColor: '#000000',
                 filter: (node) => {
-                    // Exclude images that haven't loaded successfully (naturalWidth is 0)
-                    if (node instanceof HTMLImageElement && node.naturalWidth === 0) {
+                    // Exclude images that failed to load
+                    if (node instanceof HTMLImageElement && (node.naturalWidth === 0 || node.naturalHeight === 0)) {
                         return false
                     }
                     return true
@@ -59,9 +62,10 @@ export function DonateSuccessCard({
             link.download = `soci4l-donation-${Date.now()}.png`
             link.href = dataUrl
             link.click()
+            toast.success("Image downloaded!")
         } catch (error) {
             console.error('Failed to generate PNG:', error)
-            // Optional: Add toast notification here
+            toast.error("Failed to generate image. Please try again.")
         } finally {
             setIsGenerating(false)
         }
@@ -69,51 +73,54 @@ export function DonateSuccessCard({
 
     const shareOnTwitter = async () => {
         const recipientName = recipient.displayName || formatAddress(recipient.address)
-        const tweetText = `I just donated ${parseFloat(amount).toFixed(2)} AVAX to ${recipientName} on @SOCI4L_NET! 🎉\n\nSupporting amazing creators on Avalanche. 🔺\n\n${txHash ? `https://snowtrace.io/tx/${txHash}` : 'https://soci4l.net'}`
+        const tweetText = `I just donated ${parseFloat(amount).toFixed(2)} AVAX to ${recipientName} on @SOCI4LNET! 🎉\n\nSupporting amazing creators on Avalanche. 🔺\n\n${txHash ? `https://snowtrace.io/tx/${txHash}` : 'https://soci4l.net'}`
 
+        // Open Twitter Intent immediately
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`
+        window.open(twitterUrl, '_blank', 'noopener,noreferrer')
+
+        // Try to generate and copy image
+        setIsGenerating(true)
         try {
-            // Try to generate PNG
-            const { toPng } = await import('html-to-image')
-            const element = document.getElementById('donate-success-card')
+            const { toBlob } = await import('html-to-image')
 
-            if (element) {
-                const dataUrl = await toPng(element, {
+            if (cardRef.current) {
+                const blob = await toBlob(cardRef.current, {
                     quality: 1,
                     pixelRatio: 2,
                     cacheBust: true,
                     useCORS: true,
                     backgroundColor: '#000000',
                     filter: (node) => {
-                        // Exclude images that haven't loaded successfully
-                        if (node instanceof HTMLImageElement && node.naturalWidth === 0) {
+                        if (node instanceof HTMLImageElement && (node.naturalWidth === 0 || node.naturalHeight === 0)) {
                             return false
                         }
                         return true
                     }
                 })
 
-                // Download image then open Twitter
-                const link = document.createElement('a')
-                link.download = `soci4l-donation-${Date.now()}.png`
-                link.href = dataUrl
-                link.click()
+                if (blob) {
+                    await navigator.clipboard.write([
+                        new ClipboardItem({
+                            [blob.type]: blob
+                        })
+                    ])
+                    toast.success("Image copied to clipboard! Paste it in your tweet.", {
+                        duration: 5000,
+                    })
+                }
             }
         } catch (error) {
-            console.error('Failed to generate PNG for sharing, proceeding with text only:', error)
-        }
-
-        // Always open Twitter, even if image failed
-        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`
-        window.open(twitterUrl, '_blank', 'noopener,noreferrer')
-    }
-
-    // Handle avatar loading errors to prevent html-to-image crashes
-    const handleAvatarError = () => {
-        // If avatar fails to load, we can try to hide it or let fallback take over
-        // But for html-to-image, we need to ensure the img tag doesn't cause a fetch error
-        const img = document.querySelector('#donate-success-card img') as HTMLImageElement
-        if (img) {
-            img.style.display = 'none' // Hide broken image so fallback shows
+            console.error('Failed to copy image to clipboard:', error)
+            // Fallback to download if clipboard fails
+            try {
+                await downloadAsPNG()
+                toast.info("Image downloaded instead. You can attach it to your tweet.")
+            } catch (e) {
+                console.error("Fallback download failed", e)
+            }
+        } finally {
+            setIsGenerating(false)
         }
     }
 
@@ -134,7 +141,7 @@ export function DonateSuccessCard({
                     </button>
 
                     {/* Success Card */}
-                    <div id="donate-success-card" className="space-y-6">
+                    <div ref={cardRef} className="space-y-6">
                         {/* Background Image Card */}
                         <Card className="relative overflow-hidden border-2 border-muted">
                             <CardContent className="p-0">
@@ -154,13 +161,8 @@ export function DonateSuccessCard({
                                         <Avatar className="h-14 w-14 mb-6 ring-2 ring-brand-500/50 bg-background">
                                             <AvatarImage
                                                 src={recipient.avatar}
-                                                onLoadingStatusChange={(status) => {
-                                                    console.log('Avatar status:', status)
-                                                }}
-                                                onError={(e) => {
-                                                    console.error('Avatar load error', e)
-                                                    e.currentTarget.style.display = 'none'
-                                                }}
+                                                // Enable CORS for the image to allow canvas taint
+                                                crossOrigin="anonymous"
                                             />
                                             <AvatarFallback className="bg-background text-foreground">
                                                 {recipient.displayName?.[0] || formatAddress(recipient.address).slice(0, 2)}
@@ -223,6 +225,7 @@ export function DonateSuccessCard({
                         </Button>
                         <Button
                             onClick={shareOnTwitter}
+                            disabled={isGenerating}
                             className="gap-2 bg-[#1DA1F2] hover:bg-[#1a8cd8] text-white"
                         >
                             <Share2 className="h-4 w-4" />
