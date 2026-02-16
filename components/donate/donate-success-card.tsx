@@ -78,50 +78,6 @@ export function DonateSuccessCard({
         // Open Twitter Intent immediately
         const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`
         window.open(twitterUrl, '_blank', 'noopener,noreferrer')
-
-        // Try to generate and copy image
-        setIsGenerating(true)
-        try {
-            const { toBlob } = await import('html-to-image')
-
-            if (cardRef.current) {
-                const blob = await toBlob(cardRef.current, {
-                    quality: 1,
-                    pixelRatio: 2,
-                    cacheBust: true,
-                    useCORS: true,
-                    backgroundColor: '#000000',
-                    filter: (node) => {
-                        if (node instanceof HTMLImageElement && (node.naturalWidth === 0 || node.naturalHeight === 0)) {
-                            return false
-                        }
-                        return true
-                    }
-                })
-
-                if (blob) {
-                    await navigator.clipboard.write([
-                        new ClipboardItem({
-                            [blob.type]: blob
-                        })
-                    ])
-                    toast.success("Image copied to clipboard! Paste it in your tweet.", {
-                        duration: 5000,
-                    })
-                }
-            }
-        } catch (error) {
-            console.error('Failed to copy image to clipboard:', error)
-            // Fallback to download if clipboard fails
-            try {
-                await downloadAsPNG()
-                toast.info("Image downloaded instead. You can attach it to your tweet.")
-            } catch (e) {
-                console.error("Fallback download failed", e)
-            }
-        } finally {
-            setIsGenerating(false)
-        }
     }
 
     return (

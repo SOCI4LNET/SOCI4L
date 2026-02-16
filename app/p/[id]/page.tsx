@@ -49,6 +49,8 @@ import {
   getThemeTextClasses,
   getThemeLinkItemClasses,
 } from '@/lib/profile-appearance'
+import { getAvatarUrl } from '@/lib/avatar'
+
 
 interface PageProps {
   params: {
@@ -1728,8 +1730,9 @@ export default function ProfilePage({ params }: PageProps) {
             address: profileAddressForFollow,
             displayName: profile?.displayName || undefined,
             slug: profile?.slug || undefined,
-            avatar: `https://effigy.im/a/${profileAddressForFollow}.svg`,
+            avatar: getAvatarUrl(profileAddressForFollow),
           }}
+
           onDonate={async (amount, message) => {
             await donate(profileAddressForFollow, amount, message)
           }}
