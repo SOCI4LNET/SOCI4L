@@ -13,7 +13,7 @@ const DIFFERENTIATORS = [
     },
     {
         title: "Not just a name.",
-        description: "A name is just a start. We provide the full identity layer that lives behind it—your achievements and status.",
+        description: "A name is just a start. We provide the full identity layer that lives behind it, your achievements and status.",
         icon: Hash,
         tag: "Identity"
     },
