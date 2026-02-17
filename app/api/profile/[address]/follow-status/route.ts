@@ -53,17 +53,13 @@ export async function GET(
       const normalizedConnected = connectedWalletAddress.toLowerCase()
       const normalizedSession = sessionAddress.toLowerCase()
 
-      // If connected wallet doesn't match session, return false
-      // This means user switched wallets but session wasn't updated
+      // If connected wallet doesn't match session, return 401 to trigger re-auth
+      // This allows the frontend to detect the stale session and prompt for a new signature
       if (normalizedConnected !== normalizedSession) {
-        return NextResponse.json({
-          isFollowing: false,
-        }, {
-          headers: {
-            'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
-            'Pragma': 'no-cache',
-          },
-        })
+        return NextResponse.json(
+          { error: 'Session address does not match connected wallet' },
+          { status: 401 }
+        )
       }
     }
 
