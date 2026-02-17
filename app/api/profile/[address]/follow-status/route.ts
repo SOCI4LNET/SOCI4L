@@ -27,30 +27,27 @@ export async function GET(
 
     const normalizedAddress = address.toLowerCase()
 
-    // Get session address (the authenticated wallet)
-    const sessionAddress = await getSessionAddress()
-
-    if (!sessionAddress) {
-      // If no session, user cannot be following anyone
-      return NextResponse.json({
-        isFollowing: false,
-      }, {
-        headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
-          'Pragma': 'no-cache',
-        },
-      })
-    }
-
     // Get connected wallet address from query param (sent by frontend)
     // This is used to verify that the session matches the connected wallet
     const searchParams = request.nextUrl.searchParams
     const connectedWalletAddress = searchParams.get('connectedAddress')
 
+    // Get session address (the authenticated wallet)
+    const sessionAddress = await getSessionAddress()
+
     // If connected wallet address is provided, verify it matches session
     // This prevents showing wrong follow status when user switches wallets
     if (connectedWalletAddress && isValidAddress(connectedWalletAddress)) {
       const normalizedConnected = connectedWalletAddress.toLowerCase()
+
+      // If no session exists but wallet is connected, return 401 to trigger auth
+      if (!sessionAddress) {
+        return NextResponse.json(
+          { error: 'Session not found. Please log in.' },
+          { status: 401 }
+        )
+      }
+
       const normalizedSession = sessionAddress.toLowerCase()
 
       // If connected wallet doesn't match session, return 401 to trigger re-auth
@@ -61,6 +58,18 @@ export async function GET(
           { status: 401 }
         )
       }
+    }
+
+    if (!sessionAddress) {
+      // If no session (and no connected address checked above), user cannot be following anyone
+      return NextResponse.json({
+        isFollowing: false,
+      }, {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+          'Pragma': 'no-cache',
+        },
+      })
     }
 
     // Check for blocks
