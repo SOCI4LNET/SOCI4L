@@ -625,6 +625,14 @@ export default function ProfilePage({ params }: PageProps) {
     })
   }
 
+  const normalizeBioCopy = (text: string) => {
+    return text
+      .replace(/\b(avalanche|team1)\b/gi, '')
+      .replace(/\s{2,}/g, ' ')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim()
+  }
+
   const getSocialIcon = (platform: string) => {
     const normalizedPlatform = platform.toLowerCase()
     switch (normalizedPlatform) {
@@ -849,7 +857,7 @@ export default function ProfilePage({ params }: PageProps) {
                 <div className="flex items-start justify-between gap-4">
                   {/* Left: Avatar + Identity + Status + Context */}
                   <div className="flex items-start gap-4 min-w-0 flex-1">
-                    <div className={`rounded-full p-[2px] ring-1 ${isProMember ? 'ring-violet-400/70 shadow-[0_0_0_4px_rgba(139,92,246,0.18)]' : 'ring-border/80 shadow-[0_0_0_3px_rgba(255,255,255,0.06)]'}`}>
+                    <div className={`rounded-full p-[1.5px] ring-1 ${isProMember ? 'ring-violet-400/70 shadow-[0_0_0_3.5px_rgba(139,92,246,0.18)]' : 'ring-border/80 shadow-[0_0_0_2.5px_rgba(255,255,255,0.06)]'}`}>
                       <Avatar className={avatarSize}>
                         {resolvedAddress ? (
                           <>
@@ -931,8 +939,6 @@ export default function ProfilePage({ params }: PageProps) {
                               {role}
                             </Badge>
                           ))}
-                        </div>
-                        <div className="flex flex-wrap items-center gap-1.5">
                           {!profile?.isBanned && (profile?.role === 'ADMIN' || profile?.role === 'BUILDER') && (
                             <TooltipProvider>
                               <Tooltip>
@@ -947,8 +953,10 @@ export default function ProfilePage({ params }: PageProps) {
                               </Tooltip>
                             </TooltipProvider>
                           )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-1.5">
                           {isClaimed && !isPrivate && !profile?.isBanned && (
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal text-muted-foreground border-border/60">
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal text-muted-foreground/80 border-border/50">
                               Claimed
                             </Badge>
                           )}
@@ -964,7 +972,7 @@ export default function ProfilePage({ params }: PageProps) {
                       {/* 2. Bio */}
                       {!profile?.isBanned && profile?.bio && (
                         <p className="text-sm text-muted-foreground/90 pr-4 leading-relaxed mb-0.5 break-words whitespace-pre-wrap">
-                          {reduceExtraMentions(profile.bio)}
+                          {normalizeBioCopy(reduceExtraMentions(profile.bio))}
                         </p>
                       )}
 
@@ -988,7 +996,7 @@ export default function ProfilePage({ params }: PageProps) {
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <span className="flex items-center gap-1.5 hover:text-foreground transition-colors cursor-default">
+                                    <span className="flex items-center gap-2 tracking-[0.01em] hover:text-foreground transition-colors cursor-default">
                                       <Eye className="h-3 w-3" />
                                       <span>{viewCount !== null ? `${viewCount} views` : '— views'}</span>
                                     </span>
@@ -1098,7 +1106,7 @@ export default function ProfilePage({ params }: PageProps) {
                                     href={link.url}
                                     target="_blank"
                                     rel="noopener"
-                                    className="flex items-center justify-center h-7 w-7 rounded-full border border-border/50 bg-background hover:bg-muted hover:border-border transition-colors text-muted-foreground hover:text-foreground"
+                                    className="flex items-center justify-center h-7 w-7 rounded-full border border-border/50 bg-background hover:bg-muted hover:border-border transition-colors text-muted-foreground hover:text-foreground [&_svg]:[stroke-width:2.25]"
                                   >
                                     {getSocialIcon(platform)}
                                   </a>
@@ -1318,7 +1326,7 @@ export default function ProfilePage({ params }: PageProps) {
                               {/* Optional stats placeholder */}
                               {totalLinks > 0 && (
                                 <div className="text-right">
-                                  <p className="text-xs text-muted-foreground">
+                                  <p className="text-xs text-muted-foreground/90">
                                     {totalLinks} {totalLinks === 1 ? 'link' : 'links'}
                                   </p>
                                   {/* Placeholder for future stats */}
@@ -1775,7 +1783,7 @@ export default function ProfilePage({ params }: PageProps) {
               <Button
                 variant="default"
                 size="sm"
-                className="h-10 gap-2 text-xs font-medium"
+                className="h-11 gap-2 text-xs font-semibold bg-foreground text-background hover:bg-foreground/90"
                 onClick={handleCopyAddress}
               >
                 <Copy className="h-4 w-4" />
