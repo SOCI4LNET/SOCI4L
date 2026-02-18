@@ -179,7 +179,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }
 
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="icon" className="h-svh sticky top-0" {...props}>
       <SidebarHeader>
         <Link href="/" className={`flex items-center justify-center w-full h-10 ${isCollapsed ? 'px-0' : 'px-2'} hover:opacity-80 transition-opacity`}>
           {isCollapsed ? (
