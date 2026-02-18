@@ -1099,6 +1099,14 @@ export function LinksPanel() {
       let response = await fetch(`/api/social/link?platform=${backendPlatform}&address=${targetAddress}`, {
         method: 'DELETE',
       });
+      let unlinkPayload: any = null
+
+      if (response.ok) {
+        unlinkPayload = await response.json().catch(() => ({}))
+        if (typeof unlinkPayload?.deletedCount === 'number' && unlinkPayload.deletedCount < 1) {
+          throw new Error('No connected account found for this profile.')
+        }
+      }
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -1126,6 +1134,10 @@ export function LinksPanel() {
               const retryError = await response.json().catch(() => ({ error: 'Verification failed' }));
               throw new Error(retryError.error || 'Signature verification failed');
             }
+            unlinkPayload = await response.json().catch(() => ({}))
+            if (typeof unlinkPayload?.deletedCount === 'number' && unlinkPayload.deletedCount < 1) {
+              throw new Error('No connected account found for this profile.')
+            }
           } catch (signError: any) {
             console.error('Signature process failed:', signError);
             toast.error(signError.message || 'Verification failed', { id: toastId });
@@ -1134,7 +1146,7 @@ export function LinksPanel() {
         } else {
           console.error('Backend unlink failed:', errorData.error);
           toast.error(errorData.error || 'Connection error', { id: toastId });
-          // If it's a critical error, we might still want to try Privy unlink below
+          return;
         }
       }
 
@@ -2567,9 +2579,9 @@ export function LinksPanel() {
                                         }
 
                                         // DURUM 3: Privy Bağlı Ama Backend Bekleniyor
+                                        const toastId = toast.loading('Verifying...')
                                         try {
                                           setLastSyncTime(prev => ({ ...prev, [config.apiPlatformName]: Date.now() }))
-                                          const toastId = toast.loading('Verifying...')
                                           const verified = await verifySocialOnBackend({
                                             platform: apiPlatformName as 'twitter' | 'github',
                                             platformUsername: userData.username,
@@ -2592,9 +2604,9 @@ export function LinksPanel() {
                                           setLastSyncTime(prev => ({ ...prev, [config.apiPlatformName]: 0 }))
                                           const message = e?.message || ''
                                           if (message.includes('already connected to another profile')) {
-                                            toast.error(`${label} account is linked to a different wallet. Update the URL to the correct account and verify again.`)
+                                            toast.error(`${label} account is linked to a different wallet. Update the URL to the correct account and verify again.`, { id: toastId })
                                           } else {
-                                            toast.error(message || 'Failed to connect')
+                                            toast.error(message || 'Failed to connect', { id: toastId })
                                           }
                                         }
                                       }}

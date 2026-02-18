@@ -249,14 +249,18 @@ export async function DELETE(req: NextRequest) {
         }
 
         // Delete the connection
-        await prisma.socialConnection.deleteMany({
+        const deleted = await prisma.socialConnection.deleteMany({
             where: {
                 profileId: profile.id,
                 platform: platform
             }
         })
 
-        return NextResponse.json({ success: true })
+        if (deleted.count === 0) {
+            return NextResponse.json({ error: 'No connected account found for this profile.' }, { status: 404 })
+        }
+
+        return NextResponse.json({ success: true, deletedCount: deleted.count })
     } catch (error) {
         console.error('[API] Social Unlink Error:', error)
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
