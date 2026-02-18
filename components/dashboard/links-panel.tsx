@@ -561,6 +561,11 @@ export function LinksPanel() {
     }
   }, [])
 
+  const normalizeHandle = useCallback((value?: string | null) => {
+    if (!value) return ''
+    return value.replace(/^@/, '').trim().toLowerCase()
+  }, [])
+
   const verifySocialOnBackend = useCallback(async (params: {
     platform: 'twitter' | 'github'
     platformUsername: string
@@ -682,6 +687,14 @@ export function LinksPanel() {
     const fallbackUsername = pendingLink ? getUsernameFromUrl(pendingLink.url) : ''
     const platformUsername = account.username || fallbackUsername
     if (!platformUsername) return
+    const expectedUsername = pendingLink ? getUsernameFromUrl(pendingLink.url) : ''
+    const actualUsername = normalizeHandle(account.username || platformUsername)
+    if (expectedUsername && actualUsername && expectedUsername !== actualUsername) {
+      const platformLabel = pendingVerification.platform === 'twitter' ? 'X' : 'GitHub'
+      setPendingVerification(null)
+      toast.error(`${platformLabel} account does not match the URL. Update the URL or switch account and try again.`)
+      return
+    }
 
     let cancelled = false
     ;(async () => {
@@ -707,7 +720,7 @@ export function LinksPanel() {
           const message = error?.message || ''
           if (message.includes('already connected to another profile')) {
             const platformLabel = pendingVerification.platform === 'twitter' ? 'X' : 'GitHub'
-            toast.error(`${platformLabel} hesabı farklı bir cüzdana bağlı. URL'yi doğru hesapla güncelle ve tekrar doğrula.`)
+            toast.error(`${platformLabel} account is linked to a different wallet. Update the URL to the correct account and verify again.`)
           } else {
             toast.error('Verification failed')
           }
@@ -722,7 +735,7 @@ export function LinksPanel() {
     return () => {
       cancelled = true
     }
-  }, [authenticated, privyReady, pendingVerification, user?.github, user?.twitter, verifySocialOnBackend, targetAddress, loadSocialLinks, socialLinks, getUsernameFromUrl, privyWalletMatchesTarget])
+  }, [authenticated, privyReady, pendingVerification, user?.github, user?.twitter, verifySocialOnBackend, targetAddress, loadSocialLinks, socialLinks, getUsernameFromUrl, privyWalletMatchesTarget, normalizeHandle])
 
   // Sync with backend when Github account is detected
   useEffect(() => {
@@ -2409,7 +2422,7 @@ export function LinksPanel() {
                                 // 1. Platforma özel ayarları ve verileri dinamik olarak seçiyoruz
                                 const platformConfig = {
                                   x: {
-                                    label: 'Twitter',
+                                    label: 'X',
                                     userData: privyWalletMatchesTarget ? user?.twitter : null,
                                     linkMethod: linkTwitter,
                                     unlinkMethod: unlinkTwitter,
@@ -2417,7 +2430,7 @@ export function LinksPanel() {
                                     loginMethod: 'twitter'
                                   },
                                   twitter: {
-                                    label: 'Twitter',
+                                    label: 'X',
                                     userData: privyWalletMatchesTarget ? user?.twitter : null,
                                     linkMethod: linkTwitter,
                                     unlinkMethod: unlinkTwitter,
@@ -2452,7 +2465,7 @@ export function LinksPanel() {
                                 }
 
                                 const linkUsername = getUsernameFromUrl(link.url)
-                                const privyUsername = userData?.username?.toLowerCase()
+                                const privyUsername = normalizeHandle(userData?.username)
                                 const isVerified = link.verified
                                 const isPendingVerification =
                                   pendingVerification?.linkId === link.id &&
@@ -2508,12 +2521,17 @@ export function LinksPanel() {
                                             setLastSyncTime(prev => ({ ...prev, [config.apiPlatformName]: 0 }))
                                             const message = error?.message || ''
                                             if (message.includes('already has an account of type')) {
-                                              toast.error(`${label} account appears to be linked to a different wallet. Please enter the correct account URL and try again.`)
+                                              toast.error(`${label} account is already linked in this session. If this is the wrong account, use "Wrong account? Change".`)
                                             } else {
                                               toast.error(message || `Failed to connect ${label}.`)
                                             }
                                             return
                                           }
+                                        }
+
+                                        if (linkUsername && privyUsername && linkUsername !== privyUsername) {
+                                          toast.error(`${label} account does not match the URL. Update the URL or switch account and try again.`)
+                                          return
                                         }
 
                                         // DURUM 3: Privy Bağlı Ama Backend Bekleniyor
@@ -2690,7 +2708,7 @@ export function LinksPanel() {
                   id="social-url"
                   value={newSocialUrl}
                   onChange={(e) => setNewSocialUrl(e.target.value)}
-                  placeholder="https://twitter.com/username"
+                  placeholder="https://x.com/username"
                 />
                 <p className="text-xs text-muted-foreground">
                   Full URL to your profile
