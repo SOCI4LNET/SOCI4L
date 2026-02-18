@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import { getPublicProfileHref } from '@/lib/routing'
 import Link from 'next/link'
-import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Heart, Eye, Share2, Instagram, Youtube, Sparkles, ShieldAlert, Layers, UserX, CheckCircle, MoreVertical, Ban, Puzzle } from 'lucide-react'
+import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Heart, Share2, Instagram, Youtube, Sparkles, ShieldAlert, Layers, UserX, CheckCircle, MoreVertical, Ban, Puzzle } from 'lucide-react'
 import { XIcon } from '@/components/icons/x-icon'
 
 import { ClaimProfileButton } from '@/components/claim-profile-button'
@@ -633,6 +633,13 @@ export default function ProfilePage({ params }: PageProps) {
       .trim()
   }
 
+  const simplifyHeaderBio = (text: string) => {
+    return normalizeBioCopy(reduceExtraMentions(text))
+      .replace(/@/g, '')
+      .replace(/\s*·\s*/g, '\n')
+      .trim()
+  }
+
   const getSocialIcon = (platform: string) => {
     const normalizedPlatform = platform.toLowerCase()
     switch (normalizedPlatform) {
@@ -895,84 +902,50 @@ export default function ProfilePage({ params }: PageProps) {
                         )}
                       </div>
 
-                      <div className="space-y-1.5">
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          {!profile?.isBanned && isProMember && (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Badge variant="default" className="text-[11px] px-2 py-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold border-0 shadow-sm flex items-center gap-1">
-                                    <Sparkles className="h-3 w-3 fill-white/20" />
-                                    Pro
-                                  </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent side="bottom">
-                                  <p>Premium Membership Active</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          )}
-                          {!profile?.isBanned && score && score.total > 0 && (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Badge variant="secondary" className="text-[11px] px-2 py-0 border-primary/20 bg-primary/10 text-primary font-bold cursor-help flex items-center gap-1">
-                                    <Sparkles className="h-3 w-3" />
-                                    {score.tierLabel}
-                                  </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Tier: {score.tierLabel} ({score.total} points)</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          )}
-                        </div>
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          {!profile?.isBanned && profile?.primaryRole && (
-                            <Badge variant="secondary" className="text-[11px] px-2 py-0 border-border bg-muted/60 text-foreground font-medium">
-                              {profile.primaryRole}
-                            </Badge>
-                          )}
-                          {!profile?.isBanned && profile?.secondaryRoles?.map(role => (
-                            <Badge key={role} variant="outline" className="text-[10px] px-1.5 py-0 text-muted-foreground/80 font-normal">
-                              {role}
-                            </Badge>
-                          ))}
-                          {!profile?.isBanned && (profile?.role === 'ADMIN' || profile?.role === 'BUILDER') && (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Badge variant="secondary" className="text-[11px] px-2 py-0 border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-bold cursor-help">
-                                    {profile.role === 'ADMIN' ? 'Team' : 'Builder'}
-                                  </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Rank: {profile.role === 'ADMIN' ? 'Team Member' : 'Verified Builder'}</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          )}
-                        </div>
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          {isClaimed && !isPrivate && !profile?.isBanned && (
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal text-muted-foreground/80 border-border/50">
-                              Claimed
-                            </Badge>
-                          )}
-                          {profile?.isBanned && (
-                            <Badge variant="destructive" className="text-[11px] px-2 py-0 font-normal flex items-center gap-1">
-                              <ShieldAlert className="h-3 w-3" />
-                              BANNED
-                            </Badge>
-                          )}
-                        </div>
+                      <div className="space-y-1">
+                        {!profile?.isBanned && (isProMember || (score && score.total > 0)) && (
+                          <div className="flex items-center gap-2 text-xs">
+                            {isProMember && (
+                              <span className="inline-flex items-center rounded-full px-2 py-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold">
+                                Pro
+                              </span>
+                            )}
+                            {score && score.total > 0 && (
+                              <span className="text-muted-foreground font-medium">
+                                {isProMember ? `· ${score.tierLabel}` : score.tierLabel}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {!profile?.isBanned && (
+                          (() => {
+                            const roleStatusItems = [
+                              profile?.primaryRole,
+                              ...(profile?.secondaryRoles || []),
+                              profile?.role === 'ADMIN' ? 'Team' : null,
+                              profile?.role === 'BUILDER' ? 'Builder' : null,
+                              isClaimed && !isPrivate ? 'Claimed' : null,
+                            ].filter(Boolean)
+                            if (roleStatusItems.length === 0) return null
+                            return (
+                              <p className="text-xs text-muted-foreground/80">
+                                {roleStatusItems.join(' · ')}
+                              </p>
+                            )
+                          })()
+                        )}
+                        {profile?.isBanned && (
+                          <Badge variant="destructive" className="text-[11px] px-2 py-0 font-normal flex items-center gap-1 w-fit">
+                            <ShieldAlert className="h-3 w-3" />
+                            BANNED
+                          </Badge>
+                        )}
                       </div>
 
                       {/* 2. Bio */}
                       {!profile?.isBanned && profile?.bio && (
                         <p className="text-sm text-muted-foreground/90 pr-4 leading-relaxed mb-0.5 break-words whitespace-pre-wrap">
-                          {normalizeBioCopy(reduceExtraMentions(profile.bio))}
+                          {simplifyHeaderBio(profile.bio)}
                         </p>
                       )}
 
@@ -985,34 +958,12 @@ export default function ProfilePage({ params }: PageProps) {
 
                       {/* 3. Social & Network Context (Secondary) */}
                       {!profile?.isBanned && (
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground/70 pt-1 flex-wrap">
-                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 font-normal bg-muted/50 text-muted-foreground hover:bg-muted/80 border-0">
-                            Avalanche
-                          </Badge>
-
-                          {resolvedAddress && isValidAddress(resolvedAddress) && !profile?.isBanned && (
-                            <>
-                              <div className="w-px h-3 bg-border/50" />
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <span className="flex items-center gap-2 tracking-[0.01em] hover:text-foreground transition-colors cursor-default">
-                                      <Eye className="h-3 w-3" />
-                                      <span>{viewCount !== null ? `${viewCount} views` : '— views'}</span>
-                                    </span>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>Views in last 7 days</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </>
-                          )}
-
-                          <div className="w-px h-3 bg-border/50" />
-
+                        <div className="space-y-1 pt-1">
+                          <div className="text-xs text-muted-foreground/70">
+                            Avalanche · {viewCount !== null ? `${viewCount} views` : '— views'}
+                          </div>
                           {profileAddressForFollow && !profile?.isBanned && (
-                            <div className="flex items-center gap-1 hover:text-foreground transition-colors">
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground/80">
                               <FollowStats address={profileAddressForFollow} />
                             </div>
                           )}
@@ -1123,7 +1074,7 @@ export default function ProfilePage({ params }: PageProps) {
                             </TooltipProvider>
                             {link.verified && (
                               <div className="absolute -top-1 -right-1 pointer-events-none bg-background rounded-full p-[1px] ring-1 ring-border/20 shadow-sm z-10">
-                                <CheckCircle className="h-2.5 w-2.5 text-blue-500 fill-blue-500/10" />
+                                <CheckCircle className="h-2 w-2 text-blue-500/70 fill-blue-500/10" />
                               </div>
                             )}
                           </div>
