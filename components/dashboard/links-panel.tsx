@@ -506,9 +506,12 @@ export function LinksPanel() {
   // Get target address from route params or connected wallet
   const targetAddress = (params.address as string)?.toLowerCase() || connectedAddress?.toLowerCase() || ''
 
-  // State for triggering Twitter link after Privy authentication
+  // State for triggering social linking after authentication/connect
   const [pendingTwitterLink, setPendingTwitterLink] = useState(false)
-  const [pendingVerification, setPendingVerification] = useState<string | null>(null)
+  const [pendingVerification, setPendingVerification] = useState<{
+    platform: 'twitter' | 'github'
+    linkId: string
+  } | null>(null)
 
   // Auto-link Twitter after Privy authentication
   useEffect(() => {
@@ -517,6 +520,7 @@ export function LinksPanel() {
       linkTwitter()
     }
   }, [authenticated, pendingTwitterLink, privyReady, linkTwitter])
+
   const [links, setLinks] = useState<LinkItem[]>([])
   const [categories, setCategories] = useState<LinkCategory[]>([])
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -652,6 +656,48 @@ export function LinksPanel() {
       setSocialLinksLoading(false)
     }
   }, [targetAddress])
+
+  useEffect(() => {
+    if (!pendingVerification) return
+    if (!authenticated || !privyReady) return
+
+    const account = pendingVerification.platform === 'github' ? user?.github : user?.twitter
+    if (!account?.username || !account?.subject) return
+
+    let cancelled = false
+    ;(async () => {
+      try {
+        const verified = await verifySocialOnBackend({
+          platform: pendingVerification.platform,
+          platformUsername: account.username,
+          platformUserId: account.subject,
+          address: targetAddress,
+        })
+
+        if (!verified || cancelled) return
+
+        setSocialLinks(prev =>
+          prev.map(item =>
+            item.id === pendingVerification.linkId ? { ...item, verified: true } : item
+          )
+        )
+        toast.success('Verified!')
+        await loadSocialLinks()
+      } catch (error) {
+        if (!cancelled) {
+          toast.error('Verification failed')
+        }
+      } finally {
+        if (!cancelled) {
+          setPendingVerification(null)
+        }
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [authenticated, privyReady, pendingVerification, user?.github, user?.twitter, verifySocialOnBackend, targetAddress, loadSocialLinks])
 
   // Sync with backend when Github account is detected
   useEffect(() => {
@@ -2409,10 +2455,18 @@ export function LinksPanel() {
                                             return
                                           }
                                           if (!authenticated) {
+                                            setPendingVerification({
+                                              platform: apiPlatformName as 'twitter' | 'github',
+                                              linkId: link.id,
+                                            })
                                             setPendingTwitterLink(true)
                                             await login({ loginMethods: [loginMethod as any] })
                                             return
                                           }
+                                          setPendingVerification({
+                                            platform: apiPlatformName as 'twitter' | 'github',
+                                            linkId: link.id,
+                                          })
                                           linkMethod()
                                           return
                                         }
@@ -2437,9 +2491,6 @@ export function LinksPanel() {
                                             await new Promise(r => setTimeout(r, 1000))
                                             await loadSocialLinks()
                                             setTimeout(loadSocialLinks, 2500)
-                                          } else {
-                                            const data = await response.json()
-                                            toast.error(data.error || 'Verification failed', { id: toastId })
                                           }
                                         } catch (e) {
                                           toast.error('Failed to connect')
