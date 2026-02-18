@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, useBalance } from "wagmi";
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useBalance, useSwitchChain } from "wagmi";
 import { parseEther } from "viem";
+import { avalanche } from "viem/chains";
 import { Loader2, Check, ShieldCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
@@ -28,9 +29,11 @@ interface PremiumUpgradeModalProps {
 }
 
 export function PremiumUpgradeModal({ open, onOpenChange, onSuccess }: PremiumUpgradeModalProps) {
-    const { address, isConnected } = useAccount();
+    const { address, isConnected, chainId } = useAccount();
     const { data: balance } = useBalance({ address });
+    const { switchChainAsync } = useSwitchChain();
     const [isOptimisticSuccess, setIsOptimisticSuccess] = useState(false);
+    const [isSwitchingNetwork, setIsSwitchingNetwork] = useState(false);
 
     const { writeContractAsync, data: hash, isPending: isWritePending, error: writeError } = useWriteContract();
 
@@ -90,6 +93,21 @@ export function PremiumUpgradeModal({ open, onOpenChange, onSuccess }: PremiumUp
             return;
         }
 
+        // Ensure we are on Avalanche C-Chain
+        if (chainId !== avalanche.id) {
+            try {
+                setIsSwitchingNetwork(true);
+                await switchChainAsync({ chainId: avalanche.id });
+                toast.success("Switched to Avalanche C-Chain");
+            } catch (error: any) {
+                console.error("Failed to switch network:", error);
+                toast.error("Please switch to Avalanche C-Chain to continue");
+                return;
+            } finally {
+                setIsSwitchingNetwork(false);
+            }
+        }
+
         const price = parseEther("0.5");
 
         if (balance && balance.value < price) {
@@ -103,10 +121,10 @@ export function PremiumUpgradeModal({ open, onOpenChange, onSuccess }: PremiumUp
                 abi: PAY_ABI,
                 functionName: "payPremium",
                 value: price,
+                chainId: avalanche.id,
             });
         } catch (e) {
             console.error("Transaction Error:", e);
-            // Toast is handled by the useEffect watching writeError, or strictly here if it throws immediately before writeError state updates
         }
     };
 
@@ -162,10 +180,15 @@ export function PremiumUpgradeModal({ open, onOpenChange, onSuccess }: PremiumUp
                     </Button>
                     <Button
                         onClick={handleUpgrade}
-                        disabled={isWritePending || isConfirming || isOptimisticSuccess}
+                        disabled={isWritePending || isConfirming || isOptimisticSuccess || isSwitchingNetwork}
                         className="bg-foreground hover:bg-foreground/90 text-background font-semibold border-0 transition-all active:scale-95"
                     >
-                        {isWritePending ? (
+                        {isSwitchingNetwork ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                Switching Network...
+                            </>
+                        ) : isWritePending ? (
                             <>
                                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
                                 Confirming...
