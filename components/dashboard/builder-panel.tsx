@@ -792,7 +792,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
     try {
       setSaving(true)
 
-      // Convert row-based layout to grid-based for backward compatibility
+      // 1. Prepare Layout Data
       const allBlocks = sections.map((section) => ({
         key: section.id,
         enabled: section.enabled,
@@ -809,138 +809,68 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
         rows: layoutRows,
         layoutVariant: 'rows',
       }
+      const normalizedLayout = normalizeLayoutConfig(nextConfig)
 
-      // Normalize to ensure consistency
-      const normalizedConfig = normalizeLayoutConfig(nextConfig)
+      // 2. Prepare Appearance Data
+      const normalizedAppearance = normalizeAppearanceConfig(appearanceConfig)
 
-      // Get nonce first
+      // 3. Prepare Profile Data
+      const profileInfo = {
+        displayName: displayName.trim() || null,
+        bio: bio.trim() || null,
+        primaryRole: primaryRole.trim() || null,
+        secondaryRoles: secondaryRoles,
+        statusMessage: statusMessage.trim() || null,
+      }
+
+      // 4. Get Nonce
       const nonceResponse = await fetch('/api/auth/nonce')
       if (!nonceResponse.ok) throw new Error('Failed to get nonce')
       const { nonce } = await nonceResponse.json()
 
-      // Sign message for layout update
+      // 5. Sign Single Message
       showTransactionLoader("Confirm in Wallet...")
-      const message = `Update profile layout for ${address}. Nonce: ${nonce}`
+      const message = `Save all profile changes for ${address}. Nonce: ${nonce}`
       const signature = await signMessageAsync({ message })
 
-      showTransactionLoader("Saving layout...")
+      showTransactionLoader("Saving changes...")
 
-      // Save to API
-      const response = await fetch('/api/profile/layout', {
+      // 6. Save to API (Batch Update)
+      const response = await fetch('/api/profile/save-all', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           address,
-          layout: normalizedConfig,
+          layout: normalizedLayout,
+          appearance: normalizedAppearance,
+          profile: profileInfo,
           signature,
         }),
       })
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-        throw new Error(errorData.error || 'Failed to save layout')
+        throw new Error(errorData.error || 'Failed to save changes')
       }
 
-      const layoutData = await response.json()
-      const savedConfig = normalizeLayoutConfig(layoutData.layout || normalizedConfig)
-      console.log('[BuilderPanel] Layout saved successfully:', savedConfig)
-      setLayoutConfig(savedConfig)
+      const result = await response.json()
 
-      // Save appearance config
-      const normalizedAppearance = normalizeAppearanceConfig(appearanceConfig)
-
-      // Get fresh nonce for appearance update (security best practice: new nonce per action, but for UX we might reuse if fast enough. 
-      // However, to be safe and avoid "nonce used" errors if backend checks strictly, let's get a new one or sign a different message)
-      // Actually, let's ask for a separate signature for appearance to be explicit, OR we could have combined them.
-      // Given the current API structure (separate endpoints), we need separate calls.
-      // To improve UX, we could combine these into a batch endpoint in the future.
-      // For now, let's just sign again.
-
-      showTransactionLoader("Confirm appearance update...")
-      const nonceResponseAppearance = await fetch('/api/auth/nonce')
-      if (!nonceResponseAppearance.ok) throw new Error('Failed to get nonce for appearance')
-      const { nonce: nonceAppearance } = await nonceResponseAppearance.json()
-
-      const messageAppearance = `Update profile appearance for ${address}. Nonce: ${nonceAppearance}`
-      const signatureAppearance = await signMessageAsync({ message: messageAppearance })
-
-      showTransactionLoader("Saving appearance...")
-
-      const appearanceResponse = await fetch('/api/profile/appearance', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          address,
-          appearance: normalizedAppearance,
-          signature: signatureAppearance,
-        }),
-      })
-
-      if (appearanceResponse.ok) {
-        const appearanceData = await appearanceResponse.json()
-        console.log('[BuilderPanel] Appearance saved successfully:', appearanceData.appearance)
-        setAppearanceConfig(appearanceData.appearance)
-      } else {
-        console.error('[BuilderPanel] Failed to save appearance config:', appearanceResponse.status)
+      // Update local state from response if necessary
+      if (result.profile) {
+        // You might want to update local state here if the API returned normalized data
+        // For now, toast success is enough as we already have the state
       }
 
-      // Save profile info (display name, bio, social links, visibility)
-      try {
-        // Step 1: Get nonce
-        const nonceResponse = await fetch('/api/auth/nonce')
-        if (!nonceResponse.ok) {
-          throw new Error('Failed to get nonce')
-        }
-        const { nonce } = await nonceResponse.json()
-
-        // Step 2: Sign message (must match API's expected format)
-        showTransactionLoader("Confirm in Wallet...")
-        const message = `Update social profile for ${address}. Nonce: ${nonce}`
-        const signature = await signMessageAsync({ message })
-
-        showTransactionLoader("Saving profile...")
-
-        // Step 3: Update profile (display name and bio only - social links are managed in Links panel)
-        const profileResponse = await fetch('/api/profile/social', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            address,
-            displayName: displayName.trim() || null,
-            bio: bio.trim() || null,
-            primaryRole: primaryRole.trim() || null,
-            secondaryRoles: secondaryRoles,
-            statusMessage: statusMessage.trim() || null,
-            signature,
-          }),
-        })
-
-        if (!profileResponse.ok) {
-          const errorData = await profileResponse.json().catch(() => ({ error: 'Unknown error' }))
-          throw new Error(errorData.error || 'Failed to save profile info')
-        }
-
-        console.log('[BuilderPanel] Profile info saved successfully')
-      } catch (error: any) {
-        console.error('[BuilderPanel] Failed to save profile info:', error)
-        // Re-throw to be handled by the main catch block
-        throw error
-      }
-
-      toast.success('Layout, appearance and profile information saved. Please refresh the public profile page.')
+      toast.success('All changes saved successfully. Please refresh the public profile page.')
       setHasUnsavedChanges(false)
     } catch (error: any) {
-      console.error('[BuilderPanel] Failed to save layout', error)
+      console.error('[BuilderPanel] Failed to save changes', error)
       if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
         toast.error('Transaction rejected')
       } else {
-        toast.error(error instanceof Error ? error.message : 'Failed to save layout. Please try again.')
+        toast.error(error instanceof Error ? error.message : 'Failed to save changes. Please try again.')
       }
     } finally {
       setSaving(false)
