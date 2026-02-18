@@ -216,7 +216,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-1.5">
-              <div className="flex justify-between text-xs"><span className="text-muted-foreground">Twitter / X</span><span className="font-mono">42%</span></div>
+              <div className="flex justify-between text-xs"><span className="text-muted-foreground">X</span><span className="font-mono">42%</span></div>
               <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden"><div className="h-full bg-primary/40 w-[42%]" /></div>
             </div>
             <div className="space-y-1.5">

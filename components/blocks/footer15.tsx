@@ -36,7 +36,7 @@ const footerLinks = {
 }
 
 const socialLinks = [
-  { icon: XIcon, label: 'X', href: 'https://twitter.com/soci4l', ariaLabel: 'Follow us on X' },
+  { icon: XIcon, label: 'X', href: 'https://x.com/soci4l', ariaLabel: 'Follow us on X' },
   { icon: Github, label: 'GitHub', href: 'https://github.com/SOCI4LNET', ariaLabel: 'View our GitHub' },
 ]
 

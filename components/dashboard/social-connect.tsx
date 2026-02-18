@@ -41,8 +41,8 @@ export function SocialConnect() {
             await linkTwitter()
             // Post-link logic handled by useEffect when user object updates
         } catch (error: any) {
-            console.error('Failed to link Twitter:', error)
-            toast.error(error?.message || 'Failed to connect Twitter account')
+            console.error('Failed to link X:', error)
+            toast.error(error?.message || 'Failed to connect X account')
         } finally {
             setIsLinking(false)
         }
@@ -62,7 +62,7 @@ export function SocialConnect() {
 
     const handleUnlinkTwitter = async () => {
         if (!twitterAccount?.subject) {
-            toast.error('No Twitter account found to disconnect')
+            toast.error('No X account found to disconnect')
             return
         }
 
@@ -75,9 +75,9 @@ export function SocialConnect() {
             // 2. Remove from our database
             await performDbUnlink()
 
-            toast.success('Twitter account disconnected')
+            toast.success('X account disconnected')
         } catch (error: any) {
-            console.error('Failed to unlink Twitter:', error)
+            console.error('Failed to unlink X:', error)
 
             // Handle "Last Account" Error
             if (error?.message?.toLowerCase().includes('only one account') || error?.message?.toLowerCase().includes('last linked account')) {
@@ -111,7 +111,7 @@ export function SocialConnect() {
                     return
                 }
             }
-            toast.error(error?.message || 'Failed to disconnect Twitter account')
+            toast.error(error?.message || 'Failed to disconnect X account')
         } finally {
             setIsLinking(false)
         }

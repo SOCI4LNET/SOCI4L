@@ -142,7 +142,7 @@ export async function POST(
     // Prevent self-follow
     if (normalizedFollower === normalizedAddress) {
       return NextResponse.json(
-        { error: 'Kendinizi takip edemezsiniz' },
+        { error: 'You cannot follow yourself.' },
         { status: 400 }
       )
     }
@@ -159,7 +159,7 @@ export async function POST(
 
     if (isBlocked) {
       return NextResponse.json(
-        { error: 'Bu kullanıcıyı takip edemezsiniz.' },
+        { error: 'You cannot follow this user.' },
         { status: 403 }
       )
     }
@@ -176,7 +176,7 @@ export async function POST(
 
     if (hasBlockedTarget) {
       return NextResponse.json(
-        { error: 'Bu kullanıcıyı takip etmek için önce engelini kaldırmalısınız.' },
+        { error: 'You must remove your block first to follow this user.' },
         { status: 400 }
       )
     }

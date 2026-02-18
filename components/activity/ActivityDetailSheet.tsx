@@ -78,7 +78,7 @@ export function ActivityDetailSheet({ transaction, open, onOpenChange, address }
               <span className="text-sm font-medium">{getStatusLabel()}</span>
             </div>
             <Badge variant={transaction.status === 'success' ? 'default' : 'destructive'}>
-              {transaction.type === 'transfer' ? 'Transfer' : transaction.type === 'contract' ? 'Kontrat' : 'Swap'}
+              {transaction.type === 'transfer' ? 'Transfer' : transaction.type === 'contract' ? 'Contract' : 'Swap'}
             </Badge>
           </div>
 
@@ -96,7 +96,7 @@ export function ActivityDetailSheet({ transaction, open, onOpenChange, address }
                         variant="ghost"
                         size="icon-sm"
                         onClick={() => handleCopy(transaction.hash, 'Hash')}
-                        aria-label="Hash kopyala"
+                        aria-label="Copy hash"
                       >
                         <Copy className="h-3.5 w-3.5" />
                       </Button>

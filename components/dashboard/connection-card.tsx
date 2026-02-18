@@ -154,8 +154,8 @@ export function ConnectionCard({
                                             </div>
                                         </TooltipTrigger>
                                         <TooltipContent className="max-w-[240px] text-xs">
-                                            <p className="font-semibold mb-1">Bağlantı Gücü ({connectionStrength}%)</p>
-                                            <p>Bu skor profilin güvenilirliğini; karşılıklı takip, hesap yaşı, profil doluluğu ve sistem rollerine göre belirler.</p>
+                                            <p className="font-semibold mb-1">Connection Strength ({connectionStrength}%)</p>
+                                            <p>This score reflects profile trust based on mutual follows, account age, profile completeness, and system roles.</p>
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>

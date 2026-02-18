@@ -30,7 +30,7 @@ import { PremiumWallCta } from "@/components/premium/premium-wall-cta"
 
 // --- MOCK DATA ---
 const MOCK_SOURCES = {
-    "Twitter / X": 450,
+    "X": 450,
     "Instagram": 300,
     "Direct": 150,
     "LinkedIn": 100
@@ -79,7 +79,7 @@ const MOCK_ACTIVITY = [
         id: 4,
         visitor: "0x9A12...1234",
         fullVisitor: "0x9A1234567890abcdef1234567890abcdef1234",
-        action: "clicked on Twitter / X",
+        action: "clicked on X",
         timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString()
     },
     {
@@ -477,7 +477,7 @@ export default function PremiumPage() {
                                         <CardContent className="px-6 pb-6">
                                             <div className="space-y-4">
                                                 <div className="space-y-1.5">
-                                                    <div className="flex justify-between text-xs"><span className="text-muted-foreground">Twitter / X</span><span className="text-foreground">65%</span></div>
+                                                    <div className="flex justify-between text-xs"><span className="text-muted-foreground">X</span><span className="text-foreground">65%</span></div>
                                                     <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden"><div className="h-full bg-white w-[65%]" /></div>
                                                 </div>
                                                 <div className="space-y-1.5">

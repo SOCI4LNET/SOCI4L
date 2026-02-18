@@ -225,7 +225,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
               <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden"><div className="h-full bg-foreground/30 w-[65%]" /></div>
             </div>
             <div className="space-y-1.5">
-              <div className="flex justify-between text-xs"><span className="text-foreground/70">Twitter / X</span><span className="text-foreground/70">856</span></div>
+              <div className="flex justify-between text-xs"><span className="text-foreground/70">X</span><span className="text-foreground/70">856</span></div>
               <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden"><div className="h-full bg-foreground/30 w-[45%]" /></div>
             </div>
             <div className="space-y-1.5">
@@ -312,7 +312,7 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
 
             <h3 className="font-semibold text-lg mb-1 tracking-tight">Unlock Premium Insights</h3>
             <p className="text-xs text-muted-foreground mb-5 leading-normal max-w-[260px]">
-              See who's viewing your profile with advanced source breakdown and detailed history.
+              See who&apos;s viewing your profile with advanced source breakdown and detailed history.
             </p>
 
             <Button

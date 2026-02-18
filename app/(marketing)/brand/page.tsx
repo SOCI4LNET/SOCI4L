@@ -519,7 +519,7 @@ export default function BrandPage() {
                             </div>
                             <div className="p-4 flex justify-between items-center">
                                 <div>
-                                    <h4 className="font-medium">X (Twitter) Banner</h4>
+                                    <h4 className="font-medium">X Banner</h4>
                                     <p className="text-xs text-muted-foreground">1500 x 500 px</p>
                                 </div>
                                 <Button variant="ghost" size="icon" className="h-9 w-9" asChild>

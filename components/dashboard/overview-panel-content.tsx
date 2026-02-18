@@ -475,7 +475,7 @@ export function OverviewPanelContent({
                                     className="mt-2"
                                 >
                                     <RefreshCw className="mr-2 h-3 w-3" />
-                                    Tekrar Dene
+                                    Try Again
                                 </Button>
                             </div>
                         ) : activity.items && activity.items.length > 0 ? (
@@ -490,7 +490,7 @@ export function OverviewPanelContent({
                                                 <div className="flex items-center gap-2">
                                                     {getStatusIcon(tx.status)}
                                                     <Badge variant="secondary" className="text-xs">
-                                                        {tx.type === 'transfer' ? 'Transfer' : tx.type === 'contract' ? 'Kontrat' : 'Swap'}
+                                                        {tx.type === 'transfer' ? 'Transfer' : tx.type === 'contract' ? 'Contract' : 'Swap'}
                                                     </Badge>
                                                     <TooltipProvider>
                                                         <Tooltip>

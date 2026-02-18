@@ -96,7 +96,7 @@ export default function ScoreSystemPage() {
                             <TableRow>
                                 <TableCell className="font-medium">Social Links</TableCell>
                                 <TableCell>+1 ea (max 5)</TableCell>
-                                <TableCell>Adding Twitter, GitHub, etc.</TableCell>
+                                <TableCell>Adding X, GitHub, etc.</TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell className="font-medium">Profile Links</TableCell>
