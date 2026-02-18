@@ -506,20 +506,11 @@ export function LinksPanel() {
   // Get target address from route params or connected wallet
   const targetAddress = (params.address as string)?.toLowerCase() || connectedAddress?.toLowerCase() || ''
 
-  // State for triggering social linking after authentication/connect
-  const [pendingTwitterLink, setPendingTwitterLink] = useState(false)
+  // State for triggering social verification after authentication/connect
   const [pendingVerification, setPendingVerification] = useState<{
     platform: 'twitter' | 'github'
     linkId: string
   } | null>(null)
-
-  // Auto-link Twitter after Privy authentication
-  useEffect(() => {
-    if (authenticated && pendingTwitterLink && privyReady) {
-      setPendingTwitterLink(false)
-      linkTwitter()
-    }
-  }, [authenticated, pendingTwitterLink, privyReady, linkTwitter])
 
   const [links, setLinks] = useState<LinkItem[]>([])
   const [categories, setCategories] = useState<LinkCategory[]>([])
@@ -553,6 +544,17 @@ export function LinksPanel() {
   const [activeSyncs, setActiveSyncs] = useState<Set<string>>(new Set())
   const [lastSyncTime, setLastSyncTime] = useState<Record<string, number>>({})
   const [disconnectingPlatforms, setDisconnectingPlatforms] = useState<Set<string>>(new Set())
+
+  const getUsernameFromUrl = useCallback((url: string) => {
+    try {
+      const urlToParse = url.startsWith('http') ? url : `https://${url}`
+      const urlObj = new URL(urlToParse)
+      const segments = urlObj.pathname.split('/').filter(Boolean)
+      return segments[segments.length - 1]?.replace(/^@/, '').toLowerCase() || ''
+    } catch {
+      return url.split('/').filter(Boolean).pop()?.split('?')[0]?.replace(/^@/, '').toLowerCase() || ''
+    }
+  }, [])
 
   const verifySocialOnBackend = useCallback(async (params: {
     platform: 'twitter' | 'github'
@@ -662,14 +664,19 @@ export function LinksPanel() {
     if (!authenticated || !privyReady) return
 
     const account = pendingVerification.platform === 'github' ? user?.github : user?.twitter
-    if (!account?.username || !account?.subject) return
+    if (!account?.subject) return
+
+    const pendingLink = socialLinks.find(link => link.id === pendingVerification.linkId)
+    const fallbackUsername = pendingLink ? getUsernameFromUrl(pendingLink.url) : ''
+    const platformUsername = account.username || fallbackUsername
+    if (!platformUsername) return
 
     let cancelled = false
     ;(async () => {
       try {
         const verified = await verifySocialOnBackend({
           platform: pendingVerification.platform,
-          platformUsername: account.username,
+          platformUsername,
           platformUserId: account.subject,
           address: targetAddress,
         })
@@ -697,7 +704,7 @@ export function LinksPanel() {
     return () => {
       cancelled = true
     }
-  }, [authenticated, privyReady, pendingVerification, user?.github, user?.twitter, verifySocialOnBackend, targetAddress, loadSocialLinks])
+  }, [authenticated, privyReady, pendingVerification, user?.github, user?.twitter, verifySocialOnBackend, targetAddress, loadSocialLinks, socialLinks, getUsernameFromUrl])
 
   // Sync with backend when Github account is detected
   useEffect(() => {
@@ -2421,6 +2428,9 @@ export function LinksPanel() {
                                 const linkUsername = getUsernameFromUrl(link.url)
                                 const privyUsername = userData?.username?.toLowerCase()
                                 const isVerified = link.verified
+                                const isPendingVerification =
+                                  pendingVerification?.linkId === link.id &&
+                                  pendingVerification?.platform === config.apiPlatformName
 
                                 // --- DURUM 1: Zaten Doğrulanmış ---
                                 if (isVerified) {
@@ -2436,7 +2446,7 @@ export function LinksPanel() {
                                 const isSyncingInState = activeSyncs.has(config.apiPlatformName)
                                 const platformLastSync = lastSyncTime[config.apiPlatformName] || 0
                                 const isCooldownSyncing = Date.now() - platformLastSync < 6000
-                                const isSyncing = isSyncingInState || isCooldownSyncing
+                                const isSyncing = isSyncingInState || isCooldownSyncing || isPendingVerification
 
                                 return (
                                   <div className="flex flex-row gap-1 items-start">
@@ -2459,7 +2469,6 @@ export function LinksPanel() {
                                               platform: apiPlatformName as 'twitter' | 'github',
                                               linkId: link.id,
                                             })
-                                            setPendingTwitterLink(true)
                                             await login({ loginMethods: [loginMethod as any] })
                                             return
                                           }
@@ -2467,7 +2476,7 @@ export function LinksPanel() {
                                             platform: apiPlatformName as 'twitter' | 'github',
                                             linkId: link.id,
                                           })
-                                          linkMethod()
+                                          await linkMethod()
                                           return
                                         }
 
@@ -2500,11 +2509,11 @@ export function LinksPanel() {
                                       {isSyncing ? (
                                         <span className="flex items-center gap-1">
                                           <Loader2 className="h-2.5 w-2.5 animate-spin" />
-                                          Verifying...
+                                          {isPendingVerification ? 'Finishing...' : 'Verifying...'}
                                         </span>
                                       ) : 'Verify'}
                                     </Button>
-                                    {userData && (
+                                    {userData && !isPendingVerification && (
                                       <button
                                         className="text-[10px] text-muted-foreground hover:text-red-500 underline"
                                         onClick={() => handleUnlinkSocial(config.apiPlatformName, userData?.subject)}
