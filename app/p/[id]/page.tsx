@@ -1777,7 +1777,7 @@ export default function ProfilePage({ params }: PageProps) {
       )}
 
       {profileAddressForFollow && !profile?.isBanned && resolvedAddress && isValidAddress(resolvedAddress) && (
-        <div className="fixed inset-x-0 bottom-0 z-50 md:hidden px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
+        <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-50 md:hidden px-3">
           <div className="rounded-2xl border border-border/80 bg-background/95 p-2 shadow-2xl backdrop-blur supports-[backdrop-filter]:bg-background/80">
             <div className="grid grid-cols-3 gap-2">
               <Button
