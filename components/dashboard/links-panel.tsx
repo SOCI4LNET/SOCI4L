@@ -2508,7 +2508,7 @@ export function LinksPanel() {
                                             setLastSyncTime(prev => ({ ...prev, [config.apiPlatformName]: 0 }))
                                             const message = error?.message || ''
                                             if (message.includes('already has an account of type')) {
-                                              toast.error(`${label} hesabı farklı bir cüzdana bağlı görünüyor. Doğru hesabın URL'sini girip tekrar dene.`)
+                                              toast.error(`${label} account appears to be linked to a different wallet. Please enter the correct account URL and try again.`)
                                             } else {
                                               toast.error(message || `Failed to connect ${label}.`)
                                             }
@@ -2542,7 +2542,7 @@ export function LinksPanel() {
                                           setLastSyncTime(prev => ({ ...prev, [config.apiPlatformName]: 0 }))
                                           const message = e?.message || ''
                                           if (message.includes('already connected to another profile')) {
-                                            toast.error(`${label} hesabı farklı bir cüzdana bağlı. URL'yi doğru hesapla güncelle ve tekrar doğrula.`)
+                                            toast.error(`${label} account is linked to a different wallet. Update the URL to the correct account and verify again.`)
                                           } else {
                                             toast.error(message || 'Failed to connect')
                                           }
