@@ -544,6 +544,11 @@ export function LinksPanel() {
   const [activeSyncs, setActiveSyncs] = useState<Set<string>>(new Set())
   const [lastSyncTime, setLastSyncTime] = useState<Record<string, number>>({})
   const [disconnectingPlatforms, setDisconnectingPlatforms] = useState<Set<string>>(new Set())
+  const privyWalletMatchesTarget = useMemo(() => {
+    const privyWallet = user?.wallet?.address?.toLowerCase()
+    const currentTarget = targetAddress?.toLowerCase()
+    return Boolean(privyWallet && currentTarget && privyWallet === currentTarget)
+  }, [user?.wallet?.address, targetAddress])
 
   const getUsernameFromUrl = useCallback((url: string) => {
     try {
@@ -662,6 +667,7 @@ export function LinksPanel() {
   useEffect(() => {
     if (!pendingVerification) return
     if (!authenticated || !privyReady) return
+    if (!privyWalletMatchesTarget) return
 
     const account = pendingVerification.platform === 'github' ? user?.github : user?.twitter
     if (!account?.subject) return
@@ -704,7 +710,7 @@ export function LinksPanel() {
     return () => {
       cancelled = true
     }
-  }, [authenticated, privyReady, pendingVerification, user?.github, user?.twitter, verifySocialOnBackend, targetAddress, loadSocialLinks, socialLinks, getUsernameFromUrl])
+  }, [authenticated, privyReady, pendingVerification, user?.github, user?.twitter, verifySocialOnBackend, targetAddress, loadSocialLinks, socialLinks, getUsernameFromUrl, privyWalletMatchesTarget])
 
   // Sync with backend when Github account is detected
   useEffect(() => {
@@ -954,17 +960,6 @@ export function LinksPanel() {
 
         setCategories(loadedCategories)
 
-        // If no categories exist, create default "General" category
-        if (loadedCategories.length === 0) {
-          await saveCategories([{
-            name: 'General',
-            slug: 'general',
-            description: null,
-            order: 0,
-            isVisible: true,
-            isDefault: true,
-          }])
-        }
       } catch (error) {
         console.error('[LinksPanel] Failed to load categories from API', error)
         // Don't show error toast for empty categories
@@ -1216,11 +1211,15 @@ export function LinksPanel() {
   }
 
   const handleToggleSocialEnabled = async (id: string, enabled: boolean) => {
+    const previous = socialLinks
     const updated = socialLinks.map((link) =>
       link.id === id ? { ...link, enabled } : link
     )
     setSocialLinks(updated)
-    await saveSocialLinks(updated)
+    const success = await saveSocialLinks(updated)
+    if (!success) {
+      setSocialLinks(previous)
+    }
   }
 
   const saveCategories = async (categoriesToSave: (Omit<LinkCategory, 'id' | 'createdAt' | 'updatedAt' | 'linkCount'> & { id?: string })[]) => {
@@ -1955,6 +1954,7 @@ export function LinksPanel() {
       ]
     }
 
+    const previous = socialLinks
     // Sort by fixed order
     const sorted = sortSocialLinks(updatedLinks)
     setSocialLinks(sorted)
@@ -1962,6 +1962,8 @@ export function LinksPanel() {
     if (success) {
       toast.success(editingSocialLink ? 'Social link updated' : 'Social link added')
       setSocialDialogOpen(false)
+    } else {
+      setSocialLinks(previous)
     }
   }
 
@@ -1973,18 +1975,23 @@ export function LinksPanel() {
       const isTwitter = linkToDelete.platform === 'x' || linkToDelete.platform === 'twitter';
       const isGithub = linkToDelete.platform === 'github';
 
-      const subjectId = isTwitter ? user?.twitter?.subject :
-        isGithub ? user?.github?.subject : null;
+      const subjectId = !privyWalletMatchesTarget
+        ? null
+        : isTwitter ? user?.twitter?.subject :
+          isGithub ? user?.github?.subject : null;
 
       // Perform disconnect in background
       handleUnlinkSocial(linkToDelete.platform, subjectId);
     }
 
+    const previous = socialLinks
     const updated = socialLinks.filter(link => link.id !== id)
     setSocialLinks(updated)
     const success = await saveSocialLinks(updated)
     if (success) {
       toast.success('Social link removed')
+    } else {
+      setSocialLinks(previous)
     }
   }
 
@@ -2355,7 +2362,9 @@ export function LinksPanel() {
                   const isTwitter = link.platform === 'x' || link.platform === 'twitter'
                   const isGithub = link.platform === 'github'
                   const isSupported = isTwitter || isGithub
-                  const userData = isTwitter ? user?.twitter : isGithub ? user?.github : null
+                  const userData = !privyWalletMatchesTarget
+                    ? null
+                    : isTwitter ? user?.twitter : isGithub ? user?.github : null
                   const subjectId = userData?.subject
 
                   return (
@@ -2384,7 +2393,7 @@ export function LinksPanel() {
                                 const platformConfig = {
                                   x: {
                                     label: 'Twitter',
-                                    userData: user?.twitter,
+                                    userData: privyWalletMatchesTarget ? user?.twitter : null,
                                     linkMethod: linkTwitter,
                                     unlinkMethod: unlinkTwitter,
                                     apiPlatformName: 'twitter',
@@ -2392,7 +2401,7 @@ export function LinksPanel() {
                                   },
                                   twitter: {
                                     label: 'Twitter',
-                                    userData: user?.twitter,
+                                    userData: privyWalletMatchesTarget ? user?.twitter : null,
                                     linkMethod: linkTwitter,
                                     unlinkMethod: unlinkTwitter,
                                     apiPlatformName: 'twitter',
@@ -2400,7 +2409,7 @@ export function LinksPanel() {
                                   },
                                   github: {
                                     label: 'GitHub',
-                                    userData: user?.github,
+                                    userData: privyWalletMatchesTarget ? user?.github : null,
                                     linkMethod: linkGithub,
                                     unlinkMethod: unlinkGithub,
                                     apiPlatformName: 'github',
