@@ -550,6 +550,69 @@ export function LinksPanel() {
   const [lastSyncTime, setLastSyncTime] = useState<Record<string, number>>({})
   const [disconnectingPlatforms, setDisconnectingPlatforms] = useState<Set<string>>(new Set())
 
+  const verifySocialOnBackend = useCallback(async (params: {
+    platform: 'twitter' | 'github'
+    platformUsername: string
+    platformUserId: string
+    address?: string
+  }) => {
+    const normalizedAddress = (params.address || targetAddress || '').toLowerCase()
+    if (!normalizedAddress) {
+      throw new Error('Wallet address not found')
+    }
+
+    let response = await fetch('/api/social/link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        platform: params.platform,
+        platformUsername: params.platformUsername,
+        platformUserId: params.platformUserId,
+        address: normalizedAddress,
+      }),
+    })
+
+    if (response.ok) return true
+
+    const firstError = await response.json().catch(() => ({}))
+    const needsSignature =
+      response.status === 401 &&
+      typeof firstError?.error === 'string' &&
+      firstError.error.includes('Session or Signature required')
+
+    if (!needsSignature) {
+      throw new Error(firstError?.error || 'Verification failed')
+    }
+
+    const nonceRes = await fetch('/api/auth/nonce')
+    if (!nonceRes.ok) {
+      throw new Error('Failed to get nonce')
+    }
+    const { nonce } = await nonceRes.json()
+
+    const message = `Link ${params.platform} account to ${normalizedAddress}. Nonce: ${nonce}`
+    const signature = await signMessageAsync({ message })
+
+    response = await fetch('/api/social/link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        platform: params.platform,
+        platformUsername: params.platformUsername,
+        platformUserId: params.platformUserId,
+        address: normalizedAddress,
+        signature,
+      }),
+    })
+
+    if (!response.ok) {
+      const retryError = await response.json().catch(() => ({}))
+      throw new Error(retryError?.error || 'Verification failed')
+    }
+
+    return true
+  }, [signMessageAsync, targetAddress])
+
   const loadSocialLinks = useCallback(async () => {
     if (!targetAddress) {
       setSocialLinksLoading(false)
@@ -617,18 +680,14 @@ export function LinksPanel() {
           setActiveSyncs(prev => new Set(prev).add('github'))
           setLastSyncTime(prev => ({ ...prev, github: now }))
 
-          const response = await fetch('/api/social/link', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              platform: 'github',
-              platformUsername: githubAccount.username,
-              platformUserId: githubAccount.subject,
-              address: currentTarget,
-            }),
+          const response = await verifySocialOnBackend({
+            platform: 'github',
+            platformUsername: githubAccount.username,
+            platformUserId: githubAccount.subject,
+            address: currentTarget,
           })
 
-          if (response.ok) {
+          if (response) {
             localStorage.setItem(`soci4l_github_sync_${githubAccount.username}`, now.toString())
             // Wait for DB consistency before refresh
             await new Promise(r => setTimeout(r, 1000))
@@ -652,7 +711,7 @@ export function LinksPanel() {
 
       syncSocial()
     }
-  }, [user?.github, socialLinks, loadSocialLinks, targetAddress])
+  }, [user?.github, socialLinks, loadSocialLinks, targetAddress, verifySocialOnBackend])
 
   // Refresh social links data when Privy identity changes
   useEffect(() => {
@@ -686,18 +745,14 @@ export function LinksPanel() {
           setActiveSyncs(prev => new Set(prev).add('twitter'))
           setLastSyncTime(prev => ({ ...prev, twitter: now }))
 
-          const response = await fetch('/api/social/link', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              platform: 'twitter',
-              platformUsername: twitterAccount.username,
-              platformUserId: twitterAccount.subject,
-              address: currentTarget,
-            }),
+          const response = await verifySocialOnBackend({
+            platform: 'twitter',
+            platformUsername: twitterAccount.username,
+            platformUserId: twitterAccount.subject,
+            address: currentTarget,
           })
 
-          if (response.ok) {
+          if (response) {
             localStorage.setItem(`soci4l_twitter_sync_${twitterAccount.username}`, now.toString())
             await new Promise(r => setTimeout(r, 1000))
             await loadSocialLinks()
@@ -718,7 +773,7 @@ export function LinksPanel() {
 
       syncSocial()
     }
-  }, [user?.twitter, socialLinks, loadSocialLinks, targetAddress, user?.wallet?.address]) // Added targetAddress and user.wallet.address for more robust dependency tracking
+  }, [user?.twitter, socialLinks, loadSocialLinks, targetAddress, user?.wallet?.address, verifySocialOnBackend]) // Added targetAddress and user.wallet.address for more robust dependency tracking
 
   // Helper functions for social links
   const getSocialIcon = (platform: SocialLinkPlatform) => {
@@ -2365,18 +2420,14 @@ export function LinksPanel() {
                                         // DURUM 3: Privy Bağlı Ama Backend Bekleniyor
                                         try {
                                           const toastId = toast.loading('Verifying...')
-                                          const response = await fetch('/api/social/link', {
-                                            method: 'POST',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify({
-                                              platform: apiPlatformName,
-                                              platformUsername: userData.username,
-                                              platformUserId: userData.subject,
-                                              address: targetAddress,
-                                            }),
+                                          const verified = await verifySocialOnBackend({
+                                            platform: apiPlatformName as 'twitter' | 'github',
+                                            platformUsername: userData.username,
+                                            platformUserId: userData.subject,
+                                            address: targetAddress,
                                           })
 
-                                          if (response.ok) {
+                                          if (verified) {
                                             setSocialLinks(prev =>
                                               prev.map(item =>
                                                 item.id === link.id ? { ...item, verified: true } : item
