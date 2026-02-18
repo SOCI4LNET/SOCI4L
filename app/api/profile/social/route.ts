@@ -190,7 +190,7 @@ export async function POST(request: NextRequest) {
 
     if (!profile) {
       return NextResponse.json(
-        { error: 'Profile not found' },
+        { error: 'Profile not found. Please claim your profile first.' },
         { status: 404 }
       )
     }
@@ -199,7 +199,7 @@ export async function POST(request: NextRequest) {
     const isClaimed = profile.status === 'CLAIMED' || profile.ownerAddress || profile.owner
     if (!isClaimed) {
       return NextResponse.json(
-        { error: 'Profile not claimed yet' },
+        { error: 'Profile not claimed yet. Please claim your profile first.' },
         { status: 400 }
       )
     }

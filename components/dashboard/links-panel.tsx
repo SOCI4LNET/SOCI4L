@@ -670,7 +670,13 @@ export function LinksPanel() {
     if (!privyWalletMatchesTarget) return
 
     const account = pendingVerification.platform === 'github' ? user?.github : user?.twitter
-    if (!account?.subject) return
+    if (!account?.subject) {
+      const timeout = setTimeout(() => {
+        setPendingVerification(null)
+        toast.error('Verification could not be completed. Please try Verify again.')
+      }, 8000)
+      return () => clearTimeout(timeout)
+    }
 
     const pendingLink = socialLinks.find(link => link.id === pendingVerification.linkId)
     const fallbackUsername = pendingLink ? getUsernameFromUrl(pendingLink.url) : ''
@@ -1200,6 +1206,11 @@ export function LinksPanel() {
       console.error('[LinksPanel] Failed to save social links', error)
       if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
         toast.error('Transaction rejected')
+      } else if (typeof error?.message === 'string' && (
+        error.message.includes('Profile not found') ||
+        error.message.includes('Profile not claimed yet')
+      )) {
+        toast.error('Please claim your profile first, then add social links.')
       } else {
         toast.error(error?.message || 'Failed to save social links. Please try again.')
       }
@@ -2473,20 +2484,31 @@ export function LinksPanel() {
                                             toast.error(`${label} verification is currently unavailable.`)
                                             return
                                           }
-                                          if (!authenticated) {
+                                          try {
+                                            if (!authenticated) {
+                                              setPendingVerification({
+                                                platform: apiPlatformName as 'twitter' | 'github',
+                                                linkId: link.id,
+                                              })
+                                              await login({ loginMethods: [loginMethod as any] })
+                                              return
+                                            }
                                             setPendingVerification({
                                               platform: apiPlatformName as 'twitter' | 'github',
                                               linkId: link.id,
                                             })
-                                            await login({ loginMethods: [loginMethod as any] })
+                                            await linkMethod()
+                                            return
+                                          } catch (error: any) {
+                                            setPendingVerification(null)
+                                            const message = error?.message || ''
+                                            if (message.includes('already has an account of type')) {
+                                              toast.error(`${label} is already linked in your Privy account.`)
+                                            } else {
+                                              toast.error(message || `Failed to connect ${label}.`)
+                                            }
                                             return
                                           }
-                                          setPendingVerification({
-                                            platform: apiPlatformName as 'twitter' | 'github',
-                                            linkId: link.id,
-                                          })
-                                          await linkMethod()
-                                          return
                                         }
 
                                         // DURUM 3: Privy Bağlı Ama Backend Bekleniyor
