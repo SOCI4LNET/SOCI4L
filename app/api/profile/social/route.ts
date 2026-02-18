@@ -171,10 +171,22 @@ export async function POST(request: NextRequest) {
     const normalizedAddress = address.toLowerCase()
     const normalizedSigner = signer.toLowerCase()
 
-    // Fetch Profile by address
-    const profile = await prisma.profile.findUnique({
+    // Fetch profile by normalized address; fallback to case-insensitive lookup
+    // for legacy records that may have mixed-case addresses.
+    let profile = await prisma.profile.findUnique({
       where: { address: normalizedAddress },
     })
+
+    if (!profile) {
+      profile = await prisma.profile.findFirst({
+        where: {
+          address: {
+            equals: normalizedAddress,
+            mode: 'insensitive',
+          },
+        },
+      })
+    }
 
     if (!profile) {
       return NextResponse.json(
@@ -245,7 +257,7 @@ export async function POST(request: NextRequest) {
 
     // Update profile
     const updatedProfile = await prisma.profile.update({
-      where: { address: normalizedAddress },
+      where: { id: profile.id },
       data: updateData,
     })
 

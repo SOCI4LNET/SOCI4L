@@ -1201,7 +1201,7 @@ export function LinksPanel() {
       if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
         toast.error('Transaction rejected')
       } else {
-        toast.error('Failed to save social links. Please try again.')
+        toast.error(error?.message || 'Failed to save social links. Please try again.')
       }
       return false
     } finally {
