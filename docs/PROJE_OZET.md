@@ -42,7 +42,6 @@ Avalanche blockchain'inde cüzdan adreslerine dayalı profil sistemi oluşturmak
 - **Authentication**: Nonce + Message Signature (Web3 native)
 
 ### External APIs
-- **Moralis API**: Token ve NFT bakiyeleri (opsiyonel)
 - **Snowtrace API**: İşlem geçmişi ve blockchain verileri (opsiyonel)
 - **CoinGecko API**: Token fiyatları (opsiyonel)
 - **Avalanche RPC**: Native AVAX bakiyesi ve temel blockchain verileri
@@ -522,7 +521,6 @@ model Follow {
 ```bash
 DATABASE_URL="file:./dev.db"                    # SQLite database
 NEXT_PUBLIC_AVALANCHE_RPC="..."                # Avalanche RPC (optional)
-MORALIS_API_KEY="..."                          # Moralis API (optional)
 SNOWTRACE_API_KEY="..."                        # Snowtrace API (optional)
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID="..."     # WalletConnect (optional)
 ```

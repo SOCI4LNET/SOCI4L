@@ -1,0 +1,94 @@
+{
+  "fileKey": "wLkuqYmrXwXqhKyxPdzcLY",
+  "variables": {
+    "brand": {
+      "50": { "hex": "#EEF2FF", "hsl": "230 69% 98%", "type": "color" },
+      "100": { "hex": "#E0E7FF", "hsl": "230 69% 95%", "type": "color" },
+      "200": { "hex": "#C7D2FE", "hsl": "230 69% 90%", "type": "color" },
+      "300": { "hex": "#A5B4FC", "hsl": "230 69% 82%", "type": "color" },
+      "400": { "hex": "#818CF8", "hsl": "230 69% 65%", "type": "color" },
+      "500": { "hex": "#2845D6", "hsl": "230 69% 50%", "type": "color", "note": "Main brand color" },
+      "600": { "hex": "#4F46E5", "hsl": "230 69% 40%", "type": "color" },
+      "700": { "hex": "#4338CA", "hsl": "230 69% 30%", "type": "color" },
+      "800": { "hex": "#3730A3", "hsl": "230 69% 20%", "type": "color" },
+      "900": { "hex": "#312E81", "hsl": "230 69% 10%", "type": "color" },
+      "950": { "hex": "#1E1B4B", "hsl": "230 69% 5%", "type": "color" },
+      "main": { "hex": "#2845D6", "hsl": "230 69% 50%", "type": "color", "alias": "brand/500" }
+    },
+    "semantic": {
+      "light": {
+        "background": { "hex": "#F0F0F0", "hsl": "0 0% 94%", "type": "color", "mode": "light" },
+        "foreground": { "hex": "#0A0A0A", "hsl": "0 0% 4%", "type": "color", "mode": "light" },
+        "card": { "hex": "#F0F0F0", "hsl": "0 0% 94%", "type": "color", "mode": "light" },
+        "card-foreground": { "hex": "#0A0A0A", "hsl": "0 0% 3.9%", "type": "color", "mode": "light" },
+        "primary": { "hex": "#171717", "hsl": "0 0% 9%", "type": "color", "mode": "light" },
+        "primary-foreground": { "hex": "#FAFAFA", "hsl": "0 0% 98%", "type": "color", "mode": "light" },
+        "secondary": { "hex": "#F4F4F5", "hsl": "240 5% 96%", "type": "color", "mode": "light" },
+        "secondary-foreground": { "hex": "#171717", "hsl": "0 0% 9%", "type": "color", "mode": "light" },
+        "muted": { "hex": "#F0F0F0", "hsl": "0 0% 94%", "type": "color", "mode": "light" },
+        "muted-foreground": { "hex": "#737373", "hsl": "0 0% 45.1%", "type": "color", "mode": "light" },
+        "accent": { "hex": "#E4E4E7", "hsl": "240 6% 90%", "type": "color", "mode": "light" },
+        "accent-foreground": { "hex": "#171717", "hsl": "0 0% 9%", "type": "color", "mode": "light" },
+        "border": { "hex": "#E4E4E7", "hsl": "240 6% 90%", "type": "color", "mode": "light" },
+        "input": { "hex": "#E4E4E7", "hsl": "240 6% 90%", "type": "color", "mode": "light" },
+        "destructive": { "hex": "#EF4444", "hsl": "0 84.2% 60.2%", "type": "color", "mode": "light" },
+        "destructive-foreground": { "hex": "#FAFAFA", "hsl": "0 0% 98%", "type": "color", "mode": "light" },
+        "popover": { "hex": "#F0F0F0", "hsl": "0 0% 94%", "type": "color", "mode": "light" },
+        "popover-foreground": { "hex": "#0A0A0A", "hsl": "0 0% 3.9%", "type": "color", "mode": "light" }
+      },
+      "dark": {
+        "background": { "hex": "#0A0A0A", "hsl": "0 0% 4%", "type": "color", "mode": "dark" },
+        "foreground": { "hex": "#FAFAFA", "hsl": "0 0% 98%", "type": "color", "mode": "dark" },
+        "card": { "hex": "#0A0A0A", "hsl": "0 0% 4%", "type": "color", "mode": "dark" },
+        "card-foreground": { "hex": "#FAFAFA", "hsl": "0 0% 98%", "type": "color", "mode": "dark" },
+        "primary": { "hex": "#FAFAFA", "hsl": "0 0% 98%", "type": "color", "mode": "dark" },
+        "primary-foreground": { "hex": "#171717", "hsl": "0 0% 9%", "type": "color", "mode": "dark" },
+        "secondary": { "hex": "#27272A", "hsl": "240 4% 16%", "type": "color", "mode": "dark" },
+        "secondary-foreground": { "hex": "#FAFAFA", "hsl": "0 0% 98%", "type": "color", "mode": "dark" },
+        "muted": { "hex": "#27272A", "hsl": "240 4% 16%", "type": "color", "mode": "dark" },
+        "muted-foreground": { "hex": "#A3A3A3", "hsl": "0 0% 63.9%", "type": "color", "mode": "dark" },
+        "accent": { "hex": "#171717", "hsl": "0 0% 9%", "type": "color", "mode": "dark" },
+        "accent-foreground": { "hex": "#FAFAFA", "hsl": "0 0% 98%", "type": "color", "mode": "dark" },
+        "border": { "hex": "#27272A", "hsl": "240 4% 16%", "type": "color", "mode": "dark" },
+        "input": { "hex": "#27272A", "hsl": "240 4% 16%", "type": "color", "mode": "dark" },
+        "destructive": { "hex": "#7F1D1D", "hsl": "0 62.8% 30.6%", "type": "color", "mode": "dark" },
+        "destructive-foreground": { "hex": "#FAFAFA", "hsl": "0 0% 98%", "type": "color", "mode": "dark" },
+        "popover": { "hex": "#0A0A0A", "hsl": "0 0% 4%", "type": "color", "mode": "dark" },
+        "popover-foreground": { "hex": "#FAFAFA", "hsl": "0 0% 98%", "type": "color", "mode": "dark" }
+      }
+    },
+    "spacing": {
+      "1": { "value": 4, "unit": "px", "type": "number" },
+      "2": { "value": 8, "unit": "px", "type": "number" },
+      "3": { "value": 12, "unit": "px", "type": "number" },
+      "4": { "value": 16, "unit": "px", "type": "number" },
+      "6": { "value": 24, "unit": "px", "type": "number", "note": "Default card padding" },
+      "8": { "value": 32, "unit": "px", "type": "number" },
+      "12": { "value": 48, "unit": "px", "type": "number" },
+      "16": { "value": 64, "unit": "px", "type": "number" }
+    },
+    "radius": {
+      "sm": { "value": 4, "unit": "px", "type": "number" },
+      "md": { "value": 6, "unit": "px", "type": "number", "note": "Default (standard radius)" },
+      "lg": { "value": 8, "unit": "px", "type": "number" }
+    },
+    "typography": {
+      "font/sans": { "value": "Geist Sans", "type": "string", "usage": "Primary UI font" },
+      "font/mono": { "value": "Geist Mono", "type": "string", "usage": "Code, data display" },
+      "font/heading": { "value": "Outfit", "type": "string", "usage": "Headings" },
+      "font/serif": { "value": "Playfair", "type": "string", "usage": "Serif" }
+    },
+    "components": {
+      "button/height/default": { "value": 40, "unit": "px", "type": "number" },
+      "button/height/sm": { "value": 36, "unit": "px", "type": "number" },
+      "button/height/lg": { "value": 44, "unit": "px", "type": "number" },
+      "button/height/icon": { "value": 40, "unit": "px", "type": "number" },
+      "input/height": { "value": 40, "unit": "px", "type": "number" }
+    }
+  },
+  "instructions": {
+    "setupMethod": "manual",
+    "guide": "docs/FIGMA_VARIABLES_SETUP.md",
+    "fileUrl": "https://www.figma.com/design/wLkuqYmrXwXqhKyxPdzcLY/Untitled"
+  }
+}
