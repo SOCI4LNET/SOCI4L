@@ -789,7 +789,15 @@ export function LinksPanel() {
             setTimeout(loadSocialLinks, 2000)
           }
         } catch (error) {
-          console.error('Github sync error:', error)
+          const message = error instanceof Error ? error.message : String(error || '')
+          if (message.includes('already connected to another profile')) {
+            if (githubAccount.username) {
+              localStorage.setItem(`sc_nosync_github_${githubAccount.username}`, (Date.now() + 300000).toString())
+            }
+            toast.error('This GitHub account is already connected to another wallet profile.')
+          } else {
+            console.error('Github sync error:', error)
+          }
         } finally {
           // Keep in activeSyncs/cooldown for UI transition
           setTimeout(() => {
@@ -852,7 +860,15 @@ export function LinksPanel() {
             setTimeout(loadSocialLinks, 2000)
           }
         } catch (error) {
-          console.error('Sync error:', error)
+          const message = error instanceof Error ? error.message : String(error || '')
+          if (message.includes('already connected to another profile')) {
+            if (twitterAccount.username) {
+              localStorage.setItem(`sc_nosync_twitter_${twitterAccount.username}`, (Date.now() + 300000).toString())
+            }
+            toast.error('This X account is already connected to another wallet profile.')
+          } else {
+            console.error('Sync error:', error)
+          }
         } finally {
           setTimeout(() => {
             setActiveSyncs(prev => {
