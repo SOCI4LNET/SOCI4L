@@ -794,6 +794,12 @@ export function LinksPanel() {
             if (githubAccount.username) {
               localStorage.setItem(`sc_nosync_github_${githubAccount.username}`, (Date.now() + 300000).toString())
             }
+            setLastSyncTime(prev => ({ ...prev, github: 0 }))
+            setActiveSyncs(prev => {
+              const next = new Set(prev)
+              next.delete('github')
+              return next
+            })
             toast.error('This GitHub account is already connected to another wallet profile.')
           } else {
             console.error('Github sync error:', error)
@@ -865,6 +871,12 @@ export function LinksPanel() {
             if (twitterAccount.username) {
               localStorage.setItem(`sc_nosync_twitter_${twitterAccount.username}`, (Date.now() + 300000).toString())
             }
+            setLastSyncTime(prev => ({ ...prev, twitter: 0 }))
+            setActiveSyncs(prev => {
+              const next = new Set(prev)
+              next.delete('twitter')
+              return next
+            })
             toast.error('This X account is already connected to another wallet profile.')
           } else {
             console.error('Sync error:', error)
