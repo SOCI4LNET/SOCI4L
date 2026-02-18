@@ -13,6 +13,7 @@ import { getPublicProfileHref } from '@/lib/routing'
 import Link from 'next/link'
 import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Heart, Eye, Share2, Instagram, Youtube, Sparkles, ShieldAlert, Layers, UserX, CheckCircle, MoreVertical, Ban } from 'lucide-react'
 import { XIcon } from '@/components/icons/x-icon'
+
 import { ClaimProfileButton } from '@/components/claim-profile-button'
 import { FollowToggle, FollowStats } from '@/components/follow-toggle'
 import { QRCodeModal } from '@/components/qr/qr-code-modal'
@@ -765,9 +766,9 @@ export default function ProfilePage({ params }: PageProps) {
   }
 
   return (
-    <div className="space-y-6">
-
+    <div className="space-y-6 min-h-screen">
       {loading ? (
+
         // Skeleton matching new 12-column grid layout structure
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full">
           <Card className="md:col-span-6 w-full">
@@ -1740,6 +1741,6 @@ export default function ProfilePage({ params }: PageProps) {
       )}
 
       <SiteFooter className="mt-auto" />
-    </div >
+    </div>
   )
 }

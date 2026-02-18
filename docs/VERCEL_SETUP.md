@@ -85,7 +85,6 @@ Vercel'de şu environment variable'ları ayarlayın:
 - ✅ `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` - WalletConnect Project ID
 - ✅ `NEXT_PUBLIC_ADMIN_ADDRESSES` - Admin wallet adresleri (virgülle ayrılmış)
 - ⚙️ `OPENSEA_API_KEY` - OpenSea API key (opsiyonel)
-- ⚙️ `MORALIS_API_KEY` - Moralis API key (opsiyonel)
 - ⚙️ `SNOWTRACE_API_KEY` - Snowtrace API key (opsiyonel)
 
 ## Troubleshooting

@@ -82,7 +82,7 @@ Avalanche Wallet Profile Hub, bu sorunları çözmek için:
 1. **Modern Stack**: Next.js 14, TypeScript, Prisma
 2. **Blockchain Entegrasyonu**: wagmi v2, viem ile Avalanche C-Chain desteği
 3. **Veritabanı**: SQLite (dev) → PostgreSQL (production)
-4. **API Entegrasyonları**: Moralis, Snowtrace, CoinGecko (opsiyonel)
+4. **API Entegrasyonları**: Snowtrace, CoinGecko, OpenSea (opsiyonel)
 
 ---
 
@@ -412,7 +412,6 @@ Avalanche Wallet Profile Hub, bu sorunları çözmek için:
 - **Authentication**: Nonce + Message Signature
 
 ### External APIs
-- **Moralis API**: Token ve NFT bakiyeleri (opsiyonel)
 - **Snowtrace API**: İşlem geçmişi (opsiyonel)
 - **CoinGecko API**: Token fiyatları (opsiyonel)
 - **Avalanche RPC**: Native AVAX bakiyesi ve temel blockchain verileri
@@ -662,7 +661,7 @@ Avalanche Wallet Profile Hub, bu sorunları çözmek için:
   - Caching mekanizması
 
 #### Risk 2: External API Rate Limiting
-- **Açıklama**: Moralis, Snowtrace, CoinGecko API'leri rate limit uygulayabilir
+- **Açıklama**: Snowtrace, CoinGecko, OpenSea API'leri rate limit uygulayabilir
 - **Etki**: Orta - Bazı özellikler çalışmayabilir
 - **Olasılık**: Yüksek
 - **Azaltma Stratejisi**:
@@ -919,7 +918,6 @@ DATABASE_URL="file:./dev.db"  # SQLite (dev) veya PostgreSQL (production)
 NEXT_PUBLIC_AVALANCHE_RPC="https://api.avax.network/ext/bc/C/rpc"
 
 # External APIs (opsiyonel)
-MORALIS_API_KEY="..."
 SNOWTRACE_API_KEY="..."
 OPENSEA_API_KEY="..."
 

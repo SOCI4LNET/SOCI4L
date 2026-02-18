@@ -88,10 +88,6 @@ Opsiyonel değişkenler:
   - OpenSea API v2 kullanarak Avalanche zincirindeki NFT'leri çeker
   - Ücretsiz API anahtarı almak için: https://opensea.io/api
   - API anahtarı olmadan NFT'ler RPC fallback ile gösterilir (sınırlı)
-- `MORALIS_API_KEY`: Moralis API anahtarı (token ve NFT bakiyeleri için - opsiyonel)
-  - **ÜCRETSİZ PLAN**: 40,000 Compute Units/gün, süresiz (trial yok!)
-  - Ücretsiz API anahtarı almak için: https://moralis.io/
-  - API anahtarı olmadan sadece native AVAX bakiyesi gösterilir
 - `SNOWTRACE_API_KEY`: Snowtrace API anahtarı (opsiyonel - ücretsiz plan API key gerektirmez)
   - **ÜCRETSİZ PLAN**: 2 req/saniye, 10,000 çağrı/gün (API key olmadan çalışır!)
   - API key sadece daha yüksek limitler için gerekli
@@ -170,7 +166,6 @@ Talep edilen profiller için dashboard'da şunları yapabilirsiniz:
 
 ## Notlar
 
-- **Moralis API Key**: Token ve NFT bakiyelerini görmek için `MORALIS_API_KEY` ayarlanmalıdır. API anahtarı olmadan sadece native AVAX bakiyesi gösterilir. Ücretsiz plan: 40,000 CU/gün, süresiz.
 - API anahtarları opsiyoneldir. Anahtar olmadan da temel işlevler çalışır (sınırlı veri ile)
 
 ## Test Etme
@@ -185,14 +180,12 @@ Talep edilen profiller için dashboard'da şunları yapabilirsiniz:
 2. Console loglarını kontrol edin (F12 > Console):
    - `[Assets Panel]` - UI tarafı logları
    - `[Assets API]` - API route logları
-   - `[Moralis]` - Moralis API logları
 
 3. Bilinen zengin cüzdanlar (test için):
    - Avalanche Foundation: `0x8eb8a3b98659C8f2725A7743C832d2bF852FDF20`
    - veya kendi cüzdanınızı kullanın
 
 4. Hata durumlarını test edin:
-   - API key yoksa: "Moralis API Key Required" uyarısı görünmeli
    - Geçersiz adres: 400 hatası
    - Rate limit: 429 hatası (retry butonu ile tekrar deneyin)
 - Veritabanı SQLite kullanır, production için PostgreSQL önerilir
