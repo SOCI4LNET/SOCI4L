@@ -2445,6 +2445,7 @@ export function LinksPanel() {
                     ? null
                     : isTwitter ? user?.twitter : isGithub ? user?.github : null
                   const subjectId = userData?.subject
+                  const hasConnectedAccount = Boolean(subjectId)
 
                   return (
                     <div
@@ -2628,16 +2629,8 @@ export function LinksPanel() {
                                           <Loader2 className="h-2.5 w-2.5 animate-spin" />
                                           {isPendingVerification ? 'Finishing...' : 'Verifying...'}
                                         </span>
-                                      ) : 'Verify'}
+                                      ) : hasConnectedAccount ? 'Complete Verify' : 'Verify'}
                                     </Button>
-                                    {userData && !isPendingVerification && (
-                                      <button
-                                        className="text-[10px] text-muted-foreground hover:text-red-500 underline"
-                                        onClick={() => handleUnlinkSocial(config.apiPlatformName, userData?.subject)}
-                                      >
-                                        Wrong account? Change
-                                      </button>
-                                    )}
                                   </div>
                                 )
                               })()
@@ -2654,7 +2647,7 @@ export function LinksPanel() {
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
-                        {isSupported && (userData || link.verified) && (
+                        {isSupported && (hasConnectedAccount || link.verified) && (
                           <Button
                             variant="ghost"
                             size="sm"
