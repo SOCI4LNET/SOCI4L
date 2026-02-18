@@ -544,6 +544,10 @@ export function LinksPanel() {
   const [activeSyncs, setActiveSyncs] = useState<Set<string>>(new Set())
   const [lastSyncTime, setLastSyncTime] = useState<Record<string, number>>({})
   const [disconnectingPlatforms, setDisconnectingPlatforms] = useState<Set<string>>(new Set())
+  const [socialConflictByPlatform, setSocialConflictByPlatform] = useState<Record<'twitter' | 'github', boolean>>({
+    twitter: false,
+    github: false,
+  })
   const activeSessionWalletAddress = useMemo(
     () => (user?.wallet?.address || connectedAddress || '').toLowerCase(),
     [user?.wallet?.address, connectedAddress]
@@ -688,7 +692,7 @@ export function LinksPanel() {
       const timeout = setTimeout(() => {
         setPendingVerification(null)
         toast.error('Verification could not be completed. Please try Verify again.')
-      }, 8000)
+      }, 20000)
       return () => clearTimeout(timeout)
     }
 
@@ -722,6 +726,7 @@ export function LinksPanel() {
             item.id === pendingVerification.linkId ? { ...item, verified: true } : item
           )
         )
+        setSocialConflictByPlatform(prev => ({ ...prev, [pendingVerification.platform]: false }))
         toast.success('Verified!')
         await loadSocialLinks()
       } catch (error: any) {
@@ -729,6 +734,7 @@ export function LinksPanel() {
           const message = error?.message || ''
           if (message.includes('already connected to another profile')) {
             const platformLabel = pendingVerification.platform === 'twitter' ? 'X' : 'GitHub'
+            setSocialConflictByPlatform(prev => ({ ...prev, [pendingVerification.platform]: true }))
             toast.error(`${platformLabel} account is linked to a different wallet. Update the URL to the correct account and verify again.`)
           } else {
             toast.error('Verification failed')
@@ -784,6 +790,7 @@ export function LinksPanel() {
 
           if (response) {
             localStorage.setItem(`soci4l_github_sync_${githubUsername}`, now.toString())
+            setSocialConflictByPlatform(prev => ({ ...prev, github: false }))
             // Wait for DB consistency before refresh
             await new Promise(r => setTimeout(r, 1000))
             await loadSocialLinks()
@@ -794,6 +801,7 @@ export function LinksPanel() {
           const message = error instanceof Error ? error.message : String(error || '')
           if (message.includes('already connected to another profile')) {
             localStorage.setItem(`sc_nosync_github_${githubUsername}`, (Date.now() + 300000).toString())
+            setSocialConflictByPlatform(prev => ({ ...prev, github: true }))
             setLastSyncTime(prev => ({ ...prev, github: 0 }))
             setActiveSyncs(prev => {
               const next = new Set(prev)
@@ -826,6 +834,18 @@ export function LinksPanel() {
       loadSocialLinks()
     }
   }, [user?.twitter?.username, user?.github?.username, loadSocialLinks, privyReady, authenticated])
+
+  useEffect(() => {
+    const githubVerified = socialLinks.some(link => link.platform === 'github' && link.verified)
+    const twitterVerified = socialLinks.some(
+      link => (link.platform === 'x' || link.platform === 'twitter') && link.verified
+    )
+    if (!githubVerified && !twitterVerified) return
+    setSocialConflictByPlatform(prev => ({
+      github: githubVerified ? false : prev.github,
+      twitter: twitterVerified ? false : prev.twitter,
+    }))
+  }, [socialLinks])
 
   // Sync with backend when Twitter account is detected
   useEffect(() => {
@@ -863,6 +883,7 @@ export function LinksPanel() {
 
           if (response) {
             localStorage.setItem(`soci4l_twitter_sync_${twitterUsername}`, now.toString())
+            setSocialConflictByPlatform(prev => ({ ...prev, twitter: false }))
             await new Promise(r => setTimeout(r, 1000))
             await loadSocialLinks()
             setTimeout(loadSocialLinks, 2000)
@@ -871,6 +892,7 @@ export function LinksPanel() {
           const message = error instanceof Error ? error.message : String(error || '')
           if (message.includes('already connected to another profile')) {
             localStorage.setItem(`sc_nosync_twitter_${twitterUsername}`, (Date.now() + 300000).toString())
+            setSocialConflictByPlatform(prev => ({ ...prev, twitter: true }))
             setLastSyncTime(prev => ({ ...prev, twitter: 0 }))
             setActiveSyncs(prev => {
               const next = new Set(prev)
@@ -1184,6 +1206,7 @@ export function LinksPanel() {
       }
 
       toast.success(`${platformLabel} disconnected.`, { id: toastId });
+      setSocialConflictByPlatform(prev => ({ ...prev, [backendPlatform as 'twitter' | 'github']: false }))
       setSocialLinks(prev =>
         prev.map(link => {
           const linkPlatform = link.platform === 'x' ? 'twitter' : link.platform
@@ -2518,6 +2541,7 @@ export function LinksPanel() {
                                 const privyUsername = normalizeHandle(userData?.username)
                                 const isVerified = link.verified
                                 const platformHasConnectedAccount = Boolean(userData?.subject)
+                                const isConflict = socialConflictByPlatform[config.apiPlatformName]
                                 const isPendingVerification =
                                   pendingVerification?.linkId === link.id &&
                                   pendingVerification?.platform === config.apiPlatformName
@@ -2547,6 +2571,10 @@ export function LinksPanel() {
                                       <Badge variant="outline" className="h-5 px-1.5 gap-1 text-[10px] font-normal text-blue-600 border-blue-600/30 bg-blue-500/5">
                                         <Loader2 className="h-3 w-3 animate-spin" />
                                         Verifying
+                                      </Badge>
+                                    ) : isConflict ? (
+                                      <Badge variant="outline" className="h-5 px-1.5 text-[10px] font-normal text-red-500 border-red-500/30 bg-red-500/5">
+                                        Linked elsewhere
                                       </Badge>
                                     ) : hasUrlMismatch ? (
                                       <Badge variant="outline" className="h-5 px-1.5 text-[10px] font-normal text-red-500 border-red-500/30 bg-red-500/5">
@@ -2613,6 +2641,7 @@ export function LinksPanel() {
                                         const toastId = toast.loading('Verifying...')
                                         try {
                                           setLastSyncTime(prev => ({ ...prev, [config.apiPlatformName]: Date.now() }))
+                                          setSocialConflictByPlatform(prev => ({ ...prev, [config.apiPlatformName]: false }))
                                           const verified = await verifySocialOnBackend({
                                             platform: apiPlatformName as 'twitter' | 'github',
                                             platformUsername: userData.username || linkUsername,
@@ -2626,6 +2655,7 @@ export function LinksPanel() {
                                                 item.id === link.id ? { ...item, verified: true } : item
                                               )
                                             )
+                                            setSocialConflictByPlatform(prev => ({ ...prev, [config.apiPlatformName]: false }))
                                             toast.success('Verified!', { id: toastId })
                                             await new Promise(r => setTimeout(r, 1000))
                                             await loadSocialLinks()
@@ -2635,6 +2665,7 @@ export function LinksPanel() {
                                           setLastSyncTime(prev => ({ ...prev, [config.apiPlatformName]: 0 }))
                                           const message = e?.message || ''
                                           if (message.includes('already connected to another profile')) {
+                                            setSocialConflictByPlatform(prev => ({ ...prev, [config.apiPlatformName]: true }))
                                             toast.error(`${label} account is linked to a different wallet. Update the URL to the correct account and verify again.`, { id: toastId })
                                           } else {
                                             toast.error(message || 'Failed to connect', { id: toastId })
@@ -2647,7 +2678,7 @@ export function LinksPanel() {
                                           <Loader2 className="h-2.5 w-2.5 animate-spin" />
                                           {isPendingVerification ? 'Finishing...' : 'Verifying...'}
                                         </span>
-                                      ) : platformHasConnectedAccount ? 'Complete Verify' : 'Verify'}
+                                      ) : 'Verify'}
                                     </Button>
                                   </div>
                                 )
