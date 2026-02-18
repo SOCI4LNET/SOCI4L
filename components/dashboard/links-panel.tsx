@@ -506,17 +506,12 @@ export function LinksPanel() {
   // Get target address from route params or connected wallet
   const targetAddress = (params.address as string)?.toLowerCase() || connectedAddress?.toLowerCase() || ''
 
-  // State for triggering Twitter link after Privy authentication
-  const [pendingTwitterLink, setPendingTwitterLink] = useState(false)
-  const [pendingVerification, setPendingVerification] = useState<string | null>(null)
+  // State for triggering social verification after authentication/connect
+  const [pendingVerification, setPendingVerification] = useState<{
+    platform: 'twitter' | 'github'
+    linkId: string
+  } | null>(null)
 
-  // Auto-link Twitter after Privy authentication
-  useEffect(() => {
-    if (authenticated && pendingTwitterLink && privyReady) {
-      setPendingTwitterLink(false)
-      linkTwitter()
-    }
-  }, [authenticated, pendingTwitterLink, privyReady, linkTwitter])
   const [links, setLinks] = useState<LinkItem[]>([])
   const [categories, setCategories] = useState<LinkCategory[]>([])
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -549,6 +544,90 @@ export function LinksPanel() {
   const [activeSyncs, setActiveSyncs] = useState<Set<string>>(new Set())
   const [lastSyncTime, setLastSyncTime] = useState<Record<string, number>>({})
   const [disconnectingPlatforms, setDisconnectingPlatforms] = useState<Set<string>>(new Set())
+  const privyWalletMatchesTarget = useMemo(() => {
+    const privyWallet = user?.wallet?.address?.toLowerCase()
+    const currentTarget = targetAddress?.toLowerCase()
+    return Boolean(privyWallet && currentTarget && privyWallet === currentTarget)
+  }, [user?.wallet?.address, targetAddress])
+
+  const getUsernameFromUrl = useCallback((url: string) => {
+    try {
+      const urlToParse = url.startsWith('http') ? url : `https://${url}`
+      const urlObj = new URL(urlToParse)
+      const segments = urlObj.pathname.split('/').filter(Boolean)
+      return segments[segments.length - 1]?.replace(/^@/, '').toLowerCase() || ''
+    } catch {
+      return url.split('/').filter(Boolean).pop()?.split('?')[0]?.replace(/^@/, '').toLowerCase() || ''
+    }
+  }, [])
+
+  const normalizeHandle = useCallback((value?: string | null) => {
+    if (!value) return ''
+    return value.replace(/^@/, '').trim().toLowerCase()
+  }, [])
+
+  const verifySocialOnBackend = useCallback(async (params: {
+    platform: 'twitter' | 'github'
+    platformUsername: string
+    platformUserId: string
+    address?: string
+  }) => {
+    const normalizedAddress = (params.address || targetAddress || '').toLowerCase()
+    if (!normalizedAddress) {
+      throw new Error('Wallet address not found')
+    }
+
+    let response = await fetch('/api/social/link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        platform: params.platform,
+        platformUsername: params.platformUsername,
+        platformUserId: params.platformUserId,
+        address: normalizedAddress,
+      }),
+    })
+
+    if (response.ok) return true
+
+    const firstError = await response.json().catch(() => ({}))
+    const needsSignature =
+      response.status === 401 &&
+      typeof firstError?.error === 'string' &&
+      firstError.error.includes('Session or Signature required')
+
+    if (!needsSignature) {
+      throw new Error(firstError?.error || 'Verification failed')
+    }
+
+    const nonceRes = await fetch('/api/auth/nonce')
+    if (!nonceRes.ok) {
+      throw new Error('Failed to get nonce')
+    }
+    const { nonce } = await nonceRes.json()
+
+    const message = `Link ${params.platform} account to ${normalizedAddress}. Nonce: ${nonce}`
+    const signature = await signMessageAsync({ message })
+
+    response = await fetch('/api/social/link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        platform: params.platform,
+        platformUsername: params.platformUsername,
+        platformUserId: params.platformUserId,
+        address: normalizedAddress,
+        signature,
+      }),
+    })
+
+    if (!response.ok) {
+      const retryError = await response.json().catch(() => ({}))
+      throw new Error(retryError?.error || 'Verification failed')
+    }
+
+    return true
+  }, [signMessageAsync, targetAddress])
 
   const loadSocialLinks = useCallback(async () => {
     if (!targetAddress) {
@@ -590,6 +669,74 @@ export function LinksPanel() {
     }
   }, [targetAddress])
 
+  useEffect(() => {
+    if (!pendingVerification) return
+    if (!authenticated || !privyReady) return
+    if (!privyWalletMatchesTarget) return
+
+    const account = pendingVerification.platform === 'github' ? user?.github : user?.twitter
+    if (!account?.subject) {
+      const timeout = setTimeout(() => {
+        setPendingVerification(null)
+        toast.error('Verification could not be completed. Please try Verify again.')
+      }, 8000)
+      return () => clearTimeout(timeout)
+    }
+
+    const pendingLink = socialLinks.find(link => link.id === pendingVerification.linkId)
+    const fallbackUsername = pendingLink ? getUsernameFromUrl(pendingLink.url) : ''
+    const platformUsername = account.username || fallbackUsername
+    if (!platformUsername) return
+    const expectedUsername = pendingLink ? getUsernameFromUrl(pendingLink.url) : ''
+    const actualUsername = normalizeHandle(account.username || platformUsername)
+    if (expectedUsername && actualUsername && expectedUsername !== actualUsername) {
+      const platformLabel = pendingVerification.platform === 'twitter' ? 'X' : 'GitHub'
+      setPendingVerification(null)
+      toast.error(`${platformLabel} account does not match the URL. Update the URL or switch account and try again.`)
+      return
+    }
+
+    let cancelled = false
+    ;(async () => {
+      try {
+        const verified = await verifySocialOnBackend({
+          platform: pendingVerification.platform,
+          platformUsername,
+          platformUserId: account.subject,
+          address: targetAddress,
+        })
+
+        if (!verified || cancelled) return
+
+        setSocialLinks(prev =>
+          prev.map(item =>
+            item.id === pendingVerification.linkId ? { ...item, verified: true } : item
+          )
+        )
+        toast.success('Verified!')
+        await loadSocialLinks()
+      } catch (error: any) {
+        if (!cancelled) {
+          const message = error?.message || ''
+          if (message.includes('already connected to another profile')) {
+            const platformLabel = pendingVerification.platform === 'twitter' ? 'X' : 'GitHub'
+            toast.error(`${platformLabel} account is linked to a different wallet. Update the URL to the correct account and verify again.`)
+          } else {
+            toast.error('Verification failed')
+          }
+        }
+      } finally {
+        if (!cancelled) {
+          setPendingVerification(null)
+        }
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [authenticated, privyReady, pendingVerification, user?.github, user?.twitter, verifySocialOnBackend, targetAddress, loadSocialLinks, socialLinks, getUsernameFromUrl, privyWalletMatchesTarget, normalizeHandle])
+
   // Sync with backend when Github account is detected
   useEffect(() => {
     const githubAccount = user?.github
@@ -617,18 +764,14 @@ export function LinksPanel() {
           setActiveSyncs(prev => new Set(prev).add('github'))
           setLastSyncTime(prev => ({ ...prev, github: now }))
 
-          const response = await fetch('/api/social/link', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              platform: 'github',
-              platformUsername: githubAccount.username,
-              platformUserId: githubAccount.subject,
-              address: currentTarget,
-            }),
+          const response = await verifySocialOnBackend({
+            platform: 'github',
+            platformUsername: githubAccount.username,
+            platformUserId: githubAccount.subject,
+            address: currentTarget,
           })
 
-          if (response.ok) {
+          if (response) {
             localStorage.setItem(`soci4l_github_sync_${githubAccount.username}`, now.toString())
             // Wait for DB consistency before refresh
             await new Promise(r => setTimeout(r, 1000))
@@ -652,7 +795,7 @@ export function LinksPanel() {
 
       syncSocial()
     }
-  }, [user?.github, socialLinks, loadSocialLinks, targetAddress])
+  }, [user?.github, socialLinks, loadSocialLinks, targetAddress, verifySocialOnBackend])
 
   // Refresh social links data when Privy identity changes
   useEffect(() => {
@@ -686,18 +829,14 @@ export function LinksPanel() {
           setActiveSyncs(prev => new Set(prev).add('twitter'))
           setLastSyncTime(prev => ({ ...prev, twitter: now }))
 
-          const response = await fetch('/api/social/link', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              platform: 'twitter',
-              platformUsername: twitterAccount.username,
-              platformUserId: twitterAccount.subject,
-              address: currentTarget,
-            }),
+          const response = await verifySocialOnBackend({
+            platform: 'twitter',
+            platformUsername: twitterAccount.username,
+            platformUserId: twitterAccount.subject,
+            address: currentTarget,
           })
 
-          if (response.ok) {
+          if (response) {
             localStorage.setItem(`soci4l_twitter_sync_${twitterAccount.username}`, now.toString())
             await new Promise(r => setTimeout(r, 1000))
             await loadSocialLinks()
@@ -718,7 +857,7 @@ export function LinksPanel() {
 
       syncSocial()
     }
-  }, [user?.twitter, socialLinks, loadSocialLinks, targetAddress, user?.wallet?.address]) // Added targetAddress and user.wallet.address for more robust dependency tracking
+  }, [user?.twitter, socialLinks, loadSocialLinks, targetAddress, user?.wallet?.address, verifySocialOnBackend]) // Added targetAddress and user.wallet.address for more robust dependency tracking
 
   // Helper functions for social links
   const getSocialIcon = (platform: SocialLinkPlatform) => {
@@ -846,17 +985,6 @@ export function LinksPanel() {
 
         setCategories(loadedCategories)
 
-        // If no categories exist, create default "General" category
-        if (loadedCategories.length === 0) {
-          await saveCategories([{
-            name: 'General',
-            slug: 'general',
-            description: null,
-            order: 0,
-            isVisible: true,
-            isDefault: true,
-          }])
-        }
       } catch (error) {
         console.error('[LinksPanel] Failed to load categories from API', error)
         // Don't show error toast for empty categories
@@ -1097,8 +1225,13 @@ export function LinksPanel() {
       console.error('[LinksPanel] Failed to save social links', error)
       if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
         toast.error('Transaction rejected')
+      } else if (typeof error?.message === 'string' && (
+        error.message.includes('Profile not found') ||
+        error.message.includes('Profile not claimed yet')
+      )) {
+        toast.error('Please claim your profile first, then add social links.')
       } else {
-        toast.error('Failed to save social links. Please try again.')
+        toast.error(error?.message || 'Failed to save social links. Please try again.')
       }
       return false
     } finally {
@@ -1108,11 +1241,15 @@ export function LinksPanel() {
   }
 
   const handleToggleSocialEnabled = async (id: string, enabled: boolean) => {
+    const previous = socialLinks
     const updated = socialLinks.map((link) =>
       link.id === id ? { ...link, enabled } : link
     )
     setSocialLinks(updated)
-    await saveSocialLinks(updated)
+    const success = await saveSocialLinks(updated)
+    if (!success) {
+      setSocialLinks(previous)
+    }
   }
 
   const saveCategories = async (categoriesToSave: (Omit<LinkCategory, 'id' | 'createdAt' | 'updatedAt' | 'linkCount'> & { id?: string })[]) => {
@@ -1847,6 +1984,7 @@ export function LinksPanel() {
       ]
     }
 
+    const previous = socialLinks
     // Sort by fixed order
     const sorted = sortSocialLinks(updatedLinks)
     setSocialLinks(sorted)
@@ -1854,6 +1992,8 @@ export function LinksPanel() {
     if (success) {
       toast.success(editingSocialLink ? 'Social link updated' : 'Social link added')
       setSocialDialogOpen(false)
+    } else {
+      setSocialLinks(previous)
     }
   }
 
@@ -1865,18 +2005,23 @@ export function LinksPanel() {
       const isTwitter = linkToDelete.platform === 'x' || linkToDelete.platform === 'twitter';
       const isGithub = linkToDelete.platform === 'github';
 
-      const subjectId = isTwitter ? user?.twitter?.subject :
-        isGithub ? user?.github?.subject : null;
+      const subjectId = !privyWalletMatchesTarget
+        ? null
+        : isTwitter ? user?.twitter?.subject :
+          isGithub ? user?.github?.subject : null;
 
       // Perform disconnect in background
       handleUnlinkSocial(linkToDelete.platform, subjectId);
     }
 
+    const previous = socialLinks
     const updated = socialLinks.filter(link => link.id !== id)
     setSocialLinks(updated)
     const success = await saveSocialLinks(updated)
     if (success) {
       toast.success('Social link removed')
+    } else {
+      setSocialLinks(previous)
     }
   }
 
@@ -2247,7 +2392,9 @@ export function LinksPanel() {
                   const isTwitter = link.platform === 'x' || link.platform === 'twitter'
                   const isGithub = link.platform === 'github'
                   const isSupported = isTwitter || isGithub
-                  const userData = isTwitter ? user?.twitter : isGithub ? user?.github : null
+                  const userData = !privyWalletMatchesTarget
+                    ? null
+                    : isTwitter ? user?.twitter : isGithub ? user?.github : null
                   const subjectId = userData?.subject
 
                   return (
@@ -2275,16 +2422,16 @@ export function LinksPanel() {
                                 // 1. Platforma özel ayarları ve verileri dinamik olarak seçiyoruz
                                 const platformConfig = {
                                   x: {
-                                    label: 'Twitter',
-                                    userData: user?.twitter,
+                                    label: 'X',
+                                    userData: privyWalletMatchesTarget ? user?.twitter : null,
                                     linkMethod: linkTwitter,
                                     unlinkMethod: unlinkTwitter,
                                     apiPlatformName: 'twitter',
                                     loginMethod: 'twitter'
                                   },
                                   twitter: {
-                                    label: 'Twitter',
-                                    userData: user?.twitter,
+                                    label: 'X',
+                                    userData: privyWalletMatchesTarget ? user?.twitter : null,
                                     linkMethod: linkTwitter,
                                     unlinkMethod: unlinkTwitter,
                                     apiPlatformName: 'twitter',
@@ -2292,7 +2439,7 @@ export function LinksPanel() {
                                   },
                                   github: {
                                     label: 'GitHub',
-                                    userData: user?.github,
+                                    userData: privyWalletMatchesTarget ? user?.github : null,
                                     linkMethod: linkGithub,
                                     unlinkMethod: unlinkGithub,
                                     apiPlatformName: 'github',
@@ -2318,8 +2465,11 @@ export function LinksPanel() {
                                 }
 
                                 const linkUsername = getUsernameFromUrl(link.url)
-                                const privyUsername = userData?.username?.toLowerCase()
+                                const privyUsername = normalizeHandle(userData?.username)
                                 const isVerified = link.verified
+                                const isPendingVerification =
+                                  pendingVerification?.linkId === link.id &&
+                                  pendingVerification?.platform === config.apiPlatformName
 
                                 // --- DURUM 1: Zaten Doğrulanmış ---
                                 if (isVerified) {
@@ -2335,7 +2485,7 @@ export function LinksPanel() {
                                 const isSyncingInState = activeSyncs.has(config.apiPlatformName)
                                 const platformLastSync = lastSyncTime[config.apiPlatformName] || 0
                                 const isCooldownSyncing = Date.now() - platformLastSync < 6000
-                                const isSyncing = isSyncingInState || isCooldownSyncing
+                                const isSyncing = isSyncingInState || isCooldownSyncing || isPendingVerification
 
                                 return (
                                   <div className="flex flex-row gap-1 items-start">
@@ -2345,38 +2495,57 @@ export function LinksPanel() {
                                       className="h-5 px-2 text-[10px]"
                                       disabled={isSyncing}
                                       onClick={async () => {
-                                        setLastSyncTime(prev => ({ ...prev, [config.apiPlatformName]: Date.now() }))
-
                                         if (!userData) {
                                           // DURUM 2: Privy Bağlantısı Yok
                                           if (!privyReady) {
                                             toast.error(`${label} verification is currently unavailable.`)
                                             return
                                           }
-                                          if (!authenticated) {
-                                            setPendingTwitterLink(true)
-                                            await login({ loginMethods: [loginMethod as any] })
+                                          try {
+                                            if (!authenticated) {
+                                              setPendingVerification({
+                                                platform: apiPlatformName as 'twitter' | 'github',
+                                                linkId: link.id,
+                                              })
+                                              await login({ loginMethods: [loginMethod as any] })
+                                              return
+                                            }
+                                            setPendingVerification({
+                                              platform: apiPlatformName as 'twitter' | 'github',
+                                              linkId: link.id,
+                                            })
+                                            await linkMethod()
+                                            return
+                                          } catch (error: any) {
+                                            setPendingVerification(null)
+                                            setLastSyncTime(prev => ({ ...prev, [config.apiPlatformName]: 0 }))
+                                            const message = error?.message || ''
+                                            if (message.includes('already has an account of type')) {
+                                              toast.error(`${label} account is already linked in this session. If this is the wrong account, use "Wrong account? Change".`)
+                                            } else {
+                                              toast.error(message || `Failed to connect ${label}.`)
+                                            }
                                             return
                                           }
-                                          linkMethod()
+                                        }
+
+                                        if (linkUsername && privyUsername && linkUsername !== privyUsername) {
+                                          toast.error(`${label} account does not match the URL. Update the URL or switch account and try again.`)
                                           return
                                         }
 
                                         // DURUM 3: Privy Bağlı Ama Backend Bekleniyor
                                         try {
+                                          setLastSyncTime(prev => ({ ...prev, [config.apiPlatformName]: Date.now() }))
                                           const toastId = toast.loading('Verifying...')
-                                          const response = await fetch('/api/social/link', {
-                                            method: 'POST',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify({
-                                              platform: apiPlatformName,
-                                              platformUsername: userData.username,
-                                              platformUserId: userData.subject,
-                                              address: targetAddress,
-                                            }),
+                                          const verified = await verifySocialOnBackend({
+                                            platform: apiPlatformName as 'twitter' | 'github',
+                                            platformUsername: userData.username,
+                                            platformUserId: userData.subject,
+                                            address: targetAddress,
                                           })
 
-                                          if (response.ok) {
+                                          if (verified) {
                                             setSocialLinks(prev =>
                                               prev.map(item =>
                                                 item.id === link.id ? { ...item, verified: true } : item
@@ -2386,23 +2555,26 @@ export function LinksPanel() {
                                             await new Promise(r => setTimeout(r, 1000))
                                             await loadSocialLinks()
                                             setTimeout(loadSocialLinks, 2500)
-                                          } else {
-                                            const data = await response.json()
-                                            toast.error(data.error || 'Verification failed', { id: toastId })
                                           }
-                                        } catch (e) {
-                                          toast.error('Failed to connect')
+                                        } catch (e: any) {
+                                          setLastSyncTime(prev => ({ ...prev, [config.apiPlatformName]: 0 }))
+                                          const message = e?.message || ''
+                                          if (message.includes('already connected to another profile')) {
+                                            toast.error(`${label} account is linked to a different wallet. Update the URL to the correct account and verify again.`)
+                                          } else {
+                                            toast.error(message || 'Failed to connect')
+                                          }
                                         }
                                       }}
                                     >
                                       {isSyncing ? (
                                         <span className="flex items-center gap-1">
                                           <Loader2 className="h-2.5 w-2.5 animate-spin" />
-                                          Verifying...
+                                          {isPendingVerification ? 'Finishing...' : 'Verifying...'}
                                         </span>
                                       ) : 'Verify'}
                                     </Button>
-                                    {userData && (
+                                    {userData && !isPendingVerification && (
                                       <button
                                         className="text-[10px] text-muted-foreground hover:text-red-500 underline"
                                         onClick={() => handleUnlinkSocial(config.apiPlatformName, userData?.subject)}
@@ -2536,7 +2708,7 @@ export function LinksPanel() {
                   id="social-url"
                   value={newSocialUrl}
                   onChange={(e) => setNewSocialUrl(e.target.value)}
-                  placeholder="https://twitter.com/username"
+                  placeholder="https://x.com/username"
                 />
                 <p className="text-xs text-muted-foreground">
                   Full URL to your profile

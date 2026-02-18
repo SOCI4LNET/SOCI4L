@@ -171,14 +171,26 @@ export async function POST(request: NextRequest) {
     const normalizedAddress = address.toLowerCase()
     const normalizedSigner = signer.toLowerCase()
 
-    // Fetch Profile by address
-    const profile = await prisma.profile.findUnique({
+    // Fetch profile by normalized address; fallback to case-insensitive lookup
+    // for legacy records that may have mixed-case addresses.
+    let profile = await prisma.profile.findUnique({
       where: { address: normalizedAddress },
     })
 
     if (!profile) {
+      profile = await prisma.profile.findFirst({
+        where: {
+          address: {
+            equals: normalizedAddress,
+            mode: 'insensitive',
+          },
+        },
+      })
+    }
+
+    if (!profile) {
       return NextResponse.json(
-        { error: 'Profile not found' },
+        { error: 'Profile not found. Please claim your profile first.' },
         { status: 404 }
       )
     }
@@ -187,7 +199,7 @@ export async function POST(request: NextRequest) {
     const isClaimed = profile.status === 'CLAIMED' || profile.ownerAddress || profile.owner
     if (!isClaimed) {
       return NextResponse.json(
-        { error: 'Profile not claimed yet' },
+        { error: 'Profile not claimed yet. Please claim your profile first.' },
         { status: 400 }
       )
     }
@@ -245,7 +257,7 @@ export async function POST(request: NextRequest) {
 
     // Update profile
     const updatedProfile = await prisma.profile.update({
-      where: { address: normalizedAddress },
+      where: { id: profile.id },
       data: updateData,
     })
 
