@@ -751,6 +751,8 @@ export function LinksPanel() {
     const githubAccount = user?.github
     if (githubAccount) {
       const syncSocial = async () => {
+        const githubUsername = githubAccount.username || ''
+        if (!githubUsername) return
         const privyWallet = activeSessionWalletAddress
         const currentTarget = targetAddress?.toLowerCase()
 
@@ -775,13 +777,13 @@ export function LinksPanel() {
 
           const response = await verifySocialOnBackend({
             platform: 'github',
-            platformUsername: githubAccount.username,
+            platformUsername: githubUsername,
             platformUserId: githubAccount.subject,
             address: currentTarget,
           })
 
           if (response) {
-            localStorage.setItem(`soci4l_github_sync_${githubAccount.username}`, now.toString())
+            localStorage.setItem(`soci4l_github_sync_${githubUsername}`, now.toString())
             // Wait for DB consistency before refresh
             await new Promise(r => setTimeout(r, 1000))
             await loadSocialLinks()
@@ -791,9 +793,7 @@ export function LinksPanel() {
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error || '')
           if (message.includes('already connected to another profile')) {
-            if (githubAccount.username) {
-              localStorage.setItem(`sc_nosync_github_${githubAccount.username}`, (Date.now() + 300000).toString())
-            }
+            localStorage.setItem(`sc_nosync_github_${githubUsername}`, (Date.now() + 300000).toString())
             setLastSyncTime(prev => ({ ...prev, github: 0 }))
             setActiveSyncs(prev => {
               const next = new Set(prev)
@@ -832,6 +832,8 @@ export function LinksPanel() {
     const twitterAccount = user?.twitter
     if (twitterAccount) {
       const syncSocial = async () => {
+        const twitterUsername = twitterAccount.username || ''
+        if (!twitterUsername) return
         const privyWallet = activeSessionWalletAddress
         const currentTarget = targetAddress?.toLowerCase()
 
@@ -842,7 +844,7 @@ export function LinksPanel() {
 
         if (isBackendVerified) return
 
-        const noSyncUntil = localStorage.getItem(`sc_nosync_twitter_${twitterAccount.username}`)
+        const noSyncUntil = localStorage.getItem(`sc_nosync_twitter_${twitterUsername}`)
         if (noSyncUntil && Date.now() < parseInt(noSyncUntil)) return
 
         if (activeSyncs.has('twitter')) return
@@ -854,13 +856,13 @@ export function LinksPanel() {
 
           const response = await verifySocialOnBackend({
             platform: 'twitter',
-            platformUsername: twitterAccount.username,
+            platformUsername: twitterUsername,
             platformUserId: twitterAccount.subject,
             address: currentTarget,
           })
 
           if (response) {
-            localStorage.setItem(`soci4l_twitter_sync_${twitterAccount.username}`, now.toString())
+            localStorage.setItem(`soci4l_twitter_sync_${twitterUsername}`, now.toString())
             await new Promise(r => setTimeout(r, 1000))
             await loadSocialLinks()
             setTimeout(loadSocialLinks, 2000)
@@ -868,9 +870,7 @@ export function LinksPanel() {
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error || '')
           if (message.includes('already connected to another profile')) {
-            if (twitterAccount.username) {
-              localStorage.setItem(`sc_nosync_twitter_${twitterAccount.username}`, (Date.now() + 300000).toString())
-            }
+            localStorage.setItem(`sc_nosync_twitter_${twitterUsername}`, (Date.now() + 300000).toString())
             setLastSyncTime(prev => ({ ...prev, twitter: 0 }))
             setActiveSyncs(prev => {
               const next = new Set(prev)
@@ -2500,7 +2500,7 @@ export function LinksPanel() {
                                 const config = platformConfig[link.platform as keyof typeof platformConfig]
                                 if (!config) return null
 
-                                const { label, userData, linkMethod, unlinkMethod, apiPlatformName, loginMethod } = config
+                                const { label, userData, linkMethod, apiPlatformName, loginMethod } = config
 
                                 // URL'den kullanıcı adı ayrıştırma
                                 const getUsernameFromUrl = (url: string) => {
@@ -2517,9 +2517,13 @@ export function LinksPanel() {
                                 const linkUsername = getUsernameFromUrl(link.url)
                                 const privyUsername = normalizeHandle(userData?.username)
                                 const isVerified = link.verified
+                                const platformHasConnectedAccount = Boolean(userData?.subject)
                                 const isPendingVerification =
                                   pendingVerification?.linkId === link.id &&
                                   pendingVerification?.platform === config.apiPlatformName
+                                const hasUrlMismatch = Boolean(
+                                  linkUsername && privyUsername && linkUsername !== privyUsername
+                                )
 
                                 // --- DURUM 1: Zaten Doğrulanmış ---
                                 if (isVerified) {
@@ -2539,11 +2543,25 @@ export function LinksPanel() {
 
                                 return (
                                   <div className="flex flex-row gap-1 items-start">
+                                    {isSyncing ? (
+                                      <Badge variant="outline" className="h-5 px-1.5 gap-1 text-[10px] font-normal text-blue-600 border-blue-600/30 bg-blue-500/5">
+                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                        Verifying
+                                      </Badge>
+                                    ) : hasUrlMismatch ? (
+                                      <Badge variant="outline" className="h-5 px-1.5 text-[10px] font-normal text-red-500 border-red-500/30 bg-red-500/5">
+                                        URL mismatch
+                                      </Badge>
+                                    ) : platformHasConnectedAccount ? (
+                                      <Badge variant="outline" className="h-5 px-1.5 text-[10px] font-normal text-amber-600 border-amber-600/30 bg-amber-500/5">
+                                        Connected
+                                      </Badge>
+                                    ) : null}
                                     <Button
                                       variant="outline"
                                       size="sm"
                                       className="h-5 px-2 text-[10px]"
-                                      disabled={isSyncing}
+                                      disabled={isSyncing || hasUrlMismatch}
                                       onClick={async () => {
                                         if (authenticated && !privyWalletMatchesTarget) {
                                           toast.error(
@@ -2586,7 +2604,7 @@ export function LinksPanel() {
                                           }
                                         }
 
-                                        if (linkUsername && privyUsername && linkUsername !== privyUsername) {
+                                        if (hasUrlMismatch) {
                                           toast.error(`${label} account does not match the URL. Update the URL or switch account and try again.`)
                                           return
                                         }
@@ -2597,7 +2615,7 @@ export function LinksPanel() {
                                           setLastSyncTime(prev => ({ ...prev, [config.apiPlatformName]: Date.now() }))
                                           const verified = await verifySocialOnBackend({
                                             platform: apiPlatformName as 'twitter' | 'github',
-                                            platformUsername: userData.username,
+                                            platformUsername: userData.username || linkUsername,
                                             platformUserId: userData.subject,
                                             address: targetAddress,
                                           })
@@ -2629,7 +2647,7 @@ export function LinksPanel() {
                                           <Loader2 className="h-2.5 w-2.5 animate-spin" />
                                           {isPendingVerification ? 'Finishing...' : 'Verifying...'}
                                         </span>
-                                      ) : hasConnectedAccount ? 'Complete Verify' : 'Verify'}
+                                      ) : platformHasConnectedAccount ? 'Complete Verify' : 'Verify'}
                                     </Button>
                                   </div>
                                 )
