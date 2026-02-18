@@ -175,6 +175,11 @@ export default function ProfilePage({ params }: PageProps) {
 
   const stableProfileId = addressFromProfile || addressFromParam || null
 
+  const isOwnProfile = !!(connectedAddress && stableProfileId && connectedAddress.toLowerCase() === stableProfileId)
+  const isPrivate = profileStatus === 'CLAIMED+PRIVATE'
+  const isClaimed = profileStatus === 'CLAIMED+PUBLIC' || profileStatus === 'CLAIMED+PRIVATE'
+  const resolvedAddress = stableProfileId
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
@@ -427,7 +432,7 @@ export default function ProfilePage({ params }: PageProps) {
     const action = searchParams.get('action')
     console.log('[DonateModal] URL check:', { action, hasProfile: !!profile?.address, isBanned: profile?.isBanned, loading, donateModalOpen })
 
-    if (action === 'donate' && profile?.address && !profile?.isBanned && !loading && !donateModalOpen) {
+    if (action === 'donate' && profile?.address && !profile?.isBanned && !loading && !donateModalOpen && !isOwnProfile) {
       console.log('[DonateModal] Opening modal from URL parameter', { action })
       // Delay to ensure page is fully rendered
       const timer = setTimeout(() => {
@@ -598,11 +603,6 @@ export default function ProfilePage({ params }: PageProps) {
   }
 
 
-  // Show private state if profile is CLAIMED and PRIVATE
-  const isPrivate = profileStatus === 'CLAIMED+PRIVATE'
-  const isClaimed = profileStatus === 'CLAIMED+PUBLIC' || profileStatus === 'CLAIMED+PRIVATE'
-  const resolvedAddress = profile?.address || (params.id.startsWith('0x') ? params.id : null)
-  const isOwnProfile = connectedAddress && resolvedAddress && connectedAddress.toLowerCase() === resolvedAddress.toLowerCase()
   // Normalize once for follow/stats so cache key and API always use same address (fixes followers count persistence)
   const profileAddressForFollow =
     resolvedAddress && isValidAddress(resolvedAddress) ? resolvedAddress.toLowerCase() : null
@@ -1002,6 +1002,7 @@ export default function ProfilePage({ params }: PageProps) {
                         size="sm"
                         className="h-8 gap-2 text-muted-foreground hover:text-pink-500 hover:border-pink-200 hover:bg-pink-50"
                         onClick={() => setDonateModalOpen(true)}
+                        disabled={isOwnProfile}
                       >
                         <Heart className="h-3.5 w-3.5" />
                         <span className="hidden sm:inline text-xs font-medium">Donate</span>
