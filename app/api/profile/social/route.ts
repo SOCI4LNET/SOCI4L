@@ -4,7 +4,7 @@ import { verifyMessage, recoverMessageAddress } from 'viem'
 import { prisma } from '@/lib/prisma'
 import { isValidAddress } from '@/lib/utils'
 
-type SocialLinkPlatform = 'x' | 'instagram' | 'youtube' | 'github' | 'linkedin' | 'website'
+type SocialLinkPlatform = 'x' | 'twitter' | 'instagram' | 'youtube' | 'github' | 'linkedin' | 'website'
 
 interface SocialLink {
   id?: string
@@ -12,6 +12,7 @@ interface SocialLink {
   type?: string // backward compatibility
   url: string
   label?: string
+  enabled?: boolean
 }
 
 export async function POST(request: NextRequest) {
@@ -97,7 +98,7 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      const validPlatforms: SocialLinkPlatform[] = ['x', 'instagram', 'youtube', 'github', 'linkedin', 'website']
+      const validPlatforms: SocialLinkPlatform[] = ['x', 'twitter', 'instagram', 'youtube', 'github', 'linkedin', 'website']
 
       for (const link of socialLinks) {
         const platform = link.platform || link.type
@@ -237,6 +238,7 @@ export async function POST(request: NextRequest) {
         platform: link.platform || link.type || 'website',
         url: link.url,
         label: link.label || undefined,
+        enabled: link.enabled !== false,
       }))
       updateData.socialLinks = normalizedLinks.length > 0 ? JSON.stringify(normalizedLinks) : null
     }
@@ -261,6 +263,7 @@ export async function POST(request: NextRequest) {
             platform: link.platform || link.type || 'website',
             url: link.url,
             label: link.label,
+            enabled: link.enabled !== false,
           }))
           : null
       } catch {

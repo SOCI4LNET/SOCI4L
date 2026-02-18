@@ -517,12 +517,6 @@ export function LinksPanel() {
       linkTwitter()
     }
   }, [authenticated, pendingTwitterLink, privyReady, linkTwitter])
-
-
-
-  // Get target address from route params or connected wallet
-  const targetAddress = (params.address as string)?.toLowerCase() || connectedAddress?.toLowerCase() || ''
-
   const [links, setLinks] = useState<LinkItem[]>([])
   const [categories, setCategories] = useState<LinkCategory[]>([])
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -554,6 +548,7 @@ export function LinksPanel() {
   const [newSocialLabel, setNewSocialLabel] = useState('')
   const [activeSyncs, setActiveSyncs] = useState<Set<string>>(new Set())
   const [lastSyncTime, setLastSyncTime] = useState<Record<string, number>>({})
+  const [disconnectingPlatforms, setDisconnectingPlatforms] = useState<Set<string>>(new Set())
 
   const loadSocialLinks = useCallback(async () => {
     if (!targetAddress) {
@@ -934,6 +929,7 @@ export function LinksPanel() {
     // Map 'x' to 'twitter' for backend consistency
     const backendPlatform = platform === 'x' ? 'twitter' : platform;
     const platformLabel = getSocialLabel(platform as SocialLinkPlatform);
+    setDisconnectingPlatforms(prev => new Set(prev).add(backendPlatform))
 
     // Set a flag to prevent automatic re-sync for 5 minutes
     if (user?.twitter?.username && (platform === 'x' || platform === 'twitter')) {
@@ -1011,10 +1007,23 @@ export function LinksPanel() {
       }
 
       toast.success(`${platformLabel} disconnected.`, { id: toastId });
+      setSocialLinks(prev =>
+        prev.map(link => {
+          const linkPlatform = link.platform === 'x' ? 'twitter' : link.platform
+          if (linkPlatform !== backendPlatform) return link
+          return { ...link, verified: false }
+        })
+      )
       await loadSocialLinks();
     } catch (error: any) {
       console.error('Unlink process failed:', error);
       toast.error(`Failed to disconnect: ${error.message || 'Unknown error'}`, { id: toastId });
+    } finally {
+      setDisconnectingPlatforms(prev => {
+        const next = new Set(prev)
+        next.delete(backendPlatform)
+        return next
+      })
     }
   }
 
@@ -1070,14 +1079,19 @@ export function LinksPanel() {
       }
 
       const savedLinks = data.profile?.socialLinks || []
-      setSocialLinks(savedLinks.map((link: any) => ({
-        id: link.id || `social-${link.url}`,
-        platform: (link.platform || link.type || 'website') as SocialLinkPlatform,
-        url: link.url || '',
-        label: link.label || '',
-        verified: link.verified,
-        enabled: link.enabled !== false,
-      })))
+      const prevById = new Map(socialLinks.map((link) => [link.id, link]))
+      setSocialLinks(savedLinks.map((link: any) => {
+        const resolvedId = link.id || `social-${link.url}`
+        const previous = prevById.get(resolvedId)
+        return {
+          id: resolvedId,
+          platform: (link.platform || link.type || previous?.platform || 'website') as SocialLinkPlatform,
+          url: link.url || previous?.url || '',
+          label: link.label || previous?.label || '',
+          verified: typeof link.verified === 'boolean' ? link.verified : previous?.verified,
+          enabled: typeof link.enabled === 'boolean' ? link.enabled : previous?.enabled !== false,
+        }
+      }))
       return true
     } catch (error: any) {
       console.error('[LinksPanel] Failed to save social links', error)
@@ -2363,6 +2377,11 @@ export function LinksPanel() {
                                           })
 
                                           if (response.ok) {
+                                            setSocialLinks(prev =>
+                                              prev.map(item =>
+                                                item.id === link.id ? { ...item, verified: true } : item
+                                              )
+                                            )
                                             toast.success('Verified!', { id: toastId })
                                             await new Promise(r => setTimeout(r, 1000))
                                             await loadSocialLinks()
@@ -2407,11 +2426,12 @@ export function LinksPanel() {
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
-                        {userData && (
+                        {isSupported && (userData || link.verified) && (
                           <Button
                             variant="ghost"
                             size="sm"
                             className="text-red-500 hover:text-red-600 hover:bg-red-50 h-9 px-2 text-xs"
+                            disabled={disconnectingPlatforms.has(isTwitter ? 'twitter' : 'github')}
                             onClick={() => {
                               handleUnlinkSocial(isTwitter ? 'twitter' : (link.platform as string), subjectId);
                             }}
