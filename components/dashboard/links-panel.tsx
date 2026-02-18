@@ -1112,7 +1112,7 @@ export function LinksPanel() {
     loadSocialLinks()
   }, [loadSocialLinks])
 
-  const handleUnlinkSocial = async (platform: string, subjectId?: string | null) => {
+  const handleUnlinkSocial = async (platform: string, subjectId?: string | null): Promise<boolean> => {
     // Map 'x' to 'twitter' for backend consistency
     const backendPlatform = platform === 'x' ? 'twitter' : platform;
     const platformLabel = getSocialLabel(platform as SocialLinkPlatform);
@@ -1175,12 +1175,12 @@ export function LinksPanel() {
           } catch (signError: any) {
             console.error('Signature process failed:', signError);
             toast.error(signError.message || 'Verification failed', { id: toastId });
-            return;
+            return false;
           }
         } else {
           console.error('Backend unlink failed:', errorData.error);
           toast.error(errorData.error || 'Connection error', { id: toastId });
-          return;
+          return false;
         }
       }
 
@@ -1215,9 +1215,11 @@ export function LinksPanel() {
         })
       )
       await loadSocialLinks();
+      return true
     } catch (error: any) {
       console.error('Unlink process failed:', error);
       toast.error(`Failed to disconnect: ${error.message || 'Unknown error'}`, { id: toastId });
+      return false
     } finally {
       setDisconnectingPlatforms(prev => {
         const next = new Set(prev)
@@ -2082,8 +2084,11 @@ export function LinksPanel() {
         : isTwitter ? user?.twitter?.subject :
           isGithub ? user?.github?.subject : null;
 
-      // Perform disconnect in background
-      handleUnlinkSocial(linkToDelete.platform, subjectId);
+      // Complete disconnect first to avoid auth/signature race with profile save
+      const disconnected = await handleUnlinkSocial(linkToDelete.platform, subjectId)
+      if (!disconnected) {
+        return
+      }
     }
 
     const previous = socialLinks
@@ -2703,7 +2708,7 @@ export function LinksPanel() {
                             className="text-red-500 hover:text-red-600 hover:bg-red-50 h-9 px-2 text-xs"
                             disabled={disconnectingPlatforms.has(isTwitter ? 'twitter' : 'github')}
                             onClick={() => {
-                              handleUnlinkSocial(isTwitter ? 'twitter' : (link.platform as string), subjectId);
+                              void handleUnlinkSocial(isTwitter ? 'twitter' : (link.platform as string), subjectId);
                             }}
                           >
                             Disconnect
