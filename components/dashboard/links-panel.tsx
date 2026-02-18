@@ -544,11 +544,14 @@ export function LinksPanel() {
   const [activeSyncs, setActiveSyncs] = useState<Set<string>>(new Set())
   const [lastSyncTime, setLastSyncTime] = useState<Record<string, number>>({})
   const [disconnectingPlatforms, setDisconnectingPlatforms] = useState<Set<string>>(new Set())
+  const activeSessionWalletAddress = useMemo(
+    () => (user?.wallet?.address || connectedAddress || '').toLowerCase(),
+    [user?.wallet?.address, connectedAddress]
+  )
   const privyWalletMatchesTarget = useMemo(() => {
-    const privyWallet = user?.wallet?.address?.toLowerCase()
     const currentTarget = targetAddress?.toLowerCase()
-    return Boolean(privyWallet && currentTarget && privyWallet === currentTarget)
-  }, [user?.wallet?.address, targetAddress])
+    return Boolean(activeSessionWalletAddress && currentTarget && activeSessionWalletAddress === currentTarget)
+  }, [activeSessionWalletAddress, targetAddress])
 
   const getUsernameFromUrl = useCallback((url: string) => {
     try {
@@ -748,7 +751,7 @@ export function LinksPanel() {
     const githubAccount = user?.github
     if (githubAccount) {
       const syncSocial = async () => {
-        const privyWallet = user?.wallet?.address?.toLowerCase()
+        const privyWallet = activeSessionWalletAddress
         const currentTarget = targetAddress?.toLowerCase()
 
         if (!privyWallet || !currentTarget || privyWallet !== currentTarget) return
@@ -801,7 +804,7 @@ export function LinksPanel() {
 
       syncSocial()
     }
-  }, [user?.github, socialLinks, loadSocialLinks, targetAddress, verifySocialOnBackend])
+  }, [user?.github, socialLinks, loadSocialLinks, targetAddress, verifySocialOnBackend, activeSessionWalletAddress])
 
   // Refresh social links data when Privy identity changes
   useEffect(() => {
@@ -815,7 +818,7 @@ export function LinksPanel() {
     const twitterAccount = user?.twitter
     if (twitterAccount) {
       const syncSocial = async () => {
-        const privyWallet = user?.wallet?.address?.toLowerCase()
+        const privyWallet = activeSessionWalletAddress
         const currentTarget = targetAddress?.toLowerCase()
 
         if (!privyWallet || !currentTarget || privyWallet !== currentTarget) return
@@ -863,7 +866,7 @@ export function LinksPanel() {
 
       syncSocial()
     }
-  }, [user?.twitter, socialLinks, loadSocialLinks, targetAddress, user?.wallet?.address, verifySocialOnBackend]) // Added targetAddress and user.wallet.address for more robust dependency tracking
+  }, [user?.twitter, socialLinks, loadSocialLinks, targetAddress, activeSessionWalletAddress, verifySocialOnBackend]) // Added targetAddress and session wallet for robust dependency tracking
 
   // Helper functions for social links
   const getSocialIcon = (platform: SocialLinkPlatform) => {
@@ -2502,9 +2505,8 @@ export function LinksPanel() {
                                       disabled={isSyncing}
                                       onClick={async () => {
                                         if (authenticated && !privyWalletMatchesTarget) {
-                                          const activeSessionWallet = user?.wallet?.address?.toLowerCase()
                                           toast.error(
-                                            `Session wallet ${shortAddress(activeSessionWallet)} does not match profile wallet ${shortAddress(targetAddress)}. Reconnect with the correct wallet and try again.`
+                                            `Session wallet ${shortAddress(activeSessionWalletAddress)} does not match profile wallet ${shortAddress(targetAddress)}. Reconnect with the correct wallet and try again.`
                                           )
                                           return
                                         }
