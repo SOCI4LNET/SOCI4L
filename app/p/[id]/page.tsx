@@ -941,6 +941,34 @@ export default function ProfilePage({ params }: PageProps) {
                           </Badge>
                         )}
                       </div>
+
+                      {/* 2. Bio */}
+                      {!profile?.isBanned && profile?.bio && (
+                        <p className="text-sm text-muted-foreground/90 pr-4 leading-relaxed mb-0.5 break-words whitespace-pre-wrap">
+                          {simplifyHeaderBio(profile.bio)}
+                        </p>
+                      )}
+
+                      {/* 3. Status / Intent (Whisper style) */}
+                      {!profile?.isBanned && profile?.statusMessage && (
+                        <p className="text-xs text-muted-foreground/70 italic pr-4 leading-relaxed break-words whitespace-pre-wrap">
+                          {profile.statusMessage}
+                        </p>
+                      )}
+
+                      {/* 3. Social & Network Context (Secondary) */}
+                      {!profile?.isBanned && (
+                        <div className="space-y-1 pt-1">
+                          <div className="text-xs text-muted-foreground/70">
+                            Avalanche · {viewCount !== null ? `${viewCount} views` : '— views'}
+                          </div>
+                          {profileAddressForFollow && !profile?.isBanned && (
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground/80">
+                              <FollowStats address={profileAddressForFollow} />
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1011,41 +1039,13 @@ export default function ProfilePage({ params }: PageProps) {
                     )}
                   </div>
                 </div>
-
-                {/* 2. Bio + Meta (Full width from avatar start) */}
-                <div className="mt-3 space-y-2">
-                  {!profile?.isBanned && profile?.bio && (
-                    <p className="text-sm text-muted-foreground/90 leading-relaxed mb-0.5 break-words whitespace-pre-wrap">
-                      {simplifyHeaderBio(profile.bio)}
-                    </p>
-                  )}
-
-                  {!profile?.isBanned && profile?.statusMessage && (
-                    <p className="text-xs text-muted-foreground/70 italic leading-relaxed break-words whitespace-pre-wrap">
-                      {profile.statusMessage}
-                    </p>
-                  )}
-
-                  {!profile?.isBanned && (
-                    <div className="space-y-1 pt-1">
-                      <div className="text-xs text-muted-foreground/70">
-                        Avalanche · {viewCount !== null ? `${viewCount} views` : '— views'}
-                      </div>
-                      {profileAddressForFollow && !profile?.isBanned && (
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground/80">
-                          <FollowStats address={profileAddressForFollow} />
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
               </CardHeader>
 
               {/* Card Content: Only Social Links (Bio/Status is moved up) */}
               {
                 !profile?.isBanned && profile?.socialLinks && profile.socialLinks.length > 0 && (
                   <CardContent className="pt-0 pb-4">
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-2 flex-wrap pl-[calc(3rem+1rem)]"> {/* Indent to align with text */}
                       {profile.socialLinks.map((link) => {
                         const platform = link.platform || link.type || 'website'
                         return (
