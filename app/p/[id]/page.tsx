@@ -1737,7 +1737,7 @@ export default function ProfilePage({ params }: PageProps) {
 
       {profileAddressForFollow && !profile?.isBanned && resolvedAddress && isValidAddress(resolvedAddress) && (
         <div className="fixed inset-x-0 bottom-0 z-50 md:hidden px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
-          <div className="rounded-2xl border border-border/50 bg-gradient-to-t from-background/90 via-background/75 to-background/60 p-2 shadow-2xl backdrop-blur-xl supports-[backdrop-filter]:bg-background/65">
+          <div className="p-0">
             <div className="grid grid-cols-3 gap-2">
               <FollowToggle
                 address={profileAddressForFollow}
