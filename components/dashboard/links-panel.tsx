@@ -115,7 +115,6 @@ type StoredLinksState = {
 const PRIMARY_STORAGE_KEY = 'soci4l.links.v1'
 const LEGACY_STORAGE_KEY = 'soci4l.profileLinks.v1'
 
-
 // =============================================================================
 // DRAG & DROP COMPONENTS
 // =============================================================================
@@ -498,14 +497,18 @@ export function LinksPanel() {
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { user, linkTwitter, unlinkTwitter, ready: privyReady, authenticated, login } = usePrivy()
+  const { user, linkTwitter, unlinkTwitter, linkGithub, unlinkGithub, ready: privyReady, authenticated, login, logout } = usePrivy()
   const { address: connectedAddress } = useAccount()
   const { signMessageAsync } = useSignMessage()
   const { showTransactionLoader, hideTransactionLoader } = useTransaction()
   const linksListRef = useRef<HTMLDivElement>(null)
 
+  // Get target address from route params or connected wallet
+  const targetAddress = (params.address as string)?.toLowerCase() || connectedAddress?.toLowerCase() || ''
+
   // State for triggering Twitter link after Privy authentication
   const [pendingTwitterLink, setPendingTwitterLink] = useState(false)
+  const [pendingVerification, setPendingVerification] = useState<string | null>(null)
 
   // Auto-link Twitter after Privy authentication
   useEffect(() => {
@@ -516,6 +519,9 @@ export function LinksPanel() {
   }, [authenticated, pendingTwitterLink, privyReady, linkTwitter])
 
 
+
+  // Get target address from route params or connected wallet
+  const targetAddress = (params.address as string)?.toLowerCase() || connectedAddress?.toLowerCase() || ''
 
   const [links, setLinks] = useState<LinkItem[]>([])
   const [categories, setCategories] = useState<LinkCategory[]>([])
@@ -538,40 +544,153 @@ export function LinksPanel() {
   const [categoryFormName, setCategoryFormName] = useState('')
   const [categoryFormDescription, setCategoryFormDescription] = useState('')
 
-  // Social Links state
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([])
   const [socialLinksLoading, setSocialLinksLoading] = useState(true)
+  const [socialLinksSaving, setSocialLinksSaving] = useState(false)
+  const [socialDialogOpen, setSocialDialogOpen] = useState(false)
+  const [editingSocialLink, setEditingSocialLink] = useState<SocialLink | null>(null)
+  const [newSocialPlatform, setNewSocialPlatform] = useState<SocialLinkPlatform>('website')
+  const [newSocialUrl, setNewSocialUrl] = useState('')
+  const [newSocialLabel, setNewSocialLabel] = useState('')
+  const [activeSyncs, setActiveSyncs] = useState<Set<string>>(new Set())
+  const [lastSyncTime, setLastSyncTime] = useState<Record<string, number>>({})
+
+  const loadSocialLinks = useCallback(async () => {
+    if (!targetAddress) {
+      setSocialLinksLoading(false)
+      return
+    }
+
+    try {
+      setSocialLinksLoading(true)
+      const cacheBust = `${Date.now()}-${Math.random().toString(36).substring(7)}`
+      const response = await fetch(`/api/wallet?address=${encodeURIComponent(targetAddress)}&_t=${cacheBust}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to load profile')
+      }
+
+      const data = await response.json()
+      const links = data.profile?.socialLinks || []
+      setSocialLinks(links.map((link: any) => ({
+        // Use deterministic ID if missing to match public profile behavior
+        id: link.id || `social-${link.url}`,
+        platform: (link.platform || link.type || 'website') as SocialLinkPlatform,
+        url: link.url || '',
+        label: link.label || '',
+        verified: link.verified,
+        enabled: link.enabled !== false,
+      })))
+    } catch (error) {
+      console.error('[LinksPanel] Failed to load social links', error)
+      setSocialLinks([])
+    } finally {
+      setSocialLinksLoading(false)
+    }
+  }, [targetAddress])
+
+  // Sync with backend when Github account is detected
+  useEffect(() => {
+    const githubAccount = user?.github
+    if (githubAccount) {
+      const syncSocial = async () => {
+        const privyWallet = user?.wallet?.address?.toLowerCase()
+        const currentTarget = targetAddress?.toLowerCase()
+
+        if (!privyWallet || !currentTarget || privyWallet !== currentTarget) return
+
+        // Check if user manually unlinked recently
+        const noSyncUntil = localStorage.getItem(`sc_nosync_github_${githubAccount.username}`)
+        if (noSyncUntil && Date.now() < parseInt(noSyncUntil)) return
+
+        const githubLink = socialLinks.find(l => l.platform === 'github')
+        const isBackendVerified = githubLink?.verified === true
+
+        // Skip if already verified
+        if (isBackendVerified) return
+
+        const now = Date.now()
+        if (activeSyncs.has('github')) return
+
+        try {
+          setActiveSyncs(prev => new Set(prev).add('github'))
+          setLastSyncTime(prev => ({ ...prev, github: now }))
+
+          const response = await fetch('/api/social/link', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              platform: 'github',
+              platformUsername: githubAccount.username,
+              platformUserId: githubAccount.subject,
+              address: currentTarget,
+            }),
+          })
+
+          if (response.ok) {
+            localStorage.setItem(`soci4l_github_sync_${githubAccount.username}`, now.toString())
+            // Wait for DB consistency before refresh
+            await new Promise(r => setTimeout(r, 1000))
+            await loadSocialLinks()
+            // Double check after another second
+            setTimeout(loadSocialLinks, 2000)
+          }
+        } catch (error) {
+          console.error('Github sync error:', error)
+        } finally {
+          // Keep in activeSyncs/cooldown for UI transition
+          setTimeout(() => {
+            setActiveSyncs(prev => {
+              const next = new Set(prev)
+              next.delete('github')
+              return next
+            })
+          }, 2000)
+        }
+      }
+
+      syncSocial()
+    }
+  }, [user?.github, socialLinks, loadSocialLinks, targetAddress])
+
+  // Refresh social links data when Privy identity changes
+  useEffect(() => {
+    if (privyReady && authenticated) {
+      loadSocialLinks()
+    }
+  }, [user?.twitter?.username, user?.github?.username, loadSocialLinks, privyReady, authenticated])
 
   // Sync with backend when Twitter account is detected
   useEffect(() => {
     const twitterAccount = user?.twitter
     if (twitterAccount) {
       const syncSocial = async () => {
-        // Validation: Ensure the authenticated Privy user matches the current target profile
-        // This prevents "bleeding" of social links when switching wallets but not full sessions
         const privyWallet = user?.wallet?.address?.toLowerCase()
         const currentTarget = targetAddress?.toLowerCase()
 
-        if (!privyWallet || !currentTarget || privyWallet !== currentTarget) {
-          console.warn('[LinksPanel] Skipping social sync: Wallet mismatch', { privy: privyWallet, target: currentTarget })
-          return
-        }
+        if (!privyWallet || !currentTarget || privyWallet !== currentTarget) return
 
-        // Check if we are already verified in the backend
         const twitterLink = socialLinks.find(l => l.platform === 'x' || l.platform === 'twitter')
         const isBackendVerified = twitterLink?.verified === true
 
-        // Force sync if we have Twitter but backend says not verified
-        const forceSync = twitterLink && !isBackendVerified
+        if (isBackendVerified) return
 
-        // Prevent double sync if already verified recently, UNLESS we need to force sync
-        const lastSync = localStorage.getItem(`soci4l_twitter_sync_${twitterAccount.username}`)
+        const noSyncUntil = localStorage.getItem(`sc_nosync_twitter_${twitterAccount.username}`)
+        if (noSyncUntil && Date.now() < parseInt(noSyncUntil)) return
+
+        if (activeSyncs.has('twitter')) return
+
         const now = Date.now()
-
-        // Don't re-sync if synced in last 1 minute, unless forcing
-        if (!forceSync && lastSync && now - parseInt(lastSync) < 60000) return
-
         try {
+          setActiveSyncs(prev => new Set(prev).add('twitter'))
+          setLastSyncTime(prev => ({ ...prev, twitter: now }))
+
           const response = await fetch('/api/social/link', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -579,38 +698,32 @@ export function LinksPanel() {
               platform: 'twitter',
               platformUsername: twitterAccount.username,
               platformUserId: twitterAccount.subject,
-              address: currentTarget, // Explicitly pass address for safety
+              address: currentTarget,
             }),
           })
 
           if (response.ok) {
-            if (forceSync) {
-              console.log('[LinksPanel] Forced social sync completed')
-            } else {
-              toast.success(`Connected as @${twitterAccount.username}`)
-            }
             localStorage.setItem(`soci4l_twitter_sync_${twitterAccount.username}`, now.toString())
+            await new Promise(r => setTimeout(r, 1000))
+            await loadSocialLinks()
+            setTimeout(loadSocialLinks, 2000)
           }
         } catch (error) {
           console.error('Sync error:', error)
+        } finally {
+          setTimeout(() => {
+            setActiveSyncs(prev => {
+              const next = new Set(prev)
+              next.delete('twitter')
+              return next
+            })
+          }, 2000)
         }
       }
 
-      // Delay slightly to ensure socialLinks are loaded
-      if (!socialLinksLoading) {
-        syncSocial()
-      }
+      syncSocial()
     }
-  }, [user?.twitter, socialLinks, socialLinksLoading])
-  const [socialLinksSaving, setSocialLinksSaving] = useState(false)
-  const [socialDialogOpen, setSocialDialogOpen] = useState(false)
-  const [editingSocialLink, setEditingSocialLink] = useState<SocialLink | null>(null)
-  const [newSocialPlatform, setNewSocialPlatform] = useState<SocialLinkPlatform>('website')
-  const [newSocialUrl, setNewSocialUrl] = useState('')
-  const [newSocialLabel, setNewSocialLabel] = useState('')
-
-  // Get target address from route params or connected wallet
-  const targetAddress = (params.address as string)?.toLowerCase() || connectedAddress?.toLowerCase() || ''
+  }, [user?.twitter, socialLinks, loadSocialLinks, targetAddress, user?.wallet?.address]) // Added targetAddress and user.wallet.address for more robust dependency tracking
 
   // Helper functions for social links
   const getSocialIcon = (platform: SocialLinkPlatform) => {
@@ -810,51 +923,100 @@ export function LinksPanel() {
     loadLinks()
   }, [targetAddress])
 
+
+
   // Load social links from API
   useEffect(() => {
-    if (!targetAddress) {
-      setSocialLinksLoading(false)
-      return
-    }
-
-    const loadSocialLinks = async () => {
-      try {
-        setSocialLinksLoading(true)
-        const cacheBust = `${Date.now()}-${Math.random().toString(36).substring(7)}`
-        const response = await fetch(`/api/wallet?address=${encodeURIComponent(targetAddress)}&_t=${cacheBust}`, {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-          },
-        })
-
-        if (!response.ok) {
-          throw new Error('Failed to load profile')
-        }
-
-        const data = await response.json()
-        const links = data.profile?.socialLinks || []
-        setSocialLinks(links.map((link: any) => ({
-          // Use deterministic ID if missing to match public profile behavior
-          id: link.id || `social-${link.url}`,
-          platform: (link.platform || link.type || 'website') as SocialLinkPlatform,
-          url: link.url || '',
-          label: link.label || '',
-          verified: link.verified,
-          enabled: link.enabled !== false,
-        })))
-      } catch (error) {
-        console.error('[LinksPanel] Failed to load social links', error)
-        // Ensure even empty/failed state doesn't break ID expectations if defaults used
-        setSocialLinks([])
-      } finally {
-        setSocialLinksLoading(false)
-      }
-    }
-
     loadSocialLinks()
-  }, [targetAddress])
+  }, [loadSocialLinks])
+
+  const handleUnlinkSocial = async (platform: string, subjectId?: string | null) => {
+    // Map 'x' to 'twitter' for backend consistency
+    const backendPlatform = platform === 'x' ? 'twitter' : platform;
+    const platformLabel = getSocialLabel(platform as SocialLinkPlatform);
+
+    // Set a flag to prevent automatic re-sync for 5 minutes
+    if (user?.twitter?.username && (platform === 'x' || platform === 'twitter')) {
+      localStorage.setItem(`sc_nosync_twitter_${user.twitter.username}`, (Date.now() + 300000).toString());
+    }
+    if (user?.github?.username && platform === 'github') {
+      localStorage.setItem(`sc_nosync_github_${user.github.username}`, (Date.now() + 300000).toString());
+    }
+
+    const toastId = toast.loading(`${platformLabel} connection is being removed...`);
+
+    try {
+      // 1. Backend Unlink
+      let response = await fetch(`/api/social/link?platform=${backendPlatform}&address=${targetAddress}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+
+        // Handle Signature Fallback
+        if (response.status === 401 && errorData.needsSignature) {
+          try {
+            toast.loading("Session expired. Please sign message to confirm unlinking...", { id: toastId });
+
+            // Get nonce
+            const nonceRes = await fetch('/api/auth/nonce');
+            const { nonce } = await nonceRes.json();
+
+            // Sign message
+            const message = `Unlink ${backendPlatform} account from ${targetAddress.toLowerCase()}. Nonce: ${nonce}`;
+            const signature = await signMessageAsync({ message });
+
+            // Retry with signature
+            toast.loading("Verifying signature...", { id: toastId });
+            response = await fetch(`/api/social/link?platform=${backendPlatform}&address=${targetAddress}&signature=${signature}`, {
+              method: 'DELETE',
+            });
+
+            if (!response.ok) {
+              const retryError = await response.json().catch(() => ({ error: 'Verification failed' }));
+              throw new Error(retryError.error || 'Signature verification failed');
+            }
+          } catch (signError: any) {
+            console.error('Signature process failed:', signError);
+            toast.error(signError.message || 'Verification failed', { id: toastId });
+            return;
+          }
+        } else {
+          console.error('Backend unlink failed:', errorData.error);
+          toast.error(errorData.error || 'Connection error', { id: toastId });
+          // If it's a critical error, we might still want to try Privy unlink below
+        }
+      }
+
+      // 2. Privy Unlink
+      if (subjectId) {
+        try {
+          if (platform === 'x' || platform === 'twitter') {
+            await unlinkTwitter(subjectId);
+          } else if (platform === 'github') {
+            await unlinkGithub(subjectId);
+          }
+        } catch (privyError: any) {
+          console.error('Privy unlink error:', privyError);
+          const errorMsg = privyError?.message || privyError?.toString() || '';
+
+          if (errorMsg.includes('only one account') || errorMsg.includes('linked account')) {
+            console.log('Only one account left, logging out');
+            await logout();
+          } else {
+            toast.error(`Privy error: ${privyError.message}`, { id: toastId });
+          }
+        }
+      }
+
+      toast.success(`${platformLabel} disconnected.`, { id: toastId });
+      await loadSocialLinks();
+    } catch (error: any) {
+      console.error('Unlink process failed:', error);
+      toast.error(`Failed to disconnect: ${error.message || 'Unknown error'}`, { id: toastId });
+    }
+  }
 
   // Save social links
   const saveSocialLinks = async (linksToSave: SocialLink[]) => {
@@ -1682,11 +1844,25 @@ export function LinksPanel() {
   }
 
   const handleDeleteSocialLink = async (id: string) => {
+    const linkToDelete = socialLinks.find(link => link.id === id)
+
+    // If it was verified, we should also offer to disconnect or just do it
+    if (linkToDelete && linkToDelete.verified) {
+      const isTwitter = linkToDelete.platform === 'x' || linkToDelete.platform === 'twitter';
+      const isGithub = linkToDelete.platform === 'github';
+
+      const subjectId = isTwitter ? user?.twitter?.subject :
+        isGithub ? user?.github?.subject : null;
+
+      // Perform disconnect in background
+      handleUnlinkSocial(linkToDelete.platform, subjectId);
+    }
+
     const updated = socialLinks.filter(link => link.id !== id)
     setSocialLinks(updated)
     const success = await saveSocialLinks(updated)
     if (success) {
-      toast.success('Social link deleted')
+      toast.success('Social link removed')
     }
   }
 
@@ -2028,7 +2204,7 @@ export function LinksPanel() {
             </div>
           </CardHeader>
           <CardContent>
-            {socialLinksLoading ? (
+            {socialLinksLoading && socialLinks.length === 0 ? (
               <div className="rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-6 text-center text-xs text-muted-foreground">
                 Loading social links...
               </div>
@@ -2053,192 +2229,242 @@ export function LinksPanel() {
               </div>
             ) : (
               <div className="space-y-2">
-                {sortSocialLinks(socialLinks).map((link) => (
-                  <div
-                    key={link.id}
-                    className={`flex items-center gap-3 p-3 rounded-md border transition-colors ${link.enabled !== false
-                      ? 'border-border/60 bg-muted/5 hover:bg-muted/20'
-                      : 'border-border/40 bg-muted/5 opacity-60'
-                      }`}
-                  >
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted/50 shrink-0">
-                        {getSocialIcon(link.platform)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <div className="text-sm font-medium">{getSocialLabel(link.platform)}</div>
-                          {!link.enabled && (
-                            <Badge variant="outline" className="text-[10px] h-4 px-1 text-muted-foreground border-border/40">
-                              Off
-                            </Badge>
-                          )}
-                          {link.platform === 'x' && (
-                            (() => {
-                              const twitterUser = user?.twitter
-                              const getUsernameFromUrl = (url: string) => {
-                                try {
-                                  const urlToParse = url.startsWith('http') ? url : `https://${url}`
-                                  const urlObj = new URL(urlToParse)
-                                  const segments = urlObj.pathname.split('/').filter(Boolean)
-                                  return segments[segments.length - 1]?.toLowerCase() || ''
-                                } catch {
-                                  return url.split('/').filter(Boolean).pop()?.split('?')[0]?.toLowerCase() || ''
-                                }
-                              }
+                {sortSocialLinks(socialLinks).map((link) => {
+                  const isTwitter = link.platform === 'x' || link.platform === 'twitter'
+                  const isGithub = link.platform === 'github'
+                  const isSupported = isTwitter || isGithub
+                  const userData = isTwitter ? user?.twitter : isGithub ? user?.github : null
+                  const subjectId = userData?.subject
 
-                              const linkUsername = getUsernameFromUrl(link.url)
-                              const privyUsername = twitterUser?.username?.toLowerCase()
-                              const isVerified = link.verified
-
-                              if (isVerified) {
-                                return (
-                                  <Badge variant="outline" className="h-5 px-1.5 gap-1 text-[10px] font-normal text-green-600 border-green-600/30 bg-green-500/5">
-                                    <CheckCircle className="h-3 w-3" />
-                                    Verified
-                                  </Badge>
-                                )
-                              }
-
-                              if (!twitterUser) {
-                                return (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-5 px-2 text-[10px]"
-                                    onClick={async () => {
-                                      if (!privyReady) {
-                                        toast.error('Twitter verification is currently unavailable. Please try again later.')
-                                        return
-                                      }
-
-                                      // If not authenticated, show Twitter-only login
-                                      if (!authenticated) {
-                                        setPendingTwitterLink(true)
-                                        await login({ loginMethods: ['twitter'] })
-                                        return
-                                      }
-
-                                      // Already authenticated, link Twitter
-                                      linkTwitter()
-                                    }}
-                                    disabled={!privyReady}
-                                  >
-                                    Verify
-                                  </Button>
-                                )
-                              }
-
-                              return (
-                                <div className="flex flex-col gap-1 items-start">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-5 px-2 text-[10px]"
-                                    onClick={async () => {
-                                      try {
-                                        const toastId = toast.loading('Verifying...')
-                                        const response = await fetch('/api/social/link', {
-                                          method: 'POST',
-                                          headers: { 'Content-Type': 'application/json' },
-                                          body: JSON.stringify({
-                                            platform: 'twitter',
-                                            platformUsername: twitterUser.username,
-                                            platformUserId: twitterUser.subject,
-                                            walletAddress: targetAddress,
-                                          }),
-                                        })
-
-                                        if (response.ok) {
-                                          toast.success('Verified!', { id: toastId })
-                                          window.location.reload()
-                                        } else {
-                                          const data = await response.json()
-                                          toast.error(data.error || 'Verification failed', { id: toastId })
-                                        }
-                                      } catch (e) {
-                                        toast.error('Failed to connect')
-                                      }
-                                    }}
-                                  >
-                                    Verify
-                                  </Button>
-                                  <button
-                                    className="text-[10px] text-muted-foreground hover:text-red-500 underline"
-                                    onClick={async () => {
-                                      try {
-                                        await unlinkTwitter(twitterUser.subject)
-                                        toast.success('Twitter disconnected. Link a new account.')
-                                        // No reload needed, usePrivy updates automatically
-                                      } catch (e) {
-                                        toast.error('Failed to disconnect')
-                                      }
-                                    }}
-                                  >
-                                    Wrong account? Change
-                                  </button>
-                                </div>
-                              )
-                            })()
-                          )}
+                  return (
+                    <div
+                      key={link.id}
+                      className={`flex items-center gap-3 p-3 rounded-md border transition-colors ${link.enabled !== false
+                        ? 'border-border/60 bg-muted/5 hover:bg-muted/20'
+                        : 'border-border/40 bg-muted/5 opacity-60'
+                        }`}
+                    >
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted/50 shrink-0">
+                          {getSocialIcon(link.platform)}
                         </div>
-                        <a
-                          href={link.url}
-                          target="_blank"
-                          rel="noopener"
-                          className="text-xs text-muted-foreground hover:text-primary truncate block"
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <div className="text-sm font-medium">{getSocialLabel(link.platform)}</div>
+                            {!link.enabled && (
+                              <Badge variant="outline" className="text-[10px] h-4 px-1 text-muted-foreground border-border/40">
+                                Off
+                              </Badge>
+                            )}
+                            {isSupported && (
+                              (() => {
+                                // 1. Platforma özel ayarları ve verileri dinamik olarak seçiyoruz
+                                const platformConfig = {
+                                  x: {
+                                    label: 'Twitter',
+                                    userData: user?.twitter,
+                                    linkMethod: linkTwitter,
+                                    unlinkMethod: unlinkTwitter,
+                                    apiPlatformName: 'twitter',
+                                    loginMethod: 'twitter'
+                                  },
+                                  twitter: {
+                                    label: 'Twitter',
+                                    userData: user?.twitter,
+                                    linkMethod: linkTwitter,
+                                    unlinkMethod: unlinkTwitter,
+                                    apiPlatformName: 'twitter',
+                                    loginMethod: 'twitter'
+                                  },
+                                  github: {
+                                    label: 'GitHub',
+                                    userData: user?.github,
+                                    linkMethod: linkGithub,
+                                    unlinkMethod: unlinkGithub,
+                                    apiPlatformName: 'github',
+                                    loginMethod: 'github'
+                                  }
+                                }
+
+                                const config = platformConfig[link.platform as keyof typeof platformConfig]
+                                if (!config) return null
+
+                                const { label, userData, linkMethod, unlinkMethod, apiPlatformName, loginMethod } = config
+
+                                // URL'den kullanıcı adı ayrıştırma
+                                const getUsernameFromUrl = (url: string) => {
+                                  try {
+                                    const urlToParse = url.startsWith('http') ? url : `https://${url}`
+                                    const urlObj = new URL(urlToParse)
+                                    const segments = urlObj.pathname.split('/').filter(Boolean)
+                                    return segments[segments.length - 1]?.toLowerCase() || ''
+                                  } catch {
+                                    return url.split('/').filter(Boolean).pop()?.split('?')[0]?.toLowerCase() || ''
+                                  }
+                                }
+
+                                const linkUsername = getUsernameFromUrl(link.url)
+                                const privyUsername = userData?.username?.toLowerCase()
+                                const isVerified = link.verified
+
+                                // --- DURUM 1: Zaten Doğrulanmış ---
+                                if (isVerified) {
+                                  return (
+                                    <Badge variant="outline" className="h-5 px-1.5 gap-1 text-[10px] font-normal text-green-600 border-green-600/30 bg-green-500/5">
+                                      <CheckCircle className="h-3 w-3" />
+                                      Verified
+                                    </Badge>
+                                  )
+                                }
+
+                                // --- DURUM 2 & 3: Doğrulama Süreci (Unified) ---
+                                const isSyncingInState = activeSyncs.has(config.apiPlatformName)
+                                const platformLastSync = lastSyncTime[config.apiPlatformName] || 0
+                                const isCooldownSyncing = Date.now() - platformLastSync < 6000
+                                const isSyncing = isSyncingInState || isCooldownSyncing
+
+                                return (
+                                  <div className="flex flex-row gap-1 items-start">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-5 px-2 text-[10px]"
+                                      disabled={isSyncing}
+                                      onClick={async () => {
+                                        setLastSyncTime(prev => ({ ...prev, [config.apiPlatformName]: Date.now() }))
+
+                                        if (!userData) {
+                                          // DURUM 2: Privy Bağlantısı Yok
+                                          if (!privyReady) {
+                                            toast.error(`${label} verification is currently unavailable.`)
+                                            return
+                                          }
+                                          if (!authenticated) {
+                                            setPendingTwitterLink(true)
+                                            await login({ loginMethods: [loginMethod as any] })
+                                            return
+                                          }
+                                          linkMethod()
+                                          return
+                                        }
+
+                                        // DURUM 3: Privy Bağlı Ama Backend Bekleniyor
+                                        try {
+                                          const toastId = toast.loading('Verifying...')
+                                          const response = await fetch('/api/social/link', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                              platform: apiPlatformName,
+                                              platformUsername: userData.username,
+                                              platformUserId: userData.subject,
+                                              address: targetAddress,
+                                            }),
+                                          })
+
+                                          if (response.ok) {
+                                            toast.success('Verified!', { id: toastId })
+                                            await new Promise(r => setTimeout(r, 1000))
+                                            await loadSocialLinks()
+                                            setTimeout(loadSocialLinks, 2500)
+                                          } else {
+                                            const data = await response.json()
+                                            toast.error(data.error || 'Verification failed', { id: toastId })
+                                          }
+                                        } catch (e) {
+                                          toast.error('Failed to connect')
+                                        }
+                                      }}
+                                    >
+                                      {isSyncing ? (
+                                        <span className="flex items-center gap-1">
+                                          <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                                          Verifying...
+                                        </span>
+                                      ) : 'Verify'}
+                                    </Button>
+                                    {userData && (
+                                      <button
+                                        className="text-[10px] text-muted-foreground hover:text-red-500 underline"
+                                        onClick={() => handleUnlinkSocial(config.apiPlatformName, userData?.subject)}
+                                      >
+                                        Wrong account? Change
+                                      </button>
+                                    )}
+                                  </div>
+                                )
+                              })()
+                            )}
+                          </div>
+                          <a
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener"
+                            className="text-xs text-muted-foreground hover:text-primary truncate block"
+                          >
+                            {link.url}
+                          </a>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {userData && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-500 hover:text-red-600 hover:bg-red-50 h-9 px-2 text-xs"
+                            onClick={() => {
+                              handleUnlinkSocial(isTwitter ? 'twitter' : (link.platform as string), subjectId);
+                            }}
+                          >
+                            Disconnect
+                          </Button>
+                        )}
+                        <Toggle
+                          aria-label={`Toggle ${getSocialLabel(link.platform)}`}
+                          size="sm"
+                          variant="outline"
+                          pressed={link.enabled !== false}
+                          onPressedChange={(pressed) => handleToggleSocialEnabled(link.id, pressed)}
+                          className="h-8 px-2"
                         >
-                          {link.url}
-                        </a>
+                          {link.enabled !== false ? 'On' : 'Off'}
+                        </Toggle>
+
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => {
+                            router.push(`/dashboard/${targetAddress}/links/${link.id}`)
+                          }}
+                          aria-label="View link details"
+                        >
+                          <BarChart2 className="h-3.5 w-3.5" />
+                        </Button>
+
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => openEditSocialDialog(link)}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                          onClick={() => handleDeleteSocialLink(link.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Toggle
-                        aria-label={`Toggle ${getSocialLabel(link.platform)}`}
-                        size="sm"
-                        variant="outline"
-                        pressed={link.enabled !== false}
-                        onPressedChange={(pressed) => handleToggleSocialEnabled(link.id, pressed)}
-                        className="h-8 px-2"
-                      >
-                        {link.enabled !== false ? 'On' : 'Off'}
-                      </Toggle>
-
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={() => {
-                          // ID is now guaranteed to be consistent
-                          router.push(`/dashboard/${targetAddress}/links/${link.id}`)
-                        }}
-                        aria-label="View link details"
-                      >
-                        <BarChart2 className="h-3.5 w-3.5" />
-                      </Button>
-
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={() => openEditSocialDialog(link)}
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                        onClick={() => handleDeleteSocialLink(link.id)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </CardContent>
@@ -2321,7 +2547,7 @@ export function LinksPanel() {
         </Dialog>
 
       </div>
-    </PageShell>
+    </PageShell >
   )
 }
 

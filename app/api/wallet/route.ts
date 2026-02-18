@@ -423,60 +423,41 @@ export async function GET(request: NextRequest) {
                     const cleanUsername = conn.platformUsername.toLowerCase()
                     const urlLower = link.url.toLowerCase()
 
-                    // Simple check: is username in URL?
-                    // This covers twitter.com/username, github.com/username etc.
-                    if (urlLower.includes(cleanUsername)) {
-                      matchReason = `Includes check passed: ${cleanUsername} in ${urlLower}`
-                      return true
+                    // Standardize username extraction from URL
+                    let urlUsername = ''
+                    try {
+                      const urlToParse = urlLower.startsWith('http') ? urlLower : `https://${urlLower}`
+                      const urlObj = new URL(urlToParse)
+                      const pathSegments = urlObj.pathname.split('/').filter(p => p && p.trim() !== '')
+                      urlUsername = pathSegments[pathSegments.length - 1] || ''
+                      urlUsername = urlUsername.replace(/^@/, '').toLowerCase().trim()
+                    } catch (e) {
+                      urlUsername = urlLower.split('/').pop()?.split('?')[0].replace(/^@/, '').toLowerCase().trim() || ''
                     }
 
-                    // Allow match if no username in URL but platform matches 
-                    // (fallback for complex URLs, though risky for "verified" status)
-                    // For now, let's require username match if possible for X/Twitter
-                    if (platform === 'x' || platform === 'twitter') {
-                      try {
-                        // Extract username from URL using robust logic
-                        // Handles: x.com/user, twitter.com/user, http/https, trailing slashes, query params
-                        const urlToParse = urlLower.startsWith('http') ? urlLower : `https://${urlLower}`
-                        const urlObj = new URL(urlToParse)
+                    const dbUsername = cleanUsername.replace(/^@/, '').toLowerCase().trim()
 
-                        // Get the last segment that isn't empty
-                        const pathSegments = urlObj.pathname.split('/').filter(p => p && p.trim() !== '')
-                        let urlUsername = pathSegments[pathSegments.length - 1] || ''
-
-                        // Clean both usernames
-                        urlUsername = urlUsername.replace(/^@/, '').toLowerCase().trim()
-                        const dbUsername = cleanUsername.replace(/^@/, '').toLowerCase().trim()
-
-                        // Check exact match
-                        if (urlUsername === dbUsername) {
-                          matchReason = `Exact match: ${urlUsername} === ${dbUsername}`
-                          return true
-                        }
-
-                        // Check includes for safety (e.g. if one has extra params or user manually entered weird URL)
-                        if (urlUsername.includes(dbUsername) || dbUsername.includes(urlUsername)) {
-                          matchReason = `Includes match: ${urlUsername} <-> ${dbUsername}`
-                          return true
-                        }
-
-                        return false
-                      } catch (e) {
-                        // Fallback for simple string match if URL parsing fails completely
-                        const simpleUrlUsername = urlLower.split('/').pop()?.split('?')[0].replace(/^@/, '').toLowerCase().trim() || ''
-                        const dbUsername = cleanUsername.replace(/^@/, '').toLowerCase().trim()
-
-                        if (simpleUrlUsername === dbUsername) {
-                          matchReason = `Simple fallback match: ${simpleUrlUsername} === ${dbUsername}`
-                          return true
-                        }
-                        return false
+                    // Strict matching for X/Twitter and Github
+                    if (['x', 'twitter', 'github'].includes(platform)) {
+                      if (urlUsername === dbUsername) {
+                        return true
                       }
+
+                      // Also allow if URL contains username strictly (handles some special cases)
+                      if (urlUsername.includes(dbUsername) || dbUsername.includes(urlUsername)) {
+                        return true
+                      }
+                      return false
+                    }
+
+                    // Default fallback for other platforms
+                    if (urlUsername === dbUsername || urlLower.includes(dbUsername)) {
+                      return true
                     }
                   }
 
-                  // Default to true if platform matches and we couldn't verify username strictly
-                  return true
+                  // Default to false if platform matches but we couldn't verify username strictly
+                  return false
                 })
               }
 

@@ -150,6 +150,16 @@ export async function POST(req: NextRequest) {
             }
         })
 
+        // Also set aph_session cookie to "login" the user if they linked successfully
+        const cookieStore = await cookies()
+        cookieStore.set('aph_session', effectiveAddress.toLowerCase().slice(0, 42), {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24 * 7, // 7 days
+            path: '/',
+        })
+
         return NextResponse.json({ success: true, connection })
     } catch (error) {
         console.error('[API] Social Link Error:', error)
@@ -171,22 +181,29 @@ export async function DELETE(req: NextRequest) {
 
         // 1. Try Session Auth
         const sessionOwner = await getSessionAddress()
-        let effectiveAddress = sessionOwner
+        let effectiveAddress = null
+
+        // If session exists AND it matches requested address (if any), use it
+        if (sessionOwner) {
+            if (!address || sessionOwner.toLowerCase() === address.toLowerCase()) {
+                effectiveAddress = sessionOwner
+            }
+        }
 
         // 2. Fallback: Signature Auth
         if (!effectiveAddress) {
+            // If we have no session or it doesn't match, we REQUIRE a signature
             if (!address || !signature) {
-                return NextResponse.json({ error: 'Unauthorized: Session or Signature required' }, { status: 401 })
+                return NextResponse.json({
+                    error: 'Unauthorized: Session mismatch or expired. Signature required.',
+                    needsSignature: true
+                }, { status: 401 })
             }
 
             const normalizedAddress = address.toLowerCase()
             const cookieStore = await cookies()
 
             let nonce: string | null = null
-            // Test mode nonce details omitted for brevity in DELETE for now, assuming standard flow
-            // Actually, for consistency let's just reuse the cookie check logic or keep it simple.
-            // Since DELETE is also critical, I must verify.
-
             const cNonce = cookieStore.get('aph_nonce')?.value
             if (cNonce) {
                 const rec = getNonce(cNonce)
@@ -199,15 +216,21 @@ export async function DELETE(req: NextRequest) {
 
             try {
                 const message = `Unlink ${platform} account from ${normalizedAddress}. Nonce: ${nonce}`
-
-                // Since this is GET/DELETE params, ensure signature is handled correctly
-                // Simplified production verification here to save space
                 const signer = await recoverMessageAddress({ message, signature: signature as `0x${string}` })
                 if (signer.toLowerCase() !== normalizedAddress) throw new Error()
 
                 effectiveAddress = normalizedAddress
                 markNonceAsUsed(nonce)
                 cookieStore.delete('aph_nonce')
+
+                // Also set session so they don't have to sign again soon
+                cookieStore.set('aph_session', effectiveAddress.slice(0, 42), {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: 'lax',
+                    maxAge: 60 * 60 * 24 * 7,
+                    path: '/',
+                })
             } catch (e) {
                 return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
             }
