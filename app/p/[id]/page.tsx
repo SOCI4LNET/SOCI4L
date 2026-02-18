@@ -816,7 +816,7 @@ export default function ProfilePage({ params }: PageProps) {
           </CardContent>
         </Card>
       ) : walletData ? (
-        <div className="space-y-6">
+        <div className="space-y-6 pb-24 md:pb-0">
           {/* Profile Info Card - show for all profiles (claimed or unclaimed) */}
           {(isClaimed || !isPrivate) && (
             <Card className={getThemeCardClasses(effectiveAppearanceConfig.theme)}>
@@ -842,24 +842,25 @@ export default function ProfilePage({ params }: PageProps) {
 
                     <div className="min-w-0 space-y-1 flex-1">
                       {/* 1. Identity Block */}
-                      <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                        <h1 className={`${titleClasses} font-bold truncate text-foreground flex items-center gap-1.5`}>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <h1 className={`${titleClasses} font-bold truncate text-foreground min-w-0`}>
                           {primaryDisplayName}
-                          {profile?.isVerified && (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <CheckCircle className="h-5 w-5 text-blue-500 fill-blue-500/10" />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Verified Account</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          )}
                         </h1>
+                        {profile?.isVerified && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <CheckCircle className="h-5 w-5 text-blue-500 fill-blue-500/10 shrink-0" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Verified Account</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
 
-                        {/* Roles & Ranks */}
+                      <div className="flex flex-wrap items-center gap-1.5">
                         {!profile?.isBanned && (profile?.role === 'ADMIN' || profile?.role === 'BUILDER') && (
                           <TooltipProvider>
                             <Tooltip>
@@ -874,8 +875,6 @@ export default function ProfilePage({ params }: PageProps) {
                             </Tooltip>
                           </TooltipProvider>
                         )}
-
-                        {/* Premium Badge */}
                         {!profile?.isBanned && profile?.premiumExpiresAt && new Date(profile.premiumExpiresAt) > new Date() && (
                           <TooltipProvider>
                             <Tooltip>
@@ -891,8 +890,6 @@ export default function ProfilePage({ params }: PageProps) {
                             </Tooltip>
                           </TooltipProvider>
                         )}
-
-                        {/* Score Tier Badge */}
                         {!profile?.isBanned && score && score.total > 0 && (
                           <TooltipProvider>
                             <Tooltip>
@@ -908,7 +905,6 @@ export default function ProfilePage({ params }: PageProps) {
                             </Tooltip>
                           </TooltipProvider>
                         )}
-
                         {!profile?.isBanned && profile?.primaryRole && (
                           <Badge variant="secondary" className="text-[11px] px-2 py-0 border-border bg-muted/60 text-foreground font-medium">
                             {profile.primaryRole}
@@ -919,8 +915,6 @@ export default function ProfilePage({ params }: PageProps) {
                             {role}
                           </Badge>
                         ))}
-
-                        {/* Claimed/Status Badge */}
                         {isClaimed && !isPrivate && !profile?.isBanned && (
                           <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal text-muted-foreground border-border/60">
                             Claimed
@@ -987,7 +981,7 @@ export default function ProfilePage({ params }: PageProps) {
                   </div>
 
                   {/* 4. Actions (Top Right, Isolated) */}
-                  <div className="flex items-center gap-2 flex-shrink-0 pt-1">
+                  <div className="hidden md:flex items-center gap-2 flex-shrink-0 pt-1">
                     {profileAddressForFollow && !profile?.isBanned && (
                       <FollowToggle
                         address={profileAddressForFollow}
@@ -1739,6 +1733,39 @@ export default function ProfilePage({ params }: PageProps) {
             await donate(profileAddressForFollow, amount, message)
           }}
         />
+      )}
+
+      {profileAddressForFollow && !profile?.isBanned && resolvedAddress && isValidAddress(resolvedAddress) && (
+        <div className="fixed inset-x-0 bottom-0 z-50 md:hidden px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
+          <div className="rounded-2xl border border-border/80 bg-background/95 p-2 shadow-2xl backdrop-blur supports-[backdrop-filter]:bg-background/80">
+            <div className="grid grid-cols-3 gap-2">
+              <FollowToggle
+                address={profileAddressForFollow}
+                isBlockedByViewer={isBlockedByViewer}
+                onBlockChange={(blocked) => setIsBlockedByViewer(blocked)}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-10 gap-2 text-xs font-medium"
+                onClick={() => setDonateModalOpen(true)}
+                disabled={isOwnProfile}
+              >
+                <Heart className="h-4 w-4" />
+                Donate
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-10 gap-2 text-xs font-medium"
+                onClick={handleCopyAddress}
+              >
+                <Copy className="h-4 w-4" />
+                Address
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
 
       <SiteFooter className="mt-auto" />
