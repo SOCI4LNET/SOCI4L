@@ -24,12 +24,12 @@ export function PublicLayout({ children }: PublicLayoutProps) {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-b bg-background">
-        <div className={cn('w-full', PAGE_GUTTER, 'py-4')}>
+      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+        <div className={cn('w-full', PAGE_GUTTER, 'py-2 md:py-4')}>
           <div className={cn('w-full', CONTENT_MAX_WIDTH, 'mx-auto')}>
             <div className="flex items-center justify-between">
               <Link href="/" className="flex items-center">
-                <Soci4LLogo variant="combination" width={120} height={21} />
+                <Soci4LLogo variant="combination" width={96} height={17} className="md:w-[120px] md:h-[21px]" />
               </Link>
               <div className="flex items-center gap-2">
                 {!mounted ? (
@@ -37,7 +37,7 @@ export function PublicLayout({ children }: PublicLayoutProps) {
                 ) : isConnected ? (
                   <AccountMenu />
                 ) : (
-                  <WalletConnectButtons variant="default" size="sm" />
+                  <WalletConnectButtons variant="default" size="sm" className="h-8 px-2.5 text-xs md:h-10 md:px-4 md:text-sm" />
                 )}
               </div>
             </div>
