@@ -702,9 +702,15 @@ export function LinksPanel() {
         )
         toast.success('Verified!')
         await loadSocialLinks()
-      } catch (error) {
+      } catch (error: any) {
         if (!cancelled) {
-          toast.error('Verification failed')
+          const message = error?.message || ''
+          if (message.includes('already connected to another profile')) {
+            const platformLabel = pendingVerification.platform === 'twitter' ? 'X' : 'GitHub'
+            toast.error(`${platformLabel} hesabı farklı bir cüzdana bağlı. URL'yi doğru hesapla güncelle ve tekrar doğrula.`)
+          } else {
+            toast.error('Verification failed')
+          }
         }
       } finally {
         if (!cancelled) {
@@ -2476,8 +2482,6 @@ export function LinksPanel() {
                                       className="h-5 px-2 text-[10px]"
                                       disabled={isSyncing}
                                       onClick={async () => {
-                                        setLastSyncTime(prev => ({ ...prev, [config.apiPlatformName]: Date.now() }))
-
                                         if (!userData) {
                                           // DURUM 2: Privy Bağlantısı Yok
                                           if (!privyReady) {
@@ -2501,9 +2505,10 @@ export function LinksPanel() {
                                             return
                                           } catch (error: any) {
                                             setPendingVerification(null)
+                                            setLastSyncTime(prev => ({ ...prev, [config.apiPlatformName]: 0 }))
                                             const message = error?.message || ''
                                             if (message.includes('already has an account of type')) {
-                                              toast.error(`${label} is already linked in your Privy account.`)
+                                              toast.error(`${label} hesabı farklı bir cüzdana bağlı görünüyor. Doğru hesabın URL'sini girip tekrar dene.`)
                                             } else {
                                               toast.error(message || `Failed to connect ${label}.`)
                                             }
@@ -2513,6 +2518,7 @@ export function LinksPanel() {
 
                                         // DURUM 3: Privy Bağlı Ama Backend Bekleniyor
                                         try {
+                                          setLastSyncTime(prev => ({ ...prev, [config.apiPlatformName]: Date.now() }))
                                           const toastId = toast.loading('Verifying...')
                                           const verified = await verifySocialOnBackend({
                                             platform: apiPlatformName as 'twitter' | 'github',
@@ -2532,8 +2538,14 @@ export function LinksPanel() {
                                             await loadSocialLinks()
                                             setTimeout(loadSocialLinks, 2500)
                                           }
-                                        } catch (e) {
-                                          toast.error('Failed to connect')
+                                        } catch (e: any) {
+                                          setLastSyncTime(prev => ({ ...prev, [config.apiPlatformName]: 0 }))
+                                          const message = e?.message || ''
+                                          if (message.includes('already connected to another profile')) {
+                                            toast.error(`${label} hesabı farklı bir cüzdana bağlı. URL'yi doğru hesapla güncelle ve tekrar doğrula.`)
+                                          } else {
+                                            toast.error(message || 'Failed to connect')
+                                          }
                                         }
                                       }}
                                     >
