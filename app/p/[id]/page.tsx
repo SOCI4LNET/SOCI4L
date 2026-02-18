@@ -930,14 +930,14 @@ export default function ProfilePage({ params }: PageProps) {
 
                       {/* 2. Bio */}
                       {!profile?.isBanned && profile?.bio && (
-                        <p className="text-sm text-muted-foreground/90 truncate pr-4 leading-relaxed mb-0.5">
+                        <p className="text-sm text-muted-foreground/90 pr-4 leading-relaxed mb-0.5 break-words whitespace-pre-wrap">
                           {profile.bio}
                         </p>
                       )}
 
                       {/* 3. Status / Intent (Whisper style) */}
                       {!profile?.isBanned && profile?.statusMessage && (
-                        <p className="text-xs text-muted-foreground/70 italic truncate pr-4 leading-relaxed">
+                        <p className="text-xs text-muted-foreground/70 italic pr-4 leading-relaxed break-words whitespace-pre-wrap">
                           {profile.statusMessage}
                         </p>
                       )}
@@ -948,14 +948,6 @@ export default function ProfilePage({ params }: PageProps) {
                           <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 font-normal bg-muted/50 text-muted-foreground hover:bg-muted/80 border-0">
                             Avalanche
                           </Badge>
-
-                          <div className="w-px h-3 bg-border/50" />
-
-                          {profileAddressForFollow && !profile?.isBanned && (
-                            <div className="flex items-center gap-1 hover:text-foreground transition-colors">
-                              <FollowStats address={profileAddressForFollow} />
-                            </div>
-                          )}
 
                           {resolvedAddress && isValidAddress(resolvedAddress) && !profile?.isBanned && (
                             <>
@@ -974,6 +966,14 @@ export default function ProfilePage({ params }: PageProps) {
                                 </Tooltip>
                               </TooltipProvider>
                             </>
+                          )}
+
+                          <div className="w-px h-3 bg-border/50" />
+
+                          {profileAddressForFollow && !profile?.isBanned && (
+                            <div className="flex items-center gap-1 hover:text-foreground transition-colors">
+                              <FollowStats address={profileAddressForFollow} />
+                            </div>
                           )}
                         </div>
                       )}
@@ -1737,7 +1737,7 @@ export default function ProfilePage({ params }: PageProps) {
 
       {profileAddressForFollow && !profile?.isBanned && resolvedAddress && isValidAddress(resolvedAddress) && (
         <div className="fixed inset-x-0 bottom-0 z-50 md:hidden px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
-          <div className="rounded-2xl border border-border/80 bg-background/95 p-2 shadow-2xl backdrop-blur supports-[backdrop-filter]:bg-background/80">
+          <div className="rounded-2xl border border-border/50 bg-gradient-to-t from-background/90 via-background/75 to-background/60 p-2 shadow-2xl backdrop-blur-xl supports-[backdrop-filter]:bg-background/65">
             <div className="grid grid-cols-3 gap-2">
               <FollowToggle
                 address={profileAddressForFollow}
