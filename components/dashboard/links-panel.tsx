@@ -566,6 +566,12 @@ export function LinksPanel() {
     return value.replace(/^@/, '').trim().toLowerCase()
   }, [])
 
+  const shortAddress = useCallback((value?: string | null) => {
+    if (!value) return 'unknown'
+    if (value.length < 12) return value
+    return `${value.slice(0, 6)}...${value.slice(-4)}`
+  }, [])
+
   const verifySocialOnBackend = useCallback(async (params: {
     platform: 'twitter' | 'github'
     platformUsername: string
@@ -2496,7 +2502,10 @@ export function LinksPanel() {
                                       disabled={isSyncing}
                                       onClick={async () => {
                                         if (authenticated && !privyWalletMatchesTarget) {
-                                          toast.error('Your active session wallet does not match this profile wallet. Reconnect with the correct wallet and try again.')
+                                          const activeSessionWallet = user?.wallet?.address?.toLowerCase()
+                                          toast.error(
+                                            `Session wallet ${shortAddress(activeSessionWallet)} does not match profile wallet ${shortAddress(targetAddress)}. Reconnect with the correct wallet and try again.`
+                                          )
                                           return
                                         }
 
