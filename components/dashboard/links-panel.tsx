@@ -2495,6 +2495,11 @@ export function LinksPanel() {
                                       className="h-5 px-2 text-[10px]"
                                       disabled={isSyncing}
                                       onClick={async () => {
+                                        if (authenticated && !privyWalletMatchesTarget) {
+                                          toast.error('Your active session wallet does not match this profile wallet. Reconnect with the correct wallet and try again.')
+                                          return
+                                        }
+
                                         if (!userData) {
                                           // DURUM 2: Privy Bağlantısı Yok
                                           if (!privyReady) {
@@ -2521,7 +2526,7 @@ export function LinksPanel() {
                                             setLastSyncTime(prev => ({ ...prev, [config.apiPlatformName]: 0 }))
                                             const message = error?.message || ''
                                             if (message.includes('already has an account of type')) {
-                                              toast.error(`${label} account is already linked in this session. If this is the wrong account, use "Wrong account? Change".`)
+                                              toast.error(`${label} account is already connected in this session. If you need a different account, disconnect and reconnect first.`)
                                             } else {
                                               toast.error(message || `Failed to connect ${label}.`)
                                             }
