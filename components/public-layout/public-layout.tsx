@@ -3,7 +3,7 @@
 import { ReactNode } from 'react'
 import Link from 'next/link'
 import { useAccount } from 'wagmi'
-import { AccountMenu } from '@/components/topbar/account-menu'
+import { HeaderActions } from '@/components/app-shell/header-actions'
 import { useState, useEffect } from 'react'
 import { PAGE_GUTTER, CONTENT_MAX_WIDTH } from '@/lib/layout-constants'
 import { cn } from '@/lib/utils'
@@ -35,7 +35,7 @@ export function PublicLayout({ children }: PublicLayoutProps) {
                 {!mounted ? (
                   <div className="h-8 w-8" />
                 ) : isConnected ? (
-                  <AccountMenu />
+                  <HeaderActions />
                 ) : (
                   <WalletConnectButtons variant="default" size="sm" className="h-8 px-2.5 text-xs md:h-10 md:px-4 md:text-sm" />
                 )}
