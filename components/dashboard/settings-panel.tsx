@@ -74,6 +74,9 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
   const [hideSelfActivity, setHideSelfActivity] = useState<boolean>(
     profile.appearance?.hideSelfActivity ?? false
   )
+  const [donationAlertVisual, setDonationAlertVisual] = useState<'confetti' | 'heart' | 'star' | 'fire'>(
+    profile.appearance?.donationAlertVisual ?? 'confetti'
+  )
   const [savingAnalytics, setSavingAnalytics] = useState(false)
 
   // Update form state when profile prop changes (e.g., after save/reload)
@@ -84,6 +87,8 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
       if (visibility !== newVisibility) setVisibility(newVisibility)
       const newHideSelf = profile.appearance?.hideSelfActivity ?? false
       if (hideSelfActivity !== newHideSelf) setHideSelfActivity(newHideSelf)
+      const newDonationVisual = profile.appearance?.donationAlertVisual ?? 'confetti'
+      if (donationAlertVisual !== newDonationVisual) setDonationAlertVisual(newDonationVisual)
     }
   }, [profile?.id, profile?.slug, profile?.visibility, profile.appearance?.hideSelfActivity])
 
@@ -187,7 +192,8 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
           address: targetAddress,
           appearance: {
             ...profile.appearance,
-            hideSelfActivity
+            hideSelfActivity,
+            donationAlertVisual,
           },
           signature,
         }),
@@ -429,6 +435,84 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
                 size="sm"
                 onClick={handleSaveAnalytics}
                 disabled={savingAnalytics || hideSelfActivity === (profile.appearance?.hideSelfActivity ?? false)}
+              >
+                {savingAnalytics ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Update"
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        {/* Donation Settings Section */}
+        <Card className="bg-card border border-border/60 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-base">Donation Alerts</CardTitle>
+            <CardDescription>
+              Choose what visual effect appears when you receive a donation
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <RadioGroup
+              value={donationAlertVisual}
+              onValueChange={(value) => setDonationAlertVisual(value as any)}
+              className="grid grid-cols-2 gap-4 sm:grid-cols-4"
+            >
+              <div>
+                <RadioGroupItem value="confetti" id="v-confetti" className="peer sr-only" />
+                <Label
+                  htmlFor="v-confetti"
+                  className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                >
+                  <span className="text-2xl mb-2">🎉</span>
+                  <span className="text-xs font-semibold">Confetti</span>
+                </Label>
+              </div>
+              <div>
+                <RadioGroupItem value="heart" id="v-heart" className="peer sr-only" />
+                <Label
+                  htmlFor="v-heart"
+                  className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                >
+                  <span className="text-2xl mb-2">❤️</span>
+                  <span className="text-xs font-semibold">Heart</span>
+                </Label>
+              </div>
+              <div>
+                <RadioGroupItem value="star" id="v-star" className="peer sr-only" />
+                <Label
+                  htmlFor="v-star"
+                  className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                >
+                  <span className="text-2xl mb-2">⭐</span>
+                  <span className="text-xs font-semibold">Star</span>
+                </Label>
+              </div>
+              <div>
+                <RadioGroupItem value="fire" id="v-fire" className="peer sr-only" />
+                <Label
+                  htmlFor="v-fire"
+                  className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                >
+                  <span className="text-2xl mb-2">🔥</span>
+                  <span className="text-xs font-semibold">Fire</span>
+                </Label>
+              </div>
+            </RadioGroup>
+
+            <div className="flex justify-end pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSaveAnalytics}
+                disabled={savingAnalytics || (
+                  hideSelfActivity === (profile.appearance?.hideSelfActivity ?? false) &&
+                  donationAlertVisual === (profile.appearance?.donationAlertVisual ?? 'confetti')
+                )}
               >
                 {savingAnalytics ? (
                   <>

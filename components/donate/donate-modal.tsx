@@ -21,6 +21,7 @@ interface DonateModalProps {
         slug?: string
         avatar?: string
     }
+    donationAlertVisual?: 'confetti' | 'heart' | 'star' | 'fire'
     onDonate?: (amount: string, message: string) => Promise<void>
 }
 
@@ -35,7 +36,7 @@ const MESSAGE_TEMPLATES = [
 
 const PLATFORM_FEE_PERCENT = 3
 
-export function DonateModal({ open, onOpenChange, recipient, onDonate }: DonateModalProps) {
+export function DonateModal({ open, onOpenChange, recipient, donationAlertVisual = 'confetti', onDonate }: DonateModalProps) {
     const [amount, setAmount] = useState('')
     const [message, setMessage] = useState('')
     const [isLoading, setIsLoading] = useState(false)
@@ -66,14 +67,26 @@ export function DonateModal({ open, onOpenChange, recipient, onDonate }: DonateM
                     angle: 60,
                     spread: 55,
                     origin: { x: 0 },
-                    colors: ['#2845D6', '#FAFAFA', '#818CF8']
+                    colors: donationAlertVisual === 'heart' ? ['#FF0000', '#FF69B4', '#FFB6C1'] :
+                        donationAlertVisual === 'star' ? ['#FFD700', '#FFFACD', '#FFFFE0'] :
+                            donationAlertVisual === 'fire' ? ['#FF4500', '#FF8C00', '#FFA500'] :
+                                ['#2845D6', '#FAFAFA', '#818CF8'],
+                    shapes: (donationAlertVisual === 'heart' ? ['heart'] :
+                        donationAlertVisual === 'star' ? ['star'] :
+                            ['square', 'circle']) as any
                 })
                 confetti({
                     particleCount: 3,
                     angle: 120,
                     spread: 55,
                     origin: { x: 1 },
-                    colors: ['#2845D6', '#FAFAFA', '#818CF8']
+                    colors: donationAlertVisual === 'heart' ? ['#FF0000', '#FF69B4', '#FFB6C1'] :
+                        donationAlertVisual === 'star' ? ['#FFD700', '#FFFACD', '#FFFFE0'] :
+                            donationAlertVisual === 'fire' ? ['#FF4500', '#FF8C00', '#FFA500'] :
+                                ['#2845D6', '#FAFAFA', '#818CF8'],
+                    shapes: (donationAlertVisual === 'heart' ? ['heart'] :
+                        donationAlertVisual === 'star' ? ['star'] :
+                            ['square', 'circle']) as any
                 })
 
                 if (Date.now() < end) {

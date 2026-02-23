@@ -4,16 +4,19 @@
  */
 
 export type ProfileTheme = 'default' | 'minimal' | 'dense' | 'spotlight'
+export type DonationAlertVisual = 'confetti' | 'heart' | 'star' | 'fire'
 
 export interface ProfileAppearanceConfig {
   theme: ProfileTheme
   hideSelfActivity?: boolean
+  donationAlertVisual?: DonationAlertVisual
 }
 
 export function getDefaultAppearanceConfig(): ProfileAppearanceConfig {
   return {
     theme: 'default',
     hideSelfActivity: false,
+    donationAlertVisual: 'confetti',
   }
 }
 
@@ -24,6 +27,7 @@ export function normalizeAppearanceConfig(
   config: Partial<ProfileAppearanceConfig> | null | undefined
 ): ProfileAppearanceConfig {
   const validThemes: ProfileTheme[] = ['default', 'minimal', 'dense', 'spotlight']
+  const validDonationVisuals: DonationAlertVisual[] = ['confetti', 'heart', 'star', 'fire']
 
   if (!config || typeof config !== 'object') {
     return getDefaultAppearanceConfig()
@@ -32,9 +36,13 @@ export function normalizeAppearanceConfig(
   const theme = config.theme
   const isValidTheme = theme && validThemes.includes(theme as ProfileTheme)
 
+  const donationVisual = config.donationAlertVisual
+  const isValidDonationVisual = donationVisual && validDonationVisuals.includes(donationVisual as DonationAlertVisual)
+
   return {
     theme: isValidTheme ? (theme as ProfileTheme) : 'default',
     hideSelfActivity: typeof config.hideSelfActivity === 'boolean' ? config.hideSelfActivity : false,
+    donationAlertVisual: isValidDonationVisual ? (donationVisual as DonationAlertVisual) : 'confetti',
   }
 }
 

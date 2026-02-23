@@ -1739,6 +1739,7 @@ export default function ProfilePage({ params }: PageProps) {
             slug: profile?.slug || undefined,
             avatar: getAvatarUrl(profileAddressForFollow),
           }}
+          donationAlertVisual={effectiveAppearanceConfig.donationAlertVisual}
 
           onDonate={async (amount, message) => {
             await donate(profileAddressForFollow, amount, message)
