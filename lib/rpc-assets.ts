@@ -19,7 +19,7 @@
 import { avalancheClient } from './avalanche'
 import { formatEther, formatUnits, parseUnits } from 'viem'
 import { getAVAXPrice, getTokenLogos, getTokenLogoUrl, getTokenLogosByAddresses, getAvalancheTokenList } from './coingecko'
-import { SNOWTRACE_API_KEY , SNOWTRACE_API_URL } from '@/lib/constants'
+import { SNOWTRACE_API_KEY, SNOWTRACE_API_URL } from '@/lib/constants'
 
 // const SNOWTRACE_API_KEY = process.env.SNOWTRACE_API_KEY || ''
 // const SNOWTRACE_API_URL = 'https://api.snowtrace.io/api'
@@ -88,7 +88,7 @@ const POPULAR_TOKENS: PopularToken[] = [
   { address: '0xf20d962a6c8f70c731bd838a3a388d7d48fa6e15', symbol: 'ETH', name: 'Ethereum', decimals: 18, coingeckoId: 'ethereum' },
   { address: '0x6e84a6216eA6dACC71eE8E6b0a5B7322EEbC0fDd', symbol: 'JOE', name: 'JoeToken', decimals: 18, coingeckoId: 'joe' },
   { address: '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7', symbol: 'WAVAX', name: 'Wrapped AVAX', decimals: 18, coingeckoId: 'avalanche-2' },
-  { address: '0x264c1383EA520f73dd837F915ef3a732e204a493', symbol: 'BNB', name: 'Binance Coin', decimals: 18, coingeckoId: 'binancecoin' },
+  { address: '0x264c1383EA520f73dd837F915ef3a732e204a493', symbol: 'BNB', name: 'Binance Coin', decimals: 18, coingeckoId: 'mutlichain-bridged-wbnb-avalanche' },
   { address: '0x8729438EB15e2C8B576fCc6AeCdA6A148776C0F5', symbol: 'QI', name: 'Benqi', decimals: 18, coingeckoId: 'benqi' },
   { address: '0x130966628846BFd36ff31a822705796e8cb8C18D', symbol: 'MIM', name: 'Magic Internet Money', decimals: 18, coingeckoId: 'magic-internet-money' },
   { address: '0x554555db6972cb3e43ee0bd467771785f2690a5a', symbol: 'GMX', name: 'GMX', decimals: 18, coingeckoId: 'gmx' },

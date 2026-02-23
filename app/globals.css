@@ -120,6 +120,13 @@
   :focus-visible {
     outline: none !important;
   }
+
+  /* Force Recharts and SVGs to never show focus rings */
+  .recharts-wrapper,
+  .recharts-surface,
+  .recharts-layer {
+    outline: none !important;
+  }
 }
 
 /* Premium QR Modal Overlay Blur - Only for modals, not admin pages */

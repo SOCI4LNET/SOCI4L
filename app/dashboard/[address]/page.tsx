@@ -45,6 +45,9 @@ const SafetyPanel = dynamic(() => import('@/components/dashboard/safety-panel').
 const BillingPanel = dynamic(() => import('@/components/dashboard/billing-panel').then(mod => mod.BillingPanel), {
   loading: () => <Skeleton className="h-[600px] w-full" />
 })
+const NftsPanel = dynamic(() => import('@/components/dashboard/nfts-panel').then(mod => mod.NftsPanel), {
+  loading: () => <Skeleton className="h-[600px] w-full" />
+})
 import { PageShell } from '@/components/app-shell/page-shell'
 import { sanitizeQueryParams } from '@/lib/query-params'
 import { isProfileClaimed } from '@/lib/profile/isProfileClaimed'
@@ -113,7 +116,7 @@ export default function DashboardAddressPage() {
   const currentTab = searchParams.get('tab') || 'overview'
 
   // Validate tab value
-  const validTabs = ['overview', 'assets', 'activity', 'social', 'settings', 'builder', 'links', 'insights', 'safety', 'billing']
+  const validTabs = ['overview', 'assets', 'activity', 'social', 'settings', 'builder', 'links', 'insights', 'safety', 'billing', 'nfts']
   const activeTab = validTabs.includes(currentTab) ? currentTab : 'overview'
 
   useEffect(() => {
@@ -626,6 +629,9 @@ export default function DashboardAddressPage() {
         return (
           <SettingsPanel profile={profile} targetAddress={targetAddress} onUpdate={handleSettingsUpdate} />
         )
+      case 'nfts':
+        // Full-width layout: NFT Gallery
+        return <NftsPanel address={normalizedAddress} />
       case 'safety':
         // Constrained layout: Safety settings
         return <SafetyPanel />

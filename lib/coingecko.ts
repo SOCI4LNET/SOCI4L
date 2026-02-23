@@ -193,7 +193,7 @@ const TOKEN_LIST_CACHE_DURATION = 6 * 60 * 60 * 1000 // 6 hours (reduced from 24
  */
 export async function getAvalancheTokenList(): Promise<Map<string, { id: string; logoUrl: string }>> {
   const now = Date.now()
-  
+
   // Return cached data if still valid
   if (tokenListCache && (now - tokenListCacheTime) < TOKEN_LIST_CACHE_DURATION) {
     return tokenListCache
@@ -269,7 +269,7 @@ async function searchTokenBySymbol(symbol: string): Promise<string | undefined> 
     }
 
     const data = await response.json()
-    
+
     // Look for exact symbol match in coins
     if (data.coins && Array.isArray(data.coins)) {
       for (const coin of data.coins) {
@@ -304,12 +304,12 @@ export async function getTokenLogoByAddress(
   if (!contractAddress) return undefined
 
   const normalizedAddress = contractAddress.toLowerCase()
-  
+
   try {
     // First, try to get token list to find CoinGecko ID
     const tokenList = await getAvalancheTokenList()
     const tokenInfo = tokenList.get(normalizedAddress)
-    
+
     if (tokenInfo) {
       // Found in token list, fetch logo using the coin ID
       const logoUrl = await getTokenLogoUrl(tokenInfo.id)
@@ -359,11 +359,11 @@ export async function getTokenLogosByAddresses(
   try {
     // Get token list
     const tokenList = await getAvalancheTokenList()
-    
+
     // Find all matching tokens
     const tokensToFetch: Array<{ address: string; id: string }> = []
     const tokensWithoutId: Array<{ address: string; symbol?: string }> = []
-    
+
     for (const address of normalizedAddresses) {
       const tokenInfo = tokenList.get(address)
       if (tokenInfo) {
@@ -413,5 +413,55 @@ export async function getTokenLogosByAddresses(
   } catch (error) {
     console.warn('[CoinGecko] Error fetching logos by addresses:', error)
     return {}
+  }
+}
+
+/**
+ * Fetches historical market chart data for a token
+ * @param coingeckoId CoinGecko token ID (e.g., 'avalanche-2')
+ * @param days '1' out of 24h, '7' for 7d, '30' for 30d
+ */
+export async function getTokenChart(coingeckoId: string, days: string): Promise<any[]> {
+  if (!coingeckoId) return []
+
+  try {
+    const response = await fetch(
+      `${COINGECKO_API_URL}/coins/${coingeckoId}/market_chart?vs_currency=usd&days=${days}`,
+      {
+        headers: {
+          'Accept': 'application/json',
+        },
+        next: { revalidate: 300 }, // Cache for 5 minutes
+      }
+    )
+
+    if (!response.ok) {
+      console.warn(`[CoinGecko] Failed to fetch chart data for ${coingeckoId}:`, response.status)
+      return []
+    }
+
+    const data = await response.json()
+    if (!data.prices || !Array.isArray(data.prices)) {
+      return []
+    }
+
+    // Format the data for recharts
+    // data.prices is an array of [timestamp, price]
+    const formattedData = data.prices.map(([timestamp, price]: [number, number]) => {
+      const date = new Date(timestamp)
+      const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      const formattedTime = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      return {
+        timestamp,
+        date: formattedDate,
+        time: formattedTime,
+        value: price,
+      }
+    })
+
+    return formattedData
+  } catch (error) {
+    console.warn(`[CoinGecko] Error fetching chart data for ${coingeckoId}:`, error)
+    return []
   }
 }
