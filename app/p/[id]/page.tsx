@@ -602,6 +602,20 @@ export default function ProfilePage({ params }: PageProps) {
     }
   }
 
+  const handleCopyDonateEmbed = async () => {
+    if (!resolvedAddress) return
+    try {
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+      const embedId = profile?.slug || resolvedAddress
+      const embedUrl = `${baseUrl}/embed/donate/${embedId}`
+      const embedCode = `<iframe src="${embedUrl}" width="350" height="80" frameborder="0" style="border:none; overflow:hidden;" scrolling="no"></iframe>`
+      await navigator.clipboard.writeText(embedCode)
+      toast.success('Donate embed code copied')
+    } catch {
+      toast.error('Failed to copy embed code')
+    }
+  }
+
 
   // Normalize once for follow/stats so cache key and API always use same address (fixes followers count persistence)
   const profileAddressForFollow =
@@ -1007,6 +1021,12 @@ export default function ProfilePage({ params }: PageProps) {
                             <Copy className="mr-2 h-4 w-4" />
                             Copy Link
                           </DropdownMenuItem>
+                          {isOwnProfile && (
+                            <DropdownMenuItem onClick={handleCopyDonateEmbed}>
+                              <Puzzle className="mr-2 h-4 w-4" />
+                              Copy Donate Embed
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => setQrModalOpen(true)}>
                             <QrCode className="mr-2 h-4 w-4" />

@@ -49,7 +49,7 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: '/:path*',
+        source: '/((?!embed/donate).*)',
         headers: [
           {
             key: 'X-DNS-Prefetch-Control',
@@ -74,6 +74,19 @@ const nextConfig = {
           {
             key: 'Referrer-Policy',
             value: 'origin-when-cross-origin'
+          }
+        ]
+      },
+      {
+        source: '/embed/donate/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "frame-ancestors * http: https: http://localhost:* https://localhost:* http://localhost:5500 http://127.0.0.1:5500;"
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'ALLOWALL'
           }
         ]
       }
