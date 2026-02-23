@@ -996,13 +996,12 @@ export default function ProfilePage({ params }: PageProps) {
                       />
                     )}
 
-                    {profileAddressForFollow && !profile?.isBanned && (
+                    {profileAddressForFollow && !isOwnProfile && !profile?.isBanned && (
                       <Button
                         variant="outline"
                         size="sm"
                         className="h-8 gap-2 text-muted-foreground hover:text-pink-500 hover:border-pink-200 hover:bg-pink-50"
                         onClick={() => setDonateModalOpen(true)}
-                        disabled={isOwnProfile}
                       >
                         <Heart className="h-3.5 w-3.5" />
                         <span className="hidden sm:inline text-xs font-medium">Donate</span>
