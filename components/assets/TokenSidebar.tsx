@@ -1,9 +1,10 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useAccount } from 'wagmi'
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ExternalLink, X } from "lucide-react"
+import { ExternalLink, X, Calendar } from "lucide-react"
 import { getCachedLogo, getCacheKey } from "@/lib/logo-cache"
 import { formatAddress } from "@/lib/utils"
 import { Line, LineChart, ResponsiveContainer, YAxis, Tooltip } from 'recharts'
@@ -19,6 +20,7 @@ interface TokenSidebarProps {
 export function TokenSidebar({ token, totalValueUsd, onClose, explorerLink }: TokenSidebarProps) {
     if (!token) return null
 
+    const { address: connectedAddress } = useAccount()
     const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('7d')
 
     const isNative = token.isNative || token.address === null
@@ -86,6 +88,22 @@ export function TokenSidebar({ token, totalValueUsd, onClose, explorerLink }: To
         staleTime: 5 * 60 * 1000, // 5 mins
     })
 
+    // Fetch first acquisition date
+    const tokenAddress = token.address || 'native'
+    const { data: historyData } = useQuery({
+        queryKey: ['token-history', tokenAddress, connectedAddress],
+        queryFn: async () => {
+            if (!connectedAddress) return { firstAcquiredAt: null }
+            const res = await fetch(`/api/token/${tokenAddress}/history?wallet=${connectedAddress}`)
+            if (!res.ok) return { firstAcquiredAt: null }
+            return res.json()
+        },
+        enabled: !!token && !!connectedAddress,
+        staleTime: 30 * 60 * 1000, // 30 mins
+    })
+
+    const firstAcquiredAt: number | null = historyData?.firstAcquiredAt || null
+
     const chartData = chartResponse?.data || []
 
     // Calculate real change based on chart data
@@ -125,6 +143,29 @@ export function TokenSidebar({ token, totalValueUsd, onClose, explorerLink }: To
             )
         }
         return null
+    }
+
+    // Segmented P&L bar — scale: ±20% = full bar (realistic for crypto daily/weekly moves)
+    function SegmentedBar({ value, isPositive }: { value: number, isPositive: boolean }) {
+        const TOTAL_SEGMENTS = 20
+        const MAX_SCALE = 20 // 20% change = full bar
+        const clampedAbs = Math.min(Math.abs(value), MAX_SCALE)
+        const filledCount = Math.round((clampedAbs / MAX_SCALE) * TOTAL_SEGMENTS)
+        const color = isPositive ? '#00e676' : '#E84142'
+        return (
+            <div className="flex items-center gap-[2px]">
+                {Array.from({ length: TOTAL_SEGMENTS }).map((_, i) => (
+                    <div
+                        key={i}
+                        className="h-[10px] w-[8px] rounded-[2px] transition-all duration-300"
+                        style={{
+                            backgroundColor: i < filledCount ? color : 'rgba(255,255,255,0.08)',
+                            opacity: i < filledCount ? (0.5 + (i / TOTAL_SEGMENTS) * 0.5) : 1,
+                        }}
+                    />
+                ))}
+            </div>
+        )
     }
 
     return (
@@ -240,7 +281,37 @@ export function TokenSidebar({ token, totalValueUsd, onClose, explorerLink }: To
                     </div>
                 </div>
 
+                {/* P&L Section */}
+                {chartData.length >= 2 && (
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Price Change ({timeRange})</span>
+                            <span className={`text-sm font-semibold tabular-nums ${isPriceUpFinal ? 'text-[#00e676]' : 'text-[#E84142]'
+                                }`}>
+                                {isPriceUpFinal ? '+' : ''}{changePercentage}%
+                            </span>
+                        </div>
+                        <SegmentedBar value={parseFloat(changePercentage)} isPositive={isPriceUpFinal} />
+                    </div>
+                )}
+
+                {/* First Acquired */}
+                {firstAcquiredAt && (
+                    <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1.5">
+                            <Calendar className="h-3.5 w-3.5" />
+                            First Acquired
+                        </span>
+                        <span className="text-sm font-medium">
+                            {new Date(firstAcquiredAt).toLocaleDateString('en-US', {
+                                year: 'numeric', month: 'short', day: 'numeric'
+                            })}
+                        </span>
+                    </div>
+                )}
+
                 {!isNative && token.address && (
+
                     <div className="flex items-center justify-between pt-2">
                         <span className="text-sm text-muted-foreground">Contract</span>
                         <div className="flex items-center gap-2">
