@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import { getPublicProfileHref } from '@/lib/routing'
 import Link from 'next/link'
-import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Heart, Share2, Instagram, Youtube, Sparkles, ShieldAlert, Layers, UserX, CheckCircle, MoreVertical, Ban, Puzzle } from 'lucide-react'
+import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Heart, Share2, Instagram, Youtube, Sparkles, ShieldAlert, Layers, UserX, CheckCircle, MoreVertical, Ban, Puzzle, Code2 } from 'lucide-react'
 import { XIcon } from '@/components/icons/x-icon'
 
 import { ClaimProfileButton } from '@/components/claim-profile-button'
@@ -909,7 +909,10 @@ export default function ProfilePage({ params }: PageProps) {
                                 <CheckCircle className="h-5 w-5 text-blue-500 fill-blue-500/10 shrink-0" />
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>Verified Account</p>
+                                <div className="flex items-center gap-1.5">
+                                  <span>Verified Account</span>
+                                  <CheckCircle className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+                                </div>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -958,7 +961,7 @@ export default function ProfilePage({ params }: PageProps) {
 
                       {/* 2. Bio */}
                       {!profile?.isBanned && profile?.bio && (
-                        <p className="text-sm text-muted-foreground/90 pr-4 leading-relaxed mb-0.5 break-words whitespace-pre-wrap">
+                        <p className="text-sm text-muted-foreground/90 pr-4 leading-relaxed mb-0.5 break-words whitespace-pre-wrap md:whitespace-normal">
                           {simplifyHeaderBio(profile.bio)}
                         </p>
                       )}
@@ -1022,7 +1025,7 @@ export default function ProfilePage({ params }: PageProps) {
                           </DropdownMenuItem>
                           {isOwnProfile && (
                             <DropdownMenuItem onClick={handleCopyDonateEmbed}>
-                              <Puzzle className="mr-2 h-4 w-4" />
+                              <Code2 className="mr-2 h-4 w-4" />
                               Copy Donate Embed
                             </DropdownMenuItem>
                           )}
@@ -1085,7 +1088,10 @@ export default function ProfilePage({ params }: PageProps) {
                                   <div className="flex items-center gap-1.5">
                                     <span>{getSocialLabel(link)}</span>
                                     {link.verified && (
-                                      <CheckCircle className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+                                      <div className="flex items-center gap-1 text-blue-500 ml-0.5">
+                                        <CheckCircle className="h-3.5 w-3.5 shrink-0" />
+                                        <span className="text-xs font-medium">Verified</span>
+                                      </div>
                                     )}
                                   </div>
                                 </TooltipContent>

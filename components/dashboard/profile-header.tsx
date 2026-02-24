@@ -14,7 +14,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Copy, ExternalLink, Share2, Twitter, QrCode, Check, X, Pencil, Sparkles } from "lucide-react"
+import { Copy, ExternalLink, Share2, Twitter, QrCode, Check, X, Pencil, Sparkles, Code2 } from "lucide-react"
 import { formatAddress } from "@/lib/utils"
 import Link from "next/link"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -83,6 +83,20 @@ export function ProfileHeader({
             toast.success('Profile link copied')
         } catch {
             toast.error('Failed to copy')
+        }
+    }
+
+    const handleCopyDonateEmbed = async () => {
+        if (!normalizedAddress) return
+        try {
+            const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+            const embedId = profile?.slug || normalizedAddress
+            const embedUrl = `${baseUrl}/embed/donate/${embedId}`
+            const embedCode = `<iframe src="${embedUrl}" width="350" height="80" frameborder="0" style="border:none; overflow:hidden;" scrolling="no"></iframe>`
+            await navigator.clipboard.writeText(embedCode)
+            toast.success('Donate embed code copied')
+        } catch {
+            toast.error('Failed to copy embed code')
         }
     }
 
@@ -293,6 +307,10 @@ export function ProfileHeader({
                                         <DropdownMenuItem onClick={handleCopyProfileLink}>
                                             <Copy className="mr-2 h-4 w-4" />
                                             <span>Copy profile link</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={handleCopyDonateEmbed}>
+                                            <Code2 className="mr-2 h-4 w-4" />
+                                            <span>Copy donate embed</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onClick={handleShareOnX}>
                                             <Twitter className="mr-2 h-4 w-4" />

@@ -103,11 +103,15 @@ export async function GET(
         .map((t) => t.usdValue || 0)
         .reduce((sum, val) => sum + val, 0)
 
+      totalValueUsd = tokenValues
+
       // Add native AVAX value if available
       if (rpcData.native.usdValue) {
-        totalValueUsd = (totalValueUsd || 0) + rpcData.native.usdValue
-      } else {
-        totalValueUsd = tokenValues > 0 ? tokenValues : undefined
+        totalValueUsd += rpcData.native.usdValue
+      }
+
+      if (totalValueUsd === 0) {
+        totalValueUsd = undefined
       }
 
       console.log('[Assets Summary API] Summary calculated:', {
