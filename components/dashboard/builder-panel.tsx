@@ -61,6 +61,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
+import { getFriendlyErrorMessage } from '@/lib/utils/errors'
 import {
   type ProfileBlockKey,
   type ProfileLayoutBlock,
@@ -867,11 +868,7 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
       setHasUnsavedChanges(false)
     } catch (error: any) {
       console.error('[BuilderPanel] Failed to save changes', error)
-      if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
-        toast.error('Transaction rejected')
-      } else {
-        toast.error(error instanceof Error ? error.message : 'Failed to save changes. Please try again.')
-      }
+      toast.error(getFriendlyErrorMessage(error, 'Failed to save changes'))
     } finally {
       setSaving(false)
       hideTransactionLoader()
@@ -1367,9 +1364,9 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
       toast.success(`Preset applied: ${preset.name}. Please refresh the public profile page.`, {
         duration: 4000,
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error('[BuilderPanel] Failed to apply preset', error)
-      toast.error('Failed to apply preset. Please try again.')
+      toast.error(getFriendlyErrorMessage(error, 'Failed to apply preset'))
     } finally {
       setSaving(false)
       hideTransactionLoader()

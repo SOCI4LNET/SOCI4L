@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { WalletConnectButtons } from '@/components/wallet-connect-buttons'
+import { getFriendlyErrorMessage } from '@/lib/utils/errors'
 import { useTransaction } from '@/components/providers/transaction-provider'
 
 interface ClaimProfileButtonProps {
@@ -96,12 +97,7 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
       }
     } catch (error: any) {
       console.error('Error claiming profile:', error)
-      // Only show error if it's not a user rejection (usually matches "User rejected" or "User denied")
-      if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
-        toast.error('Transaction rejected')
-      } else {
-        toast.error('Failed to claim profile. Please try again.')
-      }
+      toast.error(getFriendlyErrorMessage(error, 'Failed to claim profile'))
     } finally {
       hideTransactionLoader()
     }

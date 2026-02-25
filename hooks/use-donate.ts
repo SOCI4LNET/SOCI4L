@@ -2,6 +2,7 @@ import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { parseEther } from 'viem'
 import { avalanche } from 'wagmi/chains'
 import { DONATE_PAYMENT_ADDRESS, DONATE_PAYMENT_ABI } from '@/lib/contracts/DonatePayment'
+import { getFriendlyErrorMessage } from '@/lib/utils/errors'
 import { toast } from 'sonner'
 
 export function useDonate() {
@@ -30,19 +31,7 @@ export function useDonate() {
             return txHash
         } catch (error: any) {
             console.error('Donation error:', error)
-
-            if (error.message?.includes('User rejected')) {
-                toast.error('Transaction cancelled')
-            } else if (error.message?.includes('BelowMinimumDonation')) {
-                toast.error('Amount too small', {
-                    description: 'Minimum donation is 0.01 AVAX',
-                })
-            } else {
-                toast.error('Donation failed', {
-                    description: error.message || 'Please try again',
-                })
-            }
-
+            toast.error(getFriendlyErrorMessage(error, 'Donation failed'))
             throw error
         }
     }

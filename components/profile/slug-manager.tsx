@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { CUSTOM_SLUG_REGISTRY_ADDRESS, CUSTOM_SLUG_REGISTRY_ABI } from "@/lib/contracts/CustomSlugRegistry";
 import { normalizeSlug, validateSlugFormat, hashSlug } from "@/lib/utils/slug";
+import { getFriendlyErrorMessage } from "@/lib/utils/errors";
 import { SlugCelebration } from "./slug-celebration";
 
 const ABI = parseAbi(CUSTOM_SLUG_REGISTRY_ABI);
@@ -194,11 +195,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
             }
         } catch (e: any) {
             console.error(e);
-            if (e?.message?.includes("User rejected")) {
-                toast.error("Signature rejected");
-            } else {
-                toast.error("Sync error");
-            }
+            toast.error(getFriendlyErrorMessage(e, "Sync failed"));
         } finally {
             setPendingAction(null);
         }
@@ -491,11 +488,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                                             toast.loading("Releasing slug...", { id: "release-toast" });
                                         } catch (e: any) {
                                             console.error("Release error:", e);
-                                            if (e?.message?.includes('User rejected')) {
-                                                toast.error("Transaction rejected");
-                                            } else {
-                                                toast.error("Failed to initiate release");
-                                            }
+                                            toast.error(getFriendlyErrorMessage(e, "Failed to initiate release"));
                                             setPendingAction(null);
                                         }
                                     }}
@@ -634,7 +627,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                                                     toast.loading("Claiming slug...", { id: "claim-toast" });
                                                 } catch (e: any) {
                                                     console.error("Claim error:", e);
-                                                    toast.error(e.message || "Failed to initiate claim");
+                                                    toast.error(getFriendlyErrorMessage(e, "Failed to initiate claim"));
                                                     setPendingAction(null);
                                                 }
                                             }}

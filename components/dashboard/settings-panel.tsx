@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Loader2, Copy, AlertTriangle } from "lucide-react"
+import { getFriendlyErrorMessage } from "@/lib/utils/errors"
 import { toast } from "sonner"
 import { PageShell } from "@/components/app-shell/page-shell"
 import {
@@ -161,11 +162,7 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
       toast.success('Visibility updated')
     } catch (error: any) {
       console.error('Error updating visibility:', error)
-      if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
-        toast.error('Transaction rejected')
-      } else {
-        toast.error('Failed to save visibility settings. Please try again.')
-      }
+      toast.error(getFriendlyErrorMessage(error, 'Failed to save visibility settings'))
     } finally {
       setSavingVisibility(false)
       hideTransactionLoader()
@@ -207,7 +204,7 @@ export function SettingsPanel({ profile, targetAddress, onUpdate }: SettingsPane
       toast.success('Analytics settings updated')
     } catch (error: any) {
       console.error('Error updating analytics:', error)
-      toast.error(error.message || 'Failed to save settings')
+      toast.error(getFriendlyErrorMessage(error, 'Failed to save analytics settings'))
     } finally {
       setSavingAnalytics(false)
       hideTransactionLoader()

@@ -69,6 +69,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
+import { getFriendlyErrorMessage } from '@/lib/utils/errors'
 import { useTransaction } from '@/components/providers/transaction-provider'
 
 type LinkItem = {
@@ -710,42 +711,42 @@ export function LinksPanel() {
     }
 
     let cancelled = false
-    ;(async () => {
-      try {
-        const verified = await verifySocialOnBackend({
-          platform: pendingVerification.platform,
-          platformUsername,
-          platformUserId: account.subject,
-          address: targetAddress,
-        })
+      ; (async () => {
+        try {
+          const verified = await verifySocialOnBackend({
+            platform: pendingVerification.platform,
+            platformUsername,
+            platformUserId: account.subject,
+            address: targetAddress,
+          })
 
-        if (!verified || cancelled) return
+          if (!verified || cancelled) return
 
-        setSocialLinks(prev =>
-          prev.map(item =>
-            item.id === pendingVerification.linkId ? { ...item, verified: true } : item
+          setSocialLinks(prev =>
+            prev.map(item =>
+              item.id === pendingVerification.linkId ? { ...item, verified: true } : item
+            )
           )
-        )
-        setSocialConflictByPlatform(prev => ({ ...prev, [pendingVerification.platform]: false }))
-        toast.success('Verified!')
-        await loadSocialLinks()
-      } catch (error: any) {
-        if (!cancelled) {
-          const message = error?.message || ''
-          if (message.includes('already connected to another profile')) {
-            const platformLabel = pendingVerification.platform === 'twitter' ? 'X' : 'GitHub'
-            setSocialConflictByPlatform(prev => ({ ...prev, [pendingVerification.platform]: true }))
-            toast.error(`${platformLabel} account is linked to a different wallet. Update the URL to the correct account and verify again.`)
-          } else {
-            toast.error('Verification failed')
+          setSocialConflictByPlatform(prev => ({ ...prev, [pendingVerification.platform]: false }))
+          toast.success('Verified!')
+          await loadSocialLinks()
+        } catch (error: any) {
+          if (!cancelled) {
+            const message = error?.message || ''
+            if (message.includes('already connected to another profile')) {
+              const platformLabel = pendingVerification.platform === 'twitter' ? 'X' : 'GitHub'
+              setSocialConflictByPlatform(prev => ({ ...prev, [pendingVerification.platform]: true }))
+              toast.error(`${platformLabel} account is linked to a different wallet. Update the URL to the correct account and verify again.`)
+            } else {
+              toast.error('Verification failed')
+            }
+          }
+        } finally {
+          if (!cancelled) {
+            setPendingVerification(null)
           }
         }
-      } finally {
-        if (!cancelled) {
-          setPendingVerification(null)
-        }
-      }
-    })()
+      })()
 
     return () => {
       cancelled = true
@@ -1174,7 +1175,7 @@ export function LinksPanel() {
             }
           } catch (signError: any) {
             console.error('Signature process failed:', signError);
-            toast.error(signError.message || 'Verification failed', { id: toastId });
+            toast.error(getFriendlyErrorMessage(signError, 'Verification failed'), { id: toastId });
             return false;
           }
         } else {
@@ -1297,15 +1298,13 @@ export function LinksPanel() {
       return true
     } catch (error: any) {
       console.error('[LinksPanel] Failed to save social links', error)
-      if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
-        toast.error('Transaction rejected')
-      } else if (typeof error?.message === 'string' && (
+      if (typeof error?.message === 'string' && (
         error.message.includes('Profile not found') ||
         error.message.includes('Profile not claimed yet')
       )) {
         toast.error('Please claim your profile first, then add social links.')
       } else {
-        toast.error(error?.message || 'Failed to save social links. Please try again.')
+        toast.error(getFriendlyErrorMessage(error, 'Failed to save social links'))
       }
       return false
     } finally {
@@ -1395,11 +1394,7 @@ export function LinksPanel() {
       return true
     } catch (error: any) {
       console.error('[LinksPanel] Failed to save categories', error)
-      if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
-        toast.error('Transaction rejected')
-      } else {
-        toast.error('Failed to save categories. Please try again.')
-      }
+      toast.error(getFriendlyErrorMessage(error, 'Failed to save categories'))
       return false
     } finally {
       setCategoriesSaving(false)
@@ -1476,10 +1471,8 @@ export function LinksPanel() {
       console.error('[LinksPanel] Failed to save links', error)
       if (error?.message?.includes('Profile not claimed yet')) {
         toast.error('Failed to save: You must claim your profile first.')
-      } else if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
-        toast.error('Transaction rejected')
       } else {
-        toast.error('Failed to save links. Please try again.')
+        toast.error(getFriendlyErrorMessage(error, 'Failed to save links'))
       }
       return false
     } finally {

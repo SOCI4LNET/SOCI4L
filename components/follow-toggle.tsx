@@ -16,9 +16,8 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Bookmark as BookmarkIcon, Users, UserPlus, UserX } from 'lucide-react'
 import { toast } from 'sonner'
-import { isValidAddress } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { useTransaction } from '@/components/providers/transaction-provider'
+import { getFriendlyErrorMessage } from '@/lib/utils/errors'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 interface FollowToggleProps {
@@ -174,9 +173,9 @@ export function FollowToggle({ address, isBlockedByViewer: initialBlocked = fals
       }
 
       return true
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error ensuring session:', error)
-      toast.error('Session verification failed. Please try again.')
+      toast.error(getFriendlyErrorMessage(error, 'Connection failed'))
       return false
     }
   }
@@ -320,11 +319,7 @@ export function FollowToggle({ address, isBlockedByViewer: initialBlocked = fals
     } catch (error: any) {
       // Rollback on error
       setIsFollowing(previousState)
-      if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
-        toast.error('Transaction rejected')
-      } else {
-        toast.error('Action failed. Please try again.')
-      }
+      toast.error(getFriendlyErrorMessage(error, 'Action failed'))
     } finally {
       setIsPending(false)
       hideTransactionLoader()
