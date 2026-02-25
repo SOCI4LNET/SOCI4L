@@ -49,14 +49,28 @@ export default async function DonateEmbedPage({ params }: PageProps) {
 
     if (!profile) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-transparent p-4">
+            <div className="flex items-center justify-center w-screen h-screen bg-transparent m-0 p-0 overflow-hidden">
+                <style dangerouslySetInnerHTML={{
+                    __html: `
+                    body, html, body > div {
+                        background-color: transparent !important;
+                        background: transparent !important;
+                    }
+                `}} />
                 <p className="text-xs text-muted-foreground">Profile not found</p>
             </div>
         )
     }
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-transparent p-2">
+        <div className="flex items-center justify-center w-screen h-screen bg-transparent m-0 p-0 overflow-hidden">
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                body, html, body > div {
+                    background-color: transparent !important;
+                    background: transparent !important;
+                }
+            `}} />
             <DonateEmbedWidget profile={profile} />
         </div>
     )

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAccount, useConnect, useSignMessage } from 'wagmi'
 import { Toggle } from '@/components/ui/toggle'
+import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import {
   AlertDialog,
@@ -19,6 +20,7 @@ import { toast } from 'sonner'
 import { useTransaction } from '@/components/providers/transaction-provider'
 import { getFriendlyErrorMessage } from '@/lib/utils/errors'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { isValidAddress } from '@/lib/utils'
 
 interface FollowToggleProps {
   address: string

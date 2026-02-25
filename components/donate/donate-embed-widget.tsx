@@ -16,7 +16,7 @@ interface DonateEmbedWidgetProps {
 }
 
 export function DonateEmbedWidget({ profile }: DonateEmbedWidgetProps) {
-  const profileUrl = typeof window !== 'undefined' 
+  const profileUrl = typeof window !== 'undefined'
     ? `${window.location.origin}${getPublicProfileHref(profile.address, profile.slug)}?action=donate`
     : '#'
 
@@ -25,8 +25,8 @@ export function DonateEmbedWidget({ profile }: DonateEmbedWidgetProps) {
   }
 
   return (
-    <Card className="w-full max-w-[350px] overflow-hidden border-none bg-gradient-to-br from-background to-muted/30 shadow-lg ring-1 ring-border/50">
-      <CardContent className="p-4 flex items-center justify-between gap-4">
+    <Card className="w-full h-full max-w-[350px] overflow-hidden border border-border/50 bg-card shadow-sm rounded-[8px] flex items-center">
+      <CardContent className="p-4 w-full flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
           <Avatar className="h-10 w-10 ring-2 ring-background shadow-sm">
             <AvatarImage
@@ -48,11 +48,11 @@ export function DonateEmbedWidget({ profile }: DonateEmbedWidgetProps) {
         </div>
         <Button
           size="sm"
-          className="h-8 gap-1.5 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white border-none shadow-md hover:shadow-lg transition-all duration-300"
+          className="h-8 gap-1.5 shadow-md transition-all duration-300 rounded-[6px]"
           onClick={handleDonateClick}
         >
-          <Heart className="h-3.5 w-3.5 fill-current" />
-          <span className="text-xs font-bold uppercase tracking-wider">Donate</span>
+          <Heart className="h-3.5 w-3.5" />
+          <span className="text-xs font-bold tracking-wider">Donate</span>
         </Button>
       </CardContent>
     </Card>
