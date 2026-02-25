@@ -116,6 +116,13 @@
     @apply bg-background text-foreground;
   }
 
+  /* Force transparency for iframes to prevent dark mode background bleed */
+  html.iframe-mode,
+  html.iframe-mode body {
+    background: transparent !important;
+    background-color: transparent !important;
+  }
+
   /* Global Focus Rule */
   :focus-visible {
     outline: none !important;

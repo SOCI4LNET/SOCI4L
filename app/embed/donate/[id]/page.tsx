@@ -71,6 +71,9 @@ export default async function DonateEmbedPage({ params }: PageProps) {
                     background: transparent !important;
                 }
             `}} />
+            <script dangerouslySetInnerHTML={{
+                __html: `document.documentElement.classList.add('iframe-mode');`
+            }} />
             <DonateEmbedWidget profile={profile} />
         </div>
     )
