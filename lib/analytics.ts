@@ -185,16 +185,12 @@ export function trackProfileView(
         referrer: getSafeReferrer(),
       })
       const url = '/api/analytics/event'
-      if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
-        const blob = new Blob([payload], { type: 'application/json' })
-        navigator.sendBeacon(url, blob)
-      } else {
-        fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: payload,
-        }).catch(() => { })
-      }
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+        keepalive: true,
+      }).catch(() => { })
     }
   } catch {
     // ignore
@@ -247,16 +243,12 @@ export function trackLinkClick(
         utmContent,
       })
       const url = '/api/analytics/event'
-      if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
-        const blob = new Blob([payload], { type: 'application/json' })
-        navigator.sendBeacon(url, blob)
-      } else {
-        fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: payload,
-        }).catch(() => { })
-      }
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+        keepalive: true,
+      }).catch(() => { })
     }
   } catch (error) {
     // ignore

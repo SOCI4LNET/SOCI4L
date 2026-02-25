@@ -423,9 +423,18 @@ export default function ProfilePage({ params }: PageProps) {
         trackedProfileIdRef.current = currentTrackKey
       }, 800)
       return () => clearTimeout(timer)
+    } else {
+      // Privacy feature: Do not track owner viewing their own profile
+      if (stableProfileId === connectedAddress.toLowerCase()) {
+        trackedProfileIdRef.current = currentTrackKey
+        return
+      }
+
+      trackProfileView(stableProfileId, source, connectedAddress)
+      trackedProfileIdRef.current = currentTrackKey
     }
 
-  }, [searchParams, profile?.address, profile?.isBanned, loading])
+  }, [searchParams, profile?.address, profile?.isBanned, loading, stableProfileId, connectedAddress, status, isReconnecting, profileStatus])
 
   // Check for donate action in URL parameters (from extension)
   useEffect(() => {
