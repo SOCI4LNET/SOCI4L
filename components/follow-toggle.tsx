@@ -16,6 +16,8 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Bookmark as BookmarkIcon, Users, UserPlus, UserX } from 'lucide-react'
 import { toast } from 'sonner'
+import { isValidAddress } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import { useTransaction } from '@/components/providers/transaction-provider'
 import { getFriendlyErrorMessage } from '@/lib/utils/errors'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
