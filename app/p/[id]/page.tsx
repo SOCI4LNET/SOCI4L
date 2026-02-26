@@ -1450,7 +1450,7 @@ export default function ProfilePage({ params }: PageProps) {
                                                                 <Skeleton className="h-[72px] w-full bg-foreground/5 rounded-xl border border-foreground/5" />
                                                             </div>
                                                         ) : walletData?.transactions?.length ? (
-                                                            <div className="flex-1 pb-16">
+                                                            <div className="flex-1 pb-16 flex flex-col">
                                                                 <div className="px-6 pb-2">
                                                                     {walletData.transactions.slice(0, displayCount).map((tx, idx) => (
                                                                         <div
@@ -1550,7 +1550,7 @@ export default function ProfilePage({ params }: PageProps) {
 
                                                                 {/* Combined Pagination Control Area */}
                                                                 {((walletData?.transactions?.length || 0) > displayCount || activityDisplayCount > 5) && (
-                                                                    <div className={`absolute bottom-0 left-0 w-full flex items-end justify-center pb-5 z-10 ${(walletData?.transactions?.length || 0) > displayCount ? 'h-32 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none' : 'h-16 pt-2 pointer-events-auto'}`}>
+                                                                    <div className={`mt-auto absolute bottom-0 left-0 w-full flex items-end justify-center pb-5 z-10 ${(walletData?.transactions?.length || 0) > displayCount ? 'h-32 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none' : 'h-16 pt-2 pointer-events-auto'}`}>
                                                                         {(walletData?.transactions?.length || 0) > displayCount && (
                                                                             <div className="absolute inset-0 backdrop-blur-[2px] [mask-image:linear-gradient(to_top,black,transparent)]" />
                                                                         )}
