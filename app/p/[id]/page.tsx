@@ -1647,24 +1647,24 @@ export default function ProfilePage({ params }: PageProps) {
                                                                             <h4 className="text-[11px] font-bold text-foreground/50 tracking-[0.2em] uppercase">Crypto Assets</h4>
                                                                         </div>
                                                                         {visibleCrypto.map((asset, idx) => (
-                                                                            <div key={`crypto-${idx}`} className={`group flex items-center justify-between p-3 sm:p-4 rounded-2xl hover:bg-muted/50 transition-colors ${isCompact ? 'py-2 sm:py-2.5' : ''}`}>
-                                                                                <div className="flex items-center gap-4 min-w-0">
-                                                                                    <div className={`rounded-full overflow-hidden border bg-accent/50 flex items-center justify-center flex-shrink-0 ${isCompact ? 'h-8 w-8 text-sm' : 'h-10 w-10 text-lg'}`}>
+                                                                            <div key={`crypto-${idx}`} className={`group flex items-center justify-between rounded-xl hover:bg-muted/50 transition-colors ${isCompact ? 'py-1.5 px-3' : 'p-3 sm:p-4'}`}>
+                                                                                <div className={`flex items-center min-w-0 ${isCompact ? 'gap-2.5' : 'gap-4'}`}>
+                                                                                    <div className={`rounded-full overflow-hidden border bg-accent/50 flex items-center justify-center flex-shrink-0 ${isCompact ? 'h-6 w-6 text-[10px]' : 'h-10 w-10 text-lg'}`}>
                                                                                         {asset.icon ? (
                                                                                             // eslint-disable-next-line @next/next/no-img-element
                                                                                             <img src={asset.icon} alt={asset.symbol} className="h-full w-full object-cover" />
                                                                                         ) : (
-                                                                                            <span className="text-sm font-bold text-muted-foreground">{asset.fallback || '🪙'}</span>
+                                                                                            <span className={`${isCompact ? 'text-[8px]' : 'text-sm'} font-bold text-muted-foreground`}>{asset.fallback || '🪙'}</span>
                                                                                         )}
                                                                                     </div>
                                                                                     <div className="flex flex-col min-w-0">
-                                                                                        <span className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} font-medium truncate`}>{asset.name}</span>
-                                                                                        <span className="text-xs text-muted-foreground tracking-wider mt-0.5">{asset.symbol}</span>
+                                                                                        <span className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, isCompact ? 'small' : 'body')} ${!isCompact && 'font-medium'} truncate`}>{asset.name}</span>
+                                                                                        <span className={`${isCompact ? 'text-[10px] mt-0' : 'text-xs mt-0.5'} text-muted-foreground tracking-wider`}>{asset.symbol}</span>
                                                                                     </div>
                                                                                 </div>
                                                                                 {showAmounts && (
-                                                                                    <div className="text-right pl-4">
-                                                                                        <span className="text-sm font-mono text-foreground/90">{asset.balance}</span>
+                                                                                    <div className="text-right pl-3">
+                                                                                        <span className={`${isCompact ? 'text-xs' : 'text-sm'} font-mono text-foreground/90`}>{asset.balance}</span>
                                                                                     </div>
                                                                                 )}
                                                                             </div>
@@ -1679,21 +1679,21 @@ export default function ProfilePage({ params }: PageProps) {
                                                                             <h4 className="text-[11px] font-bold text-foreground/50 tracking-[0.2em] uppercase">NFTs</h4>
                                                                         </div>
                                                                         {visibleNfts.map((asset, idx) => (
-                                                                            <div key={`nft-${idx}`} className={`group flex items-center justify-between p-3 sm:p-4 rounded-2xl hover:bg-muted/50 transition-colors ${isCompact ? 'py-2 sm:py-2.5' : ''}`}>
-                                                                                <div className="flex items-center gap-4 min-w-0">
+                                                                            <div key={`nft-${idx}`} className={`group flex items-center justify-between rounded-xl hover:bg-muted/50 transition-colors ${isCompact ? 'py-1.5 px-3' : 'p-3 sm:p-4'}`}>
+                                                                                <div className={`flex items-center min-w-0 ${isCompact ? 'gap-2.5' : 'gap-4'}`}>
                                                                                     {asset.image ? (
-                                                                                        <div className={`rounded-xl overflow-hidden border bg-muted flex-shrink-0 ${isCompact ? 'h-8 w-8' : 'h-10 w-10'}`}>
+                                                                                        <div className={`rounded-lg overflow-hidden border bg-muted flex-shrink-0 ${isCompact ? 'h-7 w-7' : 'h-10 w-10'}`}>
                                                                                             {/* eslint-disable-next-line @next/next/no-img-element */}
                                                                                             <img src={asset.image} alt="NFT" className="h-full w-full object-cover" />
                                                                                         </div>
                                                                                     ) : (
-                                                                                        <div className={`${isCompact ? 'h-8 w-8 text-sm' : 'h-10 w-10 text-lg'} rounded-xl border bg-muted flex items-center justify-center flex-shrink-0`}>
+                                                                                        <div className={`${isCompact ? 'h-7 w-7 text-xs' : 'h-10 w-10 text-lg'} rounded-lg border bg-muted flex items-center justify-center flex-shrink-0`}>
                                                                                             🖼️
                                                                                         </div>
                                                                                     )}
                                                                                     <div className="flex flex-col min-w-0">
-                                                                                        <span className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} font-medium truncate`}>{asset.name}</span>
-                                                                                        <span className="text-xs text-muted-foreground uppercase tracking-wider mt-0.5">{asset.symbol}</span>
+                                                                                        <span className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, isCompact ? 'small' : 'body')} ${!isCompact && 'font-medium'} truncate`}>{asset.name}</span>
+                                                                                        <span className={`${isCompact ? 'text-[10px] mt-0' : 'text-xs mt-0.5'} text-muted-foreground uppercase tracking-wider`}>{asset.symbol}</span>
                                                                                     </div>
                                                                                 </div>
                                                                                 <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1711,14 +1711,16 @@ export default function ProfilePage({ params }: PageProps) {
                                                                                     </TooltipProvider>
                                                                                 </div>
                                                                                 {showAmounts && (
-                                                                                    <div className="text-right pl-4">
-                                                                                        <span className="text-sm font-mono text-foreground/90">{asset.balance}</span>
+                                                                                    <div className="text-right pl-3">
+                                                                                        <span className={`${isCompact ? 'text-xs' : 'text-sm'} font-mono text-foreground/90`}>{asset.balance}</span>
                                                                                     </div>
                                                                                 )}
                                                                             </div>
                                                                         ))}
                                                                     </div>
-                                                                )}                                                                        {totalAssets === 0 && (
+                                                                )}
+
+                                                                {totalAssets === 0 && (
                                                                     <div className="text-center py-8">
                                                                         <p className="text-sm text-muted-foreground">—</p>
                                                                     </div>
