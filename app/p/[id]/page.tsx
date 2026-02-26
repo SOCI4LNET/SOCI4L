@@ -141,6 +141,11 @@ export default function ProfilePage({ params }: PageProps) {
     const [isBlockedByViewer, setIsBlockedByViewer] = useState(false)
     const [donateModalOpen, setDonateModalOpen] = useState(false)
     const { donate, isPending: isDonating } = useDonate()
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     // ... (keep existing code)
 
@@ -180,7 +185,7 @@ export default function ProfilePage({ params }: PageProps) {
 
     const stableProfileId = addressFromProfile || addressFromParam || null
 
-    const isOwnProfile = !!(connectedAddress && stableProfileId && connectedAddress.toLowerCase() === stableProfileId)
+    const isOwnProfile = mounted && !!(connectedAddress && stableProfileId && connectedAddress.toLowerCase() === stableProfileId)
     const isPrivate = profileStatus === 'CLAIMED+PRIVATE'
     const isClaimed = profileStatus === 'CLAIMED+PUBLIC' || profileStatus === 'CLAIMED+PRIVATE'
     const resolvedAddress = stableProfileId
