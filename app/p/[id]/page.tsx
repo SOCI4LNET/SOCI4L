@@ -1451,7 +1451,7 @@ export default function ProfilePage({ params }: PageProps) {
                                                                     {walletData.transactions.slice(0, displayCount).map((tx, idx) => (
                                                                         <div
                                                                             key={idx}
-                                                                            className={`${isFull ? 'space-y-2 p-3 rounded-md border bg-muted/30 mb-4 inline-block w-full' : 'space-y-1 py-3 border-b'} last:border-0`}
+                                                                            className={`${isFull ? 'space-y-2 p-3 rounded-md border bg-muted/30 mb-4 inline-block w-full' : isCompact ? 'space-y-0.5 py-1.5 border-b' : 'space-y-1 py-3 border-b'} last:border-0`}
                                                                         >
                                                                             <div className="flex items-center justify-between">
                                                                                 <div className="flex items-center gap-2 min-w-0">
@@ -1461,7 +1461,7 @@ export default function ProfilePage({ params }: PageProps) {
                                                                                         </div>
                                                                                     )}
                                                                                     <div className="min-w-0">
-                                                                                        <p className={`font-mono ${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} truncate`}>
+                                                                                        <p className={`font-mono ${getThemeTextClasses(effectiveAppearanceConfig.theme, isFull ? 'body' : isCompact ? 'small' : 'body')} truncate`}>
                                                                                             {isFull ? tx.hash : formatAddress(tx.hash)}
                                                                                         </p>
                                                                                         {isFull && (
@@ -1493,11 +1493,11 @@ export default function ProfilePage({ params }: PageProps) {
                                                                                 </div>
                                                                             )}
                                                                             {showAmounts && (
-                                                                                <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} font-semibold mt-1`}>
+                                                                                <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, isCompact ? 'small' : 'body')} ${!isCompact && 'font-semibold'} ${isCompact ? 'font-medium mt-0.5' : 'mt-1'}`}>
                                                                                     {parseFloat(tx.value).toFixed(4)} AVAX
                                                                                 </p>
                                                                             )}
-                                                                            <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')} mt-1`}>
+                                                                            <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')} ${isCompact ? 'text-[10px] mt-0.5' : 'mt-1'}`}>
                                                                                 {new Date(tx.timestamp * 1000).toLocaleString('tr-TR')}
                                                                             </p>
                                                                         </div>
