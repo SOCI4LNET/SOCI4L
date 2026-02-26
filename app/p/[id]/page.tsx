@@ -1426,7 +1426,7 @@ export default function ProfilePage({ params }: PageProps) {
                                             const showAmounts = variant !== 'hiddenAmounts'
                                             const isCompact = variant === 'compact'
                                             const isFull = variant === 'full'
-                                            const displayCount = isFull ? 20 : activityDisplayCount
+                                            const displayCount = activityDisplayCount
 
                                             return (
                                                 <Card key="activity" className={`relative flex flex-col rounded-3xl overflow-hidden bg-foreground/[0.02] border border-foreground/5 shadow-2xl backdrop-blur-xl transition-all duration-500 ${gridColSpan} w-full`}>
@@ -1461,9 +1461,23 @@ export default function ProfilePage({ params }: PageProps) {
                                                                                         </div>
                                                                                     )}
                                                                                     <div className="min-w-0">
-                                                                                        <p className={`font-mono ${getThemeTextClasses(effectiveAppearanceConfig.theme, isFull ? 'body' : isCompact ? 'small' : 'body')} truncate`}>
-                                                                                            {isFull ? tx.hash : formatAddress(tx.hash)}
-                                                                                        </p>
+                                                                                        <div className="flex items-center gap-2">
+                                                                                            <p className={`font-mono ${getThemeTextClasses(effectiveAppearanceConfig.theme, isFull ? 'body' : isCompact ? 'small' : 'body')} truncate`}>
+                                                                                                {formatAddress(tx.hash)}
+                                                                                            </p>
+                                                                                            {isFull && (
+                                                                                                <button
+                                                                                                    onClick={(e) => {
+                                                                                                        e.stopPropagation()
+                                                                                                        navigator.clipboard.writeText(tx.hash)
+                                                                                                    }}
+                                                                                                    className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                                                                                                    title="Copy transaction hash"
+                                                                                                >
+                                                                                                    <Copy className="h-3.5 w-3.5" />
+                                                                                                </button>
+                                                                                            )}
+                                                                                        </div>
                                                                                         {isFull && (
                                                                                             <p className="text-xs text-muted-foreground mt-0.5">
                                                                                                 Block #{tx.blockNumber}
@@ -1484,28 +1498,54 @@ export default function ProfilePage({ params }: PageProps) {
                                                                                 <div className="grid grid-cols-2 gap-2 text-xs mt-2">
                                                                                     <div>
                                                                                         <p className="text-muted-foreground">From</p>
-                                                                                        <p className="font-mono truncate">{formatAddress(tx.from)}</p>
+                                                                                        <div className="flex items-center gap-1.5 mt-0.5">
+                                                                                            <p className="font-mono truncate">{formatAddress(tx.from)}</p>
+                                                                                            <button
+                                                                                                onClick={(e) => {
+                                                                                                    e.stopPropagation()
+                                                                                                    navigator.clipboard.writeText(tx.from)
+                                                                                                }}
+                                                                                                className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                                                                                                title="Copy address"
+                                                                                            >
+                                                                                                <Copy className="h-3 w-3" />
+                                                                                            </button>
+                                                                                        </div>
                                                                                     </div>
                                                                                     <div>
                                                                                         <p className="text-muted-foreground">To</p>
-                                                                                        <p className="font-mono truncate">{formatAddress(tx.to)}</p>
+                                                                                        <div className="flex items-center gap-1.5 mt-0.5">
+                                                                                            <p className="font-mono truncate">{formatAddress(tx.to)}</p>
+                                                                                            <button
+                                                                                                onClick={(e) => {
+                                                                                                    e.stopPropagation()
+                                                                                                    navigator.clipboard.writeText(tx.to)
+                                                                                                }}
+                                                                                                className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                                                                                                title="Copy address"
+                                                                                            >
+                                                                                                <Copy className="h-3 w-3" />
+                                                                                            </button>
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
                                                                             )}
-                                                                            {showAmounts && (
-                                                                                <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, isCompact ? 'small' : 'body')} ${!isCompact && 'font-semibold'} ${isCompact ? 'font-medium mt-0.5' : 'mt-1'}`}>
-                                                                                    {parseFloat(tx.value).toFixed(4)} AVAX
+                                                                            <div className={`flex flex-wrap items-center justify-between gap-x-4 gap-y-1 ${showAmounts ? 'mt-2' : ''}`}>
+                                                                                <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')} ${isCompact ? 'text-[10px]' : ''}`}>
+                                                                                    {new Date(tx.timestamp * 1000).toLocaleString('tr-TR')}
                                                                                 </p>
-                                                                            )}
-                                                                            <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')} ${isCompact ? 'text-[10px] mt-0.5' : 'mt-1'}`}>
-                                                                                {new Date(tx.timestamp * 1000).toLocaleString('tr-TR')}
-                                                                            </p>
+                                                                                {showAmounts && (
+                                                                                    <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, isCompact ? 'small' : 'body')} ${!isCompact && 'font-semibold'} ${isCompact ? 'font-medium' : ''}`}>
+                                                                                        {parseFloat(tx.value).toFixed(4)} AVAX
+                                                                                    </p>
+                                                                                )}
+                                                                            </div>
                                                                         </div>
                                                                     ))}
                                                                 </div>
 
                                                                 {/* Combined Pagination Control Area */}
-                                                                {!isFull && (walletData.transactions.length > displayCount || activityDisplayCount > 5) && (
+                                                                {(walletData.transactions.length > displayCount || activityDisplayCount > 5) && (
                                                                     <div className={`absolute bottom-0 left-0 w-full flex items-end justify-center pb-5 z-10 ${walletData.transactions.length > displayCount ? 'h-32 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none' : 'h-16 pt-2 pointer-events-auto'}`}>
                                                                         {walletData.transactions.length > displayCount && (
                                                                             <div className="absolute inset-0 backdrop-blur-[2px] [mask-image:linear-gradient(to_top,black,transparent)]" />
