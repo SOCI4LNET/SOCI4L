@@ -22,6 +22,7 @@ const config = {
 				sans: ["var(--font-geist-sans)", "sans-serif"],
 				serif: ["var(--font-playfair)", "serif"],
 				heading: ["var(--font-outfit)", "sans-serif"],
+				mono: ["var(--font-geist-mono)", "monospace"],
 			},
 			colors: {
 				border: 'hsl(var(--border))',

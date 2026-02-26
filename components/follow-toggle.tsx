@@ -470,21 +470,16 @@ export function FollowStats({ address }: { address: string }) {
   }
 
   return (
-    <div className="flex items-center gap-3 sm:gap-5">
-      <div className="flex items-center gap-2">
-        <Users className="h-4 w-4 text-muted-foreground" />
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-sm text-muted-foreground whitespace-nowrap">Followers</span>
-          <span className="text-base font-semibold text-foreground">{followersCount}</span>
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        <UserPlus className="h-4 w-4 text-muted-foreground" />
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-sm text-muted-foreground whitespace-nowrap">Following</span>
-          <span className="text-base font-semibold text-foreground">{followingCount}</span>
-        </div>
-      </div>
+    <div className="flex items-center gap-1.5">
+      <span className="flex items-center gap-1">
+        <span>Followers</span>
+        <span>{stats?.followersCount || 0}</span>
+      </span>
+      <span className="text-white/30 px-1">·</span>
+      <span className="flex items-center gap-1">
+        <span>Following</span>
+        <span>{stats?.followingCount || 0}</span>
+      </span>
     </div>
   )
 }

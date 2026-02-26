@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Playfair_Display, Outfit } from "next/font/google"
 import { GeistSans } from "geist/font/sans"
+import { GeistMono } from "geist/font/mono"
 import "./globals.css"
 import { Providers } from "./providers"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -75,7 +76,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${GeistSans.className} ${playfair.variable} ${outfit.variable} ${GeistSans.variable}`}>
+      <body className={`${GeistSans.className} ${playfair.variable} ${outfit.variable} ${GeistSans.variable} ${GeistMono.variable}`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
