@@ -777,43 +777,43 @@ export default function ProfilePage({ params }: PageProps) {
                     <div className="flex flex-col items-center text-center mb-6 relative w-full pt-2">
                         {/* Avatar Skeleton */}
                         <div className="relative mb-3 flex items-center justify-center">
-                            <Skeleton className="h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-white/10" />
+                            <Skeleton className="h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-foreground/10" />
                         </div>
 
                         {/* Identity Header Skeleton */}
                         <div className="flex flex-col items-center mt-3 w-full">
                             <div className="flex items-center justify-center gap-3">
-                                <Skeleton className="h-8 w-40 bg-white/10 rounded-md" />
+                                <Skeleton className="h-8 w-40 bg-foreground/10 rounded-md" />
                             </div>
 
                             {/* Meta Row Skeleton */}
                             <div className="flex items-center justify-center gap-2 mt-[6px]">
-                                <Skeleton className="h-4 w-60 bg-white/10 rounded-md" />
+                                <Skeleton className="h-4 w-60 bg-foreground/10 rounded-md" />
                             </div>
                         </div>
 
                         {/* Bio Skeleton */}
                         <div className="flex justify-center w-full mt-[16px]">
-                            <Skeleton className="h-[45px] w-[320px] bg-white/10 rounded-lg" />
+                            <Skeleton className="h-[45px] w-[320px] bg-foreground/10 rounded-lg" />
                         </div>
 
                         {/* Social Icons Skeleton */}
                         <div className="flex justify-center flex-row gap-4 pt-[18px]">
-                            <Skeleton className="h-8 w-8 rounded-full bg-white/10" />
-                            <Skeleton className="h-8 w-8 rounded-full bg-white/10" />
-                            <Skeleton className="h-8 w-8 rounded-full bg-white/10" />
+                            <Skeleton className="h-8 w-8 rounded-full bg-foreground/10" />
+                            <Skeleton className="h-8 w-8 rounded-full bg-foreground/10" />
+                            <Skeleton className="h-8 w-8 rounded-full bg-foreground/10" />
                         </div>
 
                         {/* Stats Skeleton */}
                         <div className="flex justify-center pt-[10px]">
-                            <Skeleton className="h-4 w-48 bg-white/10 rounded-md" />
+                            <Skeleton className="h-4 w-48 bg-foreground/10 rounded-md" />
                         </div>
                     </div>
 
                     {/* Content Blocks Skeleton */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 items-start" >
-                        <Skeleton className="md:col-span-1 h-[220px] w-full bg-white/5 rounded-3xl border border-white/5" />
-                        <Skeleton className="md:col-span-1 h-[220px] w-full bg-white/5 rounded-3xl border border-white/5" />
+                        <Skeleton className="md:col-span-1 h-[220px] w-full bg-foreground/5 rounded-3xl border border-foreground/5" />
+                        <Skeleton className="md:col-span-1 h-[220px] w-full bg-foreground/5 rounded-3xl border border-foreground/5" />
                     </div>
                 </div >
             ) : isPrivate ? (
@@ -835,7 +835,7 @@ export default function ProfilePage({ params }: PageProps) {
                             {/* Top Action Band */}
                             <div className="absolute top-0 right-0 flex items-center gap-2">
                                 {profileAddressForFollow && !profile?.isBanned && (
-                                    <div className="flex [&_button]:px-[14px] [&_button]:h-8 [&_button]:rounded-[10px] [&_button]:bg-white/5 [&_button]:border-white/10 hover:[&_button]:bg-white/10 [&_button]:text-white [&_button]:font-medium [&_button]:backdrop-blur-md [&_button]:transition-all [&_button]:active:scale-95 [&_svg]:h-[14px] [&_svg]:w-[14px] [&_button]:gap-1.5 [&_button]:text-xs">
+                                    <div className="flex [&_button]:px-[14px] [&_button]:h-8 [&_button]:rounded-[10px] [&_button]:bg-foreground/5 [&_button]:border-foreground/10 hover:[&_button]:bg-foreground/10 [&_button]:text-foreground [&_button]:font-medium [&_button]:backdrop-blur-md [&_button]:transition-all [&_button]:active:scale-95 [&_svg]:h-[14px] [&_svg]:w-[14px] [&_button]:gap-1.5 [&_button]:text-xs">
                                         <FollowToggle
                                             address={profileAddressForFollow}
                                             isBlockedByViewer={isBlockedByViewer}
@@ -846,23 +846,23 @@ export default function ProfilePage({ params }: PageProps) {
                                 {resolvedAddress && isValidAddress(resolvedAddress) && !profile?.isBanned && (
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <button className="h-8 w-8 shrink-0 rounded-[10px] bg-white/5 border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-all active:scale-95 backdrop-blur-md [&_svg]:stroke-[1.5]">
+                                            <button className="h-8 w-8 shrink-0 rounded-[10px] bg-foreground/5 border border-foreground/10 flex items-center justify-center text-foreground/70 hover:text-foreground hover:bg-foreground/10 transition-all active:scale-95 backdrop-blur-md [&_svg]:stroke-[1.5]">
                                                 <MoreVertical className="h-[16px] w-[16px]" />
                                             </button>
                                         </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className="bg-[#0f0f0f] border-white/10 text-white">
-                                            <DropdownMenuItem onClick={handleCopyProfileLink} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer">
+                                        <DropdownMenuContent align="end" className="bg-background border-foreground/10 text-foreground">
+                                            <DropdownMenuItem onClick={handleCopyProfileLink} className="hover:bg-foreground/10 focus:bg-foreground/10 cursor-pointer">
                                                 <Copy className="mr-2 h-4 w-4" />
                                                 Copy Link
                                             </DropdownMenuItem>
                                             {isOwnProfile && (
-                                                <DropdownMenuItem onClick={handleCopyDonateEmbed} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer">
+                                                <DropdownMenuItem onClick={handleCopyDonateEmbed} className="hover:bg-foreground/10 focus:bg-foreground/10 cursor-pointer">
                                                     <Code2 className="mr-2 h-4 w-4" />
                                                     Copy Donate Embed
                                                 </DropdownMenuItem>
                                             )}
-                                            <DropdownMenuSeparator className="bg-white/10" />
-                                            <DropdownMenuItem onClick={() => setQrModalOpen(true)} className="hover:bg-white/10 focus:bg-white/10 cursor-pointer">
+                                            <DropdownMenuSeparator className="bg-foreground/10" />
+                                            <DropdownMenuItem onClick={() => setQrModalOpen(true)} className="hover:bg-foreground/10 focus:bg-foreground/10 cursor-pointer">
                                                 <QrCode className="mr-2 h-4 w-4" />
                                                 Show QR Code
                                             </DropdownMenuItem>
@@ -870,7 +870,7 @@ export default function ProfilePage({ params }: PageProps) {
                                             {/* Block/Report Menu */}
                                             {!isOwnProfile && (
                                                 <>
-                                                    <DropdownMenuSeparator className="bg-white/10" />
+                                                    <DropdownMenuSeparator className="bg-foreground/10" />
                                                     <DropdownMenuItem onClick={handleBlock} className="text-red-400 focus:text-red-400 hover:bg-red-400/10 focus:bg-red-400/10 cursor-pointer">
                                                         <Ban className="h-4 w-4 mr-2" />
                                                         {isBlockedByViewer ? 'Unblock User' : 'Block User'}
@@ -884,23 +884,23 @@ export default function ProfilePage({ params }: PageProps) {
 
                             {/* Avatar and Badges */}
                             <div className="relative group mt-6 sm:mt-8">
-                                <div className="absolute -inset-0.5 bg-gradient-to-b from-white/20 to-white/0 rounded-full blur opacity-50 group-hover:opacity-100 transition duration-700"></div>
+                                <div className="absolute -inset-0.5 bg-gradient-to-b from-foreground/20 to-foreground/0 rounded-full blur opacity-50 group-hover:opacity-100 transition duration-700"></div>
                                 <TooltipProvider delayDuration={150}>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
                                             <div className="relative cursor-pointer">
-                                                <Avatar className="h-14 w-14 sm:h-16 sm:w-16 border border-white/10 shadow-2xl relative">
+                                                <Avatar className="h-14 w-14 sm:h-16 sm:w-16 border border-foreground/10 shadow-2xl relative">
                                                     {resolvedAddress ? (
                                                         <>
                                                             <AvatarImage src={`https://effigy.im/a/${resolvedAddress.toLowerCase()}.svg`} alt={primaryDisplayName} className="object-cover" />
-                                                            <AvatarFallback className="bg-white/5 text-xl text-white">{resolvedAddress.slice(2, 4).toUpperCase()}</AvatarFallback>
+                                                            <AvatarFallback className="bg-foreground/5 text-xl text-foreground">{resolvedAddress.slice(2, 4).toUpperCase()}</AvatarFallback>
                                                         </>
                                                     ) : (
-                                                        <AvatarFallback className="bg-white/5 text-xl text-white">??</AvatarFallback>
+                                                        <AvatarFallback className="bg-foreground/5 text-xl text-foreground">??</AvatarFallback>
                                                     )}
                                                 </Avatar>
                                                 {profile?.isVerified && (
-                                                    <div className="absolute bottom-0 right-0 bg-[#050505] rounded-full p-1 border border-white/10 z-10 translate-x-1/4 translate-y-1/4 pointer-events-none">
+                                                    <div className="absolute bottom-0 right-0 bg-[#050505] rounded-full p-1 border border-foreground/10 z-10 translate-x-1/4 translate-y-1/4 pointer-events-none">
                                                         <Sparkles className="h-3.5 w-3.5 text-blue-400" />
                                                     </div>
                                                 )}
@@ -911,16 +911,16 @@ export default function ProfilePage({ params }: PageProps) {
                                             <TooltipContent
                                                 side="bottom"
                                                 sideOffset={14}
-                                                className="bg-[#0A0A0A] border border-white/5 rounded-[16px] p-4 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+                                                className="bg-background border border-foreground/5 rounded-[16px] p-4 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
                                             >
                                                 <div className="flex flex-col gap-4">
                                                     {/* Top Row: Score & Bar */}
                                                     <div className="flex items-center justify-between gap-4">
                                                         <div className="flex items-center gap-2">
-                                                            <span className="text-white/40 font-semibold text-[10px] uppercase tracking-wider">
+                                                            <span className="text-foreground/40 font-semibold text-[10px] uppercase tracking-wider">
                                                                 Social Score
                                                             </span>
-                                                            <span className="text-white font-semibold text-sm tracking-widest font-mono">
+                                                            <span className="text-foreground font-semibold text-sm tracking-widest font-mono">
                                                                 {Math.min(100, score.total).toFixed(2)}%
                                                             </span>
                                                         </div>
@@ -935,7 +935,7 @@ export default function ProfilePage({ params }: PageProps) {
                                                                         key={i}
                                                                         className={`w-[3px] h-3.5 rounded-full transition-colors duration-500 ${isActive ? 'bg-[#4ADE80]' :
                                                                             isPartial ? 'bg-[#4ADE80]/50' :
-                                                                                'bg-white/10'
+                                                                                'bg-foreground/10'
                                                                             }`}
                                                                     />
                                                                 );
@@ -945,27 +945,27 @@ export default function ProfilePage({ params }: PageProps) {
 
                                                     {/* Bottom Row: Breakdown Data */}
                                                     {score.breakdown && (
-                                                        <div className="grid grid-cols-4 gap-4 pt-3 border-t border-white/5">
+                                                        <div className="grid grid-cols-4 gap-4 pt-3 border-t border-foreground/5">
                                                             <div className="flex flex-col gap-0.5 mt-0.5">
-                                                                <span className="text-[9px] text-white/30 uppercase tracking-wider font-semibold">Profile</span>
-                                                                <span className="text-xs text-white/80 font-mono tracking-wide">
+                                                                <span className="text-[9px] text-foreground/30 uppercase tracking-wider font-semibold">Profile</span>
+                                                                <span className="text-xs text-foreground/80 font-mono tracking-wide">
                                                                     +{(score.breakdown.profileClaimed + score.breakdown.displayName + score.breakdown.bio).toFixed(0)}
                                                                 </span>
                                                             </div>
                                                             <div className="flex flex-col gap-0.5 mt-0.5">
-                                                                <span className="text-[9px] text-white/30 uppercase tracking-wider font-semibold">Network</span>
-                                                                <span className="text-xs text-white/80 font-mono tracking-wide">
+                                                                <span className="text-[9px] text-foreground/30 uppercase tracking-wider font-semibold">Network</span>
+                                                                <span className="text-xs text-foreground/80 font-mono tracking-wide">
                                                                     +{score.breakdown.followers.toFixed(1)}
                                                                 </span>
                                                             </div>
                                                             <div className="flex flex-col gap-0.5 mt-0.5">
-                                                                <span className="text-[9px] text-white/30 uppercase tracking-wider font-semibold">Links</span>
-                                                                <span className="text-xs text-white/80 font-mono tracking-wide">
+                                                                <span className="text-[9px] text-foreground/30 uppercase tracking-wider font-semibold">Links</span>
+                                                                <span className="text-xs text-foreground/80 font-mono tracking-wide">
                                                                     +{(score.breakdown.socialLinks + score.breakdown.profileLinks).toFixed(0)}
                                                                 </span>
                                                             </div>
                                                             <div className="flex flex-col gap-0.5 mt-0.5">
-                                                                <span className="text-[9px] text-white/30 uppercase tracking-wider font-semibold">Tier</span>
+                                                                <span className="text-[9px] text-foreground/30 uppercase tracking-wider font-semibold">Tier</span>
                                                                 <span className="text-xs text-emerald-400 font-medium capitalize tracking-wide">
                                                                     {score.tierLabel}
                                                                 </span>
@@ -983,7 +983,7 @@ export default function ProfilePage({ params }: PageProps) {
                             <div className="flex flex-col items-center mt-3 w-full">
                                 {/* Name and Pro Badge */}
                                 <div className="flex items-center justify-center gap-3">
-                                    <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white flex items-center justify-center gap-2">
+                                    <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground flex items-center justify-center gap-2">
                                         {primaryDisplayName}
                                     </h1>
                                     {isProMember && !profile?.isBanned && (
@@ -1000,7 +1000,7 @@ export default function ProfilePage({ params }: PageProps) {
                                 </div>
 
                                 {/* Address, Tier, Network, and Stats Row */}
-                                <div className="flex flex-row items-center justify-center gap-1.5 mt-[6px] text-xs text-white/40 font-medium tracking-wide">
+                                <div className="flex flex-row items-center justify-center gap-1.5 mt-[6px] text-xs text-foreground/40 font-medium tracking-wide">
                                     {profile?.address && (
                                         <p className="font-mono tracking-wider">
                                             {formatAddress(profile.address, 4)}
@@ -1008,23 +1008,23 @@ export default function ProfilePage({ params }: PageProps) {
                                     )}
                                     {!profile?.isBanned && score && score.total > 0 && (
                                         <>
-                                            <span className="text-white/20 text-[10px]">·</span>
-                                            <span className="text-white/50">{score.tierLabel}</span>
+                                            <span className="text-foreground/20 text-[10px]">·</span>
+                                            <span className="text-foreground/50">{score.tierLabel}</span>
                                         </>
                                     )}
                                     {!profile?.isBanned && (
                                         <>
-                                            <span className="text-white/20 text-[10px]">·</span>
+                                            <span className="text-foreground/20 text-[10px]">·</span>
                                             <span>Avalanche</span>
                                             {(profile?.role === 'BUILDER' || profile?.primaryRole === 'builder') && (
                                                 <>
-                                                    <span className="text-white/20 text-[10px]">·</span>
+                                                    <span className="text-foreground/20 text-[10px]">·</span>
                                                     <span>Builder</span>
                                                 </>
                                             )}
                                             {viewCount !== null && (
                                                 <>
-                                                    <span className="text-white/20 text-[10px]">·</span>
+                                                    <span className="text-foreground/20 text-[10px]">·</span>
                                                     <span>{viewCount.toLocaleString()} views</span>
                                                 </>
                                             )}
@@ -1035,7 +1035,7 @@ export default function ProfilePage({ params }: PageProps) {
 
                             {/* Bio */}
                             {!profile?.isBanned && profile?.bio && (
-                                <p className="text-[15px] text-white/70 max-w-[420px] leading-relaxed whitespace-pre-wrap mt-[16px] text-center">
+                                <p className="text-[15px] text-foreground/70 max-w-[420px] leading-relaxed whitespace-pre-wrap mt-[16px] text-center">
                                     {profile.bio}
                                 </p>
                             )}
@@ -1066,7 +1066,7 @@ export default function ProfilePage({ params }: PageProps) {
                                                                     href={link.url}
                                                                     target="_blank"
                                                                     rel="noopener"
-                                                                    className="flex items-center justify-center h-8 w-8 rounded-full transition-colors text-white/40 hover:text-white/80 [&_svg]:[stroke-width:1.5]"
+                                                                    className="flex items-center justify-center h-8 w-8 rounded-full transition-colors text-foreground/40 hover:text-foreground/80 [&_svg]:[stroke-width:1.5]"
                                                                 >
                                                                     {getSocialIcon(platform)}
                                                                 </a>
@@ -1085,7 +1085,7 @@ export default function ProfilePage({ params }: PageProps) {
                                                         </Tooltip>
                                                     </TooltipProvider>
                                                     {link.verified && (
-                                                        <div className="absolute -top-1 -right-1 pointer-events-none bg-[#050505] rounded-full p-[1px] border border-white/10 z-10">
+                                                        <div className="absolute -top-1 -right-1 pointer-events-none bg-[#050505] rounded-full p-[1px] border border-foreground/10 z-10">
                                                             <CheckCircle className="h-3 w-3 text-blue-400" />
                                                         </div>
                                                     )}
@@ -1098,7 +1098,7 @@ export default function ProfilePage({ params }: PageProps) {
                             {/* Stats */}
                             {!profile?.isBanned && (
                                 <div className="flex flex-col items-center justify-center w-full">
-                                    <div className="flex items-center justify-center text-[13px] text-white/85 pt-[10px]">
+                                    <div className="flex items-center justify-center text-[13px] text-foreground/85 pt-[10px]">
                                         {profileAddressForFollow && (
                                             <FollowStats address={profileAddressForFollow} />
                                         )}
@@ -1289,14 +1289,14 @@ export default function ProfilePage({ params }: PageProps) {
                                                 <Card
                                                     key="links"
                                                     ref={linksBlockRef}
-                                                    className={`relative rounded-3xl overflow-hidden bg-white/[0.02] border border-white/5 shadow-2xl backdrop-blur-xl transition-all duration-500 ${gridColSpan} w-full`}
+                                                    className={`relative rounded-3xl overflow-hidden bg-foreground/[0.02] border border-foreground/5 shadow-2xl backdrop-blur-xl transition-all duration-500 ${gridColSpan} w-full`}
                                                 >
-                                                    <CardHeader className="px-6 py-5 border-b border-white/5 flex flex-row items-center justify-between space-y-0 pb-5">
+                                                    <CardHeader className="px-6 py-5 border-b border-foreground/5 flex flex-row items-center justify-between space-y-0 pb-5">
                                                         <div className="flex items-center gap-2.5">
-                                                            <div className="p-1.5 rounded-lg bg-white/5">
-                                                                <Link2 className="h-4 w-4 text-white/70" />
+                                                            <div className="p-1.5 rounded-lg bg-foreground/5">
+                                                                <Link2 className="h-4 w-4 text-foreground/70" />
                                                             </div>
-                                                            <h3 className="font-medium text-sm tracking-wide text-white/80">Links</h3>
+                                                            <h3 className="font-medium text-sm tracking-wide text-foreground/80">Links</h3>
                                                         </div>
                                                         {/* Optional stats placeholder */}
                                                         {totalLinks > 0 && (
@@ -1429,21 +1429,21 @@ export default function ProfilePage({ params }: PageProps) {
                                             const displayCount = isFull ? 20 : activityDisplayCount
 
                                             return (
-                                                <Card key="activity" className={`relative flex flex-col rounded-3xl overflow-hidden bg-white/[0.02] border border-white/5 shadow-2xl backdrop-blur-xl transition-all duration-500 ${gridColSpan} w-full`}>
-                                                    <CardHeader className="px-6 py-5 border-b border-white/5 flex flex-row items-center justify-between space-y-0 pb-5">
+                                                <Card key="activity" className={`relative flex flex-col rounded-3xl overflow-hidden bg-foreground/[0.02] border border-foreground/5 shadow-2xl backdrop-blur-xl transition-all duration-500 ${gridColSpan} w-full`}>
+                                                    <CardHeader className="px-6 py-5 border-b border-foreground/5 flex flex-row items-center justify-between space-y-0 pb-5">
                                                         <div className="flex items-center gap-2.5">
-                                                            <div className="p-1.5 rounded-lg bg-white/5">
-                                                                <Activity className="h-4 w-4 text-white/70" />
+                                                            <div className="p-1.5 rounded-lg bg-foreground/5">
+                                                                <Activity className="h-4 w-4 text-foreground/70" />
                                                             </div>
-                                                            <h3 className="font-medium text-sm tracking-wide text-white/80">Activity</h3>
+                                                            <h3 className="font-medium text-sm tracking-wide text-foreground/80">Activity</h3>
                                                         </div>
                                                     </CardHeader>
                                                     <CardContent className={isFull ? 'space-y-4 pt-4 px-0 pb-0 flex-1 flex flex-col relative' : 'space-y-3 pt-4 px-0 pb-0 flex-1 flex flex-col relative'}>
                                                         {walletLoading ? (
                                                             <div className="flex-1 pb-16 space-y-4 px-6 pt-4">
-                                                                <Skeleton className="h-[72px] w-full bg-white/5 rounded-xl border border-white/5" />
-                                                                <Skeleton className="h-[72px] w-full bg-white/5 rounded-xl border border-white/5" />
-                                                                <Skeleton className="h-[72px] w-full bg-white/5 rounded-xl border border-white/5" />
+                                                                <Skeleton className="h-[72px] w-full bg-foreground/5 rounded-xl border border-foreground/5" />
+                                                                <Skeleton className="h-[72px] w-full bg-foreground/5 rounded-xl border border-foreground/5" />
+                                                                <Skeleton className="h-[72px] w-full bg-foreground/5 rounded-xl border border-foreground/5" />
                                                             </div>
                                                         ) : walletData.transactions && walletData.transactions.length > 0 ? (
                                                             <div className="flex-1 pb-16">
@@ -1618,13 +1618,13 @@ export default function ProfilePage({ params }: PageProps) {
                                             const hasMoreAssets = cryptoAssets.length > assetsDisplayCount || nftAssets.length > assetsDisplayCount
 
                                             return (
-                                                <Card key="assets" className={`relative flex flex-col rounded-3xl overflow-hidden bg-white/[0.02] border border-white/5 shadow-2xl backdrop-blur-xl transition-all duration-500 ${gridColSpan} w-full`}>
-                                                    <CardHeader className="px-6 py-5 border-b border-white/5 flex flex-row items-center justify-between space-y-0 pb-5">
+                                                <Card key="assets" className={`relative flex flex-col rounded-3xl overflow-hidden bg-foreground/[0.02] border border-foreground/5 shadow-2xl backdrop-blur-xl transition-all duration-500 ${gridColSpan} w-full`}>
+                                                    <CardHeader className="px-6 py-5 border-b border-foreground/5 flex flex-row items-center justify-between space-y-0 pb-5">
                                                         <div className="flex items-center gap-2.5">
-                                                            <div className="p-1.5 rounded-lg bg-white/5">
-                                                                <Wallet className="h-4 w-4 text-white/70" />
+                                                            <div className="p-1.5 rounded-lg bg-foreground/5">
+                                                                <Wallet className="h-4 w-4 text-foreground/70" />
                                                             </div>
-                                                            <h3 className="font-medium text-sm tracking-wide text-white/80">Assets</h3>
+                                                            <h3 className="font-medium text-sm tracking-wide text-foreground/80">Assets</h3>
                                                         </div>
                                                         <span className="text-xs font-mono text-muted-foreground">{totalAssets} Total</span>
                                                     </CardHeader>
@@ -1632,16 +1632,16 @@ export default function ProfilePage({ params }: PageProps) {
                                                     <CardContent className="p-0 flex-1 flex flex-col relative w-full">
                                                         {walletLoading ? (
                                                             <div className="p-2 space-y-4 flex-1 pb-16 pt-4 px-6">
-                                                                <Skeleton className="h-[60px] w-full bg-white/5 rounded-2xl border border-white/5" />
-                                                                <Skeleton className="h-[60px] w-full bg-white/5 rounded-2xl border border-white/5" />
-                                                                <Skeleton className="h-[60px] w-full bg-white/5 rounded-2xl border border-white/5" />
+                                                                <Skeleton className="h-[60px] w-full bg-foreground/5 rounded-2xl border border-foreground/5" />
+                                                                <Skeleton className="h-[60px] w-full bg-foreground/5 rounded-2xl border border-foreground/5" />
+                                                                <Skeleton className="h-[60px] w-full bg-foreground/5 rounded-2xl border border-foreground/5" />
                                                             </div>
                                                         ) : (
                                                             <div className="p-2 space-y-4 flex-1 pb-16">
                                                                 {visibleCrypto.length > 0 && (
                                                                     <div className="flex flex-col">
                                                                         <div className="px-4 py-2 opacity-80">
-                                                                            <h4 className="text-[11px] font-bold text-white/50 tracking-[0.2em] uppercase">Crypto Assets</h4>
+                                                                            <h4 className="text-[11px] font-bold text-foreground/50 tracking-[0.2em] uppercase">Crypto Assets</h4>
                                                                         </div>
                                                                         {visibleCrypto.map((asset, idx) => (
                                                                             <div key={`crypto-${idx}`} className="group flex items-center justify-between p-3 sm:p-4 rounded-2xl hover:bg-muted/50 transition-colors">
@@ -1669,9 +1669,9 @@ export default function ProfilePage({ params }: PageProps) {
 
                                                                 {visibleNfts.length > 0 && (
                                                                     <div className="flex flex-col">
-                                                                        {visibleCrypto.length > 0 && <div className="h-px bg-white/5 mx-4 my-2" />}
+                                                                        {visibleCrypto.length > 0 && <div className="h-px bg-foreground/5 mx-4 my-2" />}
                                                                         <div className="px-4 py-2 opacity-80">
-                                                                            <h4 className="text-[11px] font-bold text-white/50 tracking-[0.2em] uppercase">NFTs</h4>
+                                                                            <h4 className="text-[11px] font-bold text-foreground/50 tracking-[0.2em] uppercase">NFTs</h4>
                                                                         </div>
                                                                         {visibleNfts.map((asset, idx) => (
                                                                             <div key={`nft-${idx}`} className="group flex items-center justify-between p-3 sm:p-4 rounded-2xl hover:bg-muted/50 transition-colors">
