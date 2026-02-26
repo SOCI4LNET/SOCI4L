@@ -1616,6 +1616,9 @@ export default function ProfilePage({ params }: PageProps) {
                                             const visibleNfts = nftAssets.slice(0, assetsDisplayCount)
                                             const totalAssets = cryptoAssets.length + nftAssets.length
                                             const hasMoreAssets = cryptoAssets.length > assetsDisplayCount || nftAssets.length > assetsDisplayCount
+                                            const showAmounts = variant !== 'hiddenAmounts'
+                                            const isCompact = variant === 'compact'
+                                            const isFull = variant === 'full'
 
                                             return (
                                                 <Card key="assets" className={`relative flex flex-col rounded-3xl overflow-hidden bg-foreground/[0.02] border border-foreground/5 shadow-2xl backdrop-blur-xl transition-all duration-500 ${gridColSpan} w-full`}>
@@ -1644,9 +1647,9 @@ export default function ProfilePage({ params }: PageProps) {
                                                                             <h4 className="text-[11px] font-bold text-foreground/50 tracking-[0.2em] uppercase">Crypto Assets</h4>
                                                                         </div>
                                                                         {visibleCrypto.map((asset, idx) => (
-                                                                            <div key={`crypto-${idx}`} className="group flex items-center justify-between p-3 sm:p-4 rounded-2xl hover:bg-muted/50 transition-colors">
+                                                                            <div key={`crypto-${idx}`} className={`group flex items-center justify-between p-3 sm:p-4 rounded-2xl hover:bg-muted/50 transition-colors ${isCompact ? 'py-2 sm:py-2.5' : ''}`}>
                                                                                 <div className="flex items-center gap-4 min-w-0">
-                                                                                    <div className="h-10 w-10 rounded-full overflow-hidden border bg-accent/50 flex items-center justify-center flex-shrink-0 text-lg">
+                                                                                    <div className={`rounded-full overflow-hidden border bg-accent/50 flex items-center justify-center flex-shrink-0 ${isCompact ? 'h-8 w-8 text-sm' : 'h-10 w-10 text-lg'}`}>
                                                                                         {asset.icon ? (
                                                                                             // eslint-disable-next-line @next/next/no-img-element
                                                                                             <img src={asset.icon} alt={asset.symbol} className="h-full w-full object-cover" />
@@ -1659,9 +1662,11 @@ export default function ProfilePage({ params }: PageProps) {
                                                                                         <span className="text-xs text-muted-foreground tracking-wider mt-0.5">{asset.symbol}</span>
                                                                                     </div>
                                                                                 </div>
-                                                                                <div className="text-right pl-4">
-                                                                                    <span className="text-sm font-mono text-foreground/90">{asset.balance}</span>
-                                                                                </div>
+                                                                                {showAmounts && (
+                                                                                    <div className="text-right pl-4">
+                                                                                        <span className="text-sm font-mono text-foreground/90">{asset.balance}</span>
+                                                                                    </div>
+                                                                                )}
                                                                             </div>
                                                                         ))}
                                                                     </div>
@@ -1674,15 +1679,15 @@ export default function ProfilePage({ params }: PageProps) {
                                                                             <h4 className="text-[11px] font-bold text-foreground/50 tracking-[0.2em] uppercase">NFTs</h4>
                                                                         </div>
                                                                         {visibleNfts.map((asset, idx) => (
-                                                                            <div key={`nft-${idx}`} className="group flex items-center justify-between p-3 sm:p-4 rounded-2xl hover:bg-muted/50 transition-colors">
+                                                                            <div key={`nft-${idx}`} className={`group flex items-center justify-between p-3 sm:p-4 rounded-2xl hover:bg-muted/50 transition-colors ${isCompact ? 'py-2 sm:py-2.5' : ''}`}>
                                                                                 <div className="flex items-center gap-4 min-w-0">
                                                                                     {asset.image ? (
-                                                                                        <div className="h-10 w-10 rounded-xl overflow-hidden border bg-muted flex-shrink-0">
+                                                                                        <div className={`rounded-xl overflow-hidden border bg-muted flex-shrink-0 ${isCompact ? 'h-8 w-8' : 'h-10 w-10'}`}>
                                                                                             {/* eslint-disable-next-line @next/next/no-img-element */}
                                                                                             <img src={asset.image} alt="NFT" className="h-full w-full object-cover" />
                                                                                         </div>
                                                                                     ) : (
-                                                                                        <div className="h-10 w-10 rounded-xl border bg-muted flex items-center justify-center flex-shrink-0 text-lg">
+                                                                                        <div className={`${isCompact ? 'h-8 w-8 text-sm' : 'h-10 w-10 text-lg'} rounded-xl border bg-muted flex items-center justify-center flex-shrink-0`}>
                                                                                             🖼️
                                                                                         </div>
                                                                                     )}
@@ -1705,12 +1710,15 @@ export default function ProfilePage({ params }: PageProps) {
                                                                                         </Tooltip>
                                                                                     </TooltipProvider>
                                                                                 </div>
+                                                                                {showAmounts && (
+                                                                                    <div className="text-right pl-4">
+                                                                                        <span className="text-sm font-mono text-foreground/90">{asset.balance}</span>
+                                                                                    </div>
+                                                                                )}
                                                                             </div>
                                                                         ))}
                                                                     </div>
-                                                                )}
-
-                                                                {totalAssets === 0 && (
+                                                                )}                                                                        {totalAssets === 0 && (
                                                                     <div className="text-center py-8">
                                                                         <p className="text-sm text-muted-foreground">—</p>
                                                                     </div>
