@@ -900,7 +900,7 @@ export default function ProfilePage({ params }: PageProps) {
                                                     )}
                                                 </Avatar>
                                                 {profile?.isVerified && (
-                                                    <div className="absolute bottom-0 right-0 bg-[#050505] rounded-full p-1 border border-foreground/10 z-10 translate-x-1/4 translate-y-1/4 pointer-events-none">
+                                                    <div className="absolute bottom-0 right-0 bg-background rounded-full p-1 border border-foreground/10 z-10 translate-x-1/4 translate-y-1/4 pointer-events-none">
                                                         <Sparkles className="h-3.5 w-3.5 text-blue-400" />
                                                     </div>
                                                 )}
@@ -1085,7 +1085,7 @@ export default function ProfilePage({ params }: PageProps) {
                                                         </Tooltip>
                                                     </TooltipProvider>
                                                     {link.verified && (
-                                                        <div className="absolute -top-1 -right-1 pointer-events-none bg-[#050505] rounded-full p-[1px] border border-foreground/10 z-10">
+                                                        <div className="absolute -top-1 -right-1 pointer-events-none bg-background rounded-full p-[1px] border border-foreground/10 z-10">
                                                             <CheckCircle className="h-3 w-3 text-blue-400" />
                                                         </div>
                                                     )}
