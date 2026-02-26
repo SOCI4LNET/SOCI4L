@@ -17,6 +17,7 @@ export interface TokenBalance {
   symbol: string
   balance: string
   decimals: number
+  logo?: string
 }
 
 export interface NFT {
@@ -111,6 +112,22 @@ export async function getWalletData(address: string): Promise<WalletData> {
               entry.balance -= value
             }
           }
+          // Map of common Avalanche token contract addresses to their official logos
+          const KNOWN_TOKENS: Record<string, string> = {
+            '0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e': 'https://s2.coinmarketcap.com/static/img/coins/64x64/3408.png', // USDC
+            '0xa7d7079b0fead91f3e65f86e8915cb59c1a4c664': 'https://s2.coinmarketcap.com/static/img/coins/64x64/3408.png', // USDC.e
+            '0x63a72806098bd3d9520cc43356dd78afe5d386d9': 'https://s2.coinmarketcap.com/static/img/coins/64x64/7278.png', // AAVE.e
+            '0xd24c2ad096400b6fbcd2ad8b24e7acbc21a1da64': 'https://s2.coinmarketcap.com/static/img/coins/64x64/8592.png', // FRAX
+            '0x1f8db11c97ab74895f32eb7a136bfb1e7c5bc08b': 'https://s2.coinmarketcap.com/static/img/coins/64x64/13444.png', // ALOT
+            '0x5a15bdcf9a3abe117c925d4810815777bd4debbc': 'https://s2.coinmarketcap.com/static/img/coins/64x64/11092.png', // GAJ
+            '0x260bbf5394921fac4ebbc62bade8a31e82bb2ac3': 'https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png', // BNB
+            '0x49d5c2bdffac6ce2bfdb6640f4f80f226bc10bab': 'https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png', // WETH.e
+            '0x50b7545627a5162f82ba1f705b76fd6fe12df2cc': 'https://s2.coinmarketcap.com/static/img/coins/64x64/2396.png', // WBTC.e
+            '0xc7198437980c041c805a1edcba50c1ce5db95118': 'https://s2.coinmarketcap.com/static/img/coins/64x64/825.png', // USDT.e
+            '0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7': 'https://s2.coinmarketcap.com/static/img/coins/64x64/825.png', // USDT
+            '0xd586e7f844cea2f87f50152665bcbc2c279d8d70': 'https://s2.coinmarketcap.com/static/img/coins/64x64/4943.png', // DAI.e
+          }
+
           const balances = Array.from(tokenMap.entries())
             .filter(([_, tData]) => tData.balance > BigInt(0))
             .map(([contract, tData]) => ({
@@ -119,6 +136,7 @@ export async function getWalletData(address: string): Promise<WalletData> {
               symbol: tData.symbol,
               balance: formatUnits(tData.balance, tData.decimals),
               decimals: tData.decimals,
+              logo: KNOWN_TOKENS[contract] || undefined,
             }))
           console.log(`[Avalanche] Found ${balances.length} tokens for address ${address}`)
           return balances

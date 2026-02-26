@@ -1591,7 +1591,7 @@ export default function ProfilePage({ params }: PageProps) {
                                                         name: token.name || 'Unknown Token',
                                                         symbol: token.symbol || 'TKN',
                                                         balance: parseFloat(token.balance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 }),
-                                                        icon: logoUrl,
+                                                        icon: token.logo || logoUrl,
                                                         fallback: firstLetter,
                                                         contractAddress: token.contractAddress
                                                     })
