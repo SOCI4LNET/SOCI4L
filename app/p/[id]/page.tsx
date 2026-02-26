@@ -857,7 +857,7 @@ export default function ProfilePage({ params }: PageProps) {
                                             </DropdownMenuItem>
                                             <DropdownMenuItem onClick={handleCopyDonateEmbed} className="hover:bg-foreground/10 focus:bg-foreground/10 cursor-pointer">
                                                 <Code2 className="mr-2 h-4 w-4" />
-                                                Copy Donate Embed
+                                                {isOwnProfile ? 'Copy Donate Embed' : 'Embed this Profile'}
                                             </DropdownMenuItem>
                                             <DropdownMenuSeparator className="bg-foreground/10" />
                                             <DropdownMenuItem onClick={() => setQrModalOpen(true)} className="hover:bg-foreground/10 focus:bg-foreground/10 cursor-pointer">

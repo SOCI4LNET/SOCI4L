@@ -41,9 +41,15 @@ export function DonateEmbedWidget({ profile }: DonateEmbedWidgetProps) {
             <h3 className="text-sm font-semibold truncate text-foreground">
               {profile.displayName || profile.address.slice(0, 6)}
             </h3>
-            <p className="text-[10px] text-muted-foreground truncate italic">
-              Support via SOCI4L
-            </p>
+            <a
+              href={profileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] text-muted-foreground hover:text-foreground transition-colors truncate block"
+              title="View on SOCI4L"
+            >
+              Powered by SOCI4L
+            </a>
           </div>
         </div>
         <Button
