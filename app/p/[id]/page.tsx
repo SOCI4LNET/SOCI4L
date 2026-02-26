@@ -832,7 +832,7 @@ export default function ProfilePage({ params }: PageProps) {
                         </div>
                     </CardContent>
                 </Card>
-            ) : walletData ? (
+            ) : (profile?.address || walletData) ? (
                 <div className="space-y-6 pb-24 md:pb-0 max-w-6xl mx-auto w-full mt-2">
                     {/* Profile Info Card - show for all profiles (claimed or unclaimed) */}
                     {(isClaimed || !isPrivate) && (
@@ -1449,7 +1449,7 @@ export default function ProfilePage({ params }: PageProps) {
                                                                 <Skeleton className="h-[72px] w-full bg-foreground/5 rounded-xl border border-foreground/5" />
                                                                 <Skeleton className="h-[72px] w-full bg-foreground/5 rounded-xl border border-foreground/5" />
                                                             </div>
-                                                        ) : walletData.transactions && walletData.transactions.length > 0 ? (
+                                                        ) : walletData?.transactions?.length ? (
                                                             <div className="flex-1 pb-16">
                                                                 <div className="px-6 pb-2">
                                                                     {walletData.transactions.slice(0, displayCount).map((tx, idx) => (
@@ -1549,9 +1549,9 @@ export default function ProfilePage({ params }: PageProps) {
                                                                 </div>
 
                                                                 {/* Combined Pagination Control Area */}
-                                                                {(walletData.transactions.length > displayCount || activityDisplayCount > 5) && (
-                                                                    <div className={`absolute bottom-0 left-0 w-full flex items-end justify-center pb-5 z-10 ${walletData.transactions.length > displayCount ? 'h-32 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none' : 'h-16 pt-2 pointer-events-auto'}`}>
-                                                                        {walletData.transactions.length > displayCount && (
+                                                                {((walletData?.transactions?.length || 0) > displayCount || activityDisplayCount > 5) && (
+                                                                    <div className={`absolute bottom-0 left-0 w-full flex items-end justify-center pb-5 z-10 ${(walletData?.transactions?.length || 0) > displayCount ? 'h-32 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none' : 'h-16 pt-2 pointer-events-auto'}`}>
+                                                                        {(walletData?.transactions?.length || 0) > displayCount && (
                                                                             <div className="absolute inset-0 backdrop-blur-[2px] [mask-image:linear-gradient(to_top,black,transparent)]" />
                                                                         )}
 
@@ -1566,7 +1566,7 @@ export default function ProfilePage({ params }: PageProps) {
                                                                                 </button>
                                                                             )}
 
-                                                                            {walletData.transactions.length > displayCount && (
+                                                                            {((walletData?.transactions?.length || 0) > displayCount) && (
                                                                                 <button
                                                                                     onClick={() => setActivityDisplayCount(prev => prev + 5)}
                                                                                     className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors bg-muted/50 hover:bg-muted backdrop-blur-md px-5 py-2.5 rounded-full border shadow-sm active:scale-95 duration-200"
@@ -1613,47 +1613,49 @@ export default function ProfilePage({ params }: PageProps) {
                                                 tokenId?: string
                                             }> = []
 
-                                            if (walletData.nativeBalance && parseFloat(walletData.nativeBalance) > 0) {
-                                                cryptoAssets.push({
-                                                    type: 'native',
-                                                    name: 'Avalanche',
-                                                    symbol: 'AVAX',
-                                                    balance: parseFloat(walletData.nativeBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 }),
-                                                    icon: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
-                                                    fallback: '🔺'
-                                                })
-                                            }
-
-                                            if (walletData.tokenBalances) {
-                                                walletData.tokenBalances.forEach((token: any) => {
-                                                    const cacheKey = getCacheKey(token.contractAddress, token.symbol)
-                                                    const logoUrl = getCachedLogo(cacheKey)
-                                                    const firstLetter = token.symbol?.charAt(0).toUpperCase() || '?'
-
+                                            if (walletData) {
+                                                if (walletData.nativeBalance && parseFloat(walletData.nativeBalance) > 0) {
                                                     cryptoAssets.push({
-                                                        type: 'token',
-                                                        name: token.name || 'Unknown Token',
-                                                        symbol: token.symbol || 'TKN',
-                                                        balance: parseFloat(token.balance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 }),
-                                                        icon: token.logo || logoUrl,
-                                                        fallback: firstLetter,
-                                                        contractAddress: token.contractAddress
+                                                        type: 'native',
+                                                        name: 'Avalanche',
+                                                        symbol: 'AVAX',
+                                                        balance: parseFloat(walletData.nativeBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 }),
+                                                        icon: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
+                                                        fallback: '🔺'
                                                     })
-                                                })
-                                            }
+                                                }
 
-                                            if (walletData.nfts) {
-                                                walletData.nfts.forEach((nft: any) => {
-                                                    nftAssets.push({
-                                                        type: 'nft',
-                                                        name: nft.name || 'Unnamed NFT',
-                                                        symbol: `#${nft.tokenId}`,
-                                                        balance: '1',
-                                                        image: nft.image || null,
-                                                        contractAddress: nft.contractAddress,
-                                                        tokenId: nft.tokenId
+                                                if (walletData.tokenBalances) {
+                                                    walletData.tokenBalances.forEach((token: any) => {
+                                                        const cacheKey = getCacheKey(token.contractAddress, token.symbol)
+                                                        const logoUrl = getCachedLogo(cacheKey)
+                                                        const firstLetter = token.symbol?.charAt(0).toUpperCase() || '?'
+
+                                                        cryptoAssets.push({
+                                                            type: 'token',
+                                                            name: token.name || 'Unknown Token',
+                                                            symbol: token.symbol || 'TKN',
+                                                            balance: parseFloat(token.balance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 }),
+                                                            icon: token.logo || logoUrl,
+                                                            fallback: firstLetter,
+                                                            contractAddress: token.contractAddress
+                                                        })
                                                     })
-                                                })
+                                                }
+
+                                                if (walletData.nfts) {
+                                                    walletData.nfts.forEach((nft: any) => {
+                                                        nftAssets.push({
+                                                            type: 'nft',
+                                                            name: nft.name || 'Unnamed NFT',
+                                                            symbol: `#${nft.tokenId}`,
+                                                            balance: '1',
+                                                            image: nft.image || null,
+                                                            contractAddress: nft.contractAddress,
+                                                            tokenId: nft.tokenId
+                                                        })
+                                                    })
+                                                }
                                             }
 
                                             const visibleCrypto = cryptoAssets.slice(0, assetsDisplayCount)
