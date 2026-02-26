@@ -1426,7 +1426,8 @@ export default function ProfilePage({ params }: PageProps) {
                                             const showAmounts = variant !== 'hiddenAmounts'
                                             const isCompact = variant === 'compact'
                                             const isFull = variant === 'full'
-                                            const displayCount = activityDisplayCount
+                                            // Limit unexpanded 'full' variant to 3 items to roughly match the height of the unexpanded Assets card height
+                                            const displayCount = activityDisplayCount === 5 && isFull ? 3 : activityDisplayCount
 
                                             return (
                                                 <Card key="activity" className={`relative flex flex-col rounded-3xl overflow-hidden bg-foreground/[0.02] border border-foreground/5 shadow-2xl backdrop-blur-xl transition-all duration-500 ${gridColSpan} w-full`}>
