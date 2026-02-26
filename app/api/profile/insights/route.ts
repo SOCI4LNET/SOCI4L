@@ -20,6 +20,19 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
   const address = searchParams.get('address')
   const slug = searchParams.get('slug')
+  const range = searchParams.get('range') || 'all'
+
+  let startDate: Date | undefined = undefined
+  const now = new Date()
+  if (range === '24h') {
+    startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+  } else if (range === '7d') {
+    startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+  } else if (range === '30d') {
+    startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+  }
+
+  const dateFilter = startDate ? { createdAt: { gte: startDate } } : {}
 
   let resolvedAddress: string | null = null
   let profile = null
@@ -103,6 +116,7 @@ export async function GET(request: NextRequest) {
         profileId: resolvedAddress,
         type: 'profile_view',
         ...selfActivityFilter,
+        ...dateFilter,
       },
     })
 
@@ -111,6 +125,7 @@ export async function GET(request: NextRequest) {
         profileId: resolvedAddress,
         type: 'link_click',
         ...selfActivityFilter,
+        ...dateFilter,
       },
     })
 
@@ -124,6 +139,7 @@ export async function GET(request: NextRequest) {
         type: 'link_click',
         linkId: { not: null },
         ...selfActivityFilter,
+        ...dateFilter,
       },
       _count: {
         _all: true,
@@ -233,6 +249,7 @@ export async function GET(request: NextRequest) {
         type: 'link_click',
         categoryId: { not: null },
         ...selfActivityFilter,
+        ...dateFilter,
       },
       _count: {
         _all: true,
@@ -268,6 +285,7 @@ export async function GET(request: NextRequest) {
         profileId: resolvedAddress,
         type: 'profile_view', // Focus on profile view sources for now, or remove for all traffic
         ...selfActivityFilter,
+        ...dateFilter,
       },
       _count: {
         _all: true
@@ -301,6 +319,7 @@ export async function GET(request: NextRequest) {
         type: 'profile_view',
         referrer: { not: null },
         ...selfActivityFilter,
+        ...dateFilter,
       },
       _count: {
         _all: true
@@ -339,6 +358,7 @@ export async function GET(request: NextRequest) {
       where: {
         profileId: resolvedAddress,
         ...selfActivityFilter,
+        ...dateFilter,
       },
       orderBy: {
         createdAt: 'desc',
@@ -390,6 +410,7 @@ export async function GET(request: NextRequest) {
             where: {
               profileId: resolvedAddress!,
               ...selfActivityFilter,
+              ...dateFilter,
             },
             _count: { _all: true }
           })

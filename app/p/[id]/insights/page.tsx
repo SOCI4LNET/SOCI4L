@@ -90,11 +90,11 @@ export default function PublicInsightsPage({ params }: PageProps) {
         let response: Response
         if (isAddress) {
           const normalizedAddress = params.id.toLowerCase()
-          response = await fetch(`/api/profile/insights?address=${normalizedAddress}`, {
+          response = await fetch(`/api/profile/insights?address=${normalizedAddress}&range=${range}`, {
             cache: 'no-store',
           })
         } else {
-          response = await fetch(`/api/profile/insights?slug=${params.id}`, {
+          response = await fetch(`/api/profile/insights?slug=${params.id}&range=${range}`, {
             cache: 'no-store',
           })
         }
@@ -123,7 +123,7 @@ export default function PublicInsightsPage({ params }: PageProps) {
     }
 
     fetchData()
-  }, [params.id])
+  }, [params.id, range])
 
   // Check if Links block is enabled in layout config
   const linksBlockEnabled = useMemo(() => {

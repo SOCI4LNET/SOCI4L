@@ -39,7 +39,7 @@ export type AnalyticsData = {
     topReferrers: Array<{ name: string; count: number }>
 }
 
-export function useInsights(targetAddress?: string) {
+export function useInsights(targetAddress?: string, timeframe: string = '7d') {
     const params = useParams()
     const { address: connectedAddress } = useAccount()
     const { isDemo } = useDemo()
@@ -90,7 +90,7 @@ export function useInsights(targetAddress?: string) {
 
     // --- Real API ---
     const insightsQuery = useQuery({
-        queryKey: ['insights', address],
+        queryKey: ['insights', address, timeframe],
         queryFn: async () => {
             if (isDemo) return demoData
 
@@ -106,7 +106,7 @@ export function useInsights(targetAddress?: string) {
             // BUT move it here later.
             // For now, to keep it simple and working:
             // Fetch from /api/profile/insights (it exists in old state).
-            const res = await fetch(`/api/profile/insights?address=${encodeURIComponent(address)}`)
+            const res = await fetch(`/api/profile/insights?address=${encodeURIComponent(address)}&range=${timeframe}`)
             if (!res.ok) throw new Error('Failed to fetch insights')
             const data = await res.json()
 

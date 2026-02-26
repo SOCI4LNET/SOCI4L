@@ -73,12 +73,12 @@ export function InsightsPanel({ address }: InsightsPanelProps) {
   const router = useRouter()
   // Ensure useProfile is returning the updated type with premiumExpiresAt
   const { profile, loading: profileLoading } = useProfile(address)
-  const { data: analyticsData, loading: analyticsLoading } = useInsights(address)
+  const [range, setRange] = useState<TimeRange>('7d')
+  const { data: analyticsData, loading: analyticsLoading } = useInsights(address, range)
   const { links, loading: linksLoading } = useLinks(address)
 
   const loading = profileLoading || analyticsLoading || linksLoading
 
-  const [range, setRange] = useState<TimeRange>('7d')
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
   // --- Premium Check ---
