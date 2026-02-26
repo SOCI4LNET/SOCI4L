@@ -1292,7 +1292,7 @@ export default function ProfilePage({ params }: PageProps) {
                                                 <Card
                                                     key="links"
                                                     ref={linksBlockRef}
-                                                    className={`relative rounded-3xl overflow-hidden bg-foreground/[0.02] border border-foreground/5 shadow-2xl backdrop-blur-xl transition-all duration-500 ${gridColSpan} w-full`}
+                                                    className={`relative flex flex-col h-full rounded-3xl overflow-hidden bg-foreground/[0.02] border border-foreground/5 shadow-2xl backdrop-blur-xl transition-all duration-500 ${gridColSpan} w-full`}
                                                 >
                                                     <CardHeader className="px-6 py-5 border-b border-foreground/5 flex flex-row items-center justify-between space-y-0 pb-5">
                                                         <div className="flex items-center gap-2.5">
@@ -1315,7 +1315,7 @@ export default function ProfilePage({ params }: PageProps) {
                                                         )}
 
                                                     </CardHeader>
-                                                    <CardContent className="p-6 pt-5">
+                                                    <CardContent className="p-6 pt-5 flex-1">
                                                         {totalLinks === 0 ? (
                                                             <div className="flex flex-col items-center justify-center py-8 text-center">
                                                                 <Link2 className="h-8 w-8 text-muted-foreground mb-2" />
@@ -1433,7 +1433,7 @@ export default function ProfilePage({ params }: PageProps) {
                                             const displayCount = activityDisplayCount === 5 && isFull ? 3 : activityDisplayCount
 
                                             return (
-                                                <Card key="activity" className={`relative flex flex-col rounded-3xl overflow-hidden bg-foreground/[0.02] border border-foreground/5 shadow-2xl backdrop-blur-xl transition-all duration-500 ${gridColSpan} w-full`}>
+                                                <Card key="activity" className={`relative flex flex-col h-full rounded-3xl overflow-hidden bg-foreground/[0.02] border border-foreground/5 shadow-2xl backdrop-blur-xl transition-all duration-500 ${gridColSpan} w-full`}>
                                                     <CardHeader className="px-6 py-5 border-b border-foreground/5 flex flex-row items-center justify-between space-y-0 pb-5">
                                                         <div className="flex items-center gap-2.5">
                                                             <div className="p-1.5 rounded-lg bg-foreground/5">
@@ -1667,7 +1667,7 @@ export default function ProfilePage({ params }: PageProps) {
                                             const isFull = variant === 'full'
 
                                             return (
-                                                <Card key="assets" className={`relative flex flex-col rounded-3xl overflow-hidden bg-foreground/[0.02] border border-foreground/5 shadow-2xl backdrop-blur-xl transition-all duration-500 ${gridColSpan} w-full`}>
+                                                <Card key="assets" className={`relative flex flex-col h-full rounded-3xl overflow-hidden bg-foreground/[0.02] border border-foreground/5 shadow-2xl backdrop-blur-xl transition-all duration-500 ${gridColSpan} w-full`}>
                                                     <CardHeader className="px-6 py-5 border-b border-foreground/5 flex flex-row items-center justify-between space-y-0 pb-5">
                                                         <div className="flex items-center gap-2.5">
                                                             <div className="p-1.5 rounded-lg bg-foreground/5">
@@ -1823,7 +1823,7 @@ export default function ProfilePage({ params }: PageProps) {
                                         )
                                     } else {
                                         return (
-                                            <div key={row.id} className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full items-start">
+                                            <div key={row.id} className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full items-stretch">
                                                 {renderBlockBySectionId(row.left, 'half')}
                                                 {renderBlockBySectionId(row.right, 'half')}
                                             </div>
@@ -1834,7 +1834,7 @@ export default function ProfilePage({ params }: PageProps) {
                         ) : (
                             // Fallback to grid-based layout
                             !profile?.isBanned && (
-                                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full items-start">
+                                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full items-stretch">
                                     {blocksWithComputedSpan.map((block) => {
                                         const variant = block.variant || 'compact'
                                         const computedSpan = block.computedSpan || 'half'
