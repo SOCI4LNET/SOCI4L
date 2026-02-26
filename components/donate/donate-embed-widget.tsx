@@ -16,9 +16,9 @@ interface DonateEmbedWidgetProps {
 }
 
 export function DonateEmbedWidget({ profile }: DonateEmbedWidgetProps) {
-  const profileUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}${getPublicProfileHref(profile.address, profile.slug)}?action=donate`
-    : '#'
+  // Use NEXT_PUBLIC_BASE_URL to ensure we break out of iframe contexts correctly, fallback to production URL
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://soci4l.net'
+  const profileUrl = `${baseUrl}${getPublicProfileHref(profile.address, profile.slug)}?action=donate`
 
   const handleDonateClick = () => {
     window.open(profileUrl, '_blank')
