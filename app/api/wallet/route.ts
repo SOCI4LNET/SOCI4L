@@ -25,6 +25,8 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
   const address = searchParams.get('address')
   const slug = searchParams.get('slug')
+  const skipWallet = searchParams.get('skipWallet') === 'true'
+  const onlyWallet = searchParams.get('onlyWallet') === 'true'
 
   let resolvedAddress: string | null = null
   let profile = null
@@ -138,14 +140,17 @@ export async function GET(request: NextRequest) {
 
   // Fetch full profile with layoutConfig and appearanceConfig from database
   // getProfileByAddress doesn't return these fields, so we need to fetch them separately
-  const fullProfile = await prisma.profile.findUnique({
-    where: { address: resolvedAddress.toLowerCase() },
-    select: {
-      id: true,
-      layoutConfig: true,
-      appearanceConfig: true,
-    },
-  })
+  let fullProfile = null
+  if (!onlyWallet) {
+    fullProfile = await prisma.profile.findUnique({
+      where: { address: resolvedAddress.toLowerCase() },
+      select: {
+        id: true,
+        layoutConfig: true,
+        appearanceConfig: true,
+      },
+    })
+  }
 
   try {
     // Determine profile status for display
@@ -164,23 +169,32 @@ export async function GET(request: NextRequest) {
     }
 
     // Get wallet data
-    let walletData
-    try {
-      walletData = await getWalletData(resolvedAddress)
-    } catch (walletError) {
-      console.error('[Wallet API] Error fetching wallet data:', walletError)
-      // Return a more descriptive error
-      const walletErrorMessage = walletError instanceof Error
-        ? walletError.message
-        : 'Failed to fetch wallet data from blockchain'
-      return NextResponse.json(
-        {
-          error: 'An error occurred while fetching wallet data',
-          details: walletErrorMessage,
-          type: 'WALLET_FETCH_ERROR'
-        },
-        { status: 500 }
-      )
+    let walletData = null
+    if (!skipWallet) {
+      try {
+        walletData = await getWalletData(resolvedAddress)
+      } catch (walletError) {
+        console.error('[Wallet API] Error fetching wallet data:', walletError)
+        // Return a more descriptive error
+        const walletErrorMessage = walletError instanceof Error
+          ? walletError.message
+          : 'Failed to fetch wallet data from blockchain'
+        return NextResponse.json(
+          {
+            error: 'An error occurred while fetching wallet data',
+            details: walletErrorMessage,
+            type: 'WALLET_FETCH_ERROR'
+          },
+          { status: 500 }
+        )
+      }
+    }
+
+    // If only requesting wallet data, return immediately after fetching it
+    if (onlyWallet) {
+      return NextResponse.json({
+        walletData
+      })
     }
 
     // Get profile links (only enabled, sorted by order)

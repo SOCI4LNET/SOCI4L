@@ -121,7 +121,8 @@ export default function ProfilePage({ params }: PageProps) {
         premiumExpiresAt?: string | null
         profileViews?: number
     } | null>(null)
-    const [loading, setLoading] = useState(true)
+    const [baseLoading, setBaseLoading] = useState(true)
+    const [walletLoading, setWalletLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [isNotFound, setIsNotFound] = useState(false)
     const [qrModalOpen, setQrModalOpen] = useState(false)
@@ -186,7 +187,7 @@ export default function ProfilePage({ params }: PageProps) {
 
     useEffect(() => {
         const fetchData = async () => {
-            setLoading(true)
+            setBaseLoading(true)
             setError(null)
 
             try {
@@ -194,73 +195,58 @@ export default function ProfilePage({ params }: PageProps) {
                 const isAddress = params.id.startsWith('0x') && isValidAddress(params.id)
 
                 let response: Response
-                // Add cache bust timestamp to ensure fresh data (especially after Builder changes)
-                // Use both timestamp and random to prevent aggressive caching
+                // Add cache bust timestamp to prevent aggressive caching
                 const cacheBust = `${Date.now()}-${Math.random().toString(36).substring(7)}`
+
+                // --- PHASE 1: Fetch Identity Data (Fast) ---
+                let profileResponse: Response
                 if (isAddress) {
-                    // Normalize address to lowercase for consistent API calls
                     const normalizedAddress = params.id.toLowerCase()
-                    response = await fetch(`/api/wallet?address=${normalizedAddress}&_t=${cacheBust}`, {
+                    profileResponse = await fetch(`/api/profile/${normalizedAddress}?_t=${cacheBust}`, {
                         cache: 'no-store',
-                        headers: {
-                            'Cache-Control': 'no-cache, no-store, must-revalidate',
-                            'Pragma': 'no-cache',
-                        },
+                        headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' },
                     })
                 } else {
-                    response = await fetch(`/api/wallet?slug=${params.id}&_t=${cacheBust}`, {
+                    profileResponse = await fetch(`/api/profile/${params.id}?_t=${cacheBust}`, { // Assuming /api/profile handles slugs too, or might need a specific endpoint
                         cache: 'no-store',
-                        headers: {
-                            'Cache-Control': 'no-cache, no-store, must-revalidate',
-                            'Pragma': 'no-cache',
-                        },
+                        headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' },
                     })
                 }
 
-                const data = await response.json()
-                // Dynamically import Logger to avoid server-side issues if any
-                const { Logger } = await import('@/lib/logger')
-                Logger.info('[PublicProfile] API response data:', {
-                    hasLayout: !!data.layout,
-                    hasAppearance: !!data.appearance,
-                    layout: data.layout,
-                    appearance: data.appearance,
-                    profile: data.profile, // Explicitly log profile data
-                    profileStatus: data.profileStatus
+                // Temporary workaround since `/api/profile/[id]` doesn't return full public layout/appearance payloads yet.
+                // We'll hit the newly returning `/api/wallet` but NOT wait for the wallet data parsing to render the UI? No, /api/wallet blocks on getWalletData on the backend.
+                // We MUST use existing endpoints. `/api/profile/[id]` returns the raw DB object, but we need layout/appearance.
+                // Actually, wait, let's look closely at `/api/wallet/route.ts` - it blocks on `await getWalletData(resolvedAddress)`.
+                // If I modify `/api/wallet/route.ts` to take a `?skipWallet=true` flag, it can return instantly!
+
+                const skipWalletUrl = isAddress
+                    ? `/api/wallet?address=${params.id.toLowerCase()}&skipWallet=true&_t=${cacheBust}`
+                    : `/api/wallet?slug=${params.id}&skipWallet=true&_t=${cacheBust}`
+
+                const baseResponse = await fetch(skipWalletUrl, {
+                    cache: 'no-store',
+                    headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' },
                 })
 
+                const data = await baseResponse.json()
+                const { Logger } = await import('@/lib/logger')
+                Logger.info('[PublicProfile] API base response:', { hasLayout: !!data.layout, profileStatus: data.profileStatus })
+
                 if (data.error && !data.profileStatus) {
-                    // Need to check for cooldown handling in API response even if error present?
-                    // API returns success JSON with profileStatus='COOLDOWN' if cooldown found, not error.
-                    if (response.status === 404 && !isAddress) {
+                    if (baseResponse.status === 404 && !isAddress) {
                         setIsNotFound(true)
-                        setLoading(false)
+                        setBaseLoading(false)
                         return
                     } else {
                         setError(data.error)
                     }
-                    // Set default configs on error to prevent null state
                     setLayoutConfig(getDefaultProfileLayout())
                     setAppearanceConfig(getDefaultAppearanceConfig())
                 } else {
-                    Logger.info('[PublicProfile] Wallet data loaded:', {
-                        hasTokenBalances: !!data.walletData?.tokenBalances,
-                        tokenBalancesCount: data.walletData?.tokenBalances?.length || 0,
-                        hasNfts: !!data.walletData?.nfts,
-                        nftsCount: data.walletData?.nfts?.length || 0,
-                        hasTransactions: !!data.walletData?.transactions,
-                        transactionsCount: data.walletData?.transactions?.length || 0,
-                    })
-                    setWalletData(data.walletData)
                     setProfileStatus(data.profileStatus)
+                    if (data.cooldown) setCooldownInfo(data.cooldown)
+                    if (data.score) setScore(data.score)
 
-                    if (data.cooldown) {
-                        setCooldownInfo(data.cooldown)
-                    }
-
-                    if (data.score) {
-                        setScore(data.score)
-                    }
                     if (data.profile) {
                         setProfile({
                             address: data.profile.address,
@@ -271,120 +257,87 @@ export default function ProfilePage({ params }: PageProps) {
                             primaryRole: data.profile.primaryRole,
                             secondaryRoles: data.profile.secondaryRoles,
                             statusMessage: data.profile.statusMessage,
-
                             isBanned: data.profile.isBanned,
                             isVerified: data.profile.isVerified,
                             socialLinks: data.profile.socialLinks,
                             premiumExpiresAt: data.profile.premiumExpiresAt,
                             profileViews: data.profile.profileViews,
                         })
-                    } else {
-                        // If status is COOLDOWN, profile might be null
                     }
 
-                    if (data.isBlockedByViewer) {
-                        setIsBlockedByViewer(true)
-                    }
-                    // Load links from API response (Option A - preferred)
+                    if (data.isBlockedByViewer) setIsBlockedByViewer(true)
+
                     if (data.links && Array.isArray(data.links)) {
                         const enabledLinks = data.links
                             .filter((link: any) => link.enabled)
-                            .sort((a: any, b: any) => {
-                                if (a.order !== b.order) {
-                                    return a.order - b.order
-                                }
-                                return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-                            })
+                            .sort((a: any, b: any) => a.order !== b.order ? a.order - b.order : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
                             .map((link: any) => ({
-                                id: link.id,
-                                title: link.title || '',
-                                url: link.url,
-                                enabled: link.enabled,
-                                categoryId: link.categoryId || null,
-                                order: link.order || 0,
+                                id: link.id, title: link.title || '', url: link.url, enabled: link.enabled,
+                                categoryId: link.categoryId || null, order: link.order || 0,
                                 createdAt: link.createdAt || new Date().toISOString(),
                                 updatedAt: link.updatedAt || new Date().toISOString(),
                             }))
                         setProfileLinks(enabledLinks)
                     }
 
-                    // Load categories from API response
                     if (data.categories && Array.isArray(data.categories)) {
                         setLinkCategories(data.categories.map((cat: any) => ({
-                            id: cat.id,
-                            name: cat.name,
-                            slug: cat.slug,
-                            description: cat.description || null,
-                            order: cat.order || 0,
-                            isVisible: cat.isVisible ?? true, // Default to true if not provided
+                            id: cat.id, name: cat.name, slug: cat.slug, description: cat.description || null,
+                            order: cat.order || 0, isVisible: cat.isVisible ?? true,
                         })))
-                    } else {
-                        setLinkCategories([])
-                    }
+                    } else setLinkCategories([])
 
-                    // Load layout config from API response
-                    if (data.layout) {
-                        // Normalize layout config to ensure consistency
-                        const normalizedLayout = normalizeLayoutConfig(data.layout)
-                        const { Logger } = await import('@/lib/logger')
-                        Logger.info('[PublicProfile] Layout config loaded:', normalizedLayout)
-                        setLayoutConfig(normalizedLayout)
-                    } else {
-                        // Use default if no layout config (already initialized with default, but update for consistency)
-                        const { Logger } = await import('@/lib/logger')
-                        Logger.warn('[PublicProfile] No layout config in API response, using default')
-                        setLayoutConfig(getDefaultProfileLayout())
-                    }
+                    if (data.layout) setLayoutConfig(normalizeLayoutConfig(data.layout))
+                    else setLayoutConfig(getDefaultProfileLayout())
 
-                    // Load appearance config from API response
-                    if (data.appearance) {
-                        const normalizedAppearance = normalizeAppearanceConfig(data.appearance)
-                        const { Logger } = await import('@/lib/logger')
-                        Logger.info('[PublicProfile] Appearance config loaded:', normalizedAppearance)
-                        setAppearanceConfig(normalizedAppearance)
-                    } else {
-                        // Use default if no appearance config (already initialized with default, but update for consistency)
-                        const { Logger } = await import('@/lib/logger')
-                        Logger.warn('[PublicProfile] No appearance config in API response, using default')
-                        setAppearanceConfig(getDefaultAppearanceConfig())
-                    }
+                    if (data.appearance) setAppearanceConfig(normalizeAppearanceConfig(data.appearance))
+                    else setAppearanceConfig(getDefaultAppearanceConfig())
 
-                    // Set global view count from API (fallback to 0)
-                    if (typeof data.views7d === 'number') {
-                        setViewCount(data.views7d)
-                    } else {
-                        setViewCount(null)
-                    }
+                    if (typeof data.views7d === 'number') setViewCount(data.views7d)
+                    else setViewCount(null)
 
-
-                    // Fetch score for this profile
                     if (data.profile?.address || data.walletData?.address) {
                         const scoreAddress = data.profile?.address || data.walletData?.address
-                        try {
-                            const scoreResponse = await fetch(`/api/profile/${scoreAddress}/score`)
-                            if (scoreResponse.ok) {
-                                const scoreData = await scoreResponse.json()
-                                setScore({
-                                    total: scoreData.score,
-                                    tier: scoreData.tier,
-                                    tierLabel: scoreData.tierLabel,
-                                    breakdown: scoreData.breakdown
-                                })
-                            }
-                        } catch (scoreError) {
-                            const { Logger } = await import('@/lib/logger')
-                            Logger.error('[PublicProfile] Failed to fetch score:', scoreError)
-                        }
+                        fetch(`/api/profile/${scoreAddress}/score`)
+                            .then(res => res.ok ? res.json() : null)
+                            .then(scoreData => {
+                                if (scoreData) setScore({ total: scoreData.score, tier: scoreData.tier, tierLabel: scoreData.tierLabel, breakdown: scoreData.breakdown })
+                            })
+                            .catch(err => Logger.error('[PublicProfile] Failed to fetch score:', err))
                     }
                 }
+
+                // Unlock the UI instantly for the Identity section
+                setBaseLoading(false)
+
+                // --- PHASE 2: Fetch Wallet Data (Slow) ---
+                if (!data.error && data.profile?.address) {
+                    try {
+                        const walletUrl = `/api/wallet?address=${data.profile.address.toLowerCase()}&onlyWallet=true&_t=${cacheBust}`
+                        const walletResponse = await fetch(walletUrl, {
+                            cache: 'no-store',
+                            headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' },
+                        })
+                        const walletJson = await walletResponse.json()
+                        if (walletJson.walletData) {
+                            setWalletData(walletJson.walletData)
+                        }
+                    } catch (walletErr) {
+                        console.error('Error fetching wallet data separately:', walletErr)
+                    } finally {
+                        setWalletLoading(false)
+                    }
+                } else {
+                    setWalletLoading(false)
+                }
+
             } catch (err) {
                 setError('An error occurred while loading data')
                 console.error(err)
-                // Configs already initialized with defaults, no need to set again
-            } finally {
-                setLoading(false)
+                setBaseLoading(false)
+                setWalletLoading(false)
             }
-        }
+        } // End of fetchData
 
         fetchData()
     }, [params.id])
@@ -440,14 +393,14 @@ export default function ProfilePage({ params }: PageProps) {
             trackedProfileIdRef.current = currentTrackKey
         }
 
-    }, [searchParams, profile?.address, profile?.isBanned, loading, stableProfileId, connectedAddress, status, isReconnecting, profileStatus])
+    }, [searchParams, profile?.address, profile?.isBanned, baseLoading, stableProfileId, connectedAddress, status, isReconnecting, profileStatus])
 
     // Check for donate action in URL parameters (from extension)
     useEffect(() => {
         const action = searchParams.get('action')
-        console.log('[DonateModal] URL check:', { action, hasProfile: !!profile?.address, isBanned: profile?.isBanned, loading, donateModalOpen })
+        console.log('[DonateModal] URL check:', { action, hasProfile: !!profile?.address, isBanned: profile?.isBanned, loading: baseLoading, donateModalOpen })
 
-        if (action === 'donate' && profile?.address && !profile?.isBanned && !loading && !donateModalOpen && !isOwnProfile) {
+        if (action === 'donate' && profile?.address && !profile?.isBanned && !baseLoading && !donateModalOpen && !isOwnProfile) {
             console.log('[DonateModal] Opening modal from URL parameter', { action })
             // Delay to ensure page is fully rendered
             const timer = setTimeout(() => {
@@ -460,7 +413,7 @@ export default function ProfilePage({ params }: PageProps) {
             }, 1200)
             return () => clearTimeout(timer)
         }
-    }, [searchParams, profile?.address, profile?.isBanned, loading, donateModalOpen])
+    }, [searchParams, profile?.address, profile?.isBanned, baseLoading, donateModalOpen])
 
 
     const getStatusBadge = () => {
@@ -819,7 +772,7 @@ export default function ProfilePage({ params }: PageProps) {
 
     return (
         <div className="space-y-6 min-h-screen">
-            {loading ? (
+            {baseLoading ? (
                 <div className="space-y-6 pb-24 md:pb-0 max-w-6xl mx-auto w-full mt-2 animate-pulse">
                     <div className="flex flex-col items-center text-center mb-6 relative w-full pt-2">
                         {/* Avatar Skeleton */}
@@ -1486,7 +1439,13 @@ export default function ProfilePage({ params }: PageProps) {
                                                         </div>
                                                     </CardHeader>
                                                     <CardContent className={isFull ? 'space-y-4 pt-4 px-0 pb-0 flex-1 flex flex-col relative' : 'space-y-3 pt-4 px-0 pb-0 flex-1 flex flex-col relative'}>
-                                                        {walletData.transactions && walletData.transactions.length > 0 ? (
+                                                        {walletLoading ? (
+                                                            <div className="flex-1 pb-16 space-y-4 px-6 pt-4">
+                                                                <Skeleton className="h-[72px] w-full bg-white/5 rounded-xl border border-white/5" />
+                                                                <Skeleton className="h-[72px] w-full bg-white/5 rounded-xl border border-white/5" />
+                                                                <Skeleton className="h-[72px] w-full bg-white/5 rounded-xl border border-white/5" />
+                                                            </div>
+                                                        ) : walletData.transactions && walletData.transactions.length > 0 ? (
                                                             <div className="flex-1 pb-16">
                                                                 <div className="px-6 pb-2">
                                                                     {walletData.transactions.slice(0, displayCount).map((tx, idx) => (
@@ -1670,88 +1629,96 @@ export default function ProfilePage({ params }: PageProps) {
                                                     </CardHeader>
 
                                                     <CardContent className="p-0 flex-1 flex flex-col relative w-full">
-                                                        <div className="p-2 space-y-4 flex-1 pb-16">
-                                                            {visibleCrypto.length > 0 && (
-                                                                <div className="flex flex-col">
-                                                                    <div className="px-4 py-2 opacity-80">
-                                                                        <h4 className="text-[11px] font-bold text-white/50 tracking-[0.2em] uppercase">Crypto Assets</h4>
+                                                        {walletLoading ? (
+                                                            <div className="p-2 space-y-4 flex-1 pb-16 pt-4 px-6">
+                                                                <Skeleton className="h-[60px] w-full bg-white/5 rounded-2xl border border-white/5" />
+                                                                <Skeleton className="h-[60px] w-full bg-white/5 rounded-2xl border border-white/5" />
+                                                                <Skeleton className="h-[60px] w-full bg-white/5 rounded-2xl border border-white/5" />
+                                                            </div>
+                                                        ) : (
+                                                            <div className="p-2 space-y-4 flex-1 pb-16">
+                                                                {visibleCrypto.length > 0 && (
+                                                                    <div className="flex flex-col">
+                                                                        <div className="px-4 py-2 opacity-80">
+                                                                            <h4 className="text-[11px] font-bold text-white/50 tracking-[0.2em] uppercase">Crypto Assets</h4>
+                                                                        </div>
+                                                                        {visibleCrypto.map((asset, idx) => (
+                                                                            <div key={`crypto-${idx}`} className="group flex items-center justify-between p-3 sm:p-4 rounded-2xl hover:bg-muted/50 transition-colors">
+                                                                                <div className="flex items-center gap-4 min-w-0">
+                                                                                    <div className="h-10 w-10 rounded-xl overflow-hidden border bg-accent/50 flex items-center justify-center flex-shrink-0 text-lg">
+                                                                                        {asset.icon ? (
+                                                                                            // eslint-disable-next-line @next/next/no-img-element
+                                                                                            <img src={asset.icon} alt={asset.symbol} className="h-full w-full object-cover" />
+                                                                                        ) : (
+                                                                                            <span className="text-sm font-bold text-muted-foreground">{asset.fallback || '🪙'}</span>
+                                                                                        )}
+                                                                                    </div>
+                                                                                    <div className="flex flex-col min-w-0">
+                                                                                        <span className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} font-medium truncate`}>{asset.name}</span>
+                                                                                        <span className="text-xs text-muted-foreground tracking-wider mt-0.5">{asset.symbol}</span>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div className="text-right pl-4">
+                                                                                    <span className="text-sm font-mono text-foreground/90">{asset.balance}</span>
+                                                                                </div>
+                                                                            </div>
+                                                                        ))}
                                                                     </div>
-                                                                    {visibleCrypto.map((asset, idx) => (
-                                                                        <div key={`crypto-${idx}`} className="group flex items-center justify-between p-3 sm:p-4 rounded-2xl hover:bg-muted/50 transition-colors">
-                                                                            <div className="flex items-center gap-4 min-w-0">
-                                                                                <div className="h-10 w-10 rounded-xl overflow-hidden border bg-accent/50 flex items-center justify-center flex-shrink-0 text-lg">
-                                                                                    {asset.icon ? (
-                                                                                        // eslint-disable-next-line @next/next/no-img-element
-                                                                                        <img src={asset.icon} alt={asset.symbol} className="h-full w-full object-cover" />
+                                                                )}
+
+                                                                {visibleNfts.length > 0 && (
+                                                                    <div className="flex flex-col">
+                                                                        {visibleCrypto.length > 0 && <div className="h-px bg-white/5 mx-4 my-2" />}
+                                                                        <div className="px-4 py-2 opacity-80">
+                                                                            <h4 className="text-[11px] font-bold text-white/50 tracking-[0.2em] uppercase">NFTs</h4>
+                                                                        </div>
+                                                                        {visibleNfts.map((asset, idx) => (
+                                                                            <div key={`nft-${idx}`} className="group flex items-center justify-between p-3 sm:p-4 rounded-2xl hover:bg-muted/50 transition-colors">
+                                                                                <div className="flex items-center gap-4 min-w-0">
+                                                                                    {asset.image ? (
+                                                                                        <div className="h-10 w-10 rounded-xl overflow-hidden border bg-muted flex-shrink-0">
+                                                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                                            <img src={asset.image} alt="NFT" className="h-full w-full object-cover" />
+                                                                                        </div>
                                                                                     ) : (
-                                                                                        <span className="text-sm font-bold text-muted-foreground">{asset.fallback || '🪙'}</span>
+                                                                                        <div className="h-10 w-10 rounded-xl border bg-muted flex items-center justify-center flex-shrink-0 text-lg">
+                                                                                            🖼️
+                                                                                        </div>
                                                                                     )}
+                                                                                    <div className="flex flex-col min-w-0">
+                                                                                        <span className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} font-medium truncate`}>{asset.name}</span>
+                                                                                        <span className="text-xs text-muted-foreground uppercase tracking-wider mt-0.5">{asset.symbol}</span>
+                                                                                    </div>
                                                                                 </div>
-                                                                                <div className="flex flex-col min-w-0">
-                                                                                    <span className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} font-medium truncate`}>{asset.name}</span>
-                                                                                    <span className="text-xs text-muted-foreground tracking-wider mt-0.5">{asset.symbol}</span>
+                                                                                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                                    <TooltipProvider>
+                                                                                        <Tooltip>
+                                                                                            <TooltipTrigger asChild>
+                                                                                                <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+                                                                                                    <a href={`https://snowtrace.io/token/${asset.contractAddress}?a=${asset.tokenId}`} target="_blank" rel="noopener">
+                                                                                                        <ExternalLink className="h-3.5 w-3.5" />
+                                                                                                    </a>
+                                                                                                </Button>
+                                                                                            </TooltipTrigger>
+                                                                                            <TooltipContent>View on explorer</TooltipContent>
+                                                                                        </Tooltip>
+                                                                                    </TooltipProvider>
                                                                                 </div>
                                                                             </div>
-                                                                            <div className="text-right pl-4">
-                                                                                <span className="text-sm font-mono text-foreground/90">{asset.balance}</span>
-                                                                            </div>
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                            )}
-
-                                                            {visibleNfts.length > 0 && (
-                                                                <div className="flex flex-col">
-                                                                    {visibleCrypto.length > 0 && <div className="h-px bg-white/5 mx-4 my-2" />}
-                                                                    <div className="px-4 py-2 opacity-80">
-                                                                        <h4 className="text-[11px] font-bold text-white/50 tracking-[0.2em] uppercase">NFTs</h4>
+                                                                        ))}
                                                                     </div>
-                                                                    {visibleNfts.map((asset, idx) => (
-                                                                        <div key={`nft-${idx}`} className="group flex items-center justify-between p-3 sm:p-4 rounded-2xl hover:bg-muted/50 transition-colors">
-                                                                            <div className="flex items-center gap-4 min-w-0">
-                                                                                {asset.image ? (
-                                                                                    <div className="h-10 w-10 rounded-xl overflow-hidden border bg-muted flex-shrink-0">
-                                                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                                                        <img src={asset.image} alt="NFT" className="h-full w-full object-cover" />
-                                                                                    </div>
-                                                                                ) : (
-                                                                                    <div className="h-10 w-10 rounded-xl border bg-muted flex items-center justify-center flex-shrink-0 text-lg">
-                                                                                        🖼️
-                                                                                    </div>
-                                                                                )}
-                                                                                <div className="flex flex-col min-w-0">
-                                                                                    <span className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'body')} font-medium truncate`}>{asset.name}</span>
-                                                                                    <span className="text-xs text-muted-foreground uppercase tracking-wider mt-0.5">{asset.symbol}</span>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                                <TooltipProvider>
-                                                                                    <Tooltip>
-                                                                                        <TooltipTrigger asChild>
-                                                                                            <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
-                                                                                                <a href={`https://snowtrace.io/token/${asset.contractAddress}?a=${asset.tokenId}`} target="_blank" rel="noopener">
-                                                                                                    <ExternalLink className="h-3.5 w-3.5" />
-                                                                                                </a>
-                                                                                            </Button>
-                                                                                        </TooltipTrigger>
-                                                                                        <TooltipContent>View on explorer</TooltipContent>
-                                                                                    </Tooltip>
-                                                                                </TooltipProvider>
-                                                                            </div>
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                            )}
+                                                                )}
 
-                                                            {totalAssets === 0 && (
-                                                                <div className="text-center py-8">
-                                                                    <p className="text-sm text-muted-foreground">—</p>
-                                                                </div>
-                                                            )}
-                                                        </div>
+                                                                {totalAssets === 0 && (
+                                                                    <div className="text-center py-8">
+                                                                        <p className="text-sm text-muted-foreground">—</p>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
 
                                                         {/* Combined Pagination Control Area */}
-                                                        {(hasMoreAssets || assetsDisplayCount > 3) && (
+                                                        {(hasMoreAssets || assetsDisplayCount > 3) && !walletLoading && (
                                                             <div className={`absolute bottom-0 left-0 w-full flex items-end justify-center pb-5 z-10 ${hasMoreAssets ? 'h-32 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-none' : 'h-16 pt-2 pointer-events-auto'}`}>
                                                                 {hasMoreAssets && (
                                                                     <div className="absolute inset-0 backdrop-blur-[2px] [mask-image:linear-gradient(to_top,black,transparent)]" />

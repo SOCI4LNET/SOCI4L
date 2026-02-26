@@ -1,7 +1,7 @@
 import { createPublicClient, http, formatEther, formatUnits } from 'viem'
 import { avalanche } from 'viem/chains'
 import { fetchAccountNfts, OpenSeaNft } from '@/lib/opensea'
-import { SNOWTRACE_API_KEY , SNOWTRACE_API_URL } from '@/lib/constants'
+import { SNOWTRACE_API_KEY, SNOWTRACE_API_URL } from '@/lib/constants'
 
 const AVALANCHE_RPC = process.env.NEXT_PUBLIC_AVALANCHE_RPC || 'https://api.avax.network/ext/bc/C/rpc'
 // const SNOWTRACE_API_KEY = process.env.SNOWTRACE_API_KEY || ''
@@ -86,40 +86,23 @@ export async function getWalletData(address: string): Promise<WalletData> {
     let firstSeen: number | undefined
     let lastSeen: number | undefined
 
-    // Snowtrace API works without API key (free tier: 2 req/sec, 10k/day)
-    // API key improves rate limits but is not required
     const apiKeyParam = SNOWTRACE_API_KEY ? `&apikey=${SNOWTRACE_API_KEY}` : ''
 
-    {
+    // Helper functions for concurrent fetching
+    const fetchTokens = async () => {
       try {
-        // Fetch token balances from Snowtrace using tokentx endpoint
-        // Note: This calculates balances from transaction history, which may not be 100% accurate
-        // For more accurate balances, use the tokenlist endpoint or RPC balanceOf calls
-        const tokenResponse = await fetch(
-          `${SNOWTRACE_API_URL}?module=account&action=tokentx&address=${address}&startblock=0&endblock=99999999&sort=asc${apiKeyParam}`
-        )
-        const tokenData = await tokenResponse.json()
-
-        if (tokenData.status === '1' && tokenData.result && Array.isArray(tokenData.result)) {
-          // Process token transactions to get balances
+        const res = await fetch(`${SNOWTRACE_API_URL}?module=account&action=tokentx&address=${address}&startblock=0&endblock=99999999&sort=asc${apiKeyParam}`)
+        const data = await res.json()
+        if (data.status === '1' && data.result && Array.isArray(data.result)) {
           const tokenMap = new Map<string, { name: string; symbol: string; decimals: number; balance: bigint }>()
-
-          for (const tx of tokenData.result) {
+          for (const tx of data.result) {
             const contract = (tx.contractAddress || '').toLowerCase()
             if (!contract) continue
-
             const decimals = parseInt(tx.tokenDecimal || '18')
             const value = BigInt(tx.value || '0')
-
             if (!tokenMap.has(contract)) {
-              tokenMap.set(contract, {
-                name: tx.tokenName || 'Unknown Token',
-                symbol: tx.tokenSymbol || 'UNKNOWN',
-                decimals,
-                balance: BigInt(0),
-              })
+              tokenMap.set(contract, { name: tx.tokenName || 'Unknown Token', symbol: tx.tokenSymbol || 'UNKNOWN', decimals, balance: BigInt(0) })
             }
-
             const entry = tokenMap.get(contract)!
             const normalizedAddress = address.toLowerCase()
             if (tx.to?.toLowerCase() === normalizedAddress) {
@@ -128,109 +111,82 @@ export async function getWalletData(address: string): Promise<WalletData> {
               entry.balance -= value
             }
           }
-
-          tokenBalances = Array.from(tokenMap.entries())
-            .filter(([_, data]) => data.balance > BigInt(0))
-            .map(([contract, data]) => ({
+          const balances = Array.from(tokenMap.entries())
+            .filter(([_, tData]) => tData.balance > BigInt(0))
+            .map(([contract, tData]) => ({
               contractAddress: contract,
-              name: data.name,
-              symbol: data.symbol,
-              balance: formatUnits(data.balance, data.decimals),
-              decimals: data.decimals,
+              name: tData.name,
+              symbol: tData.symbol,
+              balance: formatUnits(tData.balance, tData.decimals),
+              decimals: tData.decimals,
             }))
-
-          console.log(`[Avalanche] Found ${tokenBalances.length} tokens with balance > 0 for address ${address}`)
-        } else {
-          console.warn('[Avalanche] Snowtrace API returned invalid token data:', tokenData)
+          console.log(`[Avalanche] Found ${balances.length} tokens for address ${address}`)
+          return balances
         }
+      } catch (error) {
+        console.error('[Avalanche] Error fetching from Snowtrace Tokens:', error)
+      }
+      return []
+    }
 
-        // Fetch NFTs
-        const hasOpenseaApiKey = !!process.env.OPENSEA_API_KEY
+    const fetchNftsData = async () => {
+      let fetchedNfts: NFT[] = []
+      const hasOpenseaApiKey = !!process.env.OPENSEA_API_KEY
 
-        if (hasOpenseaApiKey) {
-          try {
-            console.log(`[Avalanche] Fetching NFTs from OpenSea for ${address}`)
-            // Default limit 50 for initial fetch
-            // Use fetchAccountNfts from lib/opensea (type safe)
-            const openseaData = await fetchAccountNfts('avalanche', address, 50)
-
-            nfts = openseaData.nfts.map((nft: OpenSeaNft) => ({
-              contractAddress: nft.contract,
-              tokenId: nft.identifier,
-              name: nft.name || undefined,
-              image: nft.image_url || undefined,
-            }))
-
-            console.log(`[Avalanche] Found ${nfts.length} NFTs from OpenSea`)
-          } catch (error) {
-            console.error('[Avalanche] Error fetching NFTs from OpenSea:', error)
-            // Fallback to Snowtrace will happen below if nfts is empty
-          }
+      if (hasOpenseaApiKey) {
+        try {
+          console.log(`[Avalanche] Fetching NFTs from OpenSea for ${address}`)
+          const openseaData = await fetchAccountNfts('avalanche', address, 50)
+          fetchedNfts = openseaData.nfts.map((nft: OpenSeaNft) => ({
+            contractAddress: nft.contract,
+            tokenId: nft.identifier,
+            name: nft.name || undefined,
+            image: nft.image_url || undefined,
+          }))
+          console.log(`[Avalanche] Found ${fetchedNfts.length} NFTs from OpenSea`)
+        } catch (error) {
+          console.error('[Avalanche] Error fetching NFTs from OpenSea:', error)
         }
+      }
 
-        // Fallback to Snowtrace if no NFTs found yet (or OpenSea failed/not configured)
-        if (nfts.length === 0) {
-          try {
-            const nftResponse = await fetch(
-              `https://api.snowtrace.io/api?module=account&action=tokennfttx&address=${address}&startblock=0&endblock=99999999&sort=asc${apiKeyParam}`
-            )
-            const nftData = await nftResponse.json()
+      if (fetchedNfts.length === 0) {
+        try {
+          const res = await fetch(`https://api.snowtrace.io/api?module=account&action=tokennfttx&address=${address}&startblock=0&endblock=99999999&sort=asc${apiKeyParam}`)
+          const data = await res.json()
+          if (data.status === '1' && data.result && Array.isArray(data.result)) {
+            const nftMap = new Map<string, { contractAddress: string; tokenId: string; name?: string }>()
+            const normalizedAddress = address.toLowerCase()
+            const sortedTransfers = [...data.result].sort((a, b) => parseInt(a.timeStamp || '0') - parseInt(b.timeStamp || '0'))
 
-            if (nftData.status === '1' && nftData.result && Array.isArray(nftData.result)) {
-              // Group NFTs by contract and tokenId to get unique NFTs
-              // Track ownership by processing all transfers chronologically
-              const nftMap = new Map<string, { contractAddress: string; tokenId: string; name?: string }>()
-              const normalizedAddress = address.toLowerCase()
-
-              // Process transfers in chronological order to determine current ownership
-              const sortedTransfers = [...nftData.result].sort((a, b) => {
-                const timeA = parseInt(a.timeStamp || '0')
-                const timeB = parseInt(b.timeStamp || '0')
-                return timeA - timeB
-              })
-
-              for (const tx of sortedTransfers) {
-                const contract = (tx.contractAddress || '').toLowerCase()
-                if (!contract) continue
-
-                const tokenId = String(tx.tokenID || tx.tokenId || '')
-                if (!tokenId) continue
-
-                const key = `${contract}-${tokenId}`
-
-                // If NFT was transferred TO this address, add it
-                if (tx.to?.toLowerCase() === normalizedAddress) {
-                  nftMap.set(key, {
-                    contractAddress: contract,
-                    tokenId: tokenId,
-                    name: tx.tokenName || undefined,
-                  })
-                }
-                // If NFT was transferred FROM this address, remove it
-                else if (tx.from?.toLowerCase() === normalizedAddress) {
-                  nftMap.delete(key)
-                }
+            for (const tx of sortedTransfers) {
+              const contract = (tx.contractAddress || '').toLowerCase()
+              if (!contract) continue
+              const tokenId = String(tx.tokenID || tx.tokenId || '')
+              if (!tokenId) continue
+              const key = `${contract}-${tokenId}`
+              if (tx.to?.toLowerCase() === normalizedAddress) {
+                nftMap.set(key, { contractAddress: contract, tokenId, name: tx.tokenName || undefined })
+              } else if (tx.from?.toLowerCase() === normalizedAddress) {
+                nftMap.delete(key)
               }
-
-              nfts = Array.from(nftMap.values())
-              console.log(`[Avalanche] Found ${nfts.length} NFTs for address ${address}`)
-            } else {
-              console.warn('[Avalanche] Snowtrace API returned invalid NFT data:', nftData)
             }
-          } catch (nftError) {
-            console.error('[Avalanche] Error fetching NFTs from Snowtrace:', nftError)
+            fetchedNfts = Array.from(nftMap.values())
+            console.log(`[Avalanche] Found ${fetchedNfts.length} NFTs for address ${address}`)
           }
+        } catch (error) {
+          console.error('[Avalanche] Error fetching NFTs from Snowtrace:', error)
         }
+      }
+      return fetchedNfts
+    }
 
-        // Fetch normal transactions
-        const txResponse = await fetch(
-          `https://api.snowtrace.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc${apiKeyParam}`
-        )
-        const txData = await txResponse.json()
-
-        if (txData.status === '1' && txData.result) {
-          transactions = txData.result
-            .slice(-20) // Last 20 transactions
+    const fetchTxData = async () => {
+      try {
+        const res = await fetch(`https://api.snowtrace.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc${apiKeyParam}`)
+        const data = await res.json()
+        if (data.status === '1' && data.result) {
+          const fetchedTransactions = data.result
+            .slice(-20)
             .map((tx: any) => ({
               hash: tx.hash,
               from: tx.from,
@@ -240,15 +196,32 @@ export async function getWalletData(address: string): Promise<WalletData> {
               blockNumber: parseInt(tx.blockNumber),
             }))
 
-          if (txData.result.length > 0) {
-            firstSeen = parseInt(txData.result[0].timeStamp) * 1000
-            lastSeen = parseInt(txData.result[txData.result.length - 1].timeStamp) * 1000
+          let fSeen, lSeen
+          if (data.result.length > 0) {
+            fSeen = parseInt(data.result[0].timeStamp) * 1000
+            lSeen = parseInt(data.result[data.result.length - 1].timeStamp) * 1000
           }
+          return { transactions: fetchedTransactions, firstSeen: fSeen, lastSeen: lSeen }
         }
       } catch (error) {
-        console.error('[Avalanche] Error fetching from Snowtrace:', error)
-        // Continue with empty arrays if API fails
+        console.error('[Avalanche] Error fetching from Snowtrace TXs:', error)
       }
+      return { transactions: [], firstSeen: undefined, lastSeen: undefined }
+    }
+
+    // Execute all external API calls concurrently
+    const [tokensResult, nftsResult, txsResult] = await Promise.allSettled([
+      fetchTokens(),
+      fetchNftsData(),
+      fetchTxData()
+    ])
+
+    if (tokensResult.status === 'fulfilled') tokenBalances = tokensResult.value
+    if (nftsResult.status === 'fulfilled') nfts = nftsResult.value
+    if (txsResult.status === 'fulfilled') {
+      transactions = txsResult.value.transactions
+      firstSeen = txsResult.value.firstSeen
+      lastSeen = txsResult.value.lastSeen
     }
 
     const walletData: WalletData = {
