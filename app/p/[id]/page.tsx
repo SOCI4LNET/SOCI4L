@@ -1646,7 +1646,7 @@ export default function ProfilePage({ params }: PageProps) {
                                                                         {visibleCrypto.map((asset, idx) => (
                                                                             <div key={`crypto-${idx}`} className="group flex items-center justify-between p-3 sm:p-4 rounded-2xl hover:bg-muted/50 transition-colors">
                                                                                 <div className="flex items-center gap-4 min-w-0">
-                                                                                    <div className="h-10 w-10 rounded-xl overflow-hidden border bg-accent/50 flex items-center justify-center flex-shrink-0 text-lg">
+                                                                                    <div className="h-10 w-10 rounded-full overflow-hidden border bg-accent/50 flex items-center justify-center flex-shrink-0 text-lg">
                                                                                         {asset.icon ? (
                                                                                             // eslint-disable-next-line @next/next/no-img-element
                                                                                             <img src={asset.icon} alt={asset.symbol} className="h-full w-full object-cover" />
