@@ -46,43 +46,33 @@ export function FollowToggle({ address, isBlockedByViewer: initialBlocked = fals
     setIsBlocked(initialBlocked)
   }, [initialBlocked])
 
-  // Fetch follow status
-  useEffect(() => {
-    if (!mounted || !isValidAddress(address)) return
+  // Fetch follow status using useQuery instead of manual fetch and useEffect
+  const { data: statusData, isLoading: isStatusLoading } = useQuery({
+    queryKey: ['follow-status', address?.toLowerCase(), connectedAddress?.toLowerCase()],
+    queryFn: async () => {
+      const normalizedAddress = address.toLowerCase()
+      const normalizedConnectedAddress = connectedAddress!.toLowerCase()
 
-    const fetchStatus = async () => {
-      try {
-        const normalizedAddress = address.toLowerCase()
+      const statusResponse = await fetch(`/api/profile/${normalizedAddress}/follow-status?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
+        cache: 'no-store',
+        credentials: 'include',
+      })
 
-        // Fetch follow status (requires session)
-        if (isConnected && connectedAddress) {
-          const normalizedConnectedAddress = connectedAddress.toLowerCase()
-          // Include connected address as query param to verify session matches
-          const statusResponse = await fetch(`/api/profile/${normalizedAddress}/follow-status?connectedAddress=${encodeURIComponent(normalizedConnectedAddress)}`, {
-            cache: 'no-store',
-            credentials: 'include',
-          })
-
-          if (statusResponse.ok) {
-            const status = await statusResponse.json()
-            setIsFollowing(status.isFollowing || false)
-          } else {
-            // If 403, it might be blocked, but we rely on the prop for initial state or specific error handling
-            if (statusResponse.status !== 403) {
-              setIsFollowing(false)
-            }
-          }
-        } else {
-          setIsFollowing(false)
-        }
-      } catch (error) {
-        console.error('Error fetching follow status:', error)
-        setIsFollowing(false)
+      if (!statusResponse.ok) {
+        if (statusResponse.status !== 403) return { isFollowing: false }
+        throw new Error('Failed to fetch status')
       }
-    }
+      return statusResponse.json()
+    },
+    enabled: mounted && isConnected && !!connectedAddress && isValidAddress(address),
+  })
 
-    fetchStatus()
-  }, [mounted, address, isConnected, connectedAddress])
+  // Synchronize state
+  useEffect(() => {
+    if (statusData) {
+      setIsFollowing(statusData.isFollowing || false)
+    }
+  }, [statusData])
 
   const ensureSession = async (): Promise<boolean> => {
     // ... (keep existing implementation)

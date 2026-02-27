@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAccount } from 'wagmi'
 import { toast } from 'sonner'
 import { formatAddress, isValidAddress } from '@/lib/utils'
@@ -47,14 +47,9 @@ export function SocialPanel({ address }: SocialPanelProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const { address: connectedAddress } = useAccount()
+  const queryClient = useQueryClient()
   const [mounted, setMounted] = useState(false)
-  const [followers, setFollowers] = useState<FollowItem[]>([])
-  const [following, setFollowing] = useState<FollowItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState('')
   const [globalSearchQuery, setGlobalSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<FollowItem[]>([])
-  const [isSearching, setIsSearching] = useState(false)
   const [qrModalOpen, setQrModalOpen] = useState(false)
   const [filter, setFilter] = useState<FilterType>('all')
   const [sort, setSort] = useState<SortType>('recent')
@@ -220,91 +215,71 @@ export function SocialPanel({ address }: SocialPanelProps) {
     }
   }
 
-  useEffect(() => {
-    if (!mounted || !isValidAddress(address)) return
+  // Followers Query
+  const { data: followers = [], isLoading: followersLoading } = useQuery({
+    queryKey: ['followers', address?.toLowerCase(), filter, sort],
+    queryFn: async () => {
+      const normalizedAddress = address.toLowerCase()
+      const params = new URLSearchParams()
+      if (filter !== 'all') params.append('filter', filter)
+      if (sort !== 'recent') params.append('sort', sort)
+      const queryString = params.toString()
+      const queryParam = queryString ? `&${queryString}` : ''
+      
+      const res = await fetch(`/api/dashboard/${normalizedAddress}/follows?type=followers${queryParam}`, {
+        credentials: 'include',
+      })
+      if (!res.ok) throw new Error('Failed to fetch followers')
+      const data = await res.json()
+      return Array.isArray(data) ? data : []
+    },
+    enabled: mounted && isValidAddress(address)
+  })
 
-    const fetchFollows = async () => {
-      setLoading(true)
-      try {
-        const normalizedAddress = address.toLowerCase()
+  // Following Query
+  const { data: following = [], isLoading: followingLoading } = useQuery({
+    queryKey: ['following', address?.toLowerCase(), filter, sort],
+    queryFn: async () => {
+      const normalizedAddress = address.toLowerCase()
+      const params = new URLSearchParams()
+      if (filter !== 'all') params.append('filter', filter)
+      if (sort !== 'recent') params.append('sort', sort)
+      const queryString = params.toString()
+      const queryParam = queryString ? `&${queryString}` : ''
+      
+      const res = await fetch(`/api/dashboard/${normalizedAddress}/follows?type=following${queryParam}`, {
+        credentials: 'include',
+      })
+      if (!res.ok) throw new Error('Failed to fetch following')
+      const data = await res.json()
+      return Array.isArray(data) ? data : []
+    },
+    enabled: mounted && isValidAddress(address)
+  })
 
-        // Build query params with filter and sort
-        const params = new URLSearchParams()
-        if (filter !== 'all') params.append('filter', filter)
-        if (sort !== 'recent') params.append('sort', sort)
-        const queryString = params.toString()
-        const queryParam = queryString ? `&${queryString}` : ''
-
-        // Fetch both followers and following
-        const [followersRes, followingRes] = await Promise.all([
-          fetch(`/api/dashboard/${normalizedAddress}/follows?type=followers${queryParam}`, {
-            credentials: 'include',
-          }),
-          fetch(`/api/dashboard/${normalizedAddress}/follows?type=following${queryParam}`, {
-            credentials: 'include',
-          }),
-        ])
-
-        if (followersRes.ok) {
-          const data = await followersRes.json()
-          setFollowers(Array.isArray(data) ? data : [])
-        } else {
-          console.error('Failed to fetch followers:', followersRes.status, await followersRes.text())
-        }
-
-        if (followingRes.ok) {
-          const data = await followingRes.json()
-          setFollowing(Array.isArray(data) ? data : [])
-        } else {
-          console.error('Failed to fetch following:', followingRes.status, await followingRes.text())
-        }
-      } catch (error) {
-        console.error('Error fetching follows:', error)
-        toast.error('Failed to load followers')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchFollows()
-  }, [mounted, address, filter, sort]) // Re-fetch when filter or sort changes
+  const loading = followersLoading || followingLoading
 
   // Global Search Effect
-  useEffect(() => {
-    if (!globalSearchQuery || globalSearchQuery.length < 2) {
-      setSearchResults([])
-      return
-    }
-
-    const timer = setTimeout(async () => {
-      setIsSearching(true)
-      try {
-        const response = await fetch(`/api/search?q=${encodeURIComponent(globalSearchQuery)}`)
-        if (response.ok) {
-          const data = await response.json()
-          // Map results to FollowItem format
-          const mappedResults: FollowItem[] = (data.results || []).map((p: any) => ({
-            address: p.address,
-            createdAt: new Date().toISOString(), // No follow date for search results
-            displayName: p.displayName,
-            slug: p.slug,
-            primaryRole: p.primaryRole,
-            // Check if already following
-            reason: following.some(f => f.address.toLowerCase() === p.address.toLowerCase())
-              ? 'Following'
-              : undefined
-          }))
-          setSearchResults(mappedResults)
-        }
-      } catch (error) {
-        console.error('Search failed', error)
-      } finally {
-        setIsSearching(false)
-      }
-    }, 500)
-
-    return () => clearTimeout(timer)
-  }, [globalSearchQuery, following])
+  const { data: searchResults = [], isLoading: isSearching } = useQuery({
+    queryKey: ['search', globalSearchQuery],
+    queryFn: async () => {
+      const response = await fetch(`/api/search?q=${encodeURIComponent(globalSearchQuery)}`)
+      if (!response.ok) throw new Error('Search failed')
+      const data = await response.json()
+      return (data.results || []).map((p: any) => ({
+        address: p.address,
+        createdAt: new Date().toISOString(),
+        displayName: p.displayName,
+        slug: p.slug,
+        primaryRole: p.primaryRole,
+        reason: following.some((f: FollowItem) => f.address.toLowerCase() === p.address.toLowerCase())
+          ? 'Following'
+          : undefined
+      }))
+    },
+    enabled: globalSearchQuery.length >= 2,
+    staleTime: 1000 * 60 * 5,
+  })
 
   const handleFollow = async (targetAddress: string) => {
     try {
@@ -315,14 +290,8 @@ export function SocialPanel({ address }: SocialPanelProps) {
       })
       if (response.ok) {
         toast.success('Followed successfully')
-        // Refresh following list
-        const updatedFollowingRes = await fetch(`/api/dashboard/${address.toLowerCase()}/follows?type=following`, {
-          credentials: 'include',
-        })
-        if (updatedFollowingRes.ok) {
-          const data = await updatedFollowingRes.json()
-          setFollowing(Array.isArray(data) ? data : [])
-        }
+        // Refresh following list by invalidating query
+        queryClient.invalidateQueries({ queryKey: ['following', address?.toLowerCase(), filter, sort] })
       } else {
         toast.error('Failed to follow')
       }
@@ -354,13 +323,15 @@ export function SocialPanel({ address }: SocialPanelProps) {
     }
   }
 
-  const filteredFollowers = followers.filter((item) =>
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const filteredFollowers = followers.filter((item: FollowItem) =>
     item.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (item.displayName && item.displayName.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (item.slug && item.slug.toLowerCase().includes(searchQuery.toLowerCase()))
   )
 
-  const filteredFollowing = following.filter((item) =>
+  const filteredFollowing = following.filter((item: FollowItem) =>
     item.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (item.displayName && item.displayName.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (item.slug && item.slug.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -379,8 +350,10 @@ export function SocialPanel({ address }: SocialPanelProps) {
         throw new Error(error.error || 'Unfollow failed')
       }
 
-      // Remove from following list
-      setFollowing((prev) => prev.filter((item) => item.address.toLowerCase() !== normalizedTargetAddress))
+      // Remove from following list via cache update
+      queryClient.setQueryData(['following', address?.toLowerCase(), filter, sort], (prev: FollowItem[] | undefined) =>
+        prev?.filter((item) => item.address.toLowerCase() !== normalizedTargetAddress) || []
+      )
 
       toast.success('Unfollowed successfully')
     } catch (error: any) {
@@ -405,8 +378,12 @@ export function SocialPanel({ address }: SocialPanelProps) {
 
       // Update local state: if blocked, remove from both lists
       if (blocked) {
-        setFollowers(prev => prev.filter(f => f.address.toLowerCase() !== normalizedTargetAddress))
-        setFollowing(prev => prev.filter(f => f.address.toLowerCase() !== normalizedTargetAddress))
+        queryClient.setQueryData(['followers', address?.toLowerCase(), filter, sort], (prev: FollowItem[] | undefined) => 
+          prev?.filter(f => f.address.toLowerCase() !== normalizedTargetAddress) || []
+        )
+        queryClient.setQueryData(['following', address?.toLowerCase(), filter, sort], (prev: FollowItem[] | undefined) => 
+          prev?.filter(f => f.address.toLowerCase() !== normalizedTargetAddress) || []
+        )
         toast.success('User blocked successfully')
       } else {
         toast.success('User unblocked successfully')
@@ -429,8 +406,10 @@ export function SocialPanel({ address }: SocialPanelProps) {
         throw new Error('Failed to remove follower')
       }
 
-      // Remove from followers list
-      setFollowers(prev => prev.filter(f => f.address.toLowerCase() !== normalizedTargetAddress))
+      // Remove from followers list via cache
+      queryClient.setQueryData(['followers', address?.toLowerCase(), filter, sort], (prev: FollowItem[] | undefined) => 
+        prev?.filter(f => f.address.toLowerCase() !== normalizedTargetAddress) || []
+      )
       toast.success('Follower removed')
     } catch (error) {
       console.error('Error removing follower:', error)
@@ -705,8 +684,8 @@ export function SocialPanel({ address }: SocialPanelProps) {
                   </div>
                 ) : searchResults.length > 0 ? (
                   <div className="space-y-0">
-                    {searchResults.map((item) => {
-                      const isFollowing = following.some(f => f.address.toLowerCase() === item.address.toLowerCase())
+                    {searchResults.map((item: FollowItem) => {
+                      const isFollowing = following.some((f: FollowItem) => f.address.toLowerCase() === item.address.toLowerCase())
                       const isSelf = item.address.toLowerCase() === address.toLowerCase()
 
                       return (

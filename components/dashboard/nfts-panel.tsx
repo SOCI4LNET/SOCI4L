@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useAccount } from 'wagmi'
 
@@ -114,58 +114,42 @@ export function NftsPanel({ address: propAddress }: NftsPanelProps) {
         setMounted(true)
     }, [])
 
-    const { data, isLoading, isError, refetch, isFetching } = useQuery<NftResponse>({
+    const { data, isLoading, isError, refetch, isFetching, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
         queryKey: ['nfts', targetAddress],
-        queryFn: async () => {
-            const res = await fetch(`/api/nfts?address=${targetAddress}&limit=24&chain=avalanche`)
+        queryFn: async ({ pageParam }) => {
+            const url = pageParam
+                ? `/api/nfts?address=${targetAddress}&limit=24&chain=avalanche&next=${encodeURIComponent(pageParam)}`
+                : `/api/nfts?address=${targetAddress}&limit=24&chain=avalanche`
+            const res = await fetch(url)
             if (!res.ok) throw new Error('Failed to fetch NFTs')
-            return res.json()
+            return res.json() as Promise<NftResponse>
         },
+        initialPageParam: null as string | null,
+        getNextPageParam: (lastPage: NftResponse) => lastPage.next || null,
         enabled: !!targetAddress && mounted,
         staleTime: 5 * 60 * 1000,
     })
 
-    const [extraNfts, setExtraNfts] = useState<NormalizedNft[]>([])
-    const [cursor, setCursor] = useState<string | null>(null)
-    const [isLoadingMore, setIsLoadingMore] = useState(false)
-
-    // Set initial cursor when first page loads
-    useEffect(() => {
-        if (data?.next) setCursor(data.next)
-    }, [data?.next])
-
-    const handleLoadMore = async () => {
-        if (!cursor) return
-        setIsLoadingMore(true)
-        try {
-            const res = await fetch(`/api/nfts?address=${targetAddress}&limit=24&chain=avalanche&next=${encodeURIComponent(cursor)}`)
-            if (res.ok) {
-                const json: NftResponse = await res.json()
-                setExtraNfts(prev => [...prev, ...json.nfts])
-                setCursor(json.next)
-            }
-        } catch (e) {
-            console.error('[NFTs] Failed to load more:', e)
-        }
-        setIsLoadingMore(false)
+    const handleLoadMore = () => {
+        fetchNextPage()
     }
 
     const combinedNfts = useMemo(() => {
-        const base = data?.nfts || []
-        return [...base, ...extraNfts]
-    }, [data?.nfts, extraNfts])
+        if (!data) return []
+        return data.pages.flatMap((page: NftResponse) => page.nfts)
+    }, [data])
 
     const filteredNfts = useMemo(() => {
         if (!searchQuery.trim()) return combinedNfts
         const q = searchQuery.toLowerCase()
-        return combinedNfts.filter(nft =>
+        return combinedNfts.filter((nft: NormalizedNft) =>
             nft.name?.toLowerCase().includes(q) ||
             nft.collectionName?.toLowerCase().includes(q)
         )
     }, [combinedNfts, searchQuery])
 
     const uniqueCollections = useMemo(() => {
-        const cols = new Set(combinedNfts.map(n => n.collectionName).filter(Boolean))
+        const cols = new Set(combinedNfts.map((n: NormalizedNft) => n.collectionName).filter(Boolean))
         return cols.size
     }, [combinedNfts])
 
@@ -254,22 +238,22 @@ export function NftsPanel({ address: propAddress }: NftsPanelProps) {
                         </p>
                     ) : (
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-4">
-                            {filteredNfts.map(nft => (
+                            {filteredNfts.map((nft: NormalizedNft) => (
                                 <NftCard key={nft.id} nft={nft} />
                             ))}
                         </div>
                     )}
 
                     {/* Load More */}
-                    {cursor && !searchQuery && (
+                    {hasNextPage && !searchQuery && (
                         <div className="flex justify-center mt-8">
                             <Button
                                 variant="outline"
                                 onClick={handleLoadMore}
-                                disabled={isLoadingMore}
+                                disabled={isFetchingNextPage}
                                 className="gap-2"
                             >
-                                {isLoadingMore ? (
+                                {isFetchingNextPage ? (
                                     <RefreshCw className="h-4 w-4 animate-spin" />
                                 ) : (
                                     <ChevronDown className="h-4 w-4" />

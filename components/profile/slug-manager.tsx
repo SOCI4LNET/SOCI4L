@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSignMessage, usePublicClient } from "wagmi";
 import { parseAbi, decodeFunctionData, parseAbiItem } from "viem";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { CUSTOM_SLUG_REGISTRY_ADDRESS, CUSTOM_SLUG_REGISTRY_ABI } from "@/lib/contracts/CustomSlugRegistry";
 import { validateSlugFormat, hashSlug } from "@/lib/utils/slug";
@@ -43,6 +44,31 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
     const [hasAttemptedRecovery, setHasAttemptedRecovery] = useState(false);
     const [showCelebration, setShowCelebration] = useState(false);
     const [celebratedSlug, setCelebratedSlug] = useState("");
+    const queryClient = useQueryClient();
+
+    const syncMutation = useMutation({
+        mutationFn: async (payload: any) => {
+            const res = await fetch("/api/slug/sync", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+            if (!res.ok) throw new Error("Sync failed");
+            return res.json();
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: async (payload: any) => {
+            const res = await fetch("/api/slug/update", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+            if (!res.ok) throw new Error("API update failed");
+            return res.json();
+        },
+    });
 
     // Debounce input
     useEffect(() => {
@@ -179,22 +205,14 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
             const signature = await signMessageAsync({ message });
             // ... (rest same)
 
-            const res = await fetch("/api/slug/sync", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    slug: slugToSync,
-                    signature,
-                    message
-                })
+            await syncMutation.mutateAsync({
+                slug: slugToSync,
+                signature,
+                message
             });
 
-            if (res.ok) {
-                toast.success("Synced & Fixed!");
-                window.location.reload();
-            } else {
-                toast.error("Sync failed");
-            }
+            toast.success("Synced & Fixed!");
+            window.location.reload();
         } catch (e: any) {
             console.error(e);
             toast.error(getFriendlyErrorMessage(e, "Sync failed"));
@@ -208,26 +226,16 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
         setIsAutoSyncing(true);
         console.log(`[Slug Manager] Initiating SEAMLESS sync for: ${slugToSync}`);
         try {
-            const res = await fetch("/api/slug/sync", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    mode: "repair",
-                    slug: slugToSync,
-                    address: address
-                })
+            await syncMutation.mutateAsync({
+                mode: "repair",
+                slug: slugToSync,
+                address: address
             });
 
-            if (res.ok) {
-                toast.success("Profile synced automatically!", { id: "seamless-sync-success" });
-                if (!showCelebration) window.location.reload();
-            } else {
-                console.error("Seamless sync failed, falling back to manual");
-                // Don't toast error here, user will see the "Sync Required" manual button if it fails
-                setIsAutoSyncing(false);
-            }
+            toast.success("Profile synced automatically!", { id: "seamless-sync-success" });
+            if (!showCelebration) window.location.reload();
         } catch (e) {
-            console.error("Auto-sync error:", e);
+            console.error("Seamless sync failed, falling back to manual or error", e);
             setIsAutoSyncing(false);
         }
     };
@@ -239,23 +247,14 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                 setIsAutoRepairing(true);
                 try {
                     console.log("[Slug Manager] Auto-repairing stale DB state for", address);
-                    const res = await fetch("/api/slug/sync", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            mode: "repair",
-                            address: address
-                        })
+                    await syncMutation.mutateAsync({
+                        mode: "repair",
+                        address: address
                     });
-                    if (res.ok) {
-                        toast.success("Profile synced with blockchain", { id: "repair-success" });
-                        // Smooth reload to update state
-                        if (!showCelebration) window.location.reload();
-                    } else {
-                        console.error("Auto-repair API returned error:", res.status);
-                        setRepairFailed(true);
-                        toast.error("Background sync failed. Manual fix may be required.", { id: "repair-failed" });
-                    }
+
+                    toast.success("Profile synced with blockchain", { id: "repair-success" });
+                    // Smooth reload to update state
+                    if (!showCelebration) window.location.reload();
                 } catch (e) {
                     console.error("Auto-repair failed:", e);
                     setRepairFailed(true);
@@ -362,18 +361,12 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
 
             const updateBackend = async () => {
                 try {
-                    const res = await fetch("/api/slug/update", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            action: pendingAction,
-                            slug: pendingAction === "claim" ? debouncedSlug : undefined,
-                            txHash: hash,
-                            address: address
-                        })
+                    await updateMutation.mutateAsync({
+                        action: pendingAction,
+                        slug: pendingAction === "claim" ? debouncedSlug : undefined,
+                        txHash: hash,
+                        address: address
                     });
-
-                    if (!res.ok) throw new Error("API update failed");
 
                     if (pendingAction === "claim") {
                         setCelebratedSlug(debouncedSlug);
