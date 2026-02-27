@@ -1,8 +1,9 @@
 'use client'
 
 import { useDemo } from '@/lib/demo/demo-context'
-import { OverviewPanelContent } from '@/components/dashboard/overview-panel-content'
 import { getPublicProfileHref } from '@/lib/routing'
+
+import { OverviewPanelContent } from '@/components/dashboard/overview-panel-content'
 
 export function DemoOverviewPanel() {
     const { profile, walletData, isLoading, mode, updateProfile, session } = useDemo()

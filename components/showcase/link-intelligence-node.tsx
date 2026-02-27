@@ -1,8 +1,9 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { Wallet, Fingerprint, BarChart3, Trophy, Globe, Check } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
+
+import { Wallet, Fingerprint, BarChart3, Trophy, Globe, Check } from 'lucide-react'
 
 export function LinkIntelligenceNode() {
     const [activeNode, setActiveNode] = useState(0)

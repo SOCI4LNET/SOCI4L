@@ -1,14 +1,16 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { ShieldCheck, ArrowUpRight, Wallet, Globe, Twitter, ArrowRight, UserPlus, Star, Sparkles, Lock } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
+import { cn } from '@/lib/utils'
+
+import { ShieldCheck, Wallet, ArrowRight, UserPlus, Star, Sparkles, Lock } from 'lucide-react'
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { cn } from '@/lib/utils'
-import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
 
 // --- Helper to generate random addresses ---
 const generateRandomAddress = () => {

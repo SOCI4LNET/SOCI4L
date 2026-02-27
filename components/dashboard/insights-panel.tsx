@@ -2,9 +2,19 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Activity, BarChart2, Share2, TrendingUp, Eye, Lock, MousePointerClick, User, Link as LinkIcon, Check, Copy, ExternalLink } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
+import { AnalyticsSource } from '@/lib/analytics'
+import { getPublicProfileHref } from '@/lib/routing'
+import { formatAddress } from '@/lib/utils'
+import { useInsights } from '@/hooks/use-insights'
+import { useLinks } from '@/hooks/use-links'
+import { useProfile } from '@/hooks/use-profile'
+
+import { BarChart2, Share2, TrendingUp, Eye, Lock, MousePointerClick, User, Copy, ExternalLink } from 'lucide-react'
+
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { PremiumUpgradeModal } from '@/components/premium/premium-upgrade-modal'
 import { PageShell } from '@/components/app-shell/page-shell'
 import { SectionHeader } from '@/components/insights/section-header'
 import { KpiCard } from '@/components/insights/kpi-card'
@@ -12,14 +22,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { formatAddress } from '@/lib/utils'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useInsights } from '@/hooks/use-insights'
-import { useLinks } from '@/hooks/use-links'
-import { useProfile } from '@/hooks/use-profile'
-import { AnalyticsSource } from '@/lib/analytics'
-import { getPublicProfileHref } from '@/lib/routing'
-import { PremiumUpgradeModal } from '@/components/premium/premium-upgrade-modal'
 
 // --- Types ---
 type TimeRange = '24h' | '7d' | '30d' | 'all'

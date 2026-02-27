@@ -1,6 +1,3 @@
-
-type LogLevel = 'info' | 'warn' | 'error' | 'debug'
-
 const IS_DEV = process.env.NODE_ENV === 'development'
 const DEBUG_ENABLED = typeof window !== 'undefined' && localStorage.getItem('DEBUG_MODE') === 'true'
 

@@ -3,27 +3,10 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarRail,
-} from '@/components/ui/sidebar'
-import {
-  LayoutDashboard,
-  Users,
-  BarChart3,
-  FileText,
-  Mail,
-  Server,
-  Settings,
-  Crown,
-} from 'lucide-react'
+
+import { LayoutDashboard, Users, BarChart3, FileText, Mail, Server, Settings, Crown } from 'lucide-react'
+
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarRail } from '@/components/ui/sidebar'
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 
 

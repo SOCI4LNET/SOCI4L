@@ -1,9 +1,8 @@
 'use client'
 
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
-import { Badge } from '@/components/ui/badge'
-import { Check, Sparkles, Zap } from 'lucide-react'
-import Image from 'next/image'
+
+import { Check } from 'lucide-react'
 
 /**
  * Premium Holocard Component for User Identity.

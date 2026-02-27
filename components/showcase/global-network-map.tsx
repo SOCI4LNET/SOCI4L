@@ -1,8 +1,9 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { Globe2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
+
+import { Globe2 } from 'lucide-react'
 
 export function GlobalNetworkMap() {
     // Mouse tracking for crosshair effect

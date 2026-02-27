@@ -1,9 +1,11 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+
+import { Sparkles } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import { WalletConnectButtons } from '@/components/wallet-connect-buttons'
-import { ArrowRight, Sparkles } from 'lucide-react'
 
 export function CTASection() {
     const router = useRouter()

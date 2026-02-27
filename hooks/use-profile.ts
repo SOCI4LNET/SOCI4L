@@ -1,7 +1,7 @@
-﻿import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+﻿import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useParams } from 'next/navigation'
 import { useAccount } from 'wagmi'
+import { toast } from 'sonner'
 import { useDemo } from '@/lib/demo/demo-context'
 
 export type SocialLink = {
@@ -35,7 +35,6 @@ export type UserProfile = {
 }
 
 export function useProfile(targetAddress?: string) {
-    const queryClient = useQueryClient()
     const params = useParams()
     const { address: connectedAddress } = useAccount()
 

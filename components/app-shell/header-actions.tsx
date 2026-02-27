@@ -1,32 +1,22 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAccount } from 'wagmi'
+import { useAccount, useDisconnect } from 'wagmi'
 import { useRouter, useParams, usePathname } from 'next/navigation'
+import { toast } from 'sonner'
+import { useTheme } from 'next-themes'
+import { formatAddress } from '@/lib/utils'
+import { getConnectedDashboardHref, getPublicProfileHref } from '@/lib/routing'
+import { useServerAuth } from '@/hooks/use-server-auth'
+
+import { Copy, Share2, QrCode, LogOut, LayoutDashboard, User, Settings, Sparkles, Link2, BarChart2, Sun, Moon, Laptop, ShieldCheck } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuGroup,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent,
-} from '@/components/ui/dropdown-menu'
-import { Copy, Share2, QrCode, LogOut, LayoutDashboard, User, Settings, Sparkles, Link2, BarChart2, Sun, Moon, Laptop, ShieldCheck } from 'lucide-react'
-import { useTheme } from 'next-themes'
-import { formatAddress } from '@/lib/utils'
-import { toast } from 'sonner'
-import { getConnectedDashboardHref, getCurrentProfileAddressFromRoute, getPublicProfileHref } from '@/lib/routing'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuGroup, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, } from '@/components/ui/dropdown-menu'
 import { QRCodeModal } from '@/components/qr/qr-code-modal'
-import { useDisconnect } from 'wagmi'
 import { WalletConnectButtons } from '@/components/wallet-connect-buttons'
-import { useServerAuth } from '@/hooks/use-server-auth'
 
 export function HeaderActions() {
   const [mounted, setMounted] = useState(false)
@@ -41,7 +31,6 @@ export function HeaderActions() {
   const { address: connectedAddress, isConnected } = useAccount()
   const { disconnect, disconnectAsync } = useDisconnect()
   const router = useRouter()
-  const params = useParams()
   const pathname = usePathname()
   const { ensureSession } = useServerAuth()
 

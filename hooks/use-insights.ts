@@ -1,9 +1,9 @@
 ﻿
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'next/navigation'
 import { useAccount } from 'wagmi'
 import { useDemo } from '@/lib/demo/demo-context'
-import { useMemo } from 'react'
 
 export type AnalyticsData = {
     totalProfileViews: number

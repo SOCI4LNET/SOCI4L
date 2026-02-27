@@ -1,7 +1,7 @@
 'use client'
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ReactElement, useState, Children, isValidElement } from 'react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface CodeGroupProps {
     children: ReactElement[] | ReactElement

@@ -1,15 +1,10 @@
 'use client'
 
+import { Search, X } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select'
-import { Search, X } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 export type FilterType = 'all' | 'mutuals' | 'new7d' | 'active30d' | 'withIdentity'
 export type SortType = 'recent' | 'relevant' | 'active'

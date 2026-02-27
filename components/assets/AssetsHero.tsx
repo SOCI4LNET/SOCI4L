@@ -1,10 +1,11 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
+import { getCachedLogo, getCacheKey } from "@/lib/logo-cache"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { getCachedLogo, getCacheKey } from "@/lib/logo-cache"
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 // TokenData from assets-panel
 interface TokenData {
@@ -28,15 +29,6 @@ interface DistItem {
     color: string
     logoUrl: string | null
 }
-
-const COLORS = [
-    '#F7931A', // Orange (like BTC/ETH focus)
-    '#E84142', // Red (like AVAX)
-    '#00E676', // Green
-    '#2962FF', // Blue
-    '#9C27B0', // Purple
-    '#00B0FF', // Light blue
-]
 
 export function AssetsHero({ totalValueUsd, isLoading, tokens }: AssetsHeroProps) {
     const [selectedTokenSymbol, setSelectedTokenSymbol] = useState<string | null>(null)

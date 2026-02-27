@@ -1,17 +1,18 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import Link from 'next/link'
 import { useAccount } from 'wagmi'
-import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
+
+import { Search, RefreshCw, ImageOff, Layers, ExternalLink, ChevronDown } from 'lucide-react'
+
+import { PageContent } from '@/components/app-shell/page-content'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
-import { Search, RefreshCw, ImageOff, Layers, ExternalLink, ChevronDown } from 'lucide-react'
-import { PageContent } from '@/components/app-shell/page-content'
-import Link from 'next/link'
 
 interface NftsPanelProps {
     address?: string
@@ -99,8 +100,6 @@ function NftCard({ nft }: { nft: NormalizedNft }) {
 export function NftsPanel({ address: propAddress }: NftsPanelProps) {
     const [mounted, setMounted] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
-    const [allNfts, setAllNfts] = useState<NormalizedNft[]>([])
-    const [nextCursor, setNextCursor] = useState<string | null>(null)
 
     const { address: connectedAddress } = useAccount()
     const pathname = typeof window !== 'undefined' ? window.location.pathname : ''

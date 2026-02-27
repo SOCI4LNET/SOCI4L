@@ -1,24 +1,22 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
-import { PageShell } from "@/components/app-shell/page-shell"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { RefreshCw, AlertCircle } from "lucide-react"
+import { usePathname } from 'next/navigation'
+import { useAccount } from "wagmi"
 import { setCachedLogos, getCacheKey } from "@/lib/logo-cache"
 import type { ActivityTransaction } from "@/lib/activity/fetchActivity"
 import { getPublicProfileHref } from "@/lib/routing"
 import { getProfileViewCount } from "@/lib/analytics"
 import { isProfileClaimed } from "@/lib/profile/isProfileClaimed"
-import { useAccount } from "wagmi"
-import {
-  OverviewPanelContent,
-  WalletData,
-  ProfileData,
-  QuickStats
-} from './overview-panel-content'
+import { OverviewPanelContent, WalletData, ProfileData, QuickStats } from './overview-panel-content'
+
+import { RefreshCw, AlertCircle } from "lucide-react"
+
+import { PageShell } from "@/components/app-shell/page-shell"
+import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+
 
 interface OverviewPanelProps {
   walletData: WalletData | null
@@ -32,7 +30,6 @@ interface OverviewPanelProps {
 }
 
 export function OverviewPanel({ walletData, profile, address, loading: propLoading, error: propError, onRetry, onClaimSuccess, initialViews7d }: OverviewPanelProps) {
-  const router = useRouter()
   const pathname = usePathname()
   const { address: connectedAddress } = useAccount()
   const [mounted, setMounted] = useState(false)

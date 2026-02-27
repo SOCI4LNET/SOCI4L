@@ -1,14 +1,15 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useAccount } from 'wagmi'
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { ExternalLink, X, Calendar } from "lucide-react"
+import { Line, LineChart, ResponsiveContainer, YAxis, Tooltip } from 'recharts'
 import { getCachedLogo, getCacheKey } from "@/lib/logo-cache"
 import { formatAddress } from "@/lib/utils"
-import { Line, LineChart, ResponsiveContainer, YAxis, Tooltip } from 'recharts'
-import { useQuery } from '@tanstack/react-query'
+
+import { ExternalLink, X, Calendar } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
 
 interface TokenSidebarProps {
     token: any | null

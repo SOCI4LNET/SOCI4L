@@ -3,27 +3,13 @@
 import * as React from 'react'
 import { usePathname, useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
-  SidebarRail,
-  useSidebar,
-} from '@/components/ui/sidebar'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { LayoutDashboard, Wallet, Activity, Settings, Users, Wand2, Link2, BarChart3, ChevronDown, User, Shield, CreditCard, Layers } from 'lucide-react'
 import { sanitizeQueryParams } from '@/lib/query-params'
+
+import { LayoutDashboard, Wallet, Activity, Settings, Users, Wand2, Link2, BarChart3, ChevronDown, User, Shield, CreditCard, Layers } from 'lucide-react'
+
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton, SidebarRail, useSidebar } from '@/components/ui/sidebar'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
-import { cn } from '@/lib/utils'
 
 const platformItems = [
   {
@@ -117,18 +103,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }
 
   const isCollapsed = state === 'collapsed'
-
-  // Check if current route is a Studio or Account route
-  // 1. Check query param tab
-  const allStudioAccountItems = [...studioItems, ...accountItems]
-  const isProfileTabFromQuery = allStudioAccountItems.some((item: any) => item.value === currentTab)
-  const isProfileRouteFromPath = pathname.includes('/dashboard/') &&
-    (pathname.includes('/builder') ||
-      pathname.includes('/links') ||
-      pathname.includes('/insights') ||
-      pathname.includes('/safety') ||
-      pathname.includes('/settings'))
-  const isProfileRoute = isProfileTabFromQuery || isProfileRouteFromPath
 
   // Determine which sections should be open based on the current tab
   const isStudioTab = studioItems.some((item: any) => item.value === currentTab)

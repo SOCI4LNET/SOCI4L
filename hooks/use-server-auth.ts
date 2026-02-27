@@ -1,7 +1,6 @@
 ﻿import { useAccount, useSignMessage } from 'wagmi'
 import { useTransaction } from '@/components/providers/transaction-provider'
 import { toast } from 'sonner'
-import { useState } from 'react'
 
 interface UseServerAuthReturn {
     ensureSession: () => Promise<boolean>

@@ -1,8 +1,9 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
-import { FileCode, ShieldCheck, CheckCircle2, Lock, Terminal, Shield } from 'lucide-react'
+import { motion } from 'framer-motion'
+
+import { ShieldCheck, CheckCircle2, Lock, Terminal } from 'lucide-react'
 
 export function SmartContractVerdict() {
     const [step, setStep] = useState<'scanning' | 'analyzing' | 'verified'>('scanning')

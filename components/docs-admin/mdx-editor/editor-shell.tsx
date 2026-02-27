@@ -5,10 +5,11 @@ import { Toolbar } from './toolbar'
 import { WritePane } from './write-pane'
 import { PreviewPane } from './preview-pane'
 import { useEditorStore } from './use-editor-state'
-import { cn } from '@/lib/utils'
+
+import { Eye, Monitor, PenTool } from 'lucide-react'
+
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { Button } from '@/components/ui/button'
-import { Eye, Monitor, PenTool } from 'lucide-react'
 
 interface EditorShellProps {
     initialContent?: string

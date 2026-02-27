@@ -1,8 +1,9 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { Lock, Fingerprint, Key } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
+
+import { Lock, Fingerprint, Key } from 'lucide-react'
 
 export function DidVault() {
     const [isUnlocked, setIsUnlocked] = useState(false)

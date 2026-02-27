@@ -1,33 +1,20 @@
 'use client'
 
 import { useState, useEffect, useRef, useMemo } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog'
+import { toast } from 'sonner'
+import { formatAddress } from '@/lib/utils'
+import { getPublicProfileHref } from '@/lib/routing'
+
+import { Download, Share2, ChevronDown, X } from 'lucide-react'
+
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Skeleton } from '@/components/ui/skeleton'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Download, Share2, ChevronDown, X } from 'lucide-react'
-import { formatAddress } from '@/lib/utils'
-import { toast } from 'sonner'
-import { getPublicProfileHref } from '@/lib/routing'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Skeleton } from '@/components/ui/skeleton'
+
 
 interface QRCodeModalProps {
   open: boolean

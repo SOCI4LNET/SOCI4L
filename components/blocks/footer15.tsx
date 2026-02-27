@@ -3,14 +3,15 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
-import { Github } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { PAGE_GUTTER, CONTENT_MAX_WIDTH } from '@/lib/layout-constants'
+
+import { Github } from 'lucide-react'
+
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
-import { DiscordIcon } from '@/components/icons/discord-icon'
 import { XIcon } from '@/components/icons/x-icon'
 import { ModeToggle } from '@/components/mode-toggle'
 
@@ -50,17 +51,10 @@ interface Footer15Props {
 }
 
 export default function Footer15({ className }: Footer15Props = {}) {
-  const params = useParams()
-  const address = params?.address as string | undefined
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const currentYear = new Date().getFullYear()
-
-  const getDashboardLink = (tab: string) => {
-    if (!address) return '#'
-    return `/dashboard/${address}?tab=${tab}`
-  }
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

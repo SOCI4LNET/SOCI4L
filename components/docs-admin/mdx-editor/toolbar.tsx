@@ -3,8 +3,10 @@
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Separator } from '@/components/ui/separator'
-import { Bold, Italic, Code, List, ListOrdered, Quote, Heading1, Heading2, Heading3, Heading4, Type, Terminal, Box, Layers, Play } from 'lucide-react'
 import { useEditorStore } from './use-editor-state'
+
+import { Bold, Italic, Code, List, ListOrdered, Heading1, Heading2, Heading3, Type, Box, Layers, Play } from 'lucide-react'
+
 
 export function Toolbar() {
     const { dispatchCommand } = useEditorStore()

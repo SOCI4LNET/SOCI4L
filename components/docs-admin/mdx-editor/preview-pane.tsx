@@ -1,9 +1,8 @@
 'use client'
 
+import { useRef, useEffect } from 'react'
 import { MDXPreviewRenderer } from './mdx-preview-renderer'
 import { useEditorStore } from './use-editor-state'
-import { useRef, useEffect } from 'react'
-import { cn } from '@/lib/utils'
 
 export function PreviewPane() {
     const { content, scrollPercentage } = useEditorStore()

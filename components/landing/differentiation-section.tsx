@@ -1,8 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { Layers, Hash, FileCode2, ArrowRight, Minus } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { Layers, Hash, FileCode2, ArrowRight } from 'lucide-react'
 
 const DIFFERENTIATORS = [
     {

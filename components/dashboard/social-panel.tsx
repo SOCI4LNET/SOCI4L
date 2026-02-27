@@ -2,31 +2,26 @@
 
 import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
+import { useAccount } from 'wagmi'
+import { toast } from 'sonner'
+import { formatAddress, isValidAddress } from '@/lib/utils'
+import { getPublicProfileHref } from '@/lib/routing'
+
+import { Users, UserPlus, Share2, Copy, Twitter, QrCode, Search } from 'lucide-react'
+
+import { PageShell } from '@/components/app-shell/page-shell'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { QRCodeModal } from '@/components/qr/qr-code-modal'
+import { SocialKPICards } from '@/components/dashboard/social-kpi-cards'
+import { ConnectionCard } from '@/components/dashboard/connection-card'
+import { SocialFilterBar, FilterType, SortType } from '@/components/dashboard/social-filter-bar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Users, UserPlus, Share2, Copy, Twitter, QrCode, Search } from 'lucide-react'
-import { formatAddress, isValidAddress } from '@/lib/utils'
-import { toast } from 'sonner'
-import Link from 'next/link'
-import { PageShell } from '@/components/app-shell/page-shell'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { QRCodeModal } from '@/components/qr/qr-code-modal'
-import { getPublicProfileHref } from '@/lib/routing'
-import { useQuery } from '@tanstack/react-query'
-import { useAccount } from 'wagmi'
-import { SocialKPICards } from '@/components/dashboard/social-kpi-cards'
-import { ConnectionCard } from '@/components/dashboard/connection-card'
-import { SocialFilterBar, FilterType, SortType } from '@/components/dashboard/social-filter-bar'
+
 
 interface SocialPanelProps {
   address: string

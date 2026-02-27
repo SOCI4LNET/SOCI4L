@@ -1,14 +1,10 @@
 'use client'
 
+import { Users, UserPlus, Activity, Eye, Info } from 'lucide-react'
+
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Users, UserPlus, Activity, Eye, Info } from 'lucide-react'
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from '@/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface SocialStats {
     mutuals: number

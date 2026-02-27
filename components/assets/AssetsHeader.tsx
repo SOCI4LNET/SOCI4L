@@ -1,9 +1,11 @@
 'use client'
 
+import Link from 'next/link'
+
+import { RefreshCw, ExternalLink } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { RefreshCw, ExternalLink } from 'lucide-react'
-import Link from 'next/link'
 
 interface AssetsHeaderProps {
   lastUpdatedText: string

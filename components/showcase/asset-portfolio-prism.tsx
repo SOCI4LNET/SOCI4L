@@ -1,8 +1,9 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
-import { Image as ImageIcon, Box } from 'lucide-react'
+import { motion } from 'framer-motion'
+
+import { Box } from 'lucide-react'
 
 // Mock Data with high-quality placeholder images
 const CARDS = [

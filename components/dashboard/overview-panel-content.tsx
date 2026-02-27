@@ -1,41 +1,23 @@
 'use client'
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+import { formatDistanceToNow } from "date-fns"
+import { getCachedLogo, setCachedLogo, getCacheKey } from "@/lib/logo-cache"
+import type { ActivityTransaction } from "@/lib/activity/fetchActivity"
+import { formatAddress } from "@/lib/utils"
+import { ProfileHeader } from "./profile-header"
 
+import { RefreshCw, CheckCircle2, Activity, ArrowUpRight, ArrowDownRight, ExternalLink, Eye, Users, UserPlus, Link2, Linkedin, Github, Globe, Send, Instagram, Youtube } from "lucide-react"
+
+import { XIcon } from "@/components/icons/x-icon"
+import { PageShell } from "@/components/app-shell/page-shell"
+import { ProfileReadiness } from "@/components/dashboard/profile-readiness"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import {
-    RefreshCw,
-    CheckCircle2,
-    Activity,
-    ArrowUpRight,
-    ArrowDownRight,
-    ExternalLink,
-    Eye,
-    Users,
-    UserPlus,
-    Link2,
-    Linkedin,
-    Github,
-    Globe,
-    MessageCircle,
-    Send,
-    Mail,
-    Instagram,
-    Youtube,
-    Coins
-} from "lucide-react"
-import { getCachedLogo, setCachedLogo, getCacheKey } from "@/lib/logo-cache"
-import { XIcon } from "@/components/icons/x-icon"
-import { formatAddress } from "@/lib/utils"
-import { PageShell } from "@/components/app-shell/page-shell"
-import { toast } from "sonner"
-import { formatDistanceToNow } from "date-fns"
-import type { ActivityTransaction } from "@/lib/activity/fetchActivity"
-import { ProfileReadiness } from "@/components/dashboard/profile-readiness"
-import { useRouter } from "next/navigation"
-import { ProfileHeader } from "./profile-header"
+
 
 // Types
 export interface WalletData {

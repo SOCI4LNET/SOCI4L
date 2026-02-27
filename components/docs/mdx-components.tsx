@@ -1,17 +1,10 @@
+import Link from 'next/link'
+import { cn } from '@/lib/utils'
+
 import { Callout } from '@/components/docs/ui/callout'
 import { DocsTabs, DocsTab } from '@/components/docs/ui/docs-tabs'
 import { DocsCard } from '@/components/docs/ui/card'
-import {
-    DocsTitle,
-    DocsHeading,
-    DocsSubHeading,
-    DocsParagraph,
-    DocsList,
-    DocsListItem,
-    DocsCode
-} from '@/components/docs/ui/typography'
-import { cn } from '@/lib/utils'
-import Link from 'next/link'
+import { DocsTitle, DocsHeading, DocsSubHeading, DocsParagraph, DocsList, DocsListItem, DocsCode } from '@/components/docs/ui/typography'
 
 const slugify = (str: string) =>
     str

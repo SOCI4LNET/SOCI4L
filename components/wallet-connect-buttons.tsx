@@ -1,17 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useConnect } from 'wagmi'
+import { toast } from 'sonner'
+
+import { Wallet, Loader2, QrCode, Plug } from 'lucide-react'
+
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { useConnect } from 'wagmi'
-import { Wallet, Loader2, QrCode, Plug } from 'lucide-react'
-import { toast } from 'sonner'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 
 interface WalletConnectButtonsProps {
   variant?: 'default' | 'outline' | 'ghost' | 'link' | 'destructive' | 'secondary'

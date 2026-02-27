@@ -1,10 +1,12 @@
 'use client'
 
 import React from 'react'
-import { useDemo } from '@/lib/demo/demo-context'
-import { Button } from '@/components/ui/button'
-import { AlertTriangle, Edit, RefreshCcw, Lock } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useDemo } from '@/lib/demo/demo-context'
+
+import { AlertTriangle, Edit, RefreshCcw, Lock } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
 
 export function DemoBanner() {
     const { mode, isDemo, startSandbox, resetDemo } = useDemo()

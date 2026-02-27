@@ -1,26 +1,19 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAccount, useConnect, useSignMessage } from 'wagmi'
-import { Toggle } from '@/components/ui/toggle'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { Bookmark as BookmarkIcon, Users, UserPlus, UserX } from 'lucide-react'
 import { toast } from 'sonner'
 import { isValidAddress } from '@/lib/utils'
+import { getFriendlyErrorMessage } from '@/lib/utils/errors'
+
+import { Bookmark as BookmarkIcon, Users, UserPlus, UserX } from 'lucide-react'
+
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter,AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { useTransaction } from '@/components/providers/transaction-provider'
-import { getFriendlyErrorMessage } from '@/lib/utils/errors'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Toggle } from '@/components/ui/toggle'
 
 interface FollowToggleProps {
   address: string
@@ -142,7 +135,6 @@ export function FollowToggle({ address, isBlockedByViewer: initialBlocked = fals
         })
 
         if (!verifyResponse.ok) {
-          const error = await verifyResponse.json()
           toast.error('Failed to create session. Please try again.')
           return false
         }

@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Code2, PenTool, Users, ArrowRight, Terminal } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
+
+import { Code2, PenTool, Users, ArrowRight } from 'lucide-react'
 
 export function UseCaseSection() {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)

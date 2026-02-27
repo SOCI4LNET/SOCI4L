@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageShell } from '@/components/app-shell/page-shell'
 import { BlockedUsersList, MutedUsersList } from '@/components/dashboard/safety/blocked-users-list'
-import { Shield } from 'lucide-react'
 
 export function SafetyPanel() {
     const router = useRouter()

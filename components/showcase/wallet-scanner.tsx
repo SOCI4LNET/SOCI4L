@@ -1,8 +1,9 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { CheckCircle2, ShieldCheck, Wallet } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
+
+import { ShieldCheck, Wallet } from 'lucide-react'
 
 /**
  * Premium Wallet Scanner Component.

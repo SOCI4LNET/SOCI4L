@@ -1,13 +1,15 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useAccount } from 'wagmi'
 import { usePrivy } from '@privy-io/react-auth'
+import { toast } from 'sonner'
+
+import { Loader2, CheckCircle } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useState, useEffect } from 'react'
 import { XIcon } from '@/components/icons/x-icon'
-import { toast } from 'sonner'
-import { Loader2, CheckCircle, ExternalLink } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export function SocialConnect() {

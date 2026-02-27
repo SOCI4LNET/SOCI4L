@@ -3,14 +3,14 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useParams, usePathname } from 'next/navigation'
+import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
+
+import { Github } from 'lucide-react'
+
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { toast } from 'sonner'
-import { Github } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { PAGE_GUTTER, CONTENT_MAX_WIDTH } from '@/lib/layout-constants'
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
-import { DiscordIcon } from '@/components/icons/discord-icon'
 import { XIcon } from '@/components/icons/x-icon'
 import { ModeToggle } from '@/components/mode-toggle'
 
@@ -51,9 +51,6 @@ interface SiteFooterProps {
 }
 
 export default function SiteFooter({ className }: SiteFooterProps = {}) {
-    const params = useParams()
-    const pathname = usePathname()
-    const address = params?.address as string | undefined
     const [email, setEmail] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
 

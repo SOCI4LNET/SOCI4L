@@ -1,14 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAccount, useSignMessage } from 'wagmi'
 import { useRouter } from 'next/navigation'
+import { useAccount, useSignMessage } from 'wagmi'
+import { toast } from 'sonner'
+import { getFriendlyErrorMessage } from '@/lib/utils/errors'
+
+import { useTransaction } from '@/components/providers/transaction-provider'
+import { WalletConnectButtons } from '@/components/wallet-connect-buttons'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { toast } from 'sonner'
-import { WalletConnectButtons } from '@/components/wallet-connect-buttons'
-import { getFriendlyErrorMessage } from '@/lib/utils/errors'
-import { useTransaction } from '@/components/providers/transaction-provider'
 
 interface ClaimProfileButtonProps {
   address: string

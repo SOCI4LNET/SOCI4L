@@ -1,8 +1,7 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { Activity, ArrowUpRight } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 
 /**
  * Premium Analytics Pulse Component.

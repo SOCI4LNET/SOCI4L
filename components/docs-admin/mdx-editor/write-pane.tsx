@@ -1,11 +1,11 @@
 'use client'
 
+import { useCallback, useEffect, useRef } from 'react'
 import CodeMirror from '@uiw/react-codemirror'
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown'
 import { languages } from '@codemirror/language-data'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { useEditorStore } from './use-editor-state'
-import { useCallback, useEffect, useRef } from 'react'
 import { EditorView } from '@codemirror/view'
 
 export function WritePane() {
@@ -52,27 +52,6 @@ export function WritePane() {
     const onChange = useCallback((val: string, viewUpdate: any) => {
         setContent(val)
     }, [setContent])
-
-    // Scroll Sync Logic
-    const onUpdate = useCallback((viewUpdate: any) => {
-        if (viewUpdate.docChanged || viewUpdate.categories) {
-            // changes
-        }
-
-        // Check for scroll events
-        // viewUpdate.view.scrollDOM is the scrolling element
-        if (viewUpdate.view) {
-            const scroller = viewUpdate.view.scrollDOM
-            if (scroller) {
-                // We need to attach a scroll listener manually or use the update cycle check
-                // The update cycle doesn't reliably fire on *just* scroll unless we configure it.
-                // Easier to attach a dom listener to the scroller once mounted.
-            }
-        }
-    }, [])
-
-    // Ref to attach scroll listener
-    const editorRef = useRef<any>(null)
 
     const handleCreateEditor = (view: EditorView, state: any) => {
         viewRef.current = view

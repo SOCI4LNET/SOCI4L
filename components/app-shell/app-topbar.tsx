@@ -1,19 +1,13 @@
 'use client'
 
+import { usePathname, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
+import { PAGE_GUTTER } from '@/lib/layout-constants'
+
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { HeaderActions } from './header-actions'
-import { usePathname, useSearchParams } from 'next/navigation'
-import { PAGE_GUTTER } from '@/lib/layout-constants'
-import Link from 'next/link'
 
 const tabLabels: Record<string, string> = {
   overview: 'Overview',

@@ -1,18 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Loader2, Wallet, ArrowRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { cn } from '@/lib/utils'
-import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList,
-} from "@/components/ui/command"
+import { motion } from 'framer-motion'
+
+import { Search, Loader2, Wallet, ArrowRight } from 'lucide-react'
+
+import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command"
 
 interface SearchResult {
     address: string

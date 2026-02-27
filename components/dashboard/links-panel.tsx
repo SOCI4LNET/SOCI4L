@@ -1,75 +1,31 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
-import { useAccount } from 'wagmi'
-import { useParams, useSearchParams } from 'next/navigation'
+import { useParams, useSearchParams, useRouter } from 'next/navigation'
+import { useAccount, useSignMessage } from 'wagmi'
+import { usePrivy } from '@privy-io/react-auth'
+import { toast } from 'sonner'
+import { getFriendlyErrorMessage } from '@/lib/utils/errors'
 
-import {
-  DndContext,
-  PointerSensor,
-  closestCenter,
-  KeyboardSensor,
-  useSensor,
-  useSensors,
-  useDroppable,
-  DragOverlay,
-  type DragEndEvent,
-  type DragStartEvent,
-  type DragOverEvent,
-  type CollisionDetection,
-} from '@dnd-kit/core'
-import {
-  SortableContext,
-  useSortable,
-  arrayMove,
-  verticalListSortingStrategy,
-  sortableKeyboardCoordinates,
-} from '@dnd-kit/sortable'
+import { DndContext, PointerSensor, closestCenter, KeyboardSensor, useSensor, useSensors, useDroppable, DragOverlay, type DragEndEvent, type DragStartEvent, type CollisionDetection } from '@dnd-kit/core'
+import { SortableContext, useSortable, arrayMove, verticalListSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Link2, Plus, Pencil, Trash2, ExternalLink, BarChart2, Github, Linkedin, Globe, Youtube, Eye, EyeOff, ArrowUp, ArrowDown, Folder, ChevronDown, ChevronRight, MoreVertical, Loader2, Instagram, CheckCircle } from 'lucide-react'
-import { XIcon } from '@/components/icons/x-icon'
-import { useRouter } from 'next/navigation'
-import { useSignMessage } from 'wagmi'
-import { usePrivy } from '@privy-io/react-auth'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
+import { GripVertical, Link2, Plus, Pencil, Trash2, ExternalLink, BarChart2, Github, Linkedin, Globe, Youtube, Eye, EyeOff, Folder, ChevronDown, ChevronRight, MoreVertical, Loader2, Instagram, CheckCircle } from 'lucide-react'
+
+import { XIcon } from '@/components/icons/x-icon'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PageShell } from '@/components/app-shell/page-shell'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Toggle } from '@/components/ui/toggle'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { toast } from 'sonner'
-import { getFriendlyErrorMessage } from '@/lib/utils/errors'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useTransaction } from '@/components/providers/transaction-provider'
 
 type LinkItem = {
@@ -106,15 +62,6 @@ interface SocialLink {
   verified?: boolean
   enabled?: boolean
 }
-
-type StoredLinksState = {
-  version: number
-  updatedAt: string
-  links: LinkItem[]
-}
-
-const PRIMARY_STORAGE_KEY = 'soci4l.links.v1'
-const LEGACY_STORAGE_KEY = 'soci4l.profileLinks.v1'
 
 // =============================================================================
 // DRAG & DROP COMPONENTS
@@ -1481,12 +1428,6 @@ export function LinksPanel() {
     }
   }
 
-  const updateLinks = async (updater: (prev: LinkItem[]) => LinkItem[]) => {
-    const next = updater(links)
-    setLinks(next)
-    await saveLinks(next)
-  }
-
   // Group links by category - memoized to prevent recalculation issues
   const linksByCategory = useMemo(() => {
     const grouped = new Map<string | null, LinkItem[]>()
@@ -1522,11 +1463,6 @@ export function LinksPanel() {
       return (a.order || 0) - (b.order || 0)
     })
   }, [categories])
-
-  // Get link count for a category
-  const getCategoryLinkCount = (categoryId: string | null) => {
-    return linksByCategory.get(categoryId)?.length || 0
-  }
 
   const toggleCategoryCollapse = (categoryId: string) => {
     setCollapsedCategories(prev => {
@@ -1971,32 +1907,7 @@ export function LinksPanel() {
       isDefault: cat.isDefault,
     })))
   }
-
-  const handleMoveCategory = async (id: string, direction: 'up' | 'down') => {
-    const index = categories.findIndex(cat => cat.id === id)
-    if (index === -1) return
-
-    const newIndex = direction === 'up' ? index - 1 : index + 1
-    if (newIndex < 0 || newIndex >= categories.length) return
-
-    const reordered = arrayMove(categories, index, newIndex)
-    const withOrder = reordered.map((cat, idx) => ({
-      ...cat,
-      order: idx,
-    }))
-    await saveCategories(withOrder.map(cat => ({
-      id: cat.id,
-      name: cat.name,
-      slug: cat.slug,
-      description: cat.description,
-      order: cat.order,
-      isVisible: cat.isVisible,
-      isDefault: cat.isDefault,
-    })))
-  }
-
-  const enabledLinks = links.filter((link) => link.enabled)
-
+  
   // Social Links handlers
   const openAddSocialDialog = () => {
     setEditingSocialLink(null)

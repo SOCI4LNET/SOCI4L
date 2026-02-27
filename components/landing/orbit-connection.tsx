@@ -2,7 +2,8 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Link2, MousePointer2, Plus, Users, Wallet, ArrowUpRight, LayoutDashboard, QrCode } from 'lucide-react'
+
+import { MousePointer2, Plus, Users, Wallet, ArrowUpRight, LayoutDashboard, QrCode } from 'lucide-react'
 
 export function OrbitConnection() {
     return (

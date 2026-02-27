@@ -1,23 +1,19 @@
 'use client'
 
 import { useState } from 'react'
+import { formatDistanceToNow } from 'date-fns'
+import { formatAddress } from '@/lib/utils'
+import type { ActivityTransaction } from '@/lib/activity/fetchActivity'
+import { ActivityDetailSheet } from './ActivityDetailSheet'
+
+import { ExternalLink, CheckCircle2, XCircle, Clock, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { 
-  ExternalLink, 
-  CheckCircle2, 
-  XCircle, 
-  Clock,
-  ArrowUpRight,
-  ArrowDownRight,
-} from 'lucide-react'
-import { formatAddress } from '@/lib/utils'
-import { formatDistanceToNow } from 'date-fns'
-import type { ActivityTransaction } from '@/lib/activity/fetchActivity'
-import { ActivityDetailSheet } from './ActivityDetailSheet'
+
 
 interface ActivityTableProps {
   transactions: ActivityTransaction[]
@@ -25,7 +21,7 @@ interface ActivityTableProps {
   isLoading?: boolean
 }
 
-export function ActivityTable({ transactions, address, isLoading }: ActivityTableProps) {
+export function ActivityTable({ transactions, address }: ActivityTableProps) {
   const [selectedTx, setSelectedTx] = useState<ActivityTransaction | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
 
