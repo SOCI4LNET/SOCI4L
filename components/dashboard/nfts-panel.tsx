@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useAccount } from 'wagmi'
 
 import { Search, RefreshCw, ImageOff, Layers, ExternalLink, ChevronDown } from 'lucide-react'
+import Image from 'next/image'
 
 import { PageContent } from '@/components/app-shell/page-content'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -55,10 +56,12 @@ function NftCard({ nft }: { nft: NormalizedNft }) {
             {/* NFT Image */}
             <div className="relative aspect-square w-full bg-accent/10 overflow-hidden">
                 {nft.imageUrl && !imgError ? (
-                    <img
+                    <Image
                         src={nft.imageUrl}
                         alt={nft.name || 'NFT'}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        fill
+                        sizes="(max-width: 768px) 50vw, 33vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={() => setImgError(true)}
                     />
                 ) : (

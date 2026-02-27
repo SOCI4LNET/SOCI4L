@@ -1140,7 +1140,7 @@ export default function ProfilePage({ params }: PageProps) {
                       linkCategories.forEach((cat) => {
                         categoryMap.set(cat.id, { id: cat.id, name: cat.name, order: cat.order })
                       })
-                      
+
 
                       // Add custom profile links with their categories
                       // IMPORTANT: Sort by categoryId first, then by link.order within each category
@@ -1530,10 +1530,12 @@ export default function ProfilePage({ params }: PageProps) {
                                     {nft.image ? (
                                       <div className="relative h-10 w-10 overflow-hidden rounded-md border bg-muted">
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img
+                                        <Image
                                           src={nft.image}
                                           alt={nft.name || 'NFT'}
-                                          className="h-full w-full object-cover"
+                                          fill
+                                          sizes="40px"
+                                          className="object-cover"
                                           onError={(e) => {
                                             (e.target as HTMLImageElement).style.display = 'none'
                                           }}

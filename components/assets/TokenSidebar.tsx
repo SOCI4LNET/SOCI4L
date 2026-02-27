@@ -8,6 +8,7 @@ import { getCachedLogo, getCacheKey } from "@/lib/logo-cache"
 import { formatAddress } from "@/lib/utils"
 
 import { ExternalLink, X, Calendar } from "lucide-react"
+import Image from "next/image"
 
 import { Button } from "@/components/ui/button"
 
@@ -175,9 +176,9 @@ export function TokenSidebar({ token, totalValueUsd, onClose, explorerLink }: To
             {/* Header Area */}
             <div className="flex items-start justify-between p-5 pb-0">
                 <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center overflow-hidden flex-shrink-0 border border-border/50">
+                    <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center overflow-hidden flex-shrink-0 border border-border/50 relative">
                         {logoUrl ? (
-                            <img src={logoUrl} alt={token.symbol} className="h-full w-full object-cover" />
+                            <Image src={logoUrl} alt={token.symbol} fill sizes="40px" className="object-cover" />
                         ) : (
                             <span className="text-sm font-bold">{firstLetter}</span>
                         )}

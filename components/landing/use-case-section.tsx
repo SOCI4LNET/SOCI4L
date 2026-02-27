@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 import { Code2, PenTool, Users, ArrowRight } from 'lucide-react'
+import Image from 'next/image'
 
 export function UseCaseSection() {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
@@ -100,10 +101,10 @@ export function UseCaseSection() {
                 <div className="absolute right-10 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-6 opacity-60 group-hover:opacity-100 transition-all duration-500 translate-x-4 group-hover:translate-x-0">
                     <div className="flex items-center gap-3 bg-card/80 border border-border rounded-full px-4 py-2 backdrop-blur-md shadow-xl dark:shadow-none hover:scale-105 transition-transform duration-300">
                         <div className="flex -space-x-3">
-                            <img src="https://effigy.im/a/0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1.svg" className="w-8 h-8 rounded-full border-2 border-background bg-muted" alt="Member" />
-                            <img src="https://effigy.im/a/0xd8da6bf26964af9d7eed9e03e53415d37aa96045.svg" className="w-8 h-8 rounded-full border-2 border-background bg-muted" alt="Member" />
-                            <img src="https://effigy.im/a/0x1f9090aaE28b8a3dCeaDf281B0F1282B40256C8a.svg" className="w-8 h-8 rounded-full border-2 border-background bg-muted" alt="Member" />
-                            <img src="https://effigy.im/a/0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE.svg" className="w-8 h-8 rounded-full border-2 border-background bg-muted" alt="Member" />
+                            <Image src="https://effigy.im/a/0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1.svg" width={32} height={32} className="w-8 h-8 rounded-full border-2 border-background bg-muted" alt="Member" unoptimized />
+                            <Image src="https://effigy.im/a/0xd8da6bf26964af9d7eed9e03e53415d37aa96045.svg" width={32} height={32} className="w-8 h-8 rounded-full border-2 border-background bg-muted" alt="Member" unoptimized />
+                            <Image src="https://effigy.im/a/0x1f9090aaE28b8a3dCeaDf281B0F1282B40256C8a.svg" width={32} height={32} className="w-8 h-8 rounded-full border-2 border-background bg-muted" alt="Member" unoptimized />
+                            <Image src="https://effigy.im/a/0x3f5CE5FBFe3E9af3971dD833D26bA9b5C936f0bE.svg" width={32} height={32} className="w-8 h-8 rounded-full border-2 border-background bg-muted" alt="Member" unoptimized />
                         </div>
                         <div className="h-4 w-px bg-border" />
                         <span className="text-xs text-muted-foreground font-medium">+84 members</span>

@@ -8,6 +8,7 @@ import { formatAddress } from "@/lib/utils"
 import { ProfileHeader } from "./profile-header"
 
 import { RefreshCw, CheckCircle2, Activity, ArrowUpRight, ArrowDownRight, ExternalLink, Eye, Users, UserPlus, Link2, Linkedin, Github, Globe, Send, Instagram, Youtube } from "lucide-react"
+import Image from "next/image"
 
 import { XIcon } from "@/components/icons/x-icon"
 import { PageShell } from "@/components/app-shell/page-shell"
@@ -340,13 +341,15 @@ export function OverviewPanelContent({
                                         return (
                                             <div key={i} className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                    <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0 relative">
                                                         {logoUrl ? (
                                                             // eslint-disable-next-line @next/next/no-img-element
-                                                            <img
+                                                            <Image
                                                                 src={logoUrl}
                                                                 alt={token.symbol}
-                                                                className="h-8 w-8 rounded-full object-cover"
+                                                                fill
+                                                                sizes="32px"
+                                                                className="object-cover"
                                                                 onError={(e) => {
                                                                     const target = e.target as HTMLImageElement
                                                                     target.style.display = 'none'
@@ -391,7 +394,7 @@ export function OverviewPanelContent({
                                             <div key={i} className="aspect-square bg-muted rounded-md overflow-hidden relative group border border-border/40 hover:border-primary/50 transition-colors shadow-sm">
                                                 {nft.imageUrl ? (
                                                     // eslint-disable-next-line @next/next/no-img-element
-                                                    <img src={nft.imageUrl} alt={nft.name} className="object-cover w-full h-full transform transition-transform group-hover:scale-110" />
+                                                    <Image src={nft.imageUrl} alt={nft.name} fill sizes="(max-width: 768px) 33vw, 20vw" className="object-cover transform transition-transform group-hover:scale-110" />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center text-[9px] text-muted-foreground p-1 text-center font-medium bg-secondary/50">
                                                         {nft.name}

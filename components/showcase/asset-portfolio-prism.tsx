@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import Image from 'next/image'
 
 import { Box } from 'lucide-react'
 
@@ -105,10 +106,12 @@ export function AssetPortfolioPrism() {
                         >
                             {/* Card Image */}
                             <div className={`h-full w-full relative bg-gradient-to-br ${card.color}`}>
-                                <img
+                                <Image
                                     src={card.image}
                                     alt={card.title}
-                                    className="w-full h-full object-cover grayscale-[0.2] transition-opacity duration-300"
+                                    fill
+                                    sizes="(max-width: 400px) 100vw, 400px"
+                                    className="object-cover grayscale-[0.2] transition-opacity duration-300"
                                     onError={(e) => {
                                         e.currentTarget.style.display = 'none';
                                     }}

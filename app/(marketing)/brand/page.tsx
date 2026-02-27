@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, type ReactNode } from "react"
 import Link from 'next/link'
+import Image from 'next/image'
 import { toast } from 'sonner'
 import { motion, useScroll, useTransform } from 'framer-motion'
 
@@ -63,7 +64,7 @@ export default function BrandPage() {
                                 downloadLink="/logos/icon-black.svg"
                                 downloadName="SOCI4L_ICON_BLACK.svg"
                             >
-                                <img src="/logos/icon-black.svg" width={192} height={192} alt="SOCI4L Icon Black" className="object-contain" />
+                                <Image src="/logos/icon-black.svg" width={192} height={192} alt="SOCI4L Icon Black" className="object-contain" />
                             </LogoCard>
                         </div>
                     </section>
@@ -81,7 +82,7 @@ export default function BrandPage() {
                                 downloadLink="/logos/combination.svg"
                                 downloadName="SOCI4L_COMBINATION_WHITE.svg"
                             >
-                                <img src="/logos/combination.svg" width={240} height={72} alt="SOCI4L Combination White" className="object-contain" />
+                                <Image src="/logos/combination.svg" width={240} height={72} alt="SOCI4L Combination White" className="object-contain" />
                             </LogoCard>
                             <LogoCard
                                 label="On Light Background"
@@ -91,7 +92,7 @@ export default function BrandPage() {
                                 downloadLink="/logos/combination-black.svg"
                                 downloadName="SOCI4L_COMBINATION_BLACK.svg"
                             >
-                                <img src="/logos/combination-black.svg" width={240} height={72} alt="SOCI4L Combination Black" className="object-contain" />
+                                <Image src="/logos/combination-black.svg" width={240} height={72} alt="SOCI4L Combination Black" className="object-contain" />
                             </LogoCard>
                         </div>
 
@@ -507,7 +508,7 @@ export default function BrandPage() {
                         {/* X Banner */}
                         <div className="p-1 rounded-3xl border border-border/50 bg-card group overflow-hidden">
                             <div className="aspect-[3/1] rounded-2xl bg-[#0A0A0A] relative flex items-center justify-center overflow-hidden">
-                                <img src="/brand/kits/SOCI4L_X_HEADER.png" alt="SOCI4L X Header" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                <Image src="/brand/kits/SOCI4L_X_HEADER.png" alt="SOCI4L X Header" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                             </div>
                             <div className="p-4 flex justify-between items-center">
                                 <div>
@@ -525,7 +526,7 @@ export default function BrandPage() {
                         {/* Profile Frame */}
                         <div className="p-1 rounded-3xl border border-border/50 bg-card group overflow-hidden">
                             <div className="aspect-square rounded-2xl bg-[#FAFAFA] relative flex items-center justify-center overflow-hidden">
-                                <img src="/brand/kits/x_logo.png" alt="Profile Photo" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                <Image src="/brand/kits/x_logo.png" alt="Profile Photo" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                             </div>
                             <div className="p-4 flex justify-between items-center">
                                 <div>
@@ -543,8 +544,8 @@ export default function BrandPage() {
                         {/* Powered by Badge */}
                         <div className="p-1 rounded-3xl border border-border/50 bg-card group overflow-hidden">
                             <div className="aspect-square rounded-2xl bg-[#0A0A0A] border border-white/5 relative flex flex-col items-center justify-center gap-6 overflow-hidden">
-                                <img src="/brand/kits/Black_PoweredBy.png" alt="Powered By Dark" className="w-3/4 object-contain shadow-2xl" />
-                                <img src="/brand/kits/White_PoweredBy.png" alt="Powered By Light" className="w-3/4 object-contain shadow-2xl" />
+                                <Image src="/brand/kits/Black_PoweredBy.png" alt="Powered By Dark" width={400} height={150} className="w-3/4 object-contain shadow-2xl" />
+                                <Image src="/brand/kits/White_PoweredBy.png" alt="Powered By Light" width={400} height={150} className="w-3/4 object-contain shadow-2xl" />
                             </div>
                             <div className="p-4 flex justify-between items-center">
                                 <div>
