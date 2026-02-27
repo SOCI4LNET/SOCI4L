@@ -1,16 +1,9 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
+
 import { PageShell } from '@/components/app-shell/page-shell'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableCaption,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { Table, TableBody, TableCell, TableCaption, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 // Force dynamic rendering since this page uses Prisma queries
 export const dynamic = 'force-dynamic'

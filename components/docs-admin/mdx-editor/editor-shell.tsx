@@ -2,13 +2,23 @@
 
 import { useEffect } from 'react'
 import { Toolbar } from './toolbar'
-import { WritePane } from './write-pane'
-import { PreviewPane } from './preview-pane'
+import dynamic from 'next/dynamic'
+
+const WritePane = dynamic(() => import('./write-pane').then((mod) => mod.WritePane), {
+    loading: () => <div className="h-full w-full animate-pulse bg-muted/20" />,
+    ssr: false,
+})
+
+const PreviewPane = dynamic(() => import('./preview-pane').then((mod) => mod.PreviewPane), {
+    loading: () => <div className="h-full w-full animate-pulse bg-muted/20" />,
+    ssr: false,
+})
 import { useEditorStore } from './use-editor-state'
-import { cn } from '@/lib/utils'
+
+import { Eye, Monitor, PenTool } from 'lucide-react'
+
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { Button } from '@/components/ui/button'
-import { Eye, Monitor, PenTool } from 'lucide-react'
 
 interface EditorShellProps {
     initialContent?: string

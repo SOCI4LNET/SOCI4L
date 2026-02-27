@@ -1,10 +1,12 @@
-import { Button } from "@/components/ui/button"
-import { ArrowRight, Book, Key, Layers, Rocket, Zap, Globe, Package, Database } from "lucide-react"
 
-import { prisma } from "@/lib/prisma"
 import { MDXRemote } from 'next-mdx-remote/rsc'
-import { components } from '@/components/docs/mdx-components'
 import Link from 'next/link'
+import { prisma } from "@/lib/prisma"
+
+import { Book, Key, Globe, Package, Database } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
+import { components } from '@/components/docs/mdx-components'
 import { DocsTitle, DocsParagraph, DocsHeading } from "@/components/docs/ui/typography"
 import { DocsCard } from "@/components/docs/ui/card"
 

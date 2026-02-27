@@ -3,35 +3,23 @@
 import { useState, useEffect } from "react"
 import { useSignMessage, useAccount } from "wagmi"
 import { usePrivy } from "@privy-io/react-auth"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { toast } from "sonner"
+import { getFriendlyErrorMessage } from "@/lib/utils/errors"
+import { formatAddress } from "@/lib/utils"
+
+import { Loader2, Copy, AlertTriangle } from "lucide-react"
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Loader2, Copy, AlertTriangle } from "lucide-react"
-import { getFriendlyErrorMessage } from "@/lib/utils/errors"
-import { toast } from "sonner"
 import { PageShell } from "@/components/app-shell/page-shell"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useTransaction } from '@/components/providers/transaction-provider'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { formatAddress } from "@/lib/utils"
-import { getPublicProfileHref } from "@/lib/routing"
 import { ProfileReadiness } from "@/components/dashboard/profile-readiness"
-
 import { SlugManager } from "@/components/profile/slug-manager"
 
 interface Profile {

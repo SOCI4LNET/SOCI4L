@@ -1,17 +1,9 @@
+import { cn } from '@/lib/utils'
+
 import { Callout } from '@/components/docs/ui/callout'
 import { DocsTabs, DocsTab } from '@/components/docs/ui/docs-tabs'
 import { DocsCard } from '@/components/docs/ui/card'
-import {
-    DocsTitle,
-    DocsHeading,
-    DocsSubHeading,
-    DocsParagraph,
-    DocsList,
-    DocsListItem,
-    DocsCode
-} from '@/components/docs/ui/typography'
-import { DocImage } from '@/components/docs/ui/doc-image' // We might need this, or standard img
-import { cn } from '@/lib/utils'
+import { DocsTitle, DocsHeading, DocsSubHeading, DocsParagraph, DocsList, DocsListItem, DocsCode } from '@/components/docs/ui/typography'
 
 export const components = {
     h1: DocsTitle,

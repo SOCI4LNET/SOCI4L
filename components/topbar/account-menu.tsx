@@ -1,25 +1,19 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAccount, useDisconnect } from 'wagmi'
 import { useRouter } from 'next/navigation'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuGroup,
-} from '@/components/ui/dropdown-menu'
+import { useAccount, useDisconnect } from 'wagmi'
+import { toast } from 'sonner'
+import { formatAddress } from '@/lib/utils'
+import { getConnectedDashboardHref, getPublicProfileHref } from '@/lib/routing'
+
+import { Copy, Share2, QrCode, LogOut, LayoutDashboard, User } from 'lucide-react'
+
+import { QRCodeModal } from '@/components/qr/qr-code-modal'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuGroup } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Copy, Share2, QrCode, LogOut, LayoutDashboard, User, ExternalLink } from 'lucide-react'
-import { formatAddress } from '@/lib/utils'
-import { toast } from 'sonner'
-import { getConnectedDashboardHref, getPublicProfileHref } from '@/lib/routing'
-import { QRCodeModal } from '@/components/qr/qr-code-modal'
 
 export function AccountMenu() {
   const [mounted, setMounted] = useState(false)

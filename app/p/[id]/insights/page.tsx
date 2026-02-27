@@ -1,16 +1,17 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import { useParams } from 'next/navigation'
+import Link from 'next/link'
+import { isValidAddress, formatAddress } from '@/lib/utils'
+import { type ProfileLayoutConfig } from '@/lib/profile-layout'
+
 import { Activity, BarChart2, Lock } from 'lucide-react'
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
-import { isValidAddress, formatAddress } from '@/lib/utils'
-import { type ProfileLayoutConfig } from '@/lib/profile-layout'
-import Link from 'next/link'
 
 type TimeRange = '24h' | '7d' | '30d' | 'all'
 

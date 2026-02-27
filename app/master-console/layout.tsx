@@ -3,7 +3,6 @@
 import { ReactNode, useEffect, useState, useRef } from 'react'
 import { useAccount } from 'wagmi'
 import { useRouter, usePathname } from 'next/navigation'
-import { toast } from 'sonner'
 import { AdminShell } from '@/components/admin/admin-shell'
 
 const ADMIN_ADDRESSES = (process.env.NEXT_PUBLIC_ADMIN_ADDRESSES || '')

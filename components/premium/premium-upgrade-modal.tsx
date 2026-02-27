@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useBalance, useSwitchChain } from "wagmi";
 import { parseEther } from "viem";
 import { avalanche } from "viem/chains";
-import { Loader2, Check, ShieldCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { PREMIUM_PAYMENT_ADDRESS } from "@/lib/contracts/PremiumPayment";
 import confetti from "canvas-confetti";
+
+import { Loader2, Check, ShieldCheck, Sparkles } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { PREMIUM_PAYMENT_ADDRESS } from "@/lib/contracts/PremiumPayment";
 
 // Minimal ABI for the payPremium function
 const PAY_ABI = [

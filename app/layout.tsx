@@ -1,14 +1,16 @@
 import type { Metadata } from "next"
+import Script from "next/script"
+import { SpeedInsights } from "@vercel/speed-insights/next"
+
 import { Playfair_Display, Outfit } from "next/font/google"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import "./globals.css"
+
 import { Providers } from "./providers"
+
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
-
-import { SpeedInsights } from "@vercel/speed-insights/next"
-import Script from "next/script"
 
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" })
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" })

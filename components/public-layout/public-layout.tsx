@@ -1,12 +1,12 @@
 'use client'
 
-import { ReactNode } from 'react'
+import { ReactNode, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAccount } from 'wagmi'
-import { HeaderActions } from '@/components/app-shell/header-actions'
-import { useState, useEffect } from 'react'
 import { PAGE_GUTTER, CONTENT_MAX_WIDTH } from '@/lib/layout-constants'
 import { cn } from '@/lib/utils'
+
+import { HeaderActions } from '@/components/app-shell/header-actions'
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 import { WalletConnectButtons } from '@/components/wallet-connect-buttons'
 

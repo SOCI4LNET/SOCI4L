@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAccount } from 'wagmi'
+
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 import { WalletConnectButtons } from '@/components/wallet-connect-buttons'

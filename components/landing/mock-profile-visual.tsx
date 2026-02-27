@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Wallet, Link2, Eye, EyeOff, LayoutTemplate, Activity, ArrowUpRight, MousePointer2, Youtube, GripVertical } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+import { Wallet, Link2, Eye, EyeOff, LayoutTemplate, Activity, ArrowUpRight, MousePointer2, Youtube, GripVertical } from 'lucide-react'
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 

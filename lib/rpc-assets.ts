@@ -17,7 +17,7 @@
  */
 
 import { avalancheClient } from './avalanche'
-import { formatEther, formatUnits, parseUnits } from 'viem'
+import { formatEther, formatUnits } from 'viem'
 import { getAVAXPrice, getTokenLogos, getTokenLogoUrl, getTokenLogosByAddresses, getAvalancheTokenList } from './coingecko'
 import { SNOWTRACE_API_KEY, SNOWTRACE_API_URL } from '@/lib/constants'
 

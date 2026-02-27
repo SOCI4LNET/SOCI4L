@@ -3,18 +3,20 @@
 import { useState, useEffect } from "react";
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSignMessage, usePublicClient } from "wagmi";
 import { parseAbi, decodeFunctionData, parseAbiItem } from "viem";
-import { Loader2, Check, AlertCircle, X, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
+import { CUSTOM_SLUG_REGISTRY_ADDRESS, CUSTOM_SLUG_REGISTRY_ABI } from "@/lib/contracts/CustomSlugRegistry";
+import { validateSlugFormat, hashSlug } from "@/lib/utils/slug";
+import { getFriendlyErrorMessage } from "@/lib/utils/errors";
+import { SlugCelebration } from "./slug-celebration";
+
+import { Loader2, Check, AlertCircle, X, ShieldAlert } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { CUSTOM_SLUG_REGISTRY_ADDRESS, CUSTOM_SLUG_REGISTRY_ABI } from "@/lib/contracts/CustomSlugRegistry";
-import { normalizeSlug, validateSlugFormat, hashSlug } from "@/lib/utils/slug";
-import { getFriendlyErrorMessage } from "@/lib/utils/errors";
-import { SlugCelebration } from "./slug-celebration";
 
 const ABI = parseAbi(CUSTOM_SLUG_REGISTRY_ABI);
 

@@ -1,12 +1,12 @@
 'use client'
 
+import { useState, type ReactNode } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WagmiProvider, createConfig, http, cookieStorage, createStorage, type Config } from 'wagmi'
-import { walletConnect } from 'wagmi/connectors'
+import { walletConnect, injected } from 'wagmi/connectors'
 import { avalanche } from 'viem/chains'
-import { useState, type ReactNode } from 'react'
+
 import { TransactionProvider } from '@/components/providers/transaction-provider'
-import { injected } from 'wagmi/connectors'
 import PrivyProviderWrapper from '@/components/providers/privy-provider'
 
 // WalletConnect v2 Project ID

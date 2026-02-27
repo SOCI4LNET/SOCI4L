@@ -1,27 +1,18 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAccount, useDisconnect } from 'wagmi'
 import { useRouter, useParams, usePathname } from 'next/navigation'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { useAccount, useDisconnect } from 'wagmi'
+import { toast } from 'sonner'
+import { formatAddress } from '@/lib/utils'
+import {  getConnectedDashboardHref, getCurrentProfileAddressFromRoute, getPublicProfileHref } from '@/lib/routing'
+
+import { LayoutDashboard, User, Copy, LogOut, Share2, QrCode } from 'lucide-react'
+
+import { QRCodeModal } from '@/components/qr/qr-code-modal'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { formatAddress } from '@/lib/utils'
-import { 
-  getConnectedDashboardHref, 
-  getCurrentProfileAddressFromRoute,
-  getPublicProfileHref 
-} from '@/lib/routing'
-import { LayoutDashboard, User, Copy, LogOut, Share2, QrCode } from 'lucide-react'
-import { toast } from 'sonner'
-import { QRCodeModal } from '@/components/qr/qr-code-modal'
 
 export function ProfileDropdown() {
   const [mounted, setMounted] = useState(false)

@@ -1,16 +1,19 @@
 'use client'
 
 import { useState } from 'react'
+import { formatAddress } from '@/lib/utils'
+import confetti from 'canvas-confetti'
+import { DonateSuccessCard } from './donate-success-card'
+
+import { Heart, Loader2 } from 'lucide-react'
+
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { formatAddress } from '@/lib/utils'
-import { Heart, Loader2 } from 'lucide-react'
-import confetti from 'canvas-confetti'
-import { DonateSuccessCard } from './donate-success-card'
+
 
 interface DonateModalProps {
     open: boolean
@@ -57,37 +60,57 @@ export function DonateModal({ open, onOpenChange, recipient, donationAlertVisual
         try {
             await onDonate?.(amount, message)
 
+            // Define custom shapes if needed
+            const heart = confetti.shapeFromText({ text: '❤️', scalar: 2 })
+            const star = confetti.shapeFromText({ text: '⭐', scalar: 2 })
+            const fire = confetti.shapeFromText({ text: '🔥', scalar: 2 })
+
             // Success confetti animation
             const duration = 3000
             const end = Date.now() + duration
 
             const frame = () => {
-                confetti({
-                    particleCount: 3,
-                    angle: 60,
-                    spread: 55,
-                    origin: { x: 0 },
-                    colors: donationAlertVisual === 'heart' ? ['#FF0000', '#FF69B4', '#FFB6C1'] :
-                        donationAlertVisual === 'star' ? ['#FFD700', '#FFFACD', '#FFFFE0'] :
-                            donationAlertVisual === 'fire' ? ['#FF4500', '#FF8C00', '#FFA500'] :
-                                ['#2845D6', '#FAFAFA', '#818CF8'],
-                    shapes: (donationAlertVisual === 'heart' ? ['heart'] :
-                        donationAlertVisual === 'star' ? ['star'] :
-                            ['square', 'circle']) as any
-                })
-                confetti({
-                    particleCount: 3,
-                    angle: 120,
-                    spread: 55,
-                    origin: { x: 1 },
-                    colors: donationAlertVisual === 'heart' ? ['#FF0000', '#FF69B4', '#FFB6C1'] :
-                        donationAlertVisual === 'star' ? ['#FFD700', '#FFFACD', '#FFFFE0'] :
-                            donationAlertVisual === 'fire' ? ['#FF4500', '#FF8C00', '#FFA500'] :
-                                ['#2845D6', '#FAFAFA', '#818CF8'],
-                    shapes: (donationAlertVisual === 'heart' ? ['heart'] :
-                        donationAlertVisual === 'star' ? ['star'] :
-                            ['square', 'circle']) as any
-                })
+                const colors = donationAlertVisual === 'heart' ? ['#FF0000', '#FF69B4', '#FFB6C1'] :
+                    donationAlertVisual === 'star' ? ['#FFD700', '#FFFACD', '#FFFFE0'] :
+                        donationAlertVisual === 'fire' ? ['#FF4500', '#FF8C00', '#FFA500'] :
+                            ['#2845D6', '#FAFAFA', '#818CF8']
+
+                const shapes = donationAlertVisual === 'heart' ? [heart] :
+                    donationAlertVisual === 'star' ? [star] :
+                        donationAlertVisual === 'fire' ? [fire] :
+                            ['square', 'circle']
+
+                if (donationAlertVisual === 'fire') {
+                    // Fire effect: particles moving UP from the bottom
+                    confetti({
+                        particleCount: 2,
+                        angle: 90,
+                        spread: 30,
+                        origin: { x: Math.random(), y: 0.8 },
+                        colors,
+                        shapes: [fire] as any,
+                        startVelocity: 30,
+                        gravity: -0.2, // Moving up
+                        ticks: 60
+                    })
+                } else {
+                    confetti({
+                        particleCount: 3,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0 },
+                        colors,
+                        shapes: shapes as any
+                    })
+                    confetti({
+                        particleCount: 3,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1 },
+                        colors,
+                        shapes: shapes as any
+                    })
+                }
 
                 if (Date.now() < end) {
                     requestAnimationFrame(frame)

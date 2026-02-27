@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import { useAccount, useDisconnect } from 'wagmi'
-import { Button } from '@/components/ui/button'
 import { formatAddress } from '@/lib/utils'
+
+import { Button } from '@/components/ui/button'
 
 export function Navbar() {
   const { address, isConnected } = useAccount()

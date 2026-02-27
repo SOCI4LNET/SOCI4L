@@ -1,15 +1,25 @@
 import { prisma } from '@/lib/prisma'
-import { PageShell } from '@/components/app-shell/page-shell'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { calculateScore, getScoreTier } from '@/lib/score'
-import { UserAnalyticsCharts } from '@/components/admin/user-analytics-charts'
 import { getScoreHistory } from '@/lib/score-snapshot'
 import { getWalletData } from '@/lib/avalanche'
+
+import { PageShell } from '@/components/app-shell/page-shell'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AdminUserActions } from '@/components/admin/admin-user-actions'
 import { AdminUserLogs } from '@/components/admin/admin-user-logs'
+import dynamic from 'next/dynamic'
+
+const UserAnalyticsCharts = dynamic(
+  () => import('@/components/admin/user-analytics-charts').then((mod) => mod.UserAnalyticsCharts),
+  {
+    loading: () => <div className="h-96 w-full animate-pulse bg-muted/20 rounded-xl mb-6" />,
+    ssr: false,
+  }
+)
 
 // Force dynamic rendering since this page uses Prisma queries and dynamic params
-export const dynamic = 'force-dynamic'
+export const dynamicPage = 'force-dynamic' // renamed variable due to masking
+
 
 interface AdminUserPageProps {
   params: {

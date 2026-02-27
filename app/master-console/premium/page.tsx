@@ -1,19 +1,13 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
+import { differenceInDays } from 'date-fns'
+
+import { ExternalLink, Eye, Crown, AlertCircle, CheckCircle2 } from 'lucide-react'
+
 import { PageShell } from '@/components/app-shell/page-shell'
-import {
-    Table,
-    TableBody,
-    TableCaption,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ExternalLink, Eye, Crown, AlertCircle, CheckCircle2 } from 'lucide-react'
-import { formatDistanceToNow, differenceInDays } from 'date-fns'
 
 // Force dynamic rendering since this page might show real-time data
 export const dynamic = 'force-dynamic'

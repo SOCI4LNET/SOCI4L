@@ -1,14 +1,9 @@
 import Link from "next/link"
-import { ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-import {
-    Card as ShadcnCard,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
+import { ArrowRight } from "lucide-react"
+
+import { Card as ShadcnCard, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface DocsCardProps {
     href: string

@@ -2,19 +2,17 @@
 
 import { useRouter } from 'next/navigation'
 import { useAccount } from 'wagmi'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowRight, LayoutDashboard, Wand2, Sparkles, Code2, LineChart, Globe, Twitter, Github, Wallet, Coins, ArrowUpRight } from 'lucide-react'
-import { MockProfileVisual } from '@/components/landing/mock-profile-visual'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { BarChart2, Link2 } from 'lucide-react'
-import { AppHeader } from '@/components/app-shell/app-header'
+import { Sparkles } from 'lucide-react'
+
 import { toast } from 'sonner'
 import { getConnectedDashboardHref } from '@/lib/routing'
-import GradientBlinds from '@/components/ui/gradient-blinds'
 
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import GradientBlinds from '@/components/ui/gradient-blinds'
+import { AppHeader } from '@/components/app-shell/app-header'
+
+import { MockProfileVisual } from '@/components/landing/mock-profile-visual'
 import { OrbitConnection } from '@/components/landing/orbit-connection'
 import { SmoothScrollLayout } from '@/components/landing/smooth-scroll-layout'
 import { ComparisonSection } from '@/components/landing/comparison-section'
@@ -24,10 +22,6 @@ import { DifferentiationSection } from '@/components/landing/differentiation-sec
 import { SignalsSection } from '@/components/landing/signals-section'
 import { ProfileWallSection } from '@/components/landing/profile-wall-section'
 import { WalletSearchSection } from '@/components/landing/wallet-search-section'
-
-const EXAMPLE_PROFILE_ADDRESS = '0x8ab0cf264df99d83525e9e11c7e4db01558ae1b1'
-
-// ...
 
 export default function HomePage() {
   const router = useRouter()
@@ -135,11 +129,6 @@ export default function HomePage() {
 
           {/* Wallet Search Section */}
           <WalletSearchSection />
-
-
-
-
-
 
           {/* Comparison Section (Wallet vs Identity) */}
           <ComparisonSection />

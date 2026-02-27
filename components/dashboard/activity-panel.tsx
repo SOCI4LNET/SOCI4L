@@ -1,9 +1,13 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useAccount } from "wagmi"
-import { useQuery } from "@tanstack/react-query"
+import type { ActivityTransaction } from "@/lib/activity/fetchActivity"
+
+import { RefreshCw, Activity, ExternalLink } from "lucide-react"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -12,9 +16,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { ActivityTable } from "@/components/activity/ActivityTable"
 import { ActivityFiltersBar } from "@/components/activity/ActivityFiltersBar"
 import { PageContent } from "@/components/app-shell/page-content"
-import { toast } from "sonner"
-import { RefreshCw, Activity, ExternalLink } from "lucide-react"
-import type { ActivityTransaction } from "@/lib/activity/fetchActivity"
 
 interface ActivityPanelProps {
   walletData?: any // Legacy prop, kept for compatibility
@@ -39,8 +40,6 @@ function formatLastUpdated(secondsAgo: number): string {
 }
 
 export function ActivityPanel({ walletData: legacyWalletData, address: propAddress }: ActivityPanelProps) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
   const { address: connectedAddress, isConnected } = useAccount()
   const [mounted, setMounted] = useState(false)
 

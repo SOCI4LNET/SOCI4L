@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams, useParams } from 'next/navigation'
-import { trackLinkClick, type AnalyticsSource } from '@/lib/analytics'
 import { useAccount } from 'wagmi'
 
 export default function LinkTrackPage() {

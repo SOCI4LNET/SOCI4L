@@ -1,24 +1,17 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Share2, Copy, QrCode } from 'lucide-react'
-import { XIcon } from '@/components/icons/x-icon'
+import { useAccount } from 'wagmi'
 import { toast } from 'sonner'
 import { isValidAddress, formatAddress } from '@/lib/utils'
-import { getPublicProfileHref } from '@/lib/routing'
-import { useAccount } from 'wagmi'
+
+import { Share2, Copy, QrCode } from 'lucide-react'
+
+import { XIcon } from '@/components/icons/x-icon'
+import { Button } from '@/components/ui/button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+
 
 interface PublicProfileShareMenuProps {
   address: string

@@ -1,22 +1,17 @@
 'use client'
 
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
+import { toast } from 'sonner'
+import { formatDistanceToNow } from 'date-fns'
+import { formatAddress } from '@/lib/utils'
+import type { ActivityTransaction } from '@/lib/activity/fetchActivity'
+
+import { Copy, ExternalLink, CheckCircle2, XCircle, Clock, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Copy, ExternalLink, CheckCircle2, XCircle, Clock, ArrowUpRight, ArrowDownRight } from 'lucide-react'
-import { formatAddress } from '@/lib/utils'
-import { toast } from 'sonner'
-import { formatDistanceToNow } from 'date-fns'
-import { formatEther } from 'viem'
-import type { ActivityTransaction } from '@/lib/activity/fetchActivity'
 
 interface ActivityDetailSheetProps {
   transaction: ActivityTransaction | null

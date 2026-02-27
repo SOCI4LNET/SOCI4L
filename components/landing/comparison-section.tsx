@@ -1,11 +1,14 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Copy, ExternalLink, Twitter, Star, MoreHorizontal, ArrowRightLeft, Activity } from 'lucide-react'
+import { cn } from '@/lib/utils'
+
+import { Copy, ExternalLink, MoreHorizontal, Activity } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { cn } from '@/lib/utils'
+import { AvatarImage } from '@/components/ui/avatar'
+
 
 export function ComparisonSection() {
     return (

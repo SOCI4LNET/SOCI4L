@@ -1,33 +1,12 @@
 "use client"
 
 import * as React from "react"
-import { BookOpen, ChevronRight, FileText, Home, Settings, Terminal } from "lucide-react"
-import { Soci4LLogo } from "@/components/logos/soci4l-logo"
 import { usePathname } from "next/navigation"
 
-import {
-    Sidebar,
-    SidebarContent,
-    SidebarFooter,
-    SidebarGroup,
-    SidebarGroupContent,
-    SidebarGroupLabel,
-    SidebarHeader,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    SidebarMenuSub,
-    SidebarMenuSubButton,
-    SidebarMenuSubItem,
-    SidebarRail,
-    useSidebar,
-} from "@/components/ui/sidebar"
-import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-} from "@/components/ui/collapsible"
-import { Button } from "@/components/ui/button"
+import { BookOpen, FileText, Home, Terminal } from "lucide-react"
+
+import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarRail, useSidebar } from "@/components/ui/sidebar"
+import { Soci4LLogo } from "@/components/logos/soci4l-logo"
 
 // Enhanced data structure
 const data = {
@@ -107,7 +86,6 @@ const data = {
 }
 
 export function DocsSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-    const { state } = useSidebar()
     const pathname = usePathname()
 
     return (

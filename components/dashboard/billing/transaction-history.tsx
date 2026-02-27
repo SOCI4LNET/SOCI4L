@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react"
 import { createPublicClient, http, parseAbiItem, formatEther } from "viem"
 import { avalanche } from "viem/chains"
+import { formatDistanceToNow } from "date-fns"
+
+import { Loader2, ExternalLink, Receipt, AlertCircle } from "lucide-react"
+
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Loader2, ExternalLink, Receipt, AlertCircle } from "lucide-react"
-import { formatDistanceToNow } from "date-fns"
-import { Badge } from "@/components/ui/badge"
 
 // --- Configuration ---
 const PREMIUM_CONTRACT = "0x9bA02537447E6DcdeF72D0e98a4C82E6B73E3cCC"

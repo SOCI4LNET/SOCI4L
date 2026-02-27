@@ -2,13 +2,14 @@
 
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
+import { cn } from '@/lib/utils'
+import { PAGE_GUTTER } from '@/lib/layout-constants'
+
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 import { HeaderActions } from './header-actions'
 import { Badge } from '@/components/ui/badge'
-import { Sparkles } from 'lucide-react'
-import { PAGE_GUTTER } from '@/lib/layout-constants'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+
 
 interface AppHeaderProps {
   /**
@@ -54,10 +55,6 @@ const navigationItems = [
 export function AppHeader({ showSidebarTrigger = false, sticky = true, showNavigation = false, className }: AppHeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
-
-  const viewExampleProfile = () => {
-    router.push(`/p/${EXAMPLE_PROFILE_ADDRESS}`)
-  }
 
   const isActive = (href: string, exact?: boolean) => {
     if (exact) {

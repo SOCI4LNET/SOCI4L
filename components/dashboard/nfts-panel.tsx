@@ -1,17 +1,19 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import Link from 'next/link'
 import { useAccount } from 'wagmi'
-import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
+
+import { Search, RefreshCw, ImageOff, Layers, ExternalLink, ChevronDown } from 'lucide-react'
+import Image from 'next/image'
+
+import { PageContent } from '@/components/app-shell/page-content'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
-import { Search, RefreshCw, ImageOff, Layers, ExternalLink, ChevronDown } from 'lucide-react'
-import { PageContent } from '@/components/app-shell/page-content'
-import Link from 'next/link'
 
 interface NftsPanelProps {
     address?: string
@@ -54,10 +56,12 @@ function NftCard({ nft }: { nft: NormalizedNft }) {
             {/* NFT Image */}
             <div className="relative aspect-square w-full bg-accent/10 overflow-hidden">
                 {nft.imageUrl && !imgError ? (
-                    <img
+                    <Image
                         src={nft.imageUrl}
                         alt={nft.name || 'NFT'}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        fill
+                        sizes="(max-width: 768px) 50vw, 33vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={() => setImgError(true)}
                     />
                 ) : (
@@ -99,8 +103,6 @@ function NftCard({ nft }: { nft: NormalizedNft }) {
 export function NftsPanel({ address: propAddress }: NftsPanelProps) {
     const [mounted, setMounted] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
-    const [allNfts, setAllNfts] = useState<NormalizedNft[]>([])
-    const [nextCursor, setNextCursor] = useState<string | null>(null)
 
     const { address: connectedAddress } = useAccount()
     const pathname = typeof window !== 'undefined' ? window.location.pathname : ''

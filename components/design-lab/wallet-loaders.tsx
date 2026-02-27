@@ -1,8 +1,9 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { ShieldCheck, Lock } from 'lucide-react'
+
 import { Card } from '@/components/ui/card'
-import { Wallet, ShieldCheck, Lock, Scan, Hexagon, Zap } from 'lucide-react'
 
 // --- 1. ORBITAL SYNC (Minimalist / Ethereal) ---
 export const LoaderOrbitalSync = () => {

@@ -2,18 +2,20 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSignMessage } from 'wagmi'
+import { toast } from 'sonner'
+import { formatDistanceToNow } from 'date-fns'
+import { type AnalyticsEvent } from '@/lib/analytics'
+import { useProfile } from '@/hooks/use-profile'
+
+import { ArrowLeft, Copy, ExternalLink, MousePointerClick, Link2, BarChart2, Clock, Activity, ToggleLeft, ToggleRight, Lock } from 'lucide-react'
+
+import { PageShell } from '@/components/app-shell/page-shell'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { PageShell } from '@/components/app-shell/page-shell'
-import { ArrowLeft, Calendar, Copy, ExternalLink, Globe, LayoutGrid, Loader2, MousePointerClick, Smartphone, User, Link2, BarChart2, Clock, Activity, Info, ToggleLeft, ToggleRight, ShieldCheck, Lock } from 'lucide-react'
-import { toast } from 'sonner'
-import { formatDistanceToNow } from 'date-fns'
-import { getEventsForProfile, type AnalyticsEvent } from '@/lib/analytics'
-import { useAccount, useSignMessage } from 'wagmi'
 import { useTransaction } from '@/components/providers/transaction-provider'
-import { useProfile } from '@/hooks/use-profile'
 import { PremiumUpgradeModal } from '@/components/premium/premium-upgrade-modal'
 
 type LinkItem = {
@@ -75,21 +77,6 @@ function loadLinksFromStorage(): LinkItem[] {
   } catch (error) {
     console.error('[LinkDetail] Failed to load links from localStorage', error)
     return []
-  }
-}
-
-function persistLinksToStorage(next: LinkItem[]) {
-  if (typeof window === 'undefined') return
-  try {
-    const payload: StoredLinksState = {
-      version: 1,
-      updatedAt: new Date().toISOString(),
-      links: next,
-    }
-    window.localStorage.setItem(PRIMARY_LINKS_KEY, JSON.stringify(payload))
-    window.localStorage.removeItem(LEGACY_LINKS_KEY)
-  } catch (error) {
-    console.error('[LinkDetail] Failed to persist links to localStorage', error)
   }
 }
 
@@ -644,8 +631,6 @@ export default function LinkInsightsPage({ params }: PageProps) {
   }
 
   const displayTitle = link.title || 'Untitled link'
-  const displayUrl = shortenUrl(link.url)
-  const redirectPath = getRedirectPath(link.id)
 
   const lastClickedLabel =
     analytics.lastClickedTs != null

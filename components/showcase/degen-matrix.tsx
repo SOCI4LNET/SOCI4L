@@ -1,8 +1,9 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
+
 import { Rocket, Skull } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
 
 /**
  * Premium Degen Matrix Teaser.

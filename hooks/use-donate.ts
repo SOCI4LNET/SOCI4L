@@ -1,9 +1,9 @@
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
-import { parseEther } from 'viem'
 import { avalanche } from 'wagmi/chains'
+import { parseEther } from 'viem'
+import { toast } from 'sonner'
 import { DONATE_PAYMENT_ADDRESS, DONATE_PAYMENT_ABI } from '@/lib/contracts/DonatePayment'
 import { getFriendlyErrorMessage } from '@/lib/utils/errors'
-import { toast } from 'sonner'
 
 export function useDonate() {
     const { writeContractAsync, data: hash, isPending, error } = useWriteContract()

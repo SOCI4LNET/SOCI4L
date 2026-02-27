@@ -1,25 +1,42 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAccount } from 'wagmi'
-import { useQuery } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { getCachedLogo, setCachedLogo, setCachedLogos, getCacheKey } from '@/lib/logo-cache'
+
+import { RefreshCw, Coins, Search } from 'lucide-react'
+import Image from 'next/image'
+
+import { AssetsHeader } from '@/components/assets/AssetsHeader'
+import { PageContent } from '@/components/app-shell/page-content'
+import dynamic from 'next/dynamic'
+
+const AssetsHero = dynamic(
+  () => import('@/components/assets/AssetsHero').then((mod) => mod.AssetsHero),
+  {
+    loading: () => <div className="h-64 w-full animate-pulse bg-muted/20 rounded-xl mb-6" />,
+    ssr: false,
+  }
+)
+
+const TokenSidebar = dynamic(
+  () => import('@/components/assets/TokenSidebar').then((mod) => mod.TokenSidebar),
+  {
+    loading: () => (
+      <div className="h-[200px] border border-border/50 rounded-xl flex animate-pulse bg-card/10" />
+    ),
+    ssr: false,
+  }
+)
+import { Input } from '@/components/ui/input'
+import { QRCodeModal } from '@/components/qr/qr-code-modal'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { RefreshCw, Coins, Search, ExternalLink, Copy } from 'lucide-react'
-import { toast } from 'sonner'
-import { getPublicProfileHref } from '@/lib/routing'
-import { AssetsHeader } from '@/components/assets/AssetsHeader'
-import { AssetsHero } from '@/components/assets/AssetsHero'
-import { TokenSidebar } from '@/components/assets/TokenSidebar'
-import { PageContent } from '@/components/app-shell/page-content'
-import Link from 'next/link'
-import { getCachedLogo, setCachedLogo, setCachedLogos, getCacheKey } from '@/lib/logo-cache'
-import { Input } from '@/components/ui/input'
-import { formatAddress } from '@/lib/utils'
-import { QRCodeModal } from '@/components/qr/qr-code-modal'
 
 interface AssetsPanelProps {
   walletData: any
@@ -59,8 +76,6 @@ function getExplorerLink(type: 'token' | 'nft', address: string, tokenId?: strin
 }
 
 export function AssetsPanel({ walletData: legacyWalletData, address: propAddress }: AssetsPanelProps) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
   const { address: connectedAddress } = useAccount()
   const [mounted, setMounted] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -193,9 +208,6 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
     return [...filtered].sort((a, b) => (b.valueUsd || 0) - (a.valueUsd || 0))
   }, [tokensData?.tokens, searchQuery])
 
-  const publicProfileHref = profileData?.slug
-    ? `/p/${profileData.slug}`
-    : `/p/${targetAddress}`
   const explorerHref = targetAddress
     ? `https://snowtrace.io/address/${targetAddress}`
     : 'https://snowtrace.io'
@@ -299,12 +311,14 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
                       }`}
                   >
                     <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center overflow-hidden flex-shrink-0 border border-border/50">
+                      <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center overflow-hidden flex-shrink-0 border border-border/50 relative">
                         {logoUrl ? (
-                          <img
+                          <Image
                             src={logoUrl}
                             alt={token.symbol}
-                            className="h-full w-full object-cover"
+                            fill
+                            sizes="40px"
+                            className="object-cover"
                             onLoad={() => setCachedLogo(getCacheKey(token.address, token.symbol), logoUrl)}
                             onError={(e) => {
                               (e.target as HTMLImageElement).style.display = 'none'

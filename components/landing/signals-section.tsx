@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion'
 import { BarChart3, Zap, Users, ArrowRight } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 const INSIGHTS = [
     {

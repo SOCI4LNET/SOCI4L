@@ -1,15 +1,17 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import Image from 'next/image'
+import { toast } from 'sonner'
+import { formatAddress } from '@/lib/utils'
+
+import { Download, Share2, X } from 'lucide-react'
+
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent } from '@/components/ui/card'
-import { formatAddress } from '@/lib/utils'
-import { Download, Share2, X } from 'lucide-react'
-import { toast } from 'sonner'
-import confetti from 'canvas-confetti'
-import Image from 'next/image'
+
 
 interface DonateSuccessCardProps {
     open: boolean

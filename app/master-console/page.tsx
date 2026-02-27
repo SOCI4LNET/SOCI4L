@@ -1,15 +1,25 @@
 import { unstable_noStore } from 'next/cache'
 import { prisma } from '@/lib/prisma'
-import { PageShell } from '@/components/app-shell/page-shell'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { OverviewTrends } from '@/components/admin/overview-trends'
-import { EmptyState } from '@/components/admin/empty-state'
+import { requireAdmin } from '@/lib/admin-auth'
+
 import { TrendingUp, TrendingDown, Minus, Eye, MousePointerClick, Users, UserPlus, Link2, Mail } from 'lucide-react'
 
-import { requireAdmin } from '@/lib/admin-auth'
+import { PageShell } from '@/components/app-shell/page-shell'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { EmptyState } from '@/components/admin/empty-state'
+import dynamicImport from 'next/dynamic'
+
+const OverviewTrends = dynamicImport(
+  () => import('@/components/admin/overview-trends').then((mod) => mod.OverviewTrends),
+  {
+    loading: () => <div className="h-80 w-full animate-pulse bg-muted/20 rounded-xl" />,
+    ssr: false,
+  }
+)
 
 // Force dynamic rendering since this page uses Prisma queries
 export const dynamic = 'force-dynamic'
+
 export const revalidate = 0
 
 async function getOverviewStats() {

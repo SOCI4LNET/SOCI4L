@@ -1,11 +1,11 @@
 'use client'
 
 import { ReactNode, useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
 import { useAccount } from 'wagmi'
-import { useRouter } from 'next/navigation'
-import { AppShell } from '@/components/app-shell/app-shell'
+import { useParams, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+
+import { AppShell } from '@/components/app-shell/app-shell'
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false)

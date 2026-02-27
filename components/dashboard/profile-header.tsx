@@ -1,13 +1,19 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from "next/link"
+import { toast } from "sonner"
+import { formatAddress } from "@/lib/utils"
+import type { ProfileData } from './overview-panel-content'
+
+import { Copy, ExternalLink, Share2, Twitter, QrCode, Check, X, Pencil, Sparkles } from "lucide-react"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -15,13 +21,9 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Copy, ExternalLink, Share2, Twitter, QrCode, Check, X, Pencil, Sparkles, Code2 } from "lucide-react"
-import { formatAddress } from "@/lib/utils"
-import Link from "next/link"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ClaimProfileButton } from "@/components/claim-profile-button"
 import { QRCodeModal } from "@/components/qr/qr-code-modal"
-import { toast } from "sonner"
-import type { ProfileData } from './overview-panel-content'
 
 interface ProfileHeaderProps {
     profile: ProfileData | null

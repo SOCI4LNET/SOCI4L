@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState } from 'react'
+
+import { Code, Eye, Monitor, FileCode } from 'lucide-react'
+
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { Save, Code, Eye, Monitor, FileCode } from 'lucide-react'
-import ReactMarkdown from 'react-markdown'
-import { cn } from '@/lib/utils'
 
 interface RichMDXEditorProps {
     initialContent?: string

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAccount, useConnect, useSignMessage } from 'wagmi'
 import { Toggle } from '@/components/ui/toggle'
 import { Button } from '@/components/ui/button'
@@ -19,7 +20,6 @@ import { Bookmark as BookmarkIcon, Users, UserPlus, UserX } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTransaction } from '@/components/providers/transaction-provider'
 import { getFriendlyErrorMessage } from '@/lib/utils/errors'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { isValidAddress } from '@/lib/utils'
 
 interface FollowToggleProps {
@@ -142,7 +142,6 @@ export function FollowToggle({ address, isBlockedByViewer: initialBlocked = fals
         })
 
         if (!verifyResponse.ok) {
-          const error = await verifyResponse.json()
           toast.error('Failed to create session. Please try again.')
           return false
         }

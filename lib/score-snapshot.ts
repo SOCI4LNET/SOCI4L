@@ -7,7 +7,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { calculateScore, getScoreTier, type ScoreInput } from '@/lib/score'
-import { getFollowersCount, getProfileLinks, getSocialLinks } from '@/lib/db'
+import { getFollowersCount} from '@/lib/db'
 
 /**
  * Create a score snapshot for a single profile

@@ -1,75 +1,31 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
-import { useAccount } from 'wagmi'
-import { useParams, useSearchParams } from 'next/navigation'
+import { useParams, useSearchParams, useRouter } from 'next/navigation'
+import { useAccount, useSignMessage } from 'wagmi'
+import { usePrivy } from '@privy-io/react-auth'
+import { toast } from 'sonner'
+import { getFriendlyErrorMessage } from '@/lib/utils/errors'
 
-import {
-  DndContext,
-  PointerSensor,
-  closestCenter,
-  KeyboardSensor,
-  useSensor,
-  useSensors,
-  useDroppable,
-  DragOverlay,
-  type DragEndEvent,
-  type DragStartEvent,
-  type DragOverEvent,
-  type CollisionDetection,
-} from '@dnd-kit/core'
-import {
-  SortableContext,
-  useSortable,
-  arrayMove,
-  verticalListSortingStrategy,
-  sortableKeyboardCoordinates,
-} from '@dnd-kit/sortable'
+import { DndContext, PointerSensor, closestCenter, KeyboardSensor, useSensor, useSensors, useDroppable, DragOverlay, type DragEndEvent, type DragStartEvent, type CollisionDetection } from '@dnd-kit/core'
+import { SortableContext, useSortable, arrayMove, verticalListSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Link2, Plus, Pencil, Trash2, ExternalLink, BarChart2, Github, Linkedin, Globe, Youtube, Eye, EyeOff, ArrowUp, ArrowDown, Folder, ChevronDown, ChevronRight, MoreVertical, Loader2, Instagram, CheckCircle } from 'lucide-react'
-import { XIcon } from '@/components/icons/x-icon'
-import { useRouter } from 'next/navigation'
-import { useSignMessage } from 'wagmi'
-import { usePrivy } from '@privy-io/react-auth'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
+import { GripVertical, Link2, Plus, Pencil, Trash2, ExternalLink, BarChart2, Github, Linkedin, Globe, Youtube, Eye, EyeOff, Folder, ChevronDown, ChevronRight, MoreVertical, Loader2, Instagram, CheckCircle } from 'lucide-react'
+
+import { XIcon } from '@/components/icons/x-icon'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PageShell } from '@/components/app-shell/page-shell'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Toggle } from '@/components/ui/toggle'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { toast } from 'sonner'
-import { getFriendlyErrorMessage } from '@/lib/utils/errors'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useTransaction } from '@/components/providers/transaction-provider'
 
 type LinkItem = {
@@ -106,15 +62,6 @@ interface SocialLink {
   verified?: boolean
   enabled?: boolean
 }
-
-type StoredLinksState = {
-  version: number
-  updatedAt: string
-  links: LinkItem[]
-}
-
-const PRIMARY_STORAGE_KEY = 'soci4l.links.v1'
-const LEGACY_STORAGE_KEY = 'soci4l.profileLinks.v1'
 
 // =============================================================================
 // DRAG & DROP COMPONENTS
@@ -1481,12 +1428,6 @@ export function LinksPanel() {
     }
   }
 
-  const updateLinks = async (updater: (prev: LinkItem[]) => LinkItem[]) => {
-    const next = updater(links)
-    setLinks(next)
-    await saveLinks(next)
-  }
-
   // Group links by category - memoized to prevent recalculation issues
   const linksByCategory = useMemo(() => {
     const grouped = new Map<string | null, LinkItem[]>()
@@ -1522,11 +1463,6 @@ export function LinksPanel() {
       return (a.order || 0) - (b.order || 0)
     })
   }, [categories])
-
-  // Get link count for a category
-  const getCategoryLinkCount = (categoryId: string | null) => {
-    return linksByCategory.get(categoryId)?.length || 0
-  }
 
   const toggleCategoryCollapse = (categoryId: string) => {
     setCollapsedCategories(prev => {
@@ -1971,32 +1907,7 @@ export function LinksPanel() {
       isDefault: cat.isDefault,
     })))
   }
-
-  const handleMoveCategory = async (id: string, direction: 'up' | 'down') => {
-    const index = categories.findIndex(cat => cat.id === id)
-    if (index === -1) return
-
-    const newIndex = direction === 'up' ? index - 1 : index + 1
-    if (newIndex < 0 || newIndex >= categories.length) return
-
-    const reordered = arrayMove(categories, index, newIndex)
-    const withOrder = reordered.map((cat, idx) => ({
-      ...cat,
-      order: idx,
-    }))
-    await saveCategories(withOrder.map(cat => ({
-      id: cat.id,
-      name: cat.name,
-      slug: cat.slug,
-      description: cat.description,
-      order: cat.order,
-      isVisible: cat.isVisible,
-      isDefault: cat.isDefault,
-    })))
-  }
-
-  const enabledLinks = links.filter((link) => link.enabled)
-
+  
   // Social Links handlers
   const openAddSocialDialog = () => {
     setEditingSocialLink(null)
@@ -2539,7 +2450,7 @@ export function LinksPanel() {
                                 const privyUsername = normalizeHandle(userData?.username)
                                 const isVerified = link.verified
                                 const platformHasConnectedAccount = Boolean(userData?.subject)
-                                const isConflict = socialConflictByPlatform[config.apiPlatformName]
+                                const isConflict = socialConflictByPlatform[config.apiPlatformName as 'twitter' | 'github']
                                 const isPendingVerification =
                                   pendingVerification?.linkId === link.id &&
                                   pendingVerification?.platform === config.apiPlatformName
@@ -2550,136 +2461,136 @@ export function LinksPanel() {
                                 // --- DURUM 1: Zaten Doğrulanmış ---
                                 if (isVerified) {
                                   return (
-                                    <Badge variant="outline" className="h-5 px-1.5 gap-1 text-[10px] font-normal text-green-600 border-green-600/30 bg-green-500/5">
-                                      <CheckCircle className="h-3 w-3" />
-                                      Verified
-                                    </Badge>
-                                  )
+                            <Badge variant="outline" className="h-5 px-1.5 gap-1 text-[10px] font-normal text-green-600 border-green-600/30 bg-green-500/5">
+                              <CheckCircle className="h-3 w-3" />
+                              Verified
+                            </Badge>
+                            )
                                 }
 
-                                // --- DURUM 2 & 3: Doğrulama Süreci (Unified) ---
-                                const isSyncingInState = activeSyncs.has(config.apiPlatformName)
-                                const platformLastSync = lastSyncTime[config.apiPlatformName] || 0
-                                const isCooldownSyncing = Date.now() - platformLastSync < 6000
-                                const isSyncing = isSyncingInState || isCooldownSyncing || isPendingVerification
+                            // --- DURUM 2 & 3: Doğrulama Süreci (Unified) ---
+                            const isSyncingInState = activeSyncs.has(config.apiPlatformName)
+                            const platformLastSync = lastSyncTime[config.apiPlatformName] || 0
+                            const isCooldownSyncing = Date.now() - platformLastSync < 6000
+                            const isSyncing = isSyncingInState || isCooldownSyncing || isPendingVerification
 
-                                return (
-                                  <div className="flex flex-row gap-1 items-start">
-                                    {isSyncing ? (
-                                      <Badge variant="outline" className="h-5 px-1.5 gap-1 text-[10px] font-normal text-blue-600 border-blue-600/30 bg-blue-500/5">
-                                        <Loader2 className="h-3 w-3 animate-spin" />
-                                        Verifying
-                                      </Badge>
-                                    ) : isConflict ? (
-                                      <Badge variant="outline" className="h-5 px-1.5 text-[10px] font-normal text-red-500 border-red-500/30 bg-red-500/5">
-                                        Linked elsewhere
-                                      </Badge>
-                                    ) : hasUrlMismatch ? (
-                                      <Badge variant="outline" className="h-5 px-1.5 text-[10px] font-normal text-red-500 border-red-500/30 bg-red-500/5">
-                                        URL mismatch
-                                      </Badge>
-                                    ) : platformHasConnectedAccount ? (
-                                      <Badge variant="outline" className="h-5 px-1.5 text-[10px] font-normal text-amber-600 border-amber-600/30 bg-amber-500/5">
-                                        Connected
-                                      </Badge>
-                                    ) : null}
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="h-5 px-2 text-[10px]"
-                                      disabled={isSyncing || hasUrlMismatch}
-                                      onClick={async () => {
-                                        if (authenticated && !privyWalletMatchesTarget) {
-                                          toast.error(
-                                            `Session wallet ${shortAddress(activeSessionWalletAddress)} does not match profile wallet ${shortAddress(targetAddress)}. Reconnect with the correct wallet and try again.`
-                                          )
-                                          return
-                                        }
+                            return (
+                            <div className="flex flex-row gap-1 items-start">
+                              {isSyncing ? (
+                                <Badge variant="outline" className="h-5 px-1.5 gap-1 text-[10px] font-normal text-blue-600 border-blue-600/30 bg-blue-500/5">
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                  Verifying
+                                </Badge>
+                              ) : isConflict ? (
+                                <Badge variant="outline" className="h-5 px-1.5 text-[10px] font-normal text-red-500 border-red-500/30 bg-red-500/5">
+                                  Linked elsewhere
+                                </Badge>
+                              ) : hasUrlMismatch ? (
+                                <Badge variant="outline" className="h-5 px-1.5 text-[10px] font-normal text-red-500 border-red-500/30 bg-red-500/5">
+                                  URL mismatch
+                                </Badge>
+                              ) : platformHasConnectedAccount ? (
+                                <Badge variant="outline" className="h-5 px-1.5 text-[10px] font-normal text-amber-600 border-amber-600/30 bg-amber-500/5">
+                                  Connected
+                                </Badge>
+                              ) : null}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-5 px-2 text-[10px]"
+                                disabled={isSyncing || hasUrlMismatch}
+                                onClick={async () => {
+                                  if (authenticated && !privyWalletMatchesTarget) {
+                                    toast.error(
+                                      `Session wallet ${shortAddress(activeSessionWalletAddress)} does not match profile wallet ${shortAddress(targetAddress)}. Reconnect with the correct wallet and try again.`
+                                    )
+                                    return
+                                  }
 
-                                        if (!userData) {
-                                          // DURUM 2: Privy Bağlantısı Yok
-                                          if (!privyReady) {
-                                            toast.error(`${label} verification is currently unavailable.`)
-                                            return
-                                          }
-                                          try {
-                                            if (!authenticated) {
-                                              setPendingVerification({
-                                                platform: apiPlatformName as 'twitter' | 'github',
-                                                linkId: link.id,
-                                              })
-                                              await login({ loginMethods: [loginMethod as any] })
-                                              return
-                                            }
-                                            setPendingVerification({
-                                              platform: apiPlatformName as 'twitter' | 'github',
-                                              linkId: link.id,
-                                            })
-                                            await linkMethod()
-                                            return
-                                          } catch (error: any) {
-                                            setPendingVerification(null)
-                                            setLastSyncTime(prev => ({ ...prev, [config.apiPlatformName]: 0 }))
-                                            const message = error?.message || ''
-                                            if (message.includes('already has an account of type')) {
-                                              toast.error(`${label} account is already connected in this session. If you need a different account, disconnect and reconnect first.`)
-                                            } else {
-                                              toast.error(message || `Failed to connect ${label}.`)
-                                            }
-                                            return
-                                          }
-                                        }
+                                  if (!userData) {
+                                    // DURUM 2: Privy Bağlantısı Yok
+                                    if (!privyReady) {
+                                      toast.error(`${label} verification is currently unavailable.`)
+                                      return
+                                    }
+                                    try {
+                                      if (!authenticated) {
+                                        setPendingVerification({
+                                          platform: apiPlatformName as 'twitter' | 'github',
+                                          linkId: link.id,
+                                        })
+                                        await login({ loginMethods: [loginMethod as any] })
+                                        return
+                                      }
+                                      setPendingVerification({
+                                        platform: apiPlatformName as 'twitter' | 'github',
+                                        linkId: link.id,
+                                      })
+                                      await linkMethod()
+                                      return
+                                    } catch (error: any) {
+                                      setPendingVerification(null)
+                                      setLastSyncTime(prev => ({ ...prev, [config.apiPlatformName]: 0 }))
+                                      const message = error?.message || ''
+                                      if (message.includes('already has an account of type')) {
+                                        toast.error(`${label} account is already connected in this session. If you need a different account, disconnect and reconnect first.`)
+                                      } else {
+                                        toast.error(message || `Failed to connect ${label}.`)
+                                      }
+                                      return
+                                    }
+                                  }
 
-                                        if (hasUrlMismatch) {
-                                          toast.error(`${label} account does not match the URL. Update the URL or switch account and try again.`)
-                                          return
-                                        }
+                                  if (hasUrlMismatch) {
+                                    toast.error(`${label} account does not match the URL. Update the URL or switch account and try again.`)
+                                    return
+                                  }
 
-                                        // DURUM 3: Privy Bağlı Ama Backend Bekleniyor
-                                        const toastId = toast.loading('Verifying...')
-                                        try {
-                                          setLastSyncTime(prev => ({ ...prev, [config.apiPlatformName]: Date.now() }))
-                                          setSocialConflictByPlatform(prev => ({ ...prev, [config.apiPlatformName]: false }))
-                                          const verified = await verifySocialOnBackend({
-                                            platform: apiPlatformName as 'twitter' | 'github',
-                                            platformUsername: userData.username || linkUsername,
-                                            platformUserId: userData.subject,
-                                            address: targetAddress,
-                                          })
+                                  // DURUM 3: Privy Bağlı Ama Backend Bekleniyor
+                                  const toastId = toast.loading('Verifying...')
+                                  try {
+                                    setLastSyncTime(prev => ({ ...prev, [config.apiPlatformName]: Date.now() }))
+                                    setSocialConflictByPlatform(prev => ({ ...prev, [config.apiPlatformName]: false }))
+                                    const verified = await verifySocialOnBackend({
+                                      platform: apiPlatformName as 'twitter' | 'github',
+                                      platformUsername: userData.username || linkUsername,
+                                      platformUserId: userData.subject,
+                                      address: targetAddress,
+                                    })
 
-                                          if (verified) {
-                                            setSocialLinks(prev =>
-                                              prev.map(item =>
-                                                item.id === link.id ? { ...item, verified: true } : item
-                                              )
-                                            )
-                                            setSocialConflictByPlatform(prev => ({ ...prev, [config.apiPlatformName]: false }))
-                                            toast.success('Verified!', { id: toastId })
-                                            await new Promise(r => setTimeout(r, 1000))
-                                            await loadSocialLinks()
-                                            setTimeout(loadSocialLinks, 2500)
-                                          }
-                                        } catch (e: any) {
-                                          setLastSyncTime(prev => ({ ...prev, [config.apiPlatformName]: 0 }))
-                                          const message = e?.message || ''
-                                          if (message.includes('already connected to another profile')) {
-                                            setSocialConflictByPlatform(prev => ({ ...prev, [config.apiPlatformName]: true }))
-                                            toast.error(`${label} account is linked to a different wallet. Update the URL to the correct account and verify again.`, { id: toastId })
-                                          } else {
-                                            toast.error(message || 'Failed to connect', { id: toastId })
-                                          }
-                                        }
-                                      }}
-                                    >
-                                      {isSyncing ? (
-                                        <span className="flex items-center gap-1">
-                                          <Loader2 className="h-2.5 w-2.5 animate-spin" />
-                                          {isPendingVerification ? 'Finishing...' : 'Verifying...'}
-                                        </span>
-                                      ) : 'Verify'}
-                                    </Button>
-                                  </div>
-                                )
+                                    if (verified) {
+                                      setSocialLinks(prev =>
+                                        prev.map(item =>
+                                          item.id === link.id ? { ...item, verified: true } : item
+                                        )
+                                      )
+                                      setSocialConflictByPlatform(prev => ({ ...prev, [config.apiPlatformName]: false }))
+                                      toast.success('Verified!', { id: toastId })
+                                      await new Promise(r => setTimeout(r, 1000))
+                                      await loadSocialLinks()
+                                      setTimeout(loadSocialLinks, 2500)
+                                    }
+                                  } catch (e: any) {
+                                    setLastSyncTime(prev => ({ ...prev, [config.apiPlatformName]: 0 }))
+                                    const message = e?.message || ''
+                                    if (message.includes('already connected to another profile')) {
+                                      setSocialConflictByPlatform(prev => ({ ...prev, [config.apiPlatformName]: true }))
+                                      toast.error(`${label} account is linked to a different wallet. Update the URL to the correct account and verify again.`, { id: toastId })
+                                    } else {
+                                      toast.error(message || 'Failed to connect', { id: toastId })
+                                    }
+                                  }
+                                }}
+                              >
+                                {isSyncing ? (
+                                  <span className="flex items-center gap-1">
+                                    <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                                    {isPendingVerification ? 'Finishing...' : 'Verifying...'}
+                                  </span>
+                                ) : 'Verify'}
+                              </Button>
+                            </div>
+                            )
                               })()
                             )}
                           </div>

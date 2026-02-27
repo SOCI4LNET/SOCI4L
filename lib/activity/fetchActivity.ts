@@ -19,7 +19,6 @@
  */
 
 import { formatEther, formatUnits } from 'viem'
-import { avalancheClient } from '../avalanche'
 import { SNOWTRACE_API_KEY , SNOWTRACE_API_URL } from '@/lib/constants'
 
 // const SNOWTRACE_API_KEY = process.env.SNOWTRACE_API_KEY || ''

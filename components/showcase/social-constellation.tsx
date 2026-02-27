@@ -1,8 +1,9 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { Share2, Network, Link, Fingerprint, BarChart3, Trophy, Wallet, Command } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
+
+import { Share2, Link, Fingerprint, BarChart3, Trophy, Wallet, Command } from 'lucide-react'
 
 /**
  * Social Constellation

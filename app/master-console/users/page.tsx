@@ -2,22 +2,16 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { PageShell } from '@/components/app-shell/page-shell'
 
-// Force dynamic rendering since this page uses searchParams
-export const dynamic = 'force-dynamic'
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { Download, Eye, Users } from 'lucide-react'
+
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Download, ExternalLink, Eye, Users } from 'lucide-react'
 import { AdminUserActions } from '@/components/admin/admin-user-actions'
+
+// Force dynamic rendering since this page uses searchParams
+export const dynamic = 'force-dynamic'
 
 interface SearchParams {
   search?: string

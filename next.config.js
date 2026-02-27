@@ -10,6 +10,17 @@ const nextConfig = {
     // ⚠️ Bu geçici bir çözüm - ileride düzeltilmeli
     ignoreBuildErrors: true,
   },
+  experimental: {
+    optimizePackageImports: ['lucide-react'],
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
+  },
   webpack: (config, { isServer }) => {
     // Suppress warnings for optional dependencies that are not needed in web environment
     config.resolve.fallback = {

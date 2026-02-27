@@ -2,99 +2,32 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useSignMessage } from 'wagmi'
+import { toast } from 'sonner'
+import { getFriendlyErrorMessage } from '@/lib/utils/errors'
+import { type ProfileLayoutConfig, type ProfilePreset, type BlockVariant, type LayoutRow, type SectionId, getDefaultProfileLayout, applyPreset, detectPreset, normalizeLayoutConfig, getRecommendation, gridToRowLayout, rowToGridLayout } from '@/lib/profile-layout'
+import { type ProfileAppearanceConfig, type ProfileTheme, getDefaultAppearanceConfig, normalizeAppearanceConfig } from '@/lib/profile-appearance'
 
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  KeyboardSensor,
-  useSensor,
-  useSensors,
-  DragOverlay,
-  MeasuringStrategy,
-  type DragEndEvent,
-  type DragStartEvent,
-  type Active,
-  type Over,
-} from '@dnd-kit/core'
-import {
-  SortableContext,
-  useSortable,
-  arrayMove,
-  verticalListSortingStrategy,
-  sortableKeyboardCoordinates,
-} from '@dnd-kit/sortable'
+import { DndContext, closestCenter, PointerSensor, KeyboardSensor, useSensor, useSensors, DragOverlay, MeasuringStrategy, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core'
+import { SortableContext, useSortable, arrayMove, verticalListSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { useDroppable } from '@dnd-kit/core'
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Sparkles, MoreVertical, Info, ChevronDown, ChevronUp, X, Plus } from 'lucide-react'
+
+import { GripVertical, Sparkles, MoreVertical, Info, X, Plus, Loader2 } from 'lucide-react'
+
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import { useSignMessage } from 'wagmi'
-import { Loader2 } from 'lucide-react'
 import { useTransaction } from '@/components/providers/transaction-provider'
 
 import { PageShell } from '@/components/app-shell/page-shell'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Toggle } from '@/components/ui/toggle'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { toast } from 'sonner'
-import { getFriendlyErrorMessage } from '@/lib/utils/errors'
-import {
-  type ProfileBlockKey,
-  type ProfileLayoutBlock,
-  type ProfileLayoutConfig,
-  type ProfilePreset,
-  type BlockVariant,
-  type LayoutRow,
-  type SectionId,
-  getDefaultProfileLayout,
-  applyPreset,
-  detectPreset,
-  normalizeLayoutConfig,
-  getRecommendation,
-  gridToRowLayout,
-  rowToGridLayout,
-} from '@/lib/profile-layout'
-import {
-  type ProfileAppearanceConfig,
-  type ProfileTheme,
-  getDefaultAppearanceConfig,
-  normalizeAppearanceConfig,
-} from '@/lib/profile-appearance'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
 // type SectionId = ProfileBlockKey // Removed conflict
-
-type SocialLinkPlatform = 'x' | 'instagram' | 'youtube' | 'github' | 'linkedin' | 'website'
-
-interface SocialLink {
-  id: string
-  platform: SocialLinkPlatform
-  url: string
-  label?: string
-}
 
 type PresetDefinition = {
   id: ProfilePreset
@@ -1051,7 +984,6 @@ export function BuilderPanel({ address }: BuilderPanelProps) {
         const needsSwap = targetSlotValue !== 'EMPTY' && targetSlotValue !== sectionId
 
         // Find source row to determine if it's same row swap
-        const sourceRow = sourceRowId ? prev.find((r) => r.id === sourceRowId) : null
         const isSameRowSwap = sourceRowId === targetRowId && needsSwap
 
         return prev.map((r) => {

@@ -1,13 +1,15 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { format } from 'date-fns'
+
+import { Loader2, ExternalLink, XCircle, Clock } from 'lucide-react'
+
+import { TransactionHistory } from '@/components/dashboard/billing/transaction-history'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, ExternalLink, CheckCircle2, XCircle, Clock } from 'lucide-react'
-import Link from 'next/link'
-import { format } from 'date-fns'
-import { TransactionHistory } from '@/components/dashboard/billing/transaction-history'
 
 interface BillingPanelProps {
     profile: any

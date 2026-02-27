@@ -1,8 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
+
 import { QrCode, Share2, Smartphone } from 'lucide-react'
-import { useState } from 'react'
 
 export function QuantumCodeScanner() {
     // Generate a static grid for the QR code base

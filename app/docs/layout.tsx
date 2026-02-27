@@ -1,10 +1,9 @@
 'use client'
 
-import { Soci4LLogo } from '@/components/logos/soci4l-logo'
-import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { cn } from '@/lib/utils'
+
+import { Button } from '@/components/ui/button'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { DocsSidebar } from '@/components/docs/docs-sidebar'
 import { DocsTOC } from '@/components/docs/docs-toc'

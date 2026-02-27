@@ -1,11 +1,13 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { CheckCircle2, Circle, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+
+import { CheckCircle2, Circle, X } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
 
 interface ProfileReadinessProps {
     profile: {
@@ -20,7 +22,6 @@ interface ProfileReadinessProps {
 }
 
 export function ProfileReadiness({ profile, address, onClose }: ProfileReadinessProps) {
-    const router = useRouter()
 
     const steps = [
         {
