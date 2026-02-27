@@ -6,14 +6,13 @@ import { toast } from "sonner"
 import { formatAddress } from "@/lib/utils"
 import type { ProfileData } from './overview-panel-content'
 
-import { Copy, ExternalLink, Share2, Twitter, QrCode, Check, X, Pencil, Sparkles } from "lucide-react"
-
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import {
     DropdownMenu,
     DropdownMenuContent,
