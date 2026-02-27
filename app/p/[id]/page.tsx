@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useAccount } from 'wagmi'
 import { toast } from 'sonner'
 
