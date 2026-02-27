@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { createPublicClient, http, parseAbiItem, formatEther } from "viem"
 import { avalanche } from "viem/chains"
 import { formatDistanceToNow } from "date-fns"
-,
+
 import { Loader2, ExternalLink, Receipt, AlertCircle } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
