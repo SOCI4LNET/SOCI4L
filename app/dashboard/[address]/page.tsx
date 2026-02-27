@@ -3,16 +3,19 @@
 import { useEffect, useState } from 'react'
 import { useAccount, useConnect } from 'wagmi'
 import { useRouter, useParams, useSearchParams, usePathname } from 'next/navigation'
+import Link from 'next/link'
+import dynamic from 'next/dynamic'
+import { toast } from 'sonner'
+import { formatAddress, isValidAddress } from '@/lib/utils'
+
+import { Wallet, Loader2 } from 'lucide-react'
+
+import { ClaimProfileButton } from '@/components/claim-profile-button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { toast } from 'sonner'
-import { Wallet, Loader2 } from 'lucide-react'
-import { formatAddress, isValidAddress } from '@/lib/utils'
-import Link from 'next/link'
-import { ClaimProfileButton } from '@/components/claim-profile-button'
-import dynamic from 'next/dynamic'
+
 
 // Lazy load dashboard panels to improve initial bundle size
 const OverviewPanel = dynamic(() => import('@/components/dashboard/overview-panel').then(mod => mod.OverviewPanel), {
@@ -141,7 +144,6 @@ export default function DashboardAddressPage() {
   useEffect(() => {
     if (!mounted) return
 
-    const dashboardTabs = ['overview', 'assets', 'activity', 'social']
     const studioTabs = ['builder', 'links', 'insights']
     const accountTabs = ['settings', 'safety']
 
@@ -569,9 +571,6 @@ export default function DashboardAddressPage() {
       </div>
     )
   }
-
-  // Check ownership for claimed profiles (for settings access)
-  const isOwner = profile?.ownerAddress?.toLowerCase() === normalizedConnectedAddress
 
   // Dashboard access is based on wallet connection, not on profile claim
   // If wallet is connected and address matches, show dashboard regardless of claim status

@@ -1,8 +1,9 @@
 import React from 'react'
-import { DonateEmbedWidget } from '@/components/donate/donate-embed-widget'
 import { isValidAddress } from '@/lib/utils'
 import { getProfileByAddress, getProfileBySlug } from '@/lib/db'
 import { normalizeSlug } from '@/lib/utils/slug'
+
+import { DonateEmbedWidget } from '@/components/donate/donate-embed-widget'
 
 interface PageProps {
     params: {

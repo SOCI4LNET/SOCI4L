@@ -1,12 +1,14 @@
 'use client'
 
 import { useEffect, useState, Suspense } from 'react'
-import { useAccount } from 'wagmi'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Loader2 } from 'lucide-react'
-import { PageShell } from '@/components/app-shell/page-shell'
+import { useAccount } from 'wagmi'
 import { getConnectedDashboardHref } from '@/lib/routing'
+
+import { Loader2 } from 'lucide-react'
+
+import { PageShell } from '@/components/app-shell/page-shell'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { WalletConnectButtons } from '@/components/wallet-connect-buttons'
 
 // Force dynamic rendering (required for useSearchParams)

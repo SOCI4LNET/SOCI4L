@@ -1,15 +1,15 @@
 'use client'
 
-import { useServerAuth } from '@/hooks/use-server-auth'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ShieldCheck, ArrowRight } from 'lucide-react'
+import { useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
-import { PageShell } from '@/components/app-shell/page-shell'
+import { useServerAuth } from '@/hooks/use-server-auth'
 
-import { useEffect } from 'react'
-import { Suspense } from 'react'
+import { ShieldCheck, ArrowRight } from 'lucide-react'
+
+import { PageShell } from '@/components/app-shell/page-shell'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 function AdminLoginContent() {
     const { ensureSession } = useServerAuth()

@@ -2,56 +2,34 @@
 
 import React, { useEffect, useState, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { useAccount } from 'wagmi'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { toast } from 'sonner'
+
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import { getPublicProfileHref } from '@/lib/routing'
-import Link from 'next/link'
-import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Heart, Share2, Instagram, Youtube, Sparkles, ShieldAlert, Layers, UserX, CheckCircle, MoreVertical, Ban, Puzzle } from 'lucide-react'
+import { trackProfileView, trackLinkClick, getSourceFromUrl } from '@/lib/analytics'
+import { type ProfileLink } from '@/lib/profile-links'
+import { useDonate } from '@/hooks/use-donate'
+import { getAvatarUrl } from '@/lib/avatar'
+import { type ProfileLayoutConfig, type ProfileLayoutBlock, type LayoutRow, type SectionId, type ProfileBlockKey, getDefaultProfileLayout, normalizeLayoutConfig } from '@/lib/profile-layout'
+import { type ProfileAppearanceConfig, getDefaultAppearanceConfig, normalizeAppearanceConfig, getThemeCardClasses, getThemeHeaderClasses, getThemeTextClasses, getThemeLinkItemClasses } from '@/lib/profile-appearance'
+
+import { ExternalLink, Linkedin, Github, Globe, QrCode, Link2, Activity, Copy, Heart, Share2, Instagram, Youtube, Sparkles, ShieldAlert, Layers, UserX, CheckCircle, MoreVertical, Ban, Puzzle } from 'lucide-react'
 import { XIcon } from '@/components/icons/x-icon'
 
 import { ClaimProfileButton } from '@/components/claim-profile-button'
 import { FollowToggle, FollowStats } from '@/components/follow-toggle'
 import { QRCodeModal } from '@/components/qr/qr-code-modal'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu'
 import SiteFooter from "@/components/app-shell/site-footer"
-import { toast } from 'sonner'
-import { trackProfileView, trackLinkClick, getSourceFromUrl, getProfileViewCount } from '@/lib/analytics'
-import { type ProfileLink } from '@/lib/profile-links'
 import { DonateModal } from '@/components/donate/donate-modal'
-import { useDonate } from '@/hooks/use-donate'
-import {
-  type ProfileLayoutConfig,
-  type ProfileLayoutBlock,
-  type LayoutRow,
-  type SectionId,
-  type ProfileBlockKey,
-  getDefaultProfileLayout,
-  normalizeLayoutConfig,
-} from '@/lib/profile-layout'
-import {
-  type ProfileAppearanceConfig,
-  getDefaultAppearanceConfig,
-  normalizeAppearanceConfig,
-  getThemeContainerClasses,
-  getThemeCardClasses,
-  getThemeHeaderClasses,
-  getThemeTextClasses,
-  getThemeLinkItemClasses,
-} from '@/lib/profile-appearance'
-import { getAvatarUrl } from '@/lib/avatar'
-
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 interface PageProps {
   params: {
@@ -794,7 +772,6 @@ export default function ProfilePage({ params }: PageProps) {
     }
   }, [layoutConfig, appearanceConfig, visibleBlocks, effectiveAppearanceConfig.theme])
 
-  const headerClasses = getThemeHeaderClasses(effectiveAppearanceConfig.theme)
   const titleClasses = getThemeTextClasses(effectiveAppearanceConfig.theme, 'title')
   const avatarSize = effectiveAppearanceConfig.theme === 'spotlight' ? 'h-16 w-16' : 'h-12 w-12'
 
@@ -1163,10 +1140,7 @@ export default function ProfilePage({ params }: PageProps) {
                       linkCategories.forEach((cat) => {
                         categoryMap.set(cat.id, { id: cat.id, name: cat.name, order: cat.order })
                       })
-
-                      // Find default category (usually "General")
-                      const defaultCategory = linkCategories.find(cat => cat.slug === 'general') || linkCategories[0]
-                      const defaultCategoryName = defaultCategory?.name || 'Links'
+                      
 
                       // Add custom profile links with their categories
                       // IMPORTANT: Sort by categoryId first, then by link.order within each category
@@ -1686,9 +1660,6 @@ export default function ProfilePage({ params }: PageProps) {
               !profile?.isBanned && (
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full">
                   {blocksWithComputedSpan.map((block) => {
-                    const variant = block.variant || 'compact'
-                    const computedSpan = block.computedSpan || 'half'
-                    const gridColSpan = computedSpan === 'full' ? 'md:col-span-12' : 'md:col-span-6'
 
                     if (block.key === 'links') {
                       // Links block rendering - same as row-based

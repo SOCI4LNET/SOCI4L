@@ -1,18 +1,12 @@
+import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
+
+import { ExternalLink, Link2 } from 'lucide-react'
+
 import { PageShell } from '@/components/app-shell/page-shell'
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { EmptyState } from '@/components/admin/empty-state'
-import Link from 'next/link'
-import { ExternalLink, Link2 } from 'lucide-react'
 import { LinkActions } from '@/components/admin/link-actions'
 
 // Force dynamic rendering since this page uses Prisma queries

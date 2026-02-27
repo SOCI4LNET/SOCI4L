@@ -1,17 +1,11 @@
 import { prisma } from '@/lib/prisma'
+
+import { Download, Mail } from 'lucide-react'
+
 import { PageShell } from '@/components/app-shell/page-shell'
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/admin/empty-state'
-import { Download, Mail } from 'lucide-react'
 
 // Force dynamic rendering since this page uses Prisma queries
 export const dynamic = 'force-dynamic'

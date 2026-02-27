@@ -1,10 +1,11 @@
 import { prisma } from '@/lib/prisma'
-import { PageShell } from '@/components/app-shell/page-shell'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { calculateScore, getScoreTier } from '@/lib/score'
-import { UserAnalyticsCharts } from '@/components/admin/user-analytics-charts'
 import { getScoreHistory } from '@/lib/score-snapshot'
 import { getWalletData } from '@/lib/avalanche'
+
+import { PageShell } from '@/components/app-shell/page-shell'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { UserAnalyticsCharts } from '@/components/admin/user-analytics-charts'
 import { AdminUserActions } from '@/components/admin/admin-user-actions'
 import { AdminUserLogs } from '@/components/admin/admin-user-logs'
 

@@ -1,19 +1,13 @@
 import { prisma } from '@/lib/prisma'
-import { PageShell } from '@/components/app-shell/page-shell'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { EmptyState } from '@/components/admin/empty-state'
 import Link from 'next/link'
-import { AnalyticsTrends } from '@/components/admin/analytics-trends'
+
 import { TrendingUp, TrendingDown, Minus, ExternalLink, Eye, MousePointerClick } from 'lucide-react'
+
+import { PageShell } from '@/components/app-shell/page-shell'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { EmptyState } from '@/components/admin/empty-state'
+import { AnalyticsTrends } from '@/components/admin/analytics-trends'
 
 // Force dynamic rendering since this page uses Prisma queries
 export const dynamic = 'force-dynamic'

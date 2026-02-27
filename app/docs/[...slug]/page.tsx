@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
-import { prisma } from '@/lib/prisma'
 import { MDXRemote } from 'next-mdx-remote/rsc'
+import { prisma } from '@/lib/prisma'
+
 import { components } from '@/components/docs/mdx-components'
 import { Badge } from '@/components/ui/badge'
 

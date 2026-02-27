@@ -1,28 +1,20 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
-import { motion } from "framer-motion"
-import {
-    BarChart2,
-    ShieldCheck,
-    TrendingUp,
-    Zap,
-    ChevronRight,
-    Info,
-    Link2,
-    ArrowRight
-} from "lucide-react"
 import { useAccount } from "wagmi"
+import { formatDistanceToNow } from "date-fns"
+import { motion } from "framer-motion"
 import { useProfile } from "@/hooks/use-profile"
-import { useMemo } from "react"
+
+import { BarChart2, ShieldCheck, TrendingUp, Zap, ChevronRight, Info, Link2, ArrowRight } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { PremiumUpgradeModal } from "@/components/premium/premium-upgrade-modal"
 import { Soci4LLogo } from "@/components/logos/soci4l-logo"
-import { formatDistanceToNow } from "date-fns"
 import SiteFooter from "@/components/app-shell/site-footer"
 import { HeaderActions } from "@/components/app-shell/header-actions"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"

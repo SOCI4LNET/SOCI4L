@@ -1,26 +1,18 @@
 'use client'
 
+import React, { useState, useRef, type ReactNode } from "react"
+import Link from 'next/link'
+import { toast } from 'sonner'
+import { motion, useScroll, useTransform } from 'framer-motion'
+
+import { cn } from '@/lib/utils'
+
+import { ArrowRight, Download, Check, X, ShieldAlert, Copy, Sparkles, MoreVertical, FileImage, FileCode, ArrowUpRight, LayoutDashboard, ChevronDown, Globe, Target, Shield, Twitter, CheckCircle, Info } from 'lucide-react'
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Download, Check, X, ShieldAlert, Copy, Sparkles, MoreVertical, FileImage, FileCode, ArrowUpRight, LayoutDashboard, ChevronDown, Globe, Target, Shield, Twitter, CheckCircle, Info } from 'lucide-react'
-import Link from 'next/link'
-import { motion, useScroll, useTransform } from 'framer-motion'
-import { cn } from '@/lib/utils'
-import { toast } from 'sonner'
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import React, { useState, useRef, type ReactNode } from "react"
 
 export default function BrandPage() {
     const [isTypeHierarchyOpen, setIsTypeHierarchyOpen] = useState(false)

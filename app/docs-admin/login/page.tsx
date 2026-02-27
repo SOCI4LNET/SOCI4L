@@ -3,17 +3,14 @@
 import { useState } from 'react'
 import { useAccount, useSignMessage, useConnect } from 'wagmi'
 import { injected } from 'wagmi/connectors'
+import { toast } from 'sonner'
+
+import { Loader2, ShieldCheck, Terminal } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
-import { Loader2, ShieldCheck, Terminal } from 'lucide-react'
-import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 
 export default function DocsAdminLogin() {
-    const router = useRouter()
     const { address, isConnected } = useAccount()
     const { signMessageAsync } = useSignMessage()
     const { connectAsync } = useConnect()

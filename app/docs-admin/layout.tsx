@@ -1,16 +1,16 @@
 'use client'
 
-import { Terminal, FileText, Settings, LogOut, LayoutDashboard, PlusCircle } from 'lucide-react'
 import { useState } from 'react'
-import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { cn } from '@/lib/utils'
-import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
+
+import { FileText, Settings, LogOut, LayoutDashboard, PlusCircle } from 'lucide-react'
+
+import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 
 export default function DocsAdminLayout({ children }: { children: React.ReactNode }) {
-    const [open, setOpen] = useState(true)
     const pathname = usePathname()
     const router = useRouter()
 
