@@ -2,63 +2,45 @@
 
 import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { useAccount } from 'wagmi'
-import { toast } from 'sonner'
-import { formatAddress, isValidAddress } from '@/lib/utils'
-import { getPublicProfileHref } from '@/lib/routing'
+import { isValidAddress } from '@/lib/utils'
 
-import { Users, UserPlus, Share2, Copy, Twitter, QrCode, Search } from 'lucide-react'
+import { Users, UserPlus, Search } from 'lucide-react'
 
 import { PageShell } from '@/components/app-shell/page-shell'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { QRCodeModal } from '@/components/qr/qr-code-modal'
 import { SocialKPICards } from '@/components/dashboard/social-kpi-cards'
-import { ConnectionCard } from '@/components/dashboard/connection-card'
 import { SocialFilterBar, FilterType, SortType } from '@/components/dashboard/social-filter-bar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ConnectionCard } from '@/components/dashboard/connection-card'
+import { SocialList } from './social-list'
 
+import { useProfileShare } from '@/hooks/use-profile-share'
+import { useSocialActions, FollowItem } from '@/hooks/use-social-actions'
 
 interface SocialPanelProps {
   address: string
 }
-
-interface FollowItem {
-  address: string
-  createdAt: string
-  displayName?: string | null
-  slug?: string | null
-  score?: number
-  reason?: string
-  primaryRole?: RoleTag
-  statusMessage?: string | null
-  isBlocked?: boolean
-  isPremium?: boolean
-}
-
-import { RoleTag } from '@/components/dashboard/connection-card'
 
 export function SocialPanel({ address }: SocialPanelProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const { address: connectedAddress } = useAccount()
-  const queryClient = useQueryClient()
   const [mounted, setMounted] = useState(false)
   const [globalSearchQuery, setGlobalSearchQuery] = useState('')
   const [qrModalOpen, setQrModalOpen] = useState(false)
   const [filter, setFilter] = useState<FilterType>('all')
   const [sort, setSort] = useState<SortType>('recent')
+  const [searchQuery, setSearchQuery] = useState('')
 
-  // Check if the profile belongs to the connected wallet
   const isOwnProfile = connectedAddress && address.toLowerCase() === connectedAddress.toLowerCase()
 
-  // Get active tab from URL query param 'subtab' (to avoid conflict with dashboard's 'tab' param)
-  // Default to 'following'
   const subtabParam = searchParams.get('subtab')
   const [activeTab, setActiveTab] = useState<'followers' | 'following' | 'mutuals' | 'explore'>(
     (subtabParam === 'followers' || subtabParam === 'following' || subtabParam === 'mutuals' || subtabParam === 'explore')
@@ -66,21 +48,17 @@ export function SocialPanel({ address }: SocialPanelProps) {
       : 'following'
   )
 
-  // Sync with URL on mount and when subtab param changes
   useEffect(() => {
     const subtab = searchParams.get('subtab')
     if (subtab === 'followers' || subtab === 'following' || subtab === 'mutuals' || subtab === 'explore') {
       setActiveTab(subtab)
     } else {
-      // If subtab param is missing, set default to 'following' and update URL
       const params = new URLSearchParams(searchParams.toString())
       if (!params.has('subtab')) {
         params.set('subtab', 'following')
-        // Ensure 'tab=social' is set
         if (!params.has('tab') || params.get('tab') !== 'social') {
           params.set('tab', 'social')
         }
-        // Only update query params, keep the same pathname - no navigation
         if (pathname) {
           router.replace(`${pathname}?${params.toString()}`, { scroll: false })
         }
@@ -92,13 +70,7 @@ export function SocialPanel({ address }: SocialPanelProps) {
     setMounted(true)
   }, [])
 
-  // Fetch profile data for sharing
-  const { data: profileData } = useQuery<{
-    profile?: {
-      slug?: string | null
-      displayName?: string | null
-    }
-  }>({
+  const { data: profileData } = useQuery({
     queryKey: ['profile-for-share', address],
     queryFn: async () => {
       if (!address || !isValidAddress(address)) throw new Error('Invalid address')
@@ -110,7 +82,6 @@ export function SocialPanel({ address }: SocialPanelProps) {
     enabled: mounted && isValidAddress(address),
   })
 
-  // Fetch social stats (KPIs)
   const { data: socialStats, isLoading: statsLoading } = useQuery({
     queryKey: ['social-stats', address?.toLowerCase()],
     queryFn: async () => {
@@ -123,7 +94,6 @@ export function SocialPanel({ address }: SocialPanelProps) {
     enabled: mounted && isValidAddress(address),
   })
 
-  // Fetch mutuals list
   const { data: mutualsData, isLoading: mutualsLoading } = useQuery({
     queryKey: ['mutuals', address?.toLowerCase()],
     queryFn: async () => {
@@ -136,7 +106,6 @@ export function SocialPanel({ address }: SocialPanelProps) {
     enabled: mounted && isValidAddress(address),
   })
 
-  // Fetch suggestions
   const { data: suggestionsData } = useQuery({
     queryKey: ['suggestions', address?.toLowerCase()],
     queryFn: async () => {
@@ -148,75 +117,7 @@ export function SocialPanel({ address }: SocialPanelProps) {
     enabled: mounted && isValidAddress(address) && isOwnProfile,
   })
 
-  // Share functions
-  const getShareUrl = (): string => {
-    if (typeof window === 'undefined') {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || ''
-      const profilePath = getPublicProfileHref(address, profileData?.profile?.slug)
-      return `${appUrl}${profilePath}`
-    }
-    const baseUrl = window.location.origin
-    const profilePath = getPublicProfileHref(address, profileData?.profile?.slug)
-    return `${baseUrl}${profilePath}`
-  }
-
-  const handleCopyLink = async () => {
-    const url = getShareUrl()
-    try {
-      await navigator.clipboard.writeText(url)
-      toast.success('Profile link copied')
-    } catch {
-      toast.error('Failed to copy')
-    }
-  }
-
-  const handleShareTwitter = () => {
-    const url = getShareUrl()
-    let shareText: string
-    if (isOwnProfile) {
-      shareText = 'Just claimed my SOCI4L profile on Avalanche.\n\nTrack my on-chain identity and links in one place.\n\n' + url
-    } else {
-      const profileName = profileData?.profile?.displayName || formatAddress(address, 4)
-      shareText = `Check out this SOCI4L profile on Avalanche: ${profileName}\n\nTrack on-chain identity and links in one place.\n\n` + url
-    }
-    const text = encodeURIComponent(shareText)
-    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank', 'noopener')
-  }
-
-  const handleShareNative = async () => {
-    const url = getShareUrl()
-    if (navigator.share) {
-      try {
-        let shareTitle: string
-        let shareText: string
-        if (isOwnProfile) {
-          shareTitle = 'My Avalanche Profile'
-          shareText = 'Check out my SOCI4L profile on Avalanche. Track my on-chain identity and links in one place.'
-        } else {
-          const profileName = profileData?.profile?.displayName || formatAddress(address, 4)
-          shareTitle = 'Avalanche Profile'
-          shareText = `Check out this SOCI4L profile on Avalanche: ${profileName}. Track on-chain identity and links in one place.`
-        }
-        await navigator.share({
-          title: shareTitle,
-          text: shareText,
-          url: url,
-        })
-      } catch (error: any) {
-        // User cancelled or share failed, fall back to clipboard
-        if (error.name !== 'AbortError') {
-          console.error('Share failed:', error)
-          handleCopyLink()
-        }
-      }
-    } else {
-      // Fallback to clipboard if Web Share API is not available
-      handleCopyLink()
-    }
-  }
-
-  // Followers Query
-  const { data: followers = [], isLoading: followersLoading } = useQuery({
+  const { data: followers = [], isLoading: followersLoading } = useQuery<FollowItem[]>({
     queryKey: ['followers', address?.toLowerCase(), filter, sort],
     queryFn: async () => {
       const normalizedAddress = address.toLowerCase()
@@ -225,7 +126,7 @@ export function SocialPanel({ address }: SocialPanelProps) {
       if (sort !== 'recent') params.append('sort', sort)
       const queryString = params.toString()
       const queryParam = queryString ? `&${queryString}` : ''
-      
+
       const res = await fetch(`/api/dashboard/${normalizedAddress}/follows?type=followers${queryParam}`, {
         credentials: 'include',
       })
@@ -236,8 +137,7 @@ export function SocialPanel({ address }: SocialPanelProps) {
     enabled: mounted && isValidAddress(address)
   })
 
-  // Following Query
-  const { data: following = [], isLoading: followingLoading } = useQuery({
+  const { data: following = [], isLoading: followingLoading } = useQuery<FollowItem[]>({
     queryKey: ['following', address?.toLowerCase(), filter, sort],
     queryFn: async () => {
       const normalizedAddress = address.toLowerCase()
@@ -246,7 +146,7 @@ export function SocialPanel({ address }: SocialPanelProps) {
       if (sort !== 'recent') params.append('sort', sort)
       const queryString = params.toString()
       const queryParam = queryString ? `&${queryString}` : ''
-      
+
       const res = await fetch(`/api/dashboard/${normalizedAddress}/follows?type=following${queryParam}`, {
         credentials: 'include',
       })
@@ -257,9 +157,14 @@ export function SocialPanel({ address }: SocialPanelProps) {
     enabled: mounted && isValidAddress(address)
   })
 
-  const loading = followersLoading || followingLoading
+  const { handleCopyLink, handleShareTwitter, handleShareNative } = useProfileShare({
+    address,
+    isOwnProfile: isOwnProfile ?? false,
+    profileData
+  })
 
-  // Global Search Effect
+  const { handleFollow, handleUnfollow, handleBlock, handleRemoveFollower } = useSocialActions(address, filter, sort)
+
   const { data: searchResults = [], isLoading: isSearching } = useQuery({
     queryKey: ['search', globalSearchQuery],
     queryFn: async () => {
@@ -281,49 +186,20 @@ export function SocialPanel({ address }: SocialPanelProps) {
     staleTime: 1000 * 60 * 5,
   })
 
-  const handleFollow = async (targetAddress: string) => {
-    try {
-      const normalizedTargetAddress = targetAddress.toLowerCase()
-      const response = await fetch(`/api/profile/${normalizedTargetAddress}/follow`, {
-        method: 'POST',
-        credentials: 'include',
-      })
-      if (response.ok) {
-        toast.success('Followed successfully')
-        // Refresh following list by invalidating query
-        queryClient.invalidateQueries({ queryKey: ['following', address?.toLowerCase(), filter, sort] })
-      } else {
-        toast.error('Failed to follow')
-      }
-    } catch (e) {
-      toast.error('Failed to follow')
-    }
-  }
-
+  const loading = followersLoading || followingLoading
 
   const handleTabChange = (value: string) => {
-    const newTab = value as 'followers' | 'following' | 'explore'
-
-    // Update local state immediately - no navigation, just state change
+    const newTab = value as 'followers' | 'following' | 'explore' | 'mutuals'
     setActiveTab(newTab)
-
-    // Update URL with 'subtab' param (not 'tab' to avoid conflict with dashboard routing)
-    // Preserve 'tab=social' and other query params
     const params = new URLSearchParams(searchParams.toString())
     params.set('subtab', newTab)
-
-    // Ensure 'tab=social' is set
     if (!params.has('tab') || params.get('tab') !== 'social') {
       params.set('tab', 'social')
     }
-
-    // Only update query params, keep the same pathname - no navigation
     if (pathname) {
       router.replace(`${pathname}?${params.toString()}`, { scroll: false })
     }
   }
-
-  const [searchQuery, setSearchQuery] = useState('')
 
   const filteredFollowers = followers.filter((item: FollowItem) =>
     item.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -337,226 +213,11 @@ export function SocialPanel({ address }: SocialPanelProps) {
     (item.slug && item.slug.toLowerCase().includes(searchQuery.toLowerCase()))
   )
 
-  const handleUnfollow = async (targetAddress: string) => {
-    try {
-      const normalizedTargetAddress = targetAddress.toLowerCase()
-      const response = await fetch(`/api/profile/${normalizedTargetAddress}/follow`, {
-        method: 'DELETE',
-        credentials: 'include',
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Unfollow failed')
-      }
-
-      // Remove from following list via cache update
-      queryClient.setQueryData(['following', address?.toLowerCase(), filter, sort], (prev: FollowItem[] | undefined) =>
-        prev?.filter((item) => item.address.toLowerCase() !== normalizedTargetAddress) || []
-      )
-
-      toast.success('Unfollowed successfully')
-    } catch (error: any) {
-      console.error('Error unfollowing:', error)
-      toast.error('Failed to unfollow. Please try again.')
-    }
-  }
-
-  const handleBlock = async (targetAddress: string) => {
-    try {
-      const normalizedTargetAddress = targetAddress.toLowerCase()
-      const response = await fetch(`/api/profile/${normalizedTargetAddress}/block`, {
-        method: 'POST',
-        credentials: 'include',
-      })
-
-      if (!response.ok) {
-        throw new Error('Block action failed')
-      }
-
-      const { blocked } = await response.json()
-
-      // Update local state: if blocked, remove from both lists
-      if (blocked) {
-        queryClient.setQueryData(['followers', address?.toLowerCase(), filter, sort], (prev: FollowItem[] | undefined) => 
-          prev?.filter(f => f.address.toLowerCase() !== normalizedTargetAddress) || []
-        )
-        queryClient.setQueryData(['following', address?.toLowerCase(), filter, sort], (prev: FollowItem[] | undefined) => 
-          prev?.filter(f => f.address.toLowerCase() !== normalizedTargetAddress) || []
-        )
-        toast.success('User blocked successfully')
-      } else {
-        toast.success('User unblocked successfully')
-      }
-    } catch (error) {
-      console.error('Error blocking:', error)
-      toast.error('Failed to block user')
-    }
-  }
-
-  const handleRemoveFollower = async (targetAddress: string) => {
-    try {
-      const normalizedTargetAddress = targetAddress.toLowerCase()
-      const response = await fetch(`/api/profile/${normalizedTargetAddress}/remove-follower`, {
-        method: 'DELETE',
-        credentials: 'include',
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to remove follower')
-      }
-
-      // Remove from followers list via cache
-      queryClient.setQueryData(['followers', address?.toLowerCase(), filter, sort], (prev: FollowItem[] | undefined) => 
-        prev?.filter(f => f.address.toLowerCase() !== normalizedTargetAddress) || []
-      )
-      toast.success('Follower removed')
-    } catch (error) {
-      console.error('Error removing follower:', error)
-      toast.error('Failed to remove follower')
-    }
-  }
-
   if (!mounted) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-64 w-full" />
-      </div>
-    )
-  }
-
-  const renderList = (
-    items: FollowItem[],
-    emptyTitle: string,
-    emptyHelper: string,
-    showUnfollow = false,
-    suggestions: any[] = [],
-    dateLabel = 'Followed on',
-    showRemoveFollower = false
-  ) => {
-    if (loading) {
-      return (
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="flex items-center gap-4">
-              <Skeleton className="h-10 w-10 rounded-full" />
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-3 w-20" />
-              </div>
-            </div>
-          ))}
-        </div>
-      )
-    }
-
-    const suggestionsBlock = suggestions && suggestions.length > 0 && (
-      <div className="w-full mt-8 text-left border-t pt-6">
-        <h4 className="text-sm font-semibold mb-3 px-1 flex items-center gap-2">
-          <UserPlus className="h-4 w-4 text-primary" />
-          Suggested for you
-        </h4>
-        <div className="space-y-0 border rounded-md overflow-hidden">
-          {suggestions.map((s) => (
-            <ConnectionCard
-              key={s.address}
-              address={s.address}
-              displayName={s.displayName}
-              avatarUrl={`https://effigy.im/a/${s.address.toLowerCase()}.svg`}
-              primaryRole={s.primaryRole}
-              statusMessage={s.statusMessage}
-              connectionReason={s.reason}
-              followedAt={new Date(s.createdAt)}
-              dateLabel="Joined"
-              isPremium={s.isPremium}
-            // No showUnfollow since these are suggestions
-            />
-          ))}
-        </div>
-      </div>
-    )
-
-    if (items.length === 0) {
-      return (
-        <div className="flex flex-col items-center justify-center py-12 px-4 text-center border border-dashed rounded-lg">
-          {emptyTitle.toLowerCase().includes('followers') ? (
-            <Users className="h-10 w-10 text-muted-foreground" />
-          ) : (
-            <UserPlus className="h-10 w-10 text-muted-foreground" />
-          )}
-          <div>
-            <p className="text-sm font-medium mb-1 mt-4">{emptyTitle}</p>
-            <p className="text-xs text-muted-foreground mb-4">
-              {emptyHelper}
-            </p>
-          </div>
-          {emptyTitle === 'No followers yet' && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                >
-                  <Share2 className="mr-2 h-3.5 w-3.5" />
-                  Share your profile
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="center">
-                <DropdownMenuItem onClick={handleCopyLink}>
-                  <Copy className="mr-2 h-4 w-4" />
-                  Copy profile link
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleShareTwitter}>
-                  <Twitter className="mr-2 h-4 w-4" />
-                  Share on X
-                </DropdownMenuItem>
-                {typeof navigator !== 'undefined' && typeof navigator.share === 'function' && (
-                  <DropdownMenuItem onClick={handleShareNative}>
-                    <Share2 className="mr-2 h-4 w-4" />
-                    Share via...
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setQrModalOpen(true)}>
-                  <QrCode className="mr-2 h-4 w-4" />
-                  Show QR code
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-
-          {/* Suggestions in Empty State */}
-          {suggestionsBlock}
-        </div>
-      )
-    }
-
-    return (
-      <div className="space-y-0">
-        {items.map((item) => (
-          <ConnectionCard
-            key={item.address}
-            address={item.address}
-            displayName={item.displayName}
-            avatarUrl={`https://effigy.im/a/${item.address.toLowerCase()}.svg`}
-            followedAt={new Date(item.createdAt)}
-            showUnfollow={showUnfollow}
-            onUnfollow={handleUnfollow}
-            onBlock={handleBlock}
-            isBlocked={item.isBlocked}
-            showRemoveFollower={showRemoveFollower && isOwnProfile}
-            onRemoveFollower={handleRemoveFollower}
-            connectionStrength={item.score}
-            connectionReason={item.reason}
-            primaryRole={item.primaryRole}
-            statusMessage={item.statusMessage}
-            dateLabel={dateLabel}
-            isPremium={item.isPremium}
-          />
-        ))}
-        {/* Suggestions appended to list */}
-        {suggestionsBlock}
       </div>
     )
   }
@@ -574,7 +235,6 @@ export function SocialPanel({ address }: SocialPanelProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {/* KPI Cards */}
           <SocialKPICards stats={socialStats} loading={statsLoading} />
 
           <Tabs value={activeTab} onValueChange={handleTabChange}>
@@ -632,35 +292,51 @@ export function SocialPanel({ address }: SocialPanelProps) {
             </div>
 
             <TabsContent value="followers" className="mt-4">
-              {renderList(
-                filteredFollowers,
-                'No followers yet',
-                'Share your profile to get discovered.',
-                false,
-                suggestionsData?.suggestions, // Pass suggestions
-                'Followed you on',
-                true // showRemoveFollower
-              )}
+              <SocialList
+                items={filteredFollowers}
+                loading={loading}
+                emptyTitle="No followers yet"
+                emptyHelper="Share your profile to get discovered."
+                showUnfollow={false}
+                suggestions={suggestionsData?.suggestions}
+                dateLabel="Followed you on"
+                showRemoveFollower={isOwnProfile ?? false}
+                onRemoveFollower={handleRemoveFollower}
+                onBlock={handleBlock}
+                onCopyLink={handleCopyLink}
+                onShareTwitter={handleShareTwitter}
+                onShareNative={handleShareNative}
+                onShowQrCode={() => setQrModalOpen(true)}
+              />
             </TabsContent>
+
             <TabsContent value="following" className="mt-4">
-              {renderList(
-                filteredFollowing,
-                "You're not following anyone yet",
-                'Explore profiles and follow creators.',
-                true, // showUnfollow
-                suggestionsData?.suggestions, // Pass suggestions
-                'Followed on'
-              )}
+              <SocialList
+                items={filteredFollowing}
+                loading={loading}
+                emptyTitle="You're not following anyone yet"
+                emptyHelper="Explore profiles and follow creators."
+                showUnfollow={true}
+                suggestions={suggestionsData?.suggestions}
+                dateLabel="Followed on"
+                onUnfollow={handleUnfollow}
+                onBlock={handleBlock}
+              />
             </TabsContent>
 
             <TabsContent value="mutuals" className="mt-4">
-              {mutualsData && renderList(
-                mutualsData.mutuals || [],
-                'No mutual connections',
-                'Mutual connections appear when you follow each other.',
-                false,
-                suggestionsData?.suggestions, // Pass suggestions
-                'Followed on'
+              {mutualsData && (
+                <SocialList
+                  items={mutualsData.mutuals || []}
+                  loading={mutualsLoading}
+                  emptyTitle="No mutual connections"
+                  emptyHelper="Mutual connections appear when you follow each other."
+                  showUnfollow={false}
+                  suggestions={suggestionsData?.suggestions}
+                  dateLabel="Followed on"
+                  onUnfollow={handleUnfollow}
+                  onBlock={handleBlock}
+                />
               )}
             </TabsContent>
 
@@ -695,9 +371,8 @@ export function SocialPanel({ address }: SocialPanelProps) {
                             displayName={item.displayName}
                             avatarUrl={`https://effigy.im/a/${item.address.toLowerCase()}.svg`}
                             primaryRole={item.primaryRole}
-                            followedAt={new Date()} // Not really followed, just for display
-                            dateLabel="Joined" // Since we don't know join date from search, maybe just hide or use dummy
-                          // Custom action to replace View/More with Follow
+                            followedAt={new Date()}
+                            dateLabel="Joined"
                           />
                           {!isSelf && (
                             <div className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -721,7 +396,13 @@ export function SocialPanel({ address }: SocialPanelProps) {
                     Type to search...
                     {suggestionsData?.suggestions && suggestionsData.suggestions.length > 0 && (
                       <div className="mt-8">
-                        {renderList(suggestionsData.suggestions, '', '', false, [], 'Joined')}
+                        <SocialList
+                          items={suggestionsData.suggestions}
+                          loading={false}
+                          emptyTitle=""
+                          emptyHelper=""
+                          dateLabel="Joined"
+                        />
                       </div>
                     )}
                   </div>
@@ -732,7 +413,6 @@ export function SocialPanel({ address }: SocialPanelProps) {
         </CardContent>
       </Card>
 
-      {/* QR Code Modal */}
       {address && isValidAddress(address) && (
         <QRCodeModal
           open={qrModalOpen}
