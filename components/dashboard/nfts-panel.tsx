@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, memo } from 'react'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useAccount } from 'wagmi'
@@ -45,7 +45,7 @@ function NftCardSkeleton() {
     )
 }
 
-function NftCard({ nft }: { nft: NormalizedNft }) {
+const NftCard = memo(function NftCard({ nft }: { nft: NormalizedNft }) {
     const [imgError, setImgError] = useState(false)
     const explorerUrl = nft.contract && nft.tokenId
         ? `https://snowtrace.io/token/${nft.contract}?a=${nft.tokenId}`
@@ -98,7 +98,7 @@ function NftCard({ nft }: { nft: NormalizedNft }) {
             </div>
         </div>
     )
-}
+})
 
 export function NftsPanel({ address: propAddress }: NftsPanelProps) {
     const [mounted, setMounted] = useState(false)

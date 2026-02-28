@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { formatAddress } from '@/lib/utils'
@@ -35,7 +36,7 @@ interface ConnectionCardProps {
     isPremium?: boolean
 }
 
-export function ConnectionCard({
+export const ConnectionCard = memo(function ConnectionCard({
     address,
     displayName,
     avatarUrl,
@@ -228,4 +229,4 @@ export function ConnectionCard({
             </div>
         </div>
     )
-}
+})

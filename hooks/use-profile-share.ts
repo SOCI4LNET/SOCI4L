@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { toast } from 'sonner'
 import { getPublicProfileHref } from '@/lib/routing'
 import { formatAddress } from '@/lib/utils'
@@ -14,7 +15,7 @@ interface UseProfileShareProps {
 }
 
 export function useProfileShare({ address, isOwnProfile, profileData }: UseProfileShareProps) {
-    const getShareUrl = (): string => {
+    const getShareUrl = useCallback((): string => {
         if (typeof window === 'undefined') {
             const appUrl = process.env.NEXT_PUBLIC_APP_URL || ''
             const profilePath = getPublicProfileHref(address, profileData?.profile?.slug)
@@ -23,9 +24,9 @@ export function useProfileShare({ address, isOwnProfile, profileData }: UseProfi
         const baseUrl = window.location.origin
         const profilePath = getPublicProfileHref(address, profileData?.profile?.slug)
         return `${baseUrl}${profilePath}`
-    }
+    }, [address, profileData])
 
-    const handleCopyLink = async () => {
+    const handleCopyLink = useCallback(async () => {
         const url = getShareUrl()
         try {
             await navigator.clipboard.writeText(url)
@@ -33,9 +34,9 @@ export function useProfileShare({ address, isOwnProfile, profileData }: UseProfi
         } catch {
             toast.error('Failed to copy')
         }
-    }
+    }, [getShareUrl])
 
-    const handleShareTwitter = () => {
+    const handleShareTwitter = useCallback(() => {
         const url = getShareUrl()
         let shareText: string
         if (isOwnProfile) {
@@ -46,9 +47,9 @@ export function useProfileShare({ address, isOwnProfile, profileData }: UseProfi
         }
         const text = encodeURIComponent(shareText)
         window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank', 'noopener')
-    }
+    }, [getShareUrl, isOwnProfile, profileData, address])
 
-    const handleShareNative = async () => {
+    const handleShareNative = useCallback(async () => {
         const url = getShareUrl()
         if (navigator.share) {
             try {
@@ -76,7 +77,7 @@ export function useProfileShare({ address, isOwnProfile, profileData }: UseProfi
         } else {
             handleCopyLink()
         }
-    }
+    }, [getShareUrl, isOwnProfile, profileData, address, handleCopyLink])
 
     return { handleCopyLink, handleShareTwitter, handleShareNative }
 }

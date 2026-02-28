@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
+import { useCallback } from 'react'
 import { toast } from 'sonner'
 import { FilterType, SortType } from '@/components/dashboard/social-filter-bar'
 import { RoleTag } from '@/components/dashboard/connection-card'
@@ -19,7 +20,7 @@ export interface FollowItem {
 export function useSocialActions(address: string, filter: FilterType, sort: SortType) {
     const queryClient = useQueryClient()
 
-    const handleFollow = async (targetAddress: string) => {
+    const handleFollow = useCallback(async (targetAddress: string) => {
         try {
             const normalizedTargetAddress = targetAddress.toLowerCase()
             const response = await fetch(`/api/profile/${normalizedTargetAddress}/follow`, {
@@ -35,9 +36,9 @@ export function useSocialActions(address: string, filter: FilterType, sort: Sort
         } catch (e) {
             toast.error('Failed to follow')
         }
-    }
+    }, [address, filter, sort, queryClient])
 
-    const handleUnfollow = async (targetAddress: string) => {
+    const handleUnfollow = useCallback(async (targetAddress: string) => {
         try {
             const normalizedTargetAddress = targetAddress.toLowerCase()
             const response = await fetch(`/api/profile/${normalizedTargetAddress}/follow`, {
@@ -59,9 +60,9 @@ export function useSocialActions(address: string, filter: FilterType, sort: Sort
             console.error('Error unfollowing:', error)
             toast.error('Failed to unfollow. Please try again.')
         }
-    }
+    }, [address, filter, sort, queryClient])
 
-    const handleBlock = async (targetAddress: string) => {
+    const handleBlock = useCallback(async (targetAddress: string) => {
         try {
             const normalizedTargetAddress = targetAddress.toLowerCase()
             const response = await fetch(`/api/profile/${normalizedTargetAddress}/block`, {
@@ -90,9 +91,9 @@ export function useSocialActions(address: string, filter: FilterType, sort: Sort
             console.error('Error blocking:', error)
             toast.error('Failed to block user')
         }
-    }
+    }, [address, filter, sort, queryClient])
 
-    const handleRemoveFollower = async (targetAddress: string) => {
+    const handleRemoveFollower = useCallback(async (targetAddress: string) => {
         try {
             const normalizedTargetAddress = targetAddress.toLowerCase()
             const response = await fetch(`/api/profile/${normalizedTargetAddress}/remove-follower`, {
@@ -112,7 +113,7 @@ export function useSocialActions(address: string, filter: FilterType, sort: Sort
             console.error('Error removing follower:', error)
             toast.error('Failed to remove follower')
         }
-    }
+    }, [address, filter, sort, queryClient])
 
     return { handleFollow, handleUnfollow, handleBlock, handleRemoveFollower }
 }

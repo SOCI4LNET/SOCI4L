@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { ConnectionCard } from '@/components/dashboard/connection-card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { UserPlus } from 'lucide-react'
@@ -22,7 +23,7 @@ interface SocialListProps {
     onShowQrCode?: () => void
 }
 
-export function SocialList({
+export const SocialList = memo(function SocialList({
     items,
     loading,
     emptyTitle,
@@ -120,4 +121,4 @@ export function SocialList({
             {suggestionsBlock}
         </div>
     )
-}
+})
