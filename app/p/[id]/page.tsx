@@ -1620,7 +1620,7 @@ export default function ProfilePage({ params }: PageProps) {
                                                         name: 'Avalanche',
                                                         symbol: 'AVAX',
                                                         balance: parseFloat(walletData.nativeBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 }),
-                                                        icon: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
+                                                        icon: '/tokens/avax.svg',
                                                         fallback: '🔺'
                                                     })
                                                 }
