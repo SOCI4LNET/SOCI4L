@@ -854,7 +854,7 @@ export default function ProfilePage({ params }: PageProps) {
                                             disabled={isOwnProfile}
                                         >
                                             <Heart className="h-3.5 w-3.5" />
-                                            <span>D</span>onate
+                                            <span>D{'onate'}</span>
                                         </Button>
                                     </div>
                                 )}
