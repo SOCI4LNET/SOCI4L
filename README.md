@@ -1,79 +1,104 @@
-# SOCI4L .
+<div align="center">
+  <img src="https://raw.githubusercontent.com/fther/soci4l/main/public/logo.svg" alt="SOCI4L Logo" width="150" height="150" onerror="this.src='https://via.placeholder.com/150?text=SOCI4L'"/>
+  <br/>
+  
+  # SOCI4L
+  
+  **Turn any EVM wallet into a customizable, measurable, and shareable public profile.**
 
-Avalanche C-Chain cüzdan adreslerini arayıp profil sayfalarını görüntüleyebileceğiniz bir Next.js web uygulaması.
+  <p>
+    SOCI4L is an Avalanche-native public profile system built for the broader EVM ecosystem. It creates a premium public identity surface for your on-chain and off-chain existence.
+  </p>
 
-## Özellikler
+  <p align="center">
+    <img src="https://img.shields.io/badge/Web3-Identity-blue?style=flat" alt="Web3 Identity" />
+    <img src="https://img.shields.io/badge/EVM-Compatible-blueviolet?style=flat" alt="EVM Compatible" />
+    <img src="https://img.shields.io/badge/Built_for-Avalanche-E84142?style=flat&logo=avalanche&logoColor=white" alt="Built for Avalanche" />
+    <img src="https://img.shields.io/badge/Non--Custodial-Secure-success?style=flat" alt="Non-Custodial" />
+    <img src="https://img.shields.io/badge/License-MIT-yellow?style=flat" alt="License MIT" />
+  </p>
 
-- 🔍 **Cüzdan Arama**: Herhangi bir Avalanche cüzdan adresini arayın
-- 📊 **Profil Sayfaları**: UNCLAIMED, CLAIMED+PUBLIC, veya CLAIMED+PRIVATE durumları
-- 🎨 **Profil Talep Etme**: Nonce + imza ile cüzdan sahipliğini kanıtlayın
-- ⚙️ **Dashboard**: Profil sahipleri için tam kontrol paneli
-- 🖼️ **NFT Vitrin**: Seçilen NFT'leri profil sayfasında sergileyin
-- 🔒 **Gizlilik Kontrolü**: Profilleri halka açık veya özel yapın
+</div>
 
-## Teknoloji Stack
+---
 
-- **Framework**: Next.js 14 (App Router)
-- **Dil**: TypeScript
-- **Stil**: Tailwind CSS + shadcn/ui
-- **Blockchain**: wagmi + viem (Avalanche C-Chain)
-- **Data Providers**: SnowTrace API (Assets), OpenSea API (NFTs), CoinGecko (Prices)
-- **Veritabanı**: Prisma + SQLite / PostgreSQL
+## The Vision
 
-## Kurulum
-...
-### Adım 3: Ortam Değişkenlerini Ayarlayın
+In the current Web3 landscape, wallets hold assets, transaction history, and reputation, yet they are not inherently human-readable or socially usable. Users often resort to sharing raw, complex cryptographic addresses instead of a unified, verifiable identity.
 
-`.env` dosyası oluşturun:
+SOCI4L provides a solution by converting an abstract crypto wallet into a premium, public-facing identity surface. Users are equipped with a profile that aggregates their personalized links, automated portfolio value, NFT showcases, social context, and multichain activity. Crucially, all of this is tied securely to the user's wallet without requiring them to give up custody of their underlying assets. 
 
+With SOCI4L, every wallet becomes a distinct public identity.
+
+## Key Features
+
+- **Universal Discoverability**: Create a SOCI4L profile with any EVM-compatible address. Key profile actions, including claims and username registrations (slugs), are recorded securely on the Avalanche C-Chain.
+- **Direct On-Chain Tipping (Donate)**: Facilitate direct financial support for creators and builders via their SOCI4L profile using AVAX. Transactions are settled instantly on-chain, managed by custom smart contracts to ensure transparency and trust.
+- **Premium Aesthetic Profiles**: Build high-quality, fully customizable profiles. Display your personalized bio, integrated social links, assigned roles (e.g., "Builder", "Trader"), and dynamic layouts tailored to your personal brand.
+- **NFT and Asset Showcase**: Feature your prized NFTs directly on your profile through seamless OpenSea integration. Real-time token balances and portfolio valuations are fetched dynamically via SnowTrace and pricing oracles.
+- **Comprehensive Dashboard**: Gain complete control over your decentralized identity. The dashboard offers an intuitive interface to manage visibility settings, reorganize external links, view detailed analytics, and track page engagement.
+- **Privacy and Moderation Controls**: Maintain a secure social experience using built-in privacy settings, as well as robust blocking and muting features to curate interactions.
+
+## Technology Stack
+
+SOCI4L is built on a modern, performance-oriented stack designed to scale seamlessly across Web2 and Web3 paradigms.
+
+- **Framework**: [Next.js 14 (App Router)](https://nextjs.org/) for server-side rendering, routing, and optimized performance.
+- **Language**: [TypeScript](https://www.typescriptlang.org/) for robust type safety and improved developer experience.
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) paired with [shadcn/ui](https://ui.shadcn.com/) for rapid, accessible, and customizable interface design.
+- **State Management**: [Zustand](https://github.com/pmndrs/zustand) for global client state and [TanStack React Query](https://tanstack.com/query/latest) for efficient data fetching and caching.
+- **Web3 Integration**: Engineered with [wagmi](https://wagmi.sh/), [viem](https://viem.sh/), and WalletConnect for secure and versatile wallet interactions and contract reads/writes.
+- **Database & ORM**: [Prisma](https://www.prisma.io/) serves as the ORM layer, utilizing PostgreSQL in production and SQLite for streamlined local development.
+- **Data Providers**: Integrates SnowTrace API for robust asset indexing, OpenSea API for NFT data, and CoinGecko for accurate price feeds.
+
+## Installation and Setup
+
+### 1. Clone the Repository
+Clone the project to your local machine:
+```bash
+git clone https://github.com/fther/soci4l.git
+cd soci4l
+```
+
+### 2. Install Dependencies
+Install the required packages via npm:
+```bash
+npm install
+```
+
+### 3. Setup Environment Variables
+Initialize your local environment configuration by creating a `.env` file in the root directory:
 ```bash
 echo 'DATABASE_URL="file:./dev.db"' > .env
 ```
 
-**⚠️ Önemli**: Development'ta SQLite kullanıyorsanız, schema PostgreSQL için ayarlıdır. Production (Vercel) deploy için PostgreSQL veritabanı gereklidir. Detaylar için `docs/VERCEL_SETUP.md` dosyasına bakın.
+*Note: In local development, SQLite is configured by default to ensure ease of setup. The Prisma schema is optimized for PostgreSQL, which must be utilized in Production environments (e.g., when deploying to platforms like Vercel).*
 
-Opsiyonel değişkenler:
-- `NEXT_PUBLIC_AVALANCHE_RPC`: Avalanche RPC endpoint (varsayılan: public RPC)
-- `OPENSEA_API_KEY`: **Önerilen** - OpenSea API v2 anahtarı (NFT'leri profesyonel seviyede görüntülemek için)
-  - OpenSea API v2 kullanarak Avalanche zincirindeki NFT'leri çeker
-  - Ücretsiz API anahtarı almak için: https://opensea.io/api
-  - API anahtarı olmadan NFT'ler RPC fallback ile gösterilir (sınırlı)
-- `SNOWTRACE_API_KEY`: Snowtrace API anahtarı (opsiyonel - ücretsiz plan API key gerektirmez)
-  - **ÜCRETSİZ PLAN**: 2 req/saniye, 10,000 çağrı/gün (API key olmadan çalışır!)
-  - API key sadece daha yüksek limitler için gerekli
-  - Ücretsiz API key almak için: https://snowtrace.io/apis
-- `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`: WalletConnect Project ID
+**Optional but Recommended Variables:**
+To utilize the full feature set of SOCI4L, you may configure the following API keys:
+- `NEXT_PUBLIC_AVALANCHE_RPC`: Specify a custom Avalanche RPC endpoint for optimized blockchain reading.
+- `OPENSEA_API_KEY`: Required to fetch comprehensive and consistent NFT meta-data directly from the Avalanche chain.
+- `SNOWTRACE_API_KEY`: Upgrades your SnowTrace rate limits. Note that the free tier API functions adequately at up to 2 requests per second.
+- `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`: Enables robust wallet connection modalities via WalletConnect infrastructure.
 
-...
+### 4. Database Initialization
+Synchronize the Prisma schema with your local database instance:
+```bash
+npm run db:push
+npm run db:generate
+```
 
-## Notlar
+### 5. Start Development Server
+Boot up the Next.js development server:
+```bash
+npm run dev
+```
+Navigate to [http://localhost:3000](http://localhost:3000) in your browser to view and interact with the application.
 
-- **Data Fetching**: Token ve NFT bakiyeleri SnowTrace API ve RPC fallback sistemi ile çekilir. Moralis veya benzeri ücretli middleware'lere ihtiyaç duyulmaz.
-- API anahtarları opsiyoneldir. Anahtar olmadan da temel işlevler çalışır (ücretsiz limitlerle).
+## Contributing
 
-## Test Etme
+Contributions from the open-source community are highly encouraged. If you have an idea for a feature, spot a bug, or wish to improve the documentation, please feel free to open an issue or submit a pull request.
 
-### Assets Sayfasını Test Etme
+## License
 
-1. Token bakiyesi olan bir cüzdan adresi ile test edin:
-   ```
-   /dashboard/0x.../assets
-   ```
-
-2. Console loglarını kontrol edin (F12 > Console):
-   - `[Assets Panel]` - UI tarafı logları
-   - `[Assets API]` - API route logları
-
-3. Bilinen zengin cüzdanlar (test için):
-   - Avalanche Foundation: `0x8eb8a3b98659C8f2725A7743C832d2bF852FDF20`
-   - veya kendi cüzdanınızı kullanın
-
-4. Hata durumlarını test edin:
-   - Geçersiz adres: 400 hatası
-   - Rate limit: 429 hatası (retry butonu ile tekrar deneyin)
-- Veritabanı SQLite kullanır, production için PostgreSQL önerilir
-- Cache mekanizması basit in-memory cache kullanır (production için Redis önerilir)
-
-## Lisans
-
-MIT
+This project is licensed under the MIT License.
