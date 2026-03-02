@@ -840,7 +840,7 @@ export default function ProfilePage({ params }: PageProps) {
                             {/* Top Action Band */}
                             <div className="absolute top-0 right-0 flex items-center gap-2">
                                 {profileAddressForFollow && !isOwnProfile && !profile?.isBanned && (
-                                    <div className="hidden sm:flex gap-2 [&_button]:px-[14px] [&_button]:h-8 [&_button]:rounded-[10px] [&_button]:bg-foreground/5 [&_button]:border-foreground/10 hover:[&_button]:bg-foreground/10 [&_button]:text-foreground [&_button]:font-medium [&_button]:backdrop-blur-md [&_button]:transition-all [&_button]:active:scale-95 [&_svg]:h-[14px] [&_svg]:w-[14px] [&_button]:gap-1.5 [&_button]:text-xs">
+                                    <div className="hidden sm:flex gap-2 [&_button]:px-[14px] [&_button]:h-8 [&_button]:rounded-[10px] [&_button]:bg-foreground/5 [&_button]:border-foreground/10 [&_button:hover]:bg-foreground/10 [&_button]:text-foreground [&_button]:font-medium [&_button]:backdrop-blur-md [&_button]:transition-all [&_button:active]:scale-95 [&_svg]:h-[14px] [&_svg]:w-[14px] [&_button]:gap-1.5 [&_button]:text-xs">
                                         <FollowToggle
                                             address={profileAddressForFollow}
                                             isBlockedByViewer={isBlockedByViewer}
