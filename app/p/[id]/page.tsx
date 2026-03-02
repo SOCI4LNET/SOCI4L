@@ -848,9 +848,12 @@ export default function ProfilePage({ params }: PageProps) {
                                         />
                                         <Button
                                             variant="outline"
+                                            size="sm"
+                                            className="h-8 gap-1.5 text-xs font-medium"
                                             onClick={() => setDonateModalOpen(true)}
+                                            disabled={isOwnProfile}
                                         >
-                                            <Heart />
+                                            <Heart className="h-3.5 w-3.5" />
                                             <span>D</span>onate
                                         </Button>
                                     </div>
