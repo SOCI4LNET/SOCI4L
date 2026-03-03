@@ -224,30 +224,15 @@ export default function PremiumPage() {
 
                     {/* FEATURE 1: SOURCE ATTRIBUTION */}
                     <section className="max-w-6xl mx-auto px-6 mb-32">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-                            <motion.div
-                                initial={{ opacity: 0, x: -50 }}
-                                whileInView={{ opacity: 1, x: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.8 }}
-                            >
-                                <div className="flex items-center gap-2 text-foreground mb-4">
-                                    <TrendingUp className="w-5 h-5" />
-                                    <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Analytics</span>
-                                </div>
-                                <h2 className="text-3xl font-semibold mb-4 text-foreground">Know exactly where your traffic comes from.</h2>
-                                <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
-                                    Stop guessing. See precise breakdowns of your traffic sources.
-                                </p>
-                            </motion.div>
-
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-stretch">
+                            {/* Visual Side */}
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 viewport={{ once: true }}
                                 transition={{ duration: 0.5 }}
                             >
-                                <Card className="bg-card border-border/60 shadow-none relative z-10">
+                                <Card className="bg-card border-border/60 shadow-none h-full">
                                     <CardHeader className="pb-3 px-6">
                                         <div className="flex items-center justify-between">
                                             <div>
@@ -264,9 +249,7 @@ export default function PremiumPage() {
                                                 </CardTitle>
                                                 <CardDescription className="text-[11px]">Traffic attribution by origin</CardDescription>
                                             </div>
-                                            <Badge variant="outline" className="text-[10px] font-medium opacity-70">
-                                                Measurable Profile
-                                            </Badge>
+                                            <Badge variant="outline" className="text-[10px] font-medium opacity-70">Measurable Profile</Badge>
                                         </div>
                                     </CardHeader>
                                     <CardContent className="px-6 pb-6">
@@ -287,13 +270,11 @@ export default function PremiumPage() {
                                                                             initial={{ width: 0 }}
                                                                             whileInView={{ width: `${percentage}%` }}
                                                                             transition={{ duration: 1, delay: 0.2 }}
-                                                                            className="h-full bg-white rounded-full"
+                                                                            className="h-full bg-foreground rounded-full"
                                                                         />
                                                                     </div>
                                                                 </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <p>{val} views from {key}</p>
-                                                                </TooltipContent>
+                                                                <TooltipContent><p>{val} views from {key}</p></TooltipContent>
                                                             </Tooltip>
                                                         </div>
                                                     </AnimatedListItem>
@@ -303,52 +284,6 @@ export default function PremiumPage() {
                                     </CardContent>
                                 </Card>
                             </motion.div>
-                        </div>
-                    </section>
-
-                    {/* FEATURE 2: PERFORMANCE BREAKDOWNS */}
-                    <section className="max-w-6xl mx-auto px-6 mb-32">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-                            {/* Visual Side (Left on Desktop) */}
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                whileInView={{ opacity: 1, scale: 1 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.5 }}
-                                className="relative order-2 md:order-1"
-                            >
-                                <div className="grid gap-4 relative z-10">
-                                    {/* Top Links Card */}
-                                    <Card className="bg-card border border-border/60 shadow-none">
-                                        <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Top Links</CardTitle></CardHeader>
-                                        <CardContent>
-                                            {MOCK_TOP_LINKS.slice(0, 5).map((link, i) => (
-                                                <AnimatedListItem key={link.id} index={i}>
-                                                    <div className="flex justify-between py-2 border-b border-border/40 last:border-0 text-sm">
-                                                        <span className="truncate max-w-[200px]">{link.title}</span>
-                                                        <span className="font-mono">{link.clicks}</span>
-                                                    </div>
-                                                </AnimatedListItem>
-                                            ))}
-                                        </CardContent>
-                                    </Card>
-
-                                    {/* Top Categories Card */}
-                                    <Card className="bg-card border border-border/60 shadow-none">
-                                        <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Top Categories</CardTitle></CardHeader>
-                                        <CardContent>
-                                            {MOCK_CATEGORIES.map((cat, i) => (
-                                                <AnimatedListItem key={cat.id} index={i}>
-                                                    <div className="flex justify-between py-2 border-b border-border/40 last:border-0 text-sm">
-                                                        <span>{cat.name}</span>
-                                                        <span className="font-mono">{cat.totalClicks}</span>
-                                                    </div>
-                                                </AnimatedListItem>
-                                            ))}
-                                        </CardContent>
-                                    </Card>
-                                </div>
-                            </motion.div>
 
                             {/* Text Side */}
                             <motion.div
@@ -356,78 +291,135 @@ export default function PremiumPage() {
                                 whileInView={{ opacity: 1, x: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ duration: 0.8 }}
-                                className="order-1 md:order-2"
+                                className="flex flex-col justify-between"
                             >
-                                <div className="flex items-center gap-2 text-foreground mb-4">
-                                    <BarChart2 className="w-5 h-5" />
-                                    <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Performance</span>
+                                <div>
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <TrendingUp className="w-4 h-4 text-muted-foreground" />
+                                        <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Analytics</span>
+                                    </div>
+                                    <h2 className="text-[30px] font-medium leading-tight mb-4 text-foreground">Know exactly where your traffic comes from.</h2>
+                                    <p className="text-base text-muted-foreground leading-relaxed">
+                                        Stop guessing. See precise breakdowns of your traffic sources â€” X, Instagram, Direct, and beyond.
+                                    </p>
                                 </div>
-                                <h2 className="text-3xl font-semibold mb-4 text-foreground">Identify what resonates. Eliminate what doesn't.</h2>
-                                <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
-                                    Discover your highest-performing links and content categories. Understand user intent and restructure your profile.
-                                </p>
+                                <div className="mt-8 pt-8 border-t border-border/30">
+                                    <p className="text-xs font-semibold text-foreground mb-4">Source intelligence</p>
+                                    <div className="grid grid-cols-2 gap-x-8 gap-y-2">
+                                        {['Referrer Tracking', 'Origin Breakdown', 'Platform Attribution', 'UTM Support'].map((item) => (
+                                            <span key={item} className="text-sm text-muted-foreground">{item}</span>
+                                        ))}
+                                    </div>
+                                </div>
                             </motion.div>
                         </div>
                     </section>
 
-                    {/* FEATURE 3: REAL-TIME ACTIVITY (Timeline Style Reconstruction) */}
+                    {/* FEATURE 2: PERFORMANCE BREAKDOWNS */}
                     <section className="max-w-6xl mx-auto px-6 mb-32">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-stretch">
+                            {/* Text Side */}
                             <motion.div
                                 initial={{ opacity: 0, x: -50 }}
                                 whileInView={{ opacity: 1, x: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ duration: 0.8 }}
+                                className="flex flex-col justify-between"
                             >
-                                <div className="flex items-center gap-2 text-foreground mb-4">
-                                    <Zap className="w-5 h-5" />
-                                    <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Real-time</span>
+                                <div>
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <BarChart2 className="w-4 h-4 text-muted-foreground" />
+                                        <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Performance</span>
+                                    </div>
+                                    <h2 className="text-[30px] font-medium leading-tight mb-4 text-foreground">Identify what resonates. Eliminate what doesn't.</h2>
+                                    <p className="text-base text-muted-foreground leading-relaxed">
+                                        Discover your highest-performing links and content categories. Understand user intent and restructure your profile.
+                                    </p>
                                 </div>
-                                <h2 className="text-3xl font-semibold mb-4 text-foreground">Track on-chain identities. <br /> In real-time.</h2>
-                                <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
-                                    See exactly who is interacting with your profile. Premium insights reveal real-time analytics.
-                                </p>
+                                <div className="mt-8 pt-8 border-t border-border/30">
+                                    <p className="text-xs font-semibold text-foreground mb-4">Full-stack understanding</p>
+                                    <div className="grid grid-cols-2 gap-x-8 gap-y-2">
+                                        {['Top Links Ranking', 'Category Analytics', 'Click-through Rate', 'Profile Restructuring'].map((item) => (
+                                            <span key={item} className="text-sm text-muted-foreground">{item}</span>
+                                        ))}
+                                    </div>
+                                </div>
                             </motion.div>
 
+                            {/* Visual Side */}
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 viewport={{ once: true }}
                                 transition={{ duration: 0.5 }}
-                                className="relative"
+                                className="grid gap-4 content-start"
                             >
-                                {/* ACTIVITY FEED CARD (TIMELINE STYLE) */}
-                                <Card className="bg-card border border-border/60 shadow-none relative z-10 h-[380px] overflow-hidden">
+                                <Card className="bg-card border border-border/60 shadow-none">
+                                    <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Top Links</CardTitle></CardHeader>
+                                    <CardContent>
+                                        {MOCK_TOP_LINKS.slice(0, 5).map((link, i) => (
+                                            <AnimatedListItem key={link.id} index={i}>
+                                                <div className="flex justify-between py-2 border-b border-border/40 last:border-0 text-sm">
+                                                    <span className="truncate max-w-[200px]">{link.title}</span>
+                                                    <span className="font-mono">{link.clicks}</span>
+                                                </div>
+                                            </AnimatedListItem>
+                                        ))}
+                                    </CardContent>
+                                </Card>
+                                <Card className="bg-card border border-border/60 shadow-none">
+                                    <CardHeader className="pb-3"><CardTitle className="text-sm font-medium">Top Categories</CardTitle></CardHeader>
+                                    <CardContent>
+                                        {MOCK_CATEGORIES.map((cat, i) => (
+                                            <AnimatedListItem key={cat.id} index={i}>
+                                                <div className="flex justify-between py-2 border-b border-border/40 last:border-0 text-sm">
+                                                    <span>{cat.name}</span>
+                                                    <span className="font-mono">{cat.totalClicks}</span>
+                                                </div>
+                                            </AnimatedListItem>
+                                        ))}
+                                    </CardContent>
+                                </Card>
+                            </motion.div>
+                        </div>
+                    </section>
+
+                    {/* FEATURE 3: REAL-TIME ACTIVITY */}
+                    <section className="max-w-6xl mx-auto px-6 mb-32">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-stretch">
+                            {/* Visual Side */}
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                whileInView={{ opacity: 1, scale: 1 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.5 }}
+                            >
+                                <Card className="bg-card border border-border/60 shadow-none relative h-full overflow-hidden" style={{ minHeight: '380px' }}>
                                     <CardHeader className="pb-3 border-b border-border/40">
                                         <CardTitle className="text-base text-foreground">Recent Activity</CardTitle>
                                         <CardDescription className="text-xs">Latest events timeline (verified real-time activity)</CardDescription>
                                     </CardHeader>
                                     <CardContent className="pt-6 relative pl-10">
-                                        {/* Timeline Vertical Line */}
                                         <div className="absolute left-[24px] top-6 bottom-0 w-[1px] bg-border/40 h-full" />
-
                                         <div className="space-y-6">
                                             {MOCK_ACTIVITY.map((act, i) => (
                                                 <AnimatedListItem key={act.id} index={i}>
                                                     <div className="flex items-start gap-4 relative group/item hover:bg-muted/30 p-2 rounded-lg -mx-2 transition-all duration-300">
-                                                        {/* Status Indicator Dot (on the timeline) */}
-                                                        <div className="absolute left-[-28px] top-[14px] w-2.5 h-2.5 rounded-full bg-border border-2 border-background z-10 group-hover/item:bg-primary group-hover/item:scale-125 transition-all duration-300 shadow-[0_0_10px_rgba(var(--primary),0.3)]" />
-
+                                                        <div className="absolute left-[-28px] top-[14px] w-2.5 h-2.5 rounded-full bg-border border-2 border-background z-10 group-hover/item:bg-primary group-hover/item:scale-125 transition-all duration-300" />
                                                         <div className="flex items-start gap-3 w-full">
                                                             <div className="relative">
                                                                 <PixelAvatar address={act.fullVisitor} />
-                                                                {/* Online dot indicator */}
                                                                 <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-background animate-pulse" />
                                                             </div>
                                                             <div className="flex-1 min-w-0 pt-0.5">
                                                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                                                                     <div className="flex items-center gap-1.5 text-xs text-foreground font-medium">
-                                                                        <Badge variant="secondary" className="px-1.5 py-0 h-5 font-mono text-[10px] bg-muted/50 text-muted-foreground border-border group-hover/item:border-primary/30 transition-colors">
+                                                                        <Badge variant="secondary" className="px-1.5 py-0 h-5 font-mono text-[10px] bg-muted/50 text-muted-foreground border-border">
                                                                             {act.visitor}
                                                                         </Badge>
-                                                                        <span className="text-muted-foreground group-hover/item:text-foreground transition-colors">{act.action}</span>
+                                                                        <span className="text-muted-foreground">{act.action}</span>
                                                                     </div>
-                                                                    <span className="text-[10px] text-muted-foreground/60 font-mono group-hover/item:text-primary/60 transition-colors">
+                                                                    <span className="text-[10px] text-muted-foreground/60 font-mono">
                                                                         {formatDistanceToNow(new Date(act.timestamp), { addSuffix: true })}
                                                                     </span>
                                                                 </div>
@@ -438,84 +430,116 @@ export default function PremiumPage() {
                                             ))}
                                         </div>
                                     </CardContent>
-                                    {/* Fade out bottom to indicate scroll/flow */}
                                     <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-card via-card/80 to-transparent pointer-events-none" />
                                 </Card>
+                            </motion.div>
+
+                            {/* Text Side */}
+                            <motion.div
+                                initial={{ opacity: 0, x: 50 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.8 }}
+                                className="flex flex-col justify-between"
+                            >
+                                <div>
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <Zap className="w-4 h-4 text-muted-foreground" />
+                                        <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Real-time</span>
+                                    </div>
+                                    <h2 className="text-[30px] font-medium leading-tight mb-4 text-foreground">Track on-chain identities. In real-time.</h2>
+                                    <p className="text-base text-muted-foreground leading-relaxed">
+                                        See exactly who is interacting with your profile. Premium insights reveal wallet-level activity as it happens.
+                                    </p>
+                                </div>
+                                <div className="mt-8 pt-8 border-t border-border/30">
+                                    <p className="text-xs font-semibold text-foreground mb-4">Live visibility</p>
+                                    <div className="grid grid-cols-2 gap-x-8 gap-y-2">
+                                        {['Wallet Identification', 'Action Timeline', 'QR Scan Tracking', 'Share Detection'].map((item) => (
+                                            <span key={item} className="text-sm text-muted-foreground">{item}</span>
+                                        ))}
+                                    </div>
+                                </div>
                             </motion.div>
                         </div>
                     </section>
 
                     {/* FEATURE 4: INDIVIDUAL LINK ANALYTICS */}
                     <section className="max-w-6xl mx-auto px-6 mb-32">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-                            {/* Visual Side (Left on Desktop) */}
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                whileInView={{ opacity: 1, scale: 1 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.5 }}
-                                className="relative order-2"
-                            >
-                                <div className="grid gap-4 relative z-10">
-                                    <Card className="bg-card border border-border/60 shadow-none">
-                                        <CardHeader className="pb-3 px-6">
-                                            <div className="flex items-center justify-between">
-                                                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                                                    Source Breakdown
-                                                    <Badge variant="outline" className="text-[10px] bg-primary/5 text-primary border-primary/20">Link Specific</Badge>
-                                                </CardTitle>
-                                            </div>
-                                        </CardHeader>
-                                        <CardContent className="px-6 pb-6">
-                                            <div className="space-y-4">
-                                                <div className="space-y-1.5">
-                                                    <div className="flex justify-between text-xs"><span className="text-muted-foreground">X</span><span className="text-foreground">65%</span></div>
-                                                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden"><div className="h-full bg-white w-[65%]" /></div>
-                                                </div>
-                                                <div className="space-y-1.5">
-                                                    <div className="flex justify-between text-xs"><span className="text-muted-foreground">Direct / Copy</span><span className="text-foreground">25%</span></div>
-                                                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden"><div className="h-full bg-white w-[25%]" /></div>
-                                                </div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-
-                                    <Card className="bg-card border border-border/60 shadow-none">
-                                        <CardHeader className="pb-3 px-6">
-                                            <CardTitle className="text-sm font-semibold">Visitor History</CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="px-6 pb-4">
-                                            <div className="space-y-3">
-                                                <div className="flex justify-between items-center text-xs pb-2 border-b border-border/40">
-                                                    <span className="font-mono text-primary">0x123...890</span>
-                                                    <span className="text-muted-foreground">2m ago</span>
-                                                </div>
-                                                <div className="flex justify-between items-center text-xs">
-                                                    <span className="font-mono text-primary">0xabc...def</span>
-                                                    <span className="text-muted-foreground">15m ago</span>
-                                                </div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                </div>
-                            </motion.div>
-
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-stretch">
                             {/* Text Side */}
                             <motion.div
                                 initial={{ opacity: 0, x: -50 }}
                                 whileInView={{ opacity: 1, x: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ duration: 0.8 }}
-                                className="order-1"
+                                className="flex flex-col justify-between"
                             >
-                                <div className="flex items-center gap-2 text-foreground mb-4">
-                                    <Link2 className="w-5 h-5" />
-                                    <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Link Analytics</span>
+                                <div>
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <Link2 className="w-4 h-4 text-muted-foreground" />
+                                        <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Link Analytics</span>
+                                    </div>
+                                    <h2 className="text-[30px] font-medium leading-tight mb-4 text-foreground">Detailed link performance. Down to the click.</h2>
+                                    <p className="text-base text-muted-foreground leading-relaxed">
+                                        Gain surgical precision with link-specific insights. Track source attribution, visitor wallets, and referrers for every link.
+                                    </p>
                                 </div>
-                                <h2 className="text-3xl font-semibold mb-4 text-foreground">Detailed Link Performance. <br /> Down to the click.</h2>
-                                <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
-                                    Gain surgical precision with link-specific insights. Track source attribution, visitor wallets, and referrers for every single link in your profile.
-                                </p>
+                                <div className="mt-8 pt-8 border-t border-border/30">
+                                    <p className="text-xs font-semibold text-foreground mb-4">Per-link precision</p>
+                                    <div className="grid grid-cols-2 gap-x-8 gap-y-2">
+                                        {['Source Attribution', 'Visitor Wallets', 'Referrer Data', 'Click History'].map((item) => (
+                                            <span key={item} className="text-sm text-muted-foreground">{item}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </motion.div>
+
+                            {/* Visual Side */}
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                whileInView={{ opacity: 1, scale: 1 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.5 }}
+                                className="grid gap-4 content-start"
+                            >
+                                <Card className="bg-card border border-border/60 shadow-none">
+                                    <CardHeader className="pb-3 px-6">
+                                        <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                                            Source Breakdown
+                                            <Badge variant="outline" className="text-[10px] bg-primary/5 text-primary border-primary/20">Link Specific</Badge>
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="px-6 pb-6">
+                                        <div className="space-y-4">
+                                            <div className="space-y-1.5">
+                                                <div className="flex justify-between text-xs"><span className="text-muted-foreground">X</span><span className="text-foreground">65%</span></div>
+                                                <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden"><div className="h-full bg-foreground w-[65%]" /></div>
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <div className="flex justify-between text-xs"><span className="text-muted-foreground">Direct / Copy</span><span className="text-foreground">25%</span></div>
+                                                <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden"><div className="h-full bg-foreground w-[25%]" /></div>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                                <Card className="bg-card border border-border/60 shadow-none">
+                                    <CardHeader className="pb-3 px-6">
+                                        <CardTitle className="text-sm font-semibold">Visitor History</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="px-6 pb-4">
+                                        <div className="space-y-3">
+                                            <div className="flex justify-between items-center text-xs pb-2 border-b border-border/40">
+                                                <span className="font-mono text-primary">0x123...890</span>
+                                                <span className="text-muted-foreground">2m ago</span>
+                                            </div>
+                                            <div className="flex justify-between items-center text-xs">
+                                                <span className="font-mono text-primary">0xabc...def</span>
+                                                <span className="text-muted-foreground">15m ago</span>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
                             </motion.div>
                         </div>
                     </section>

@@ -81,7 +81,7 @@ export function RoadmapSection() {
                             {/* Horizontal Line Segment */}
                             <div className={cn(
                                 "absolute top-[11px] left-0 w-full h-[1px] -z-10 overflow-hidden",
-                                item.status === 'done' ? "bg-emerald-500/40" : "bg-border"
+                                item.status === 'done' ? "bg-emerald-500/40" : "bg-foreground/20"
                             )}>
                                 {item.status === 'active' && (
                                     <motion.div
@@ -97,7 +97,7 @@ export function RoadmapSection() {
                             {index > 0 && (
                                 <div className={cn(
                                     "absolute top-[11px] -left-32 w-32 h-[1px] -z-10",
-                                    ROADMAP_ITEMS[index - 1].status === 'done' ? "bg-emerald-500/40" : "bg-border"
+                                    ROADMAP_ITEMS[index - 1].status === 'done' ? "bg-emerald-500/40" : "bg-foreground/20"
                                 )} />
                             )}
 
