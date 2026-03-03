@@ -840,7 +840,7 @@ export default function ProfilePage({ params }: PageProps) {
                             {/* Top Action Band */}
                             <div className="absolute top-0 right-0 flex items-center gap-2">
                                 {profileAddressForFollow && !isOwnProfile && !profile?.isBanned && (
-                                    <div className="hidden sm:flex gap-2 [&_button]:px-[14px] [&_button]:h-8 [&_button]:rounded-[10px] [&_button]:bg-white/5 [&_button]:border [&_button]:border-white/10 [&_button:hover]:bg-white/10 [&_button]:text-foreground [&_button]:font-medium [&_button]:backdrop-blur-md [&_button]:transition-all [&_button:active]:scale-95 [&_svg]:h-[14px] [&_svg]:w-[14px] [&_button]:gap-1.5 [&_button]:text-xs">
+                                    <div className="hidden sm:flex gap-2 [&_button]:px-[14px] [&_button]:h-8 [&_button]:rounded-[10px] [&_button]:bg-foreground/5 [&_button]:border [&_button]:border-foreground/10 [&_button:hover]:bg-foreground/10 [&_button]:text-foreground [&_button]:font-medium [&_button]:backdrop-blur-md [&_button]:transition-all [&_button:active]:scale-95 [&_svg]:h-[14px] [&_svg]:w-[14px] [&_button]:gap-1.5 [&_button]:text-xs">
                                         <FollowToggle
                                             address={profileAddressForFollow}
                                             isBlockedByViewer={isBlockedByViewer}
@@ -849,7 +849,7 @@ export default function ProfilePage({ params }: PageProps) {
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            className="gap-2 text-xs font-medium bg-white/5 hover:bg-white/10 border-white/10 text-foreground"
+                                            className="gap-2 text-xs font-medium bg-foreground/5 hover:bg-foreground/10 border-foreground/10 text-foreground"
                                             onClick={() => setDonateModalOpen(true)}
                                             disabled={isOwnProfile}
                                         >
@@ -861,7 +861,7 @@ export default function ProfilePage({ params }: PageProps) {
                                 {resolvedAddress && isValidAddress(resolvedAddress) && !profile?.isBanned && (
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <button className="h-8 w-8 shrink-0 rounded-[10px] bg-white/5 border border-white/10 flex items-center justify-center text-foreground/70 hover:text-foreground hover:bg-white/10 transition-all active:scale-95 backdrop-blur-md [&_svg]:stroke-[1.5]">
+                                            <button className="h-8 w-8 shrink-0 rounded-[10px] bg-foreground/5 border border-foreground/10 flex items-center justify-center text-foreground/70 hover:text-foreground hover:bg-foreground/10 transition-all active:scale-95 backdrop-blur-md [&_svg]:stroke-[1.5]">
                                                 <MoreVertical className="h-[16px] w-[16px]" />
                                             </button>
                                         </DropdownMenuTrigger>
@@ -1934,7 +1934,7 @@ export default function ProfilePage({ params }: PageProps) {
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            className="h-11 gap-2 text-xs font-medium bg-white/5 hover:bg-white/10 border-white/10 text-foreground"
+                                            className="h-11 gap-2 text-xs font-medium bg-foreground/5 hover:bg-foreground/10 border-foreground/10 text-foreground"
                                             onClick={() => setDonateModalOpen(true)}
                                             disabled={isOwnProfile}
                                         >
