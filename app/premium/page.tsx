@@ -223,7 +223,7 @@ export default function PremiumPage() {
                     </section>
 
                     {/* FEATURE 1: SOURCE ATTRIBUTION */}
-                    <section className="max-w-6xl mx-auto px-6 mb-32">
+                    <section className="max-w-6xl mx-auto px-6 mb-48">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-stretch">
                             {/* Visual Side */}
                             <motion.div
@@ -315,8 +315,14 @@ export default function PremiumPage() {
                         </div>
                     </section>
 
+                    {/* SECTION DIVIDER */}
+                    <div className="max-w-6xl mx-auto px-6 mb-48 flex items-center gap-6">
+                        <span className="text-[11px] font-mono text-muted-foreground/40 tabular-nums">02</span>
+                        <div className="flex-1 h-[1px] bg-border/30" />
+                    </div>
+
                     {/* FEATURE 2: PERFORMANCE BREAKDOWNS */}
-                    <section className="max-w-6xl mx-auto px-6 mb-32">
+                    <section className="max-w-6xl mx-auto px-6 mb-48">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-stretch">
                             {/* Text Side */}
                             <motion.div
@@ -384,8 +390,14 @@ export default function PremiumPage() {
                         </div>
                     </section>
 
+                    {/* SECTION DIVIDER */}
+                    <div className="max-w-6xl mx-auto px-6 mb-48 flex items-center gap-6">
+                        <span className="text-[11px] font-mono text-muted-foreground/40 tabular-nums">03</span>
+                        <div className="flex-1 h-[1px] bg-border/30" />
+                    </div>
+
                     {/* FEATURE 3: REAL-TIME ACTIVITY */}
-                    <section className="max-w-6xl mx-auto px-6 mb-32">
+                    <section className="max-w-6xl mx-auto px-6 mb-48">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-stretch">
                             {/* Visual Side */}
                             <motion.div
@@ -464,8 +476,14 @@ export default function PremiumPage() {
                         </div>
                     </section>
 
+                    {/* SECTION DIVIDER */}
+                    <div className="max-w-6xl mx-auto px-6 mb-48 flex items-center gap-6">
+                        <span className="text-[11px] font-mono text-muted-foreground/40 tabular-nums">04</span>
+                        <div className="flex-1 h-[1px] bg-border/30" />
+                    </div>
+
                     {/* FEATURE 4: INDIVIDUAL LINK ANALYTICS */}
-                    <section className="max-w-6xl mx-auto px-6 mb-32">
+                    <section className="max-w-6xl mx-auto px-6 mb-48">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-stretch">
                             {/* Text Side */}
                             <motion.div
