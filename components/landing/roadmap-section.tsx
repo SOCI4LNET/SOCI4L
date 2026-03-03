@@ -71,7 +71,7 @@ export function RoadmapSection() {
 
                 <motion.div
                     style={{ x }}
-                    className="flex gap-16 md:gap-32 px-12 md:px-32 items-center"
+                    className="flex gap-16 md:gap-32 px-12 md:px-32 items-start pt-40"
                 >
                     {/* Intro Spacer */}
                     <div className="w-[15vw] shrink-0" />
@@ -79,7 +79,10 @@ export function RoadmapSection() {
                     {ROADMAP_ITEMS.map((item, index) => (
                         <div key={item.phase} className="relative shrink-0 w-[70vw] md:w-[500px] group/section">
                             {/* Horizontal Line Segment */}
-                            <div className="absolute top-[11px] left-0 w-full h-[1px] bg-border -z-10 overflow-hidden">
+                            <div className={cn(
+                                "absolute top-[11px] left-0 w-full h-[1px] -z-10 overflow-hidden",
+                                item.status === 'done' ? "bg-emerald-500/40" : "bg-border"
+                            )}>
                                 {item.status === 'active' && (
                                     <motion.div
                                         initial={{ x: '-100%' }}
@@ -90,8 +93,13 @@ export function RoadmapSection() {
                                 )}
                             </div>
 
-                            {/* Connection to previous */}
-                            {index > 0 && <div className="absolute top-[11px] -left-32 w-32 h-[1px] bg-border -z-10" />}
+                            {/* Connection to previous — green if previous was done */}
+                            {index > 0 && (
+                                <div className={cn(
+                                    "absolute top-[11px] -left-32 w-32 h-[1px] -z-10",
+                                    ROADMAP_ITEMS[index - 1].status === 'done' ? "bg-emerald-500/40" : "bg-border"
+                                )} />
+                            )}
 
                             <div className="relative z-10">
                                 {/* Timeline Node */}
