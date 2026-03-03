@@ -56,7 +56,7 @@ import { getAvatarUrl } from '@/lib/avatar'
 
 interface PageProps {
     params: {
-        id: string
+        id?: string
     }
 }
 
@@ -99,6 +99,7 @@ interface CooldownInfo {
 export default function ProfilePage({ params }: PageProps) {
     const router = useRouter()
     const searchParams = useSearchParams()
+    const routeId = typeof params?.id === 'string' ? params.id : ''
     const { address: connectedAddress, status, isReconnecting } = useAccount()
     const [walletData, setWalletData] = useState<WalletData | null>(null)
     const [profileStatus, setProfileStatus] = useState<'UNCLAIMED' | 'CLAIMED+PUBLIC' | 'CLAIMED+PRIVATE' | 'COOLDOWN'>('UNCLAIMED')
@@ -181,7 +182,7 @@ export default function ProfilePage({ params }: PageProps) {
         : null
 
     const addressFromParam =
-        params.id.startsWith('0x') && isValidAddress(params.id) ? params.id.toLowerCase() : null
+        routeId.startsWith('0x') && isValidAddress(routeId) ? routeId.toLowerCase() : null
 
     const stableProfileId = addressFromProfile || addressFromParam || null
 
@@ -197,7 +198,7 @@ export default function ProfilePage({ params }: PageProps) {
 
             try {
                 // Check if id is an address (starts with 0x) or a slug
-                const isAddress = params.id.startsWith('0x') && isValidAddress(params.id)
+                const isAddress = routeId.startsWith('0x') && isValidAddress(routeId)
 
                 let response: Response
                 // Add cache bust timestamp to prevent aggressive caching
@@ -206,13 +207,13 @@ export default function ProfilePage({ params }: PageProps) {
                 // --- PHASE 1: Fetch Identity Data (Fast) ---
                 let profileResponse: Response
                 if (isAddress) {
-                    const normalizedAddress = params.id.toLowerCase()
+                    const normalizedAddress = routeId.toLowerCase()
                     profileResponse = await fetch(`/api/profile/${normalizedAddress}?_t=${cacheBust}`, {
                         cache: 'no-store',
                         headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' },
                     })
                 } else {
-                    profileResponse = await fetch(`/api/profile/${params.id}?_t=${cacheBust}`, { // Assuming /api/profile handles slugs too, or might need a specific endpoint
+                    profileResponse = await fetch(`/api/profile/${routeId}?_t=${cacheBust}`, { // Assuming /api/profile handles slugs too, or might need a specific endpoint
                         cache: 'no-store',
                         headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' },
                     })
@@ -225,8 +226,8 @@ export default function ProfilePage({ params }: PageProps) {
                 // If I modify `/api/wallet/route.ts` to take a `?skipWallet=true` flag, it can return instantly!
 
                 const skipWalletUrl = isAddress
-                    ? `/api/wallet?address=${params.id.toLowerCase()}&skipWallet=true&_t=${cacheBust}`
-                    : `/api/wallet?slug=${params.id}&skipWallet=true&_t=${cacheBust}`
+                    ? `/api/wallet?address=${routeId.toLowerCase()}&skipWallet=true&_t=${cacheBust}`
+                    : `/api/wallet?slug=${routeId}&skipWallet=true&_t=${cacheBust}`
 
                 const baseResponse = await fetch(skipWalletUrl, {
                     cache: 'no-store',
@@ -345,7 +346,7 @@ export default function ProfilePage({ params }: PageProps) {
         } // End of fetchData
 
         fetchData()
-    }, [params.id])
+    }, [routeId])
 
     // Layout config is loaded from /api/wallet response above
 
@@ -516,7 +517,7 @@ export default function ProfilePage({ params }: PageProps) {
     const handleClaimSuccess = async () => {
         // Get the resolved address (from profile or params)
         // Normalize to lowercase for consistency
-        const resolvedAddress = profile?.address?.toLowerCase() || (params.id.startsWith('0x') ? params.id.toLowerCase() : null)
+        const resolvedAddress = profile?.address?.toLowerCase() || (routeId.startsWith('0x') ? routeId.toLowerCase() : null)
 
         if (resolvedAddress) {
             // Refresh router cache first
@@ -599,9 +600,9 @@ export default function ProfilePage({ params }: PageProps) {
         resolvedAddress && isValidAddress(resolvedAddress) ? resolvedAddress.toLowerCase() : null
     const shortAddress = resolvedAddress
         ? formatAddress(resolvedAddress)
-        : params.id.startsWith('0x')
-            ? formatAddress(params.id)
-            : params.id
+        : routeId.startsWith('0x')
+            ? formatAddress(routeId)
+            : routeId
     const primaryDisplayName = profile?.displayName || shortAddress
     const isProMember = Boolean(profile?.premiumExpiresAt && new Date(profile.premiumExpiresAt) > new Date())
 
@@ -764,7 +765,7 @@ export default function ProfilePage({ params }: PageProps) {
                     </CardHeader>
                     <CardContent className="text-center space-y-4">
                         <p className="text-muted-foreground">
-                            The profile <strong>{params.id}</strong> does not exist.
+                            The profile <strong>{routeId}</strong> does not exist.
                         </p>
                         <Link href="/">
                             <Button variant="outline">Back to Home</Button>
@@ -1405,7 +1406,7 @@ export default function ProfilePage({ params }: PageProps) {
                                                                                                     </p>
                                                                                                     <p className={`${getThemeTextClasses(effectiveAppearanceConfig.theme, 'small')} truncate flex items-center gap-1.5`}>
                                                                                                         {displayUrl}
-                                                                                                        {link.url.startsWith('http://') && (
+                                                                                                        {typeof link.url === 'string' && link.url.startsWith('http://') && (
                                                                                                             <TooltipProvider>
                                                                                                                 <Tooltip>
                                                                                                                     <TooltipTrigger>
