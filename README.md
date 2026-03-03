@@ -1,5 +1,5 @@
 <div align="center">
-  # SOCI4L
+  SOCI4L
   
   **Turn any EVM wallet into a customizable, measurable, and shareable public profile.**
 
@@ -47,54 +47,6 @@ SOCI4L is built on a modern, performance-oriented stack designed to scale seamle
 - **Database & ORM**: [Prisma](https://www.prisma.io/) serves as the ORM layer, utilizing PostgreSQL in production and SQLite for streamlined local development.
 - **Data Providers**: Integrates SnowTrace API for robust asset indexing, OpenSea API for NFT data, and CoinGecko for accurate price feeds.
 
-## Installation and Setup
-
-### 1. Clone the Repository
-Clone the project to your local machine:
-```bash
-git clone https://github.com/fther/soci4l.git
-cd soci4l
-```
-
-### 2. Install Dependencies
-Install the required packages via npm:
-```bash
-npm install
-```
-
-### 3. Setup Environment Variables
-Initialize your local environment configuration by creating a `.env` file in the root directory:
-```bash
-echo 'DATABASE_URL="file:./dev.db"' > .env
-```
-
-*Note: In local development, SQLite is configured by default to ensure ease of setup. The Prisma schema is optimized for PostgreSQL, which must be utilized in Production environments (e.g., when deploying to platforms like Vercel).*
-
-**Optional but Recommended Variables:**
-To utilize the full feature set of SOCI4L, you may configure the following API keys:
-- `NEXT_PUBLIC_AVALANCHE_RPC`: Specify a custom Avalanche RPC endpoint for optimized blockchain reading.
-- `OPENSEA_API_KEY`: Required to fetch comprehensive and consistent NFT meta-data directly from the Avalanche chain.
-- `SNOWTRACE_API_KEY`: Upgrades your SnowTrace rate limits. Note that the free tier API functions adequately at up to 2 requests per second.
-- `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`: Enables robust wallet connection modalities via WalletConnect infrastructure.
-
-### 4. Database Initialization
-Synchronize the Prisma schema with your local database instance:
-```bash
-npm run db:push
-npm run db:generate
-```
-
-### 5. Start Development Server
-Boot up the Next.js development server:
-```bash
-npm run dev
-```
-Navigate to [http://localhost:3000](http://localhost:3000) in your browser to view and interact with the application.
-
 ## Contributing
 
 Contributions from the open-source community are highly encouraged. If you have an idea for a feature, spot a bug, or wish to improve the documentation, please feel free to open an issue or submit a pull request.
-
-## License
-
-This project is licensed under the MIT License.
