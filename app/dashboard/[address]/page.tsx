@@ -54,6 +54,7 @@ const NftsPanel = dynamic(() => import('@/components/dashboard/nfts-panel').then
 import { PageShell } from '@/components/app-shell/page-shell'
 import { sanitizeQueryParams } from '@/lib/query-params'
 import { isProfileClaimed } from '@/lib/profile/isProfileClaimed'
+import { DashboardCommandMenu } from '@/components/dashboard/command-menu'
 
 interface Profile {
   id: string
@@ -665,6 +666,7 @@ export default function DashboardAddressPage() {
   return (
     <div className="flex flex-1 flex-col">
       {renderPanel()}
+      <DashboardCommandMenu />
     </div>
   )
 }
