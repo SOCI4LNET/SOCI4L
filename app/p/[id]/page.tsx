@@ -1924,21 +1924,23 @@ export default function ProfilePage({ params }: PageProps) {
                                     <Copy className="h-4 w-4" />
                                     Address
                                 </Button>
-                                <FollowToggle
-                                    address={profileAddressForFollow}
-                                    isBlockedByViewer={isBlockedByViewer}
-                                    onBlockChange={(blocked) => setIsBlockedByViewer(blocked)}
-                                />
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-10 gap-2 text-xs font-medium"
-                                    onClick={() => setDonateModalOpen(true)}
-                                    disabled={isOwnProfile}
-                                >
-                                    <Heart className="h-4 w-4" />
-                                    Donate
-                                </Button>
+                                {!isOwnProfile && (
+                                    <FollowToggle
+                                        address={profileAddressForFollow}
+                                        isBlockedByViewer={isBlockedByViewer}
+                                        onBlockChange={(blocked) => setIsBlockedByViewer(blocked)}
+                                    />
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-10 gap-2 text-xs font-medium"
+                                        onClick={() => setDonateModalOpen(true)}
+                                        disabled={isOwnProfile}
+                                    >
+                                        <Heart className="h-4 w-4" />
+                                        Donate
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     </div>
