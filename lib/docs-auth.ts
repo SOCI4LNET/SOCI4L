@@ -1,6 +1,10 @@
 import { cookies } from 'next/headers'
-
-export const DOCS_ADMIN_SESSION_COOKIE = 'soci4l_docs_admin_session'
+import {
+    createDocsAdminSessionToken,
+    DOCS_ADMIN_SESSION_COOKIE,
+    DOCS_ADMIN_SESSION_MAX_AGE_SECONDS,
+    verifyDocsAdminSessionToken,
+} from '@/lib/docs-auth-token'
 
 export interface DocsAdminSession {
     id: string
@@ -9,19 +13,40 @@ export interface DocsAdminSession {
 }
 
 export async function getDocsAdminSession(): Promise<DocsAdminSession | null> {
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const sessionCookie = cookieStore.get(DOCS_ADMIN_SESSION_COOKIE)
 
     if (!sessionCookie) return null
 
-    try {
-        const value = sessionCookie.value.startsWith('%')
-            ? decodeURIComponent(sessionCookie.value)
-            : sessionCookie.value
-
-        const session = JSON.parse(value)
-        return session as DocsAdminSession
-    } catch {
+    const session = await verifyDocsAdminSessionToken(sessionCookie.value)
+    if (!session) {
         return null
     }
+
+    return {
+        id: session.id,
+        address: session.address,
+        role: session.role,
+    }
+}
+
+export async function setDocsAdminSession(session: DocsAdminSession): Promise<boolean> {
+    const token = await createDocsAdminSessionToken(session)
+    if (!token) return false
+
+    const cookieStore = await cookies()
+    cookieStore.set(DOCS_ADMIN_SESSION_COOKIE, token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: DOCS_ADMIN_SESSION_MAX_AGE_SECONDS,
+        path: '/',
+    })
+
+    return true
+}
+
+export async function clearDocsAdminSession(): Promise<void> {
+    const cookieStore = await cookies()
+    cookieStore.delete(DOCS_ADMIN_SESSION_COOKIE)
 }

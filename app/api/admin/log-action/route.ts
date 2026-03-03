@@ -11,7 +11,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { action, targetType, targetId, metadata } = body
 
-    // Get admin address from metadata (client-side passes it)
     // Verify admin session
     const adminAddress = await requireAdmin('api')
 
@@ -25,6 +24,14 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error: any) {
+    const message = String(error?.message || '')
+    if (message.includes('Unauthorized:')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    if (message.includes('Forbidden:')) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     console.error('[POST /api/admin/log-action] Error', error)
     return NextResponse.json(
       { error: 'Failed to log action' },

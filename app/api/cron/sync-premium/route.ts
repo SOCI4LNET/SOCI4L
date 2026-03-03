@@ -18,7 +18,18 @@ const EVENT = parseAbiItem('event PremiumPurchased(address indexed user, uint256
 // 3. Helper: Resolve Start Block
 const DEFAULT_START_BLOCK = BigInt(77000000)
 
-export async function GET(request: NextRequest) {
+function isAuthorizedCronRequest(request: NextRequest): boolean {
+    const authHeader = request.headers.get('authorization')
+    const cronSecret = process.env.CRON_SECRET
+    if (!cronSecret) return false
+    return authHeader === `Bearer ${cronSecret}`
+}
+
+export async function POST(request: NextRequest) {
+    if (!isAuthorizedCronRequest(request)) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     try {
         const INDEXER_KEY = 'premium_payment_v1'
 
@@ -241,4 +252,8 @@ export async function GET(request: NextRequest) {
         console.error('[Sync Premium] Error:', error)
         return NextResponse.json({ error: error.message }, { status: 500 })
     }
+}
+
+export async function GET(request: NextRequest) {
+    return POST(request)
 }

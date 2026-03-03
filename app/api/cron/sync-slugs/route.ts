@@ -19,7 +19,18 @@ const EVENT = parseAbiItem('event SlugClaimed(bytes32 indexed slugHash, address 
 // 3. Helper: Resolve Start Block
 const DEFAULT_START_BLOCK = BigInt(77000000)
 
-export async function GET(request: NextRequest) {
+function isAuthorizedCronRequest(request: NextRequest): boolean {
+    const authHeader = request.headers.get('authorization')
+    const cronSecret = process.env.CRON_SECRET
+    if (!cronSecret) return false
+    return authHeader === `Bearer ${cronSecret}`
+}
+
+export async function POST(request: NextRequest) {
+    if (!isAuthorizedCronRequest(request)) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     try {
         const INDEXER_KEY = 'slug_registry_v1'
 
@@ -185,4 +196,8 @@ export async function GET(request: NextRequest) {
         console.error('[Sync Slugs] Error:', error)
         return NextResponse.json({ error: error.message }, { status: 500 })
     }
+}
+
+export async function GET(request: NextRequest) {
+    return POST(request)
 }

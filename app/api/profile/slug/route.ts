@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { verifyMessage, recoverMessageAddress } from 'viem'
 import { prisma } from '@/lib/prisma'
 import { isValidAddress } from '@/lib/utils'
+import { getNonce, markNonceAsUsed } from '@/lib/nonce-store'
 
 export async function POST(request: NextRequest) {
   try {
@@ -65,6 +66,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const nonceRecord = getNonce(nonce)
+    if (!nonceRecord || nonceRecord.used) {
+      return NextResponse.json(
+        { error: 'Nonce expired or already used. Please request a new nonce.' },
+        { status: 400 }
+      )
+    }
+
     // Build message
     const normalizedSlug = slug ? String(slug).trim().toLowerCase() : ''
     const message = `Set slug for ${address} to ${normalizedSlug || '(empty)'}. Nonce: ${nonce}`
@@ -102,6 +111,13 @@ export async function POST(request: NextRequest) {
     const normalizedAddress = address.toLowerCase()
     const normalizedSigner = signer.toLowerCase()
 
+    if (nonceRecord.address && nonceRecord.address !== normalizedSigner) {
+      return NextResponse.json(
+        { error: 'Nonce does not match wallet address.' },
+        { status: 400 }
+      )
+    }
+
     // Fetch Profile by address
     const profile = await prisma.profile.findUnique({
       where: { address: normalizedAddress },
@@ -136,6 +152,13 @@ export async function POST(request: NextRequest) {
     const finalSlug = slug && slug.trim() !== '' ? String(slug).trim().toLowerCase() : null
 
     // Use transaction to ensure atomicity and prevent race conditions
+    if (!markNonceAsUsed(nonce)) {
+      return NextResponse.json(
+        { error: 'Nonce already used' },
+        { status: 400 }
+      )
+    }
+
     const updatedProfile = await prisma.$transaction(async (tx) => {
       // Double-check slug uniqueness right before update (within transaction)
       if (finalSlug) {

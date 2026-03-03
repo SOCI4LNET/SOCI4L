@@ -2,27 +2,13 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
-
-const ADMIN_ADDRESSES = (process.env.NEXT_PUBLIC_ADMIN_ADDRESSES || '')
-    .split(',')
-    .map((addr) => addr.trim().toLowerCase())
-    .filter(Boolean)
-
-/**
- * Checks if the given address is an authorized admin.
- */
-function isAdmin(address: string) {
-    if (!address) return false
-    return ADMIN_ADDRESSES.includes(address.toLowerCase())
-}
+import { requireAdmin } from '@/lib/admin-auth'
 
 /**
  * Bans a user profile.
  */
-export async function banUser(adminAddress: string, targetAddress: string, reason: string) {
-    if (!isAdmin(adminAddress)) {
-        throw new Error('Unauthorized')
-    }
+export async function banUser(targetAddress: string, reason: string) {
+    const adminAddress = await requireAdmin('api')
 
     const normalizedTarget = targetAddress.toLowerCase()
 
@@ -54,10 +40,8 @@ export async function banUser(adminAddress: string, targetAddress: string, reaso
 /**
  * Unbans a user profile.
  */
-export async function unbanUser(adminAddress: string, targetAddress: string) {
-    if (!isAdmin(adminAddress)) {
-        throw new Error('Unauthorized')
-    }
+export async function unbanUser(targetAddress: string) {
+    const adminAddress = await requireAdmin('api')
 
     const normalizedTarget = targetAddress.toLowerCase()
 
@@ -90,13 +74,10 @@ export async function unbanUser(adminAddress: string, targetAddress: string) {
  * Updates a user profile (Bio only for now as requested).
  */
 export async function updateUserProfile(
-    adminAddress: string,
     targetAddress: string,
     data: { bio?: string; displayName?: string }
 ) {
-    if (!isAdmin(adminAddress)) {
-        throw new Error('Unauthorized')
-    }
+    const adminAddress = await requireAdmin('api')
 
     const normalizedTarget = targetAddress.toLowerCase()
 
@@ -129,10 +110,8 @@ export async function updateUserProfile(
 /**
  * Verifies a user profile (Blue Tick).
  */
-export async function verifyUser(adminAddress: string, targetAddress: string) {
-    if (!isAdmin(adminAddress)) {
-        throw new Error('Unauthorized')
-    }
+export async function verifyUser(targetAddress: string) {
+    const adminAddress = await requireAdmin('api')
 
     const normalizedTarget = targetAddress.toLowerCase()
 
@@ -164,10 +143,8 @@ export async function verifyUser(adminAddress: string, targetAddress: string) {
 /**
  * Removes verification from a user profile.
  */
-export async function unverifyUser(adminAddress: string, targetAddress: string) {
-    if (!isAdmin(adminAddress)) {
-        throw new Error('Unauthorized')
-    }
+export async function unverifyUser(targetAddress: string) {
+    const adminAddress = await requireAdmin('api')
 
     const normalizedTarget = targetAddress.toLowerCase()
 

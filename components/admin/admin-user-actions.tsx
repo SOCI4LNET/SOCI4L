@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useAccount } from 'wagmi'
 import { toast } from 'sonner'
 import { banUser, unbanUser, updateUserProfile, verifyUser, unverifyUser } from '@/actions/admin'
 
@@ -28,7 +27,6 @@ export function AdminUserActions({
     currentBio,
     currentDisplayName,
 }: AdminUserActionsProps) {
-    const { address: adminAddress } = useAccount()
     const [banOpen, setBanOpen] = useState(false)
     const [editOpen, setEditOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
@@ -39,15 +37,13 @@ export function AdminUserActions({
     const [displayName, setDisplayName] = useState(currentDisplayName || '')
 
     const handleBanToggle = async () => {
-        if (!adminAddress) return
-
         setIsLoading(true)
         try {
             if (isBanned) {
-                await unbanUser(adminAddress, address)
+                await unbanUser(address)
                 toast.success('User unbanned successfully')
             } else {
-                await banUser(adminAddress, address, banReason)
+                await banUser(address, banReason)
                 toast.success('User banned successfully')
             }
             setBanOpen(false)
@@ -60,11 +56,9 @@ export function AdminUserActions({
     }
 
     const handleUpdateProfile = async () => {
-        if (!adminAddress) return
-
         setIsLoading(true)
         try {
-            await updateUserProfile(adminAddress, address, {
+            await updateUserProfile(address, {
                 bio: bio.trim() || undefined,
                 displayName: displayName.trim() || undefined
             })
@@ -78,15 +72,13 @@ export function AdminUserActions({
     }
 
     const handleVerifyToggle = async () => {
-        if (!adminAddress) return
-
         setIsLoading(true)
         try {
             if (isVerified) {
-                await unverifyUser(adminAddress, address)
+                await unverifyUser(address)
                 toast.success('User unverified successfully')
             } else {
-                await verifyUser(adminAddress, address)
+                await verifyUser(address)
                 toast.success('User verified successfully')
             }
         } catch (error) {

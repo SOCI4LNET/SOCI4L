@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getSessionAddress } from '@/lib/auth'
+import { requireAdmin } from '@/lib/admin-auth'
 
 /**
  * PATCH /api/admin/links/[linkId]
@@ -13,19 +13,7 @@ export async function PATCH(
 ) {
     try {
         // Authorization: Check admin session
-        const sessionAddress = await getSessionAddress()
-        if (!sessionAddress) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
-
-        // Verify admin role
-        const profile = await prisma.profile.findUnique({
-            where: { address: sessionAddress.toLowerCase() },
-        })
-
-        if (!profile || profile.role !== 'ADMIN') {
-            return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 })
-        }
+        const adminAddress = await requireAdmin('api')
 
         // Validate linkId
         if (!params.linkId) {
@@ -89,7 +77,7 @@ export async function PATCH(
 
             await prisma.adminAuditLog.create({
                 data: {
-                    adminAddress: sessionAddress.toLowerCase(),
+                    adminAddress: adminAddress.toLowerCase(),
                     action: changes.length > 0 ? `update_link_${changes.join('_')}` : 'update_link',
                     targetType: 'link',
                     targetId: link.id,
@@ -108,6 +96,14 @@ export async function PATCH(
 
         return NextResponse.json({ success: true, link })
     } catch (error: any) {
+        const message = String(error?.message || '')
+        if (message.includes('Unauthorized:')) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+        if (message.includes('Forbidden:')) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        }
+
         console.error('[Admin] Error toggling link:', error)
         return NextResponse.json(
             { error: 'Internal server error', details: error.message },
@@ -127,19 +123,7 @@ export async function DELETE(
 ) {
     try {
         // Authorization: Check admin session
-        const sessionAddress = await getSessionAddress()
-        if (!sessionAddress) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
-
-        // Verify admin role
-        const profile = await prisma.profile.findUnique({
-            where: { address: sessionAddress.toLowerCase() },
-        })
-
-        if (!profile || profile.role !== 'ADMIN') {
-            return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 })
-        }
+        const adminAddress = await requireAdmin('api')
 
         // Validate linkId
         if (!params.linkId) {
@@ -165,7 +149,7 @@ export async function DELETE(
         try {
             await prisma.adminAuditLog.create({
                 data: {
-                    adminAddress: sessionAddress.toLowerCase(),
+                    adminAddress: adminAddress.toLowerCase(),
                     action: 'delete_link',
                     targetType: 'link',
                     targetId: link.id,
@@ -184,6 +168,14 @@ export async function DELETE(
 
         return NextResponse.json({ success: true })
     } catch (error: any) {
+        const message = String(error?.message || '')
+        if (message.includes('Unauthorized:')) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+        if (message.includes('Forbidden:')) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        }
+
         console.error('[Admin] Error deleting link:', error)
         return NextResponse.json(
             { error: 'Internal server error', details: error.message },

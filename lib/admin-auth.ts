@@ -19,7 +19,7 @@ export async function requireAdmin(context: 'page' | 'api' = 'page'): Promise<st
         }
     }
 
-    const ADMIN_ADDRESSES = (process.env.NEXT_PUBLIC_ADMIN_ADDRESSES || '')
+    const ADMIN_ADDRESSES = (process.env.ADMIN_ADDRESSES || process.env.NEXT_PUBLIC_ADMIN_ADDRESSES || '')
         .split(',')
         .map((addr: string) => addr.trim().toLowerCase())
         .filter(Boolean)

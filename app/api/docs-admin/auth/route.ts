@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyMessage } from 'viem'
-import { cookies } from 'next/headers'
-import { DOCS_ADMIN_SESSION_COOKIE } from '@/lib/docs-auth'
+import { clearDocsAdminSession, setDocsAdminSession } from '@/lib/docs-auth'
 
 export async function POST(request: NextRequest) {
     try {
@@ -35,20 +34,15 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Not authorized as Docs Admin' }, { status: 403 })
         }
 
-        // 3. Create Session Cookie (Simple for now, can be JWT later)
-        // Using httpOnly cookie for security
-        const cookieStore = cookies()
-        cookieStore.set(DOCS_ADMIN_SESSION_COOKIE, JSON.stringify({
+        // 3. Create signed session cookie
+        const sessionSet = await setDocsAdminSession({
             id: admin.id,
             address: admin.address,
             role: admin.role
-        }), {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            maxAge: 60 * 60 * 24 * 7, // 7 days
-            path: '/',
         })
+        if (!sessionSet) {
+            return NextResponse.json({ error: 'Session configuration error' }, { status: 500 })
+        }
 
         return NextResponse.json({ success: true, admin: { name: admin.name, role: admin.role } })
 
@@ -59,7 +53,6 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE() {
-    const cookieStore = cookies()
-    cookieStore.delete(DOCS_ADMIN_SESSION_COOKIE)
+    await clearDocsAdminSession()
     return NextResponse.json({ success: true })
 }

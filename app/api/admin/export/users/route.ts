@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSessionAddress } from '@/lib/auth'
+import { requireAdmin } from '@/lib/admin-auth'
 
 export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
@@ -8,18 +8,7 @@ import { logAdminAction } from '@/lib/admin-audit'
 export async function GET(request: NextRequest) {
   try {
     // 1. Verify Admin Auth
-    const sessionAddress = await getSessionAddress()
-    if (!sessionAddress) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const adminProfile = await prisma.profile.findUnique({
-      where: { address: sessionAddress.toLowerCase() },
-    })
-
-    if (!adminProfile || adminProfile.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 })
-    }
+    const adminAddress = await requireAdmin('api')
 
     const searchParams = request.nextUrl.searchParams
     const limit = parseInt(searchParams.get('limit') || '10000', 10)
@@ -66,7 +55,6 @@ export async function GET(request: NextRequest) {
     const csv = csvHeader + csvRows
 
     // Best-effort audit log
-    const adminAddress = request.headers.get('x-admin-address')
     await logAdminAction({
       adminAddress,
       action: 'export_users',
@@ -85,6 +73,14 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error: any) {
+    const message = String(error?.message || '')
+    if (message.includes('Unauthorized:')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    if (message.includes('Forbidden:')) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     console.error('[Admin Export] Error exporting users:', error)
     return NextResponse.json({ error: 'Failed to export users' }, { status: 500 })
   }

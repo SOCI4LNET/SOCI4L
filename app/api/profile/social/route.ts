@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { verifyMessage, recoverMessageAddress } from 'viem'
 import { prisma } from '@/lib/prisma'
 import { isValidAddress } from '@/lib/utils'
+import { getNonce, markNonceAsUsed } from '@/lib/nonce-store'
 
 type SocialLinkPlatform = 'x' | 'twitter' | 'instagram' | 'youtube' | 'github' | 'linkedin' | 'website'
 
@@ -137,6 +138,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const nonceRecord = getNonce(nonce)
+    if (!nonceRecord || nonceRecord.used) {
+      return NextResponse.json(
+        { error: 'Nonce expired or already used. Please request a new nonce.' },
+        { status: 400 }
+      )
+    }
+
     // Build message
     const message = `Update social profile for ${address}. Nonce: ${nonce}`
 
@@ -170,6 +179,13 @@ export async function POST(request: NextRequest) {
 
     const normalizedAddress = address.toLowerCase()
     const normalizedSigner = signer.toLowerCase()
+
+    if (nonceRecord.address && nonceRecord.address !== normalizedSigner) {
+      return NextResponse.json(
+        { error: 'Nonce does not match wallet address.' },
+        { status: 400 }
+      )
+    }
 
     // Fetch profile by normalized address; fallback to case-insensitive lookup
     // for legacy records that may have mixed-case addresses.
@@ -256,6 +272,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Update profile
+    if (!markNonceAsUsed(nonce)) {
+      return NextResponse.json(
+        { error: 'Nonce already used' },
+        { status: 400 }
+      )
+    }
+
     const updatedProfile = await prisma.profile.update({
       where: { id: profile.id },
       data: updateData,

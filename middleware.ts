@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { DOCS_ADMIN_SESSION_COOKIE } from './lib/docs-auth'
+import { DOCS_ADMIN_SESSION_COOKIE, verifyDocsAdminSessionToken } from './lib/docs-auth-token'
 
 // Simple in-memory rate limiter
 // Note: In a serverless/edge environment, this map is not shared across instances.
 // It provides basic protection against rapid-fire requests from a single source to a single instance.
 const rateLimit = new Map<string, { count: number; lastReset: number }>()
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
     const ip = request.headers.get('x-forwarded-for') || '127.0.0.1'
 
@@ -40,9 +40,15 @@ export function middleware(request: NextRequest) {
             return NextResponse.next()
         }
 
-        const sessionCookie = request.cookies.get(DOCS_ADMIN_SESSION_COOKIE)
+        const sessionCookie = request.cookies.get(DOCS_ADMIN_SESSION_COOKIE)?.value
 
         if (!sessionCookie) {
+            const loginUrl = new URL('/docs-admin/login', request.url)
+            return NextResponse.redirect(loginUrl)
+        }
+
+        const session = await verifyDocsAdminSessionToken(sessionCookie)
+        if (!session) {
             const loginUrl = new URL('/docs-admin/login', request.url)
             return NextResponse.redirect(loginUrl)
         }

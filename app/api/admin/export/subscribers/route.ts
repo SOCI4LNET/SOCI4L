@@ -8,7 +8,7 @@ import { requireAdmin } from '@/lib/admin-auth'
 
 export async function GET(request: NextRequest) {
   try {
-    await requireAdmin('api')
+    const adminAddress = await requireAdmin('api')
     const subscribers = await prisma.emailSubscription.findMany({
       orderBy: { createdAt: 'desc' },
     })
@@ -25,7 +25,6 @@ export async function GET(request: NextRequest) {
     const csv = csvHeader + csvRows
 
     // Best-effort audit log
-    const adminAddress = request.headers.get('x-admin-address')
     await logAdminAction({
       adminAddress,
       action: 'export_subscribers',
@@ -43,6 +42,14 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error: any) {
+    const message = String(error?.message || '')
+    if (message.includes('Unauthorized:')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    if (message.includes('Forbidden:')) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     console.error('[Admin Export] Error exporting subscribers:', error)
     return NextResponse.json(
       { error: 'Failed to export subscribers' },

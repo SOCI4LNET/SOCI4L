@@ -11,6 +11,7 @@ import {
 } from '@/lib/profile-appearance'
 import { cookies } from 'next/headers'
 import { verifyMessage, recoverMessageAddress } from 'viem'
+import { getNonce, markNonceAsUsed } from '@/lib/nonce-store'
 
 export async function POST(request: NextRequest) {
     try {
@@ -34,6 +35,21 @@ export async function POST(request: NextRequest) {
         if (!nonce) {
             return NextResponse.json(
                 { error: 'Nonce not found. Please call /api/auth/nonce first.' },
+                { status: 400 }
+            )
+        }
+
+        const nonceRecord = getNonce(nonce)
+        if (!nonceRecord || nonceRecord.used) {
+            return NextResponse.json(
+                { error: 'Nonce expired or already used. Please request a new nonce.' },
+                { status: 400 }
+            )
+        }
+
+        if (nonceRecord.address && nonceRecord.address !== normalizedAddress) {
+            return NextResponse.json(
+                { error: 'Nonce does not match wallet address.' },
                 { status: 400 }
             )
         }
@@ -72,6 +88,10 @@ export async function POST(request: NextRequest) {
         } catch (error) {
             console.error('Signature verification error:', error)
             return NextResponse.json({ error: 'Signature verification failed' }, { status: 400 })
+        }
+
+        if (!markNonceAsUsed(nonce)) {
+            return NextResponse.json({ error: 'Nonce already used' }, { status: 400 })
         }
 
         // 2. Prepare Data

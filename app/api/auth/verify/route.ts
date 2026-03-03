@@ -3,6 +3,8 @@ import { cookies } from 'next/headers'
 import { verifyMessage } from 'viem'
 import { isValidAddress } from '@/lib/utils'
 import { prisma } from '@/lib/prisma'
+import { getNonce, markNonceAsUsed } from '@/lib/nonce-store'
+import { setSessionAddress } from '@/lib/auth'
 
 // Test mode: allow "signed-{nonce}" format for MCP tests
 const TEST_MODE = process.env.NODE_ENV === 'test' || process.env.MCP_TEST_MODE === '1'
@@ -27,7 +29,7 @@ export async function POST(request: NextRequest) {
 
     const normalizedAddress = address.toLowerCase()
 
-    // Get nonce from cookie (serverless-friendly approach)
+    // Get nonce from cookie and validate against nonce store
     const cookieStore = await cookies()
     const nonce = cookieStore.get('aph_nonce')?.value
 
@@ -38,8 +40,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Note: In serverless, we rely on cookie-based nonce only
-    // The cookie will be deleted after successful verification (replay protection)
+    const nonceRecord = getNonce(nonce)
+    if (!nonceRecord || nonceRecord.used) {
+      return NextResponse.json(
+        { error: 'Nonce not found, expired, or already used.' },
+        { status: 400 }
+      )
+    }
+
+    if (nonceRecord.address && nonceRecord.address !== normalizedAddress) {
+      return NextResponse.json(
+        { error: 'Nonce does not match wallet address' },
+        { status: 400 }
+      )
+    }
 
     let signatureValid = false
 
@@ -95,13 +109,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    cookieStore.set('aph_session', cleanAddress, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: '/',
-    })
+    const nonceMarked = markNonceAsUsed(nonce)
+    if (!nonceMarked) {
+      return NextResponse.json(
+        { error: 'Nonce already used' },
+        { status: 400 }
+      )
+    }
+
+    const sessionSet = await setSessionAddress(cleanAddress)
+    if (!sessionSet) {
+      return NextResponse.json(
+        { error: 'Session configuration error' },
+        { status: 500 }
+      )
+    }
 
     // Clear nonce after successful verification
     cookieStore.delete('aph_nonce')

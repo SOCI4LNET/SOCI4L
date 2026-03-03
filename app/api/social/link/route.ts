@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getSessionAddress } from '@/lib/auth'
+import { getSessionAddress, setSessionAddress } from '@/lib/auth'
 
 import { cookies } from 'next/headers'
 import { verifyMessage, recoverMessageAddress } from 'viem'
@@ -151,14 +151,7 @@ export async function POST(req: NextRequest) {
         })
 
         // Also set aph_session cookie to "login" the user if they linked successfully
-        const cookieStore = await cookies()
-        cookieStore.set('aph_session', effectiveAddress.toLowerCase().slice(0, 42), {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            maxAge: 60 * 60 * 24 * 7, // 7 days
-            path: '/',
-        })
+        await setSessionAddress(effectiveAddress.toLowerCase().slice(0, 42))
 
         return NextResponse.json({ success: true, connection })
     } catch (error) {
@@ -224,13 +217,7 @@ export async function DELETE(req: NextRequest) {
                 cookieStore.delete('aph_nonce')
 
                 // Also set session so they don't have to sign again soon
-                cookieStore.set('aph_session', effectiveAddress.slice(0, 42), {
-                    httpOnly: true,
-                    secure: process.env.NODE_ENV === 'production',
-                    sameSite: 'lax',
-                    maxAge: 60 * 60 * 24 * 7,
-                    path: '/',
-                })
+                await setSessionAddress(effectiveAddress.slice(0, 42))
             } catch (e) {
                 return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
             }
