@@ -150,9 +150,9 @@ export function DonateModal({ open, onOpenChange, recipient, donationAlertVisual
                     <div className="space-y-6 py-4">
                         {/* Recipient Preview */}
                         <div className="flex items-center gap-3 p-4 rounded-lg border border-border/50 bg-muted/30">
-                            <Avatar className="h-12 w-12">
+                            <Avatar className="h-12 w-12 bg-background ring-1 ring-border/50">
                                 <AvatarImage src={recipient.avatar} />
-                                <AvatarFallback>
+                                <AvatarFallback className="bg-background text-foreground">
                                     {recipient.displayName?.[0] || formatAddress(recipient.address).slice(0, 2)}
                                 </AvatarFallback>
                             </Avatar>

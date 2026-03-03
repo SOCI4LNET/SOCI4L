@@ -1925,21 +1925,23 @@ export default function ProfilePage({ params }: PageProps) {
                                     Address
                                 </Button>
                                 {!isOwnProfile && (
-                                    <FollowToggle
-                                        address={profileAddressForFollow}
-                                        isBlockedByViewer={isBlockedByViewer}
-                                        onBlockChange={(blocked) => setIsBlockedByViewer(blocked)}
-                                    />
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="h-10 gap-2 text-xs font-medium"
-                                        onClick={() => setDonateModalOpen(true)}
-                                        disabled={isOwnProfile}
-                                    >
-                                        <Heart className="h-4 w-4" />
-                                        Donate
-                                    </Button>
+                                    <>
+                                        <FollowToggle
+                                            address={profileAddressForFollow}
+                                            isBlockedByViewer={isBlockedByViewer}
+                                            onBlockChange={(blocked) => setIsBlockedByViewer(blocked)}
+                                        />
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-10 gap-2 text-xs font-medium"
+                                            onClick={() => setDonateModalOpen(true)}
+                                            disabled={isOwnProfile}
+                                        >
+                                            <Heart className="h-4 w-4" />
+                                            Donate
+                                        </Button>
+                                    </>
                                 )}
                             </div>
                         </div>
