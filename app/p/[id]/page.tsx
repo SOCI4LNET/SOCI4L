@@ -1918,7 +1918,7 @@ export default function ProfilePage({ params }: PageProps) {
                                 <Button
                                     variant="default"
                                     size="sm"
-                                    className="h-11 gap-2 text-xs font-semibold bg-foreground text-background hover:bg-foreground/90"
+                                    className="h-11 w-full gap-2 text-xs font-semibold bg-foreground text-background hover:bg-foreground/90"
                                     onClick={handleCopyAddress}
                                 >
                                     <Copy className="h-4 w-4" />
