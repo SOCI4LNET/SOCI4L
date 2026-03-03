@@ -20,16 +20,16 @@ const ROADMAP_ITEMS = [
     {
         phase: 'NOW',
         title: 'Growth & Economy',
-        description: 'Social features, on-chain interactions and community tools.',
+        description: 'On-chain signed interactions that generate transactions and grow the ecosystem.',
         status: 'active',
         items: [
             'Post Feed & On-chain Signed Posts',
-            'Comment System (TX-generating)',
+            'Comment System',
             'Bounty & Job Board',
             'On-chain Reference System',
-            'Announcement / Pinned Duyuru',
+            'Pinned Announcements',
             'On-chain Poll & Voting',
-            'Gated Content (Token-Gated Access)'
+            'Gated Content'
         ]
     },
     {
@@ -40,7 +40,7 @@ const ROADMAP_ITEMS = [
         items: [
             'On-chain Social Graph (Portability)',
             'Portable Reputation (Attestations)',
-            'Multi-chain Support',
+            'Team & DAO Profile Pages',
             'Developer API'
         ]
     }
