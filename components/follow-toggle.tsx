@@ -376,7 +376,7 @@ export function FollowToggle({ address, isBlockedByViewer: initialBlocked = fals
                 pressed={isFollowing}
                 onPressedChange={handleToggle}
                 disabled={!isConnected || isPending || isSelfProfile}
-                className="gap-2 w-full sm:w-auto"
+                className="gap-2 w-full sm:w-auto h-11 bg-foreground/5 hover:bg-foreground/10 border-foreground/10 text-foreground data-[state=on]:bg-foreground/10 data-[state=on]:text-foreground"
               >
                 <BookmarkIcon className="h-3.5 w-3.5 group-data-[state=on]/toggle:fill-foreground" />
                 {isFollowing ? 'Following' : 'Follow'}

@@ -6,10 +6,10 @@ import { cn } from '@/lib/utils'
 
 const ROADMAP_ITEMS = [
     {
-        phase: 'NOW',
+        phase: 'DONE',
         title: 'Foundation & Data',
-        description: 'Building the core operations and data integrity layer.',
-        status: 'active',
+        description: 'Core identity layer, analytics and admin infrastructure shipped.',
+        status: 'done',
         items: [
             'Gasless Profile Engine',
             'Admin Panel & User Management',
@@ -18,15 +18,18 @@ const ROADMAP_ITEMS = [
         ]
     },
     {
-        phase: 'NEXT',
+        phase: 'NOW',
         title: 'Growth & Economy',
-        description: 'Monetization tools for creators and gamification.',
-        status: 'upcoming',
+        description: 'On-chain signed interactions that generate transactions and grow the ecosystem.',
+        status: 'active',
         items: [
-            'Token-Gated Access (Web3 Patreon)',
-            'Creator Tipping & Subscriptions',
-            'SOCI4L Score v2',
-            'Luma Events Integration'
+            'Post Feed & On-chain Signed Posts',
+            'Comment System',
+            'Bounty & Job Board',
+            'On-chain Reference System',
+            'Pinned Announcements',
+            'On-chain Poll & Voting',
+            'Gated Content'
         ]
     },
     {
@@ -37,7 +40,7 @@ const ROADMAP_ITEMS = [
         items: [
             'On-chain Social Graph (Portability)',
             'Portable Reputation (Attestations)',
-            'Multi-chain Support',
+            'Team & DAO Profile Pages',
             'Developer API'
         ]
     }
@@ -68,7 +71,7 @@ export function RoadmapSection() {
 
                 <motion.div
                     style={{ x }}
-                    className="flex gap-16 md:gap-32 px-12 md:px-32 items-center"
+                    className="flex gap-16 md:gap-32 px-12 md:px-32 items-start pt-40"
                 >
                     {/* Intro Spacer */}
                     <div className="w-[15vw] shrink-0" />
@@ -76,7 +79,10 @@ export function RoadmapSection() {
                     {ROADMAP_ITEMS.map((item, index) => (
                         <div key={item.phase} className="relative shrink-0 w-[70vw] md:w-[500px] group/section">
                             {/* Horizontal Line Segment */}
-                            <div className="absolute top-[11px] left-0 w-full h-[1px] bg-border -z-10 overflow-hidden">
+                            <div className={cn(
+                                "absolute top-[11px] left-0 w-full h-[1px] -z-10 overflow-hidden",
+                                item.status === 'done' ? "bg-emerald-500/40" : "bg-border"
+                            )}>
                                 {item.status === 'active' && (
                                     <motion.div
                                         initial={{ x: '-100%' }}
@@ -87,8 +93,13 @@ export function RoadmapSection() {
                                 )}
                             </div>
 
-                            {/* Connection to previous */}
-                            {index > 0 && <div className="absolute top-[11px] -left-32 w-32 h-[1px] bg-border -z-10" />}
+                            {/* Connection to previous — green if previous was done */}
+                            {index > 0 && (
+                                <div className={cn(
+                                    "absolute top-[11px] -left-32 w-32 h-[1px] -z-10",
+                                    ROADMAP_ITEMS[index - 1].status === 'done' ? "bg-emerald-500/40" : "bg-border"
+                                )} />
+                            )}
 
                             <div className="relative z-10">
                                 {/* Timeline Node */}
@@ -96,10 +107,14 @@ export function RoadmapSection() {
                                     "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-500 mb-8 bg-background relative z-20 group-hover/section:scale-110",
                                     item.status === 'active'
                                         ? "border-primary shadow-[0_0_20px_rgba(var(--primary),0.3)] ring-4 ring-primary/10"
-                                        : "border-border group-hover/section:border-primary/50"
+                                        : item.status === 'done'
+                                            ? "border-emerald-500/50 bg-emerald-500/5"
+                                            : "border-border group-hover/section:border-primary/50"
                                 )}>
                                     {item.status === 'active' ? (
                                         <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                                    ) : item.status === 'done' ? (
+                                        <div className="w-2 h-2 bg-emerald-500/70 rounded-full" />
                                     ) : (
                                         <div className="w-1.5 h-1.5 bg-muted rounded-full transition-colors group-hover/section:bg-muted-foreground" />
                                     )}
@@ -118,7 +133,7 @@ export function RoadmapSection() {
                                         </div>
                                         <h3 className={cn(
                                             "text-2xl font-semibold tracking-tight mb-2 transition-colors",
-                                            item.status === 'active' ? "text-foreground" : "text-muted-foreground group-hover/section:text-foreground"
+                                            item.status === 'active' ? "text-foreground" : item.status === 'done' ? "text-muted-foreground/60" : "text-muted-foreground group-hover/section:text-foreground"
                                         )}>
                                             {item.title}
                                         </h3>

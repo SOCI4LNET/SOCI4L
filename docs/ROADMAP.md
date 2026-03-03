@@ -28,6 +28,65 @@ SOCI4L is the identity and link intelligence layer for Web3. We turn wallet addr
 
 ---
 
+## 🚀 Active Development — Growth & Economy
+
+> Foundation & Data aşaması tamamlandı. Aşağıdaki özellikler aktif olarak planlanmaktadır.
+
+### Post Feed & On-chain Signed Posts
+**Status:** Planned  
+**Effort:** High  
+**Value:** High (engagement, TX)
+- Her post için on-chain imza gerekir → bot koruması
+- Feed sistemi ile SOCI4L tam sosyal platforma dönüşür
+- Avalanche üzerinde TX üretir
+
+### Comment System (TX-generating)
+**Status:** Planned  
+**Effort:** Medium  
+**Value:** High (TX, engagement)
+- Post ve profillere yorum yapma
+- Her yorum imzalı → spam/bot engeli
+- TX kazandırma mekanizması
+
+### Bounty & Job Board
+**Status:** Planned  
+**Effort:** Medium  
+**Value:** Very High (utility, ecosystem)
+- Proje/kişi bazlı iş ilanı ve bounty paylaşımı
+- SOCI4L üzerinden topluluk destekli iş gücü
+- Gerçek utility + ekosistem değeri
+
+### On-chain Reference System
+**Status:** Planned  
+**Effort:** Low-Medium  
+**Value:** High (trust, social proof)
+- İmzalanmış, değiştirilemez referans mektubu
+- Profilde görünür, Bounty/Job sistemine entegre
+
+### Announcement / Pinned Duyuru
+**Status:** Planned  
+**Effort:** Low  
+**Value:** Medium (TX, monetization)
+- On-chain imzayla pinned duyuru yayınlama
+- Süreli yayın → gelir modeli potansiyeli
+
+### On-chain Poll & Voting
+**Status:** Planned  
+**Effort:** Medium  
+**Value:** Medium (TX, engagement)
+- Takipçi bazlı imzalı anketler
+- Her oy = TX
+- DAO/topluluk kararları için kullanılabilir
+
+### Gated Content (Token-Gated Access)
+**Status:** Planned  
+**Effort:** Medium  
+**Value:** High (monetization, exclusivity)
+- Belirli token/NFT sahiplerine özel içerik
+- Access kontrol imzayla doğrulanır
+
+---
+
 ## Planned Features
 
 ### 🎯 High Priority (Q1-Q2)
@@ -304,15 +363,19 @@ Profile personalization for power users.
 
 ## Timeline (Tentative)
 
-### Q1 2026
-- [ ] Admin Panel MVP
-- [ ] Server-side analytics migration
-- [ ] OpenSea API integration
+### Q1 2026 ✅ DONE
+- [x] Admin Panel MVP
+- [x] Server-side analytics migration
+- [x] OpenSea API integration
 
-### Q2 2026
-- [ ] Demo Mode
-- [ ] Luma Events integration
-- [ ] Achievement system v1
+### Q2 2026 — ACTIVE
+- [ ] Post Feed & On-chain Signed Posts
+- [ ] Comment System (TX-generating)
+- [ ] Bounty & Job Board
+- [ ] On-chain Reference System
+- [ ] Announcement / Pinned Duyuru
+- [ ] On-chain Poll & Voting
+- [ ] Gated Content (Token-Gated Access)
 
 ### Q3 2026
 - [ ] On-chain verification
@@ -384,5 +447,6 @@ Profile personalization for power users.
 
 | Date | Update |
 |------|--------|
+| 2026-03-04 | Growth & Economy aşaması aktif — 7 yeni TX odaklı özellik planlandı |
 | 2026-01-30 | Shipping v2 soon 🚢 - Investor Mode & Demo System complete |
 | 2026-01-27 | Initial roadmap created |
