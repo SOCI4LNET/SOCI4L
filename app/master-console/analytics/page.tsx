@@ -7,18 +7,10 @@ import { PageShell } from '@/components/app-shell/page-shell'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmptyState } from '@/components/admin/empty-state'
-import dynamic from 'next/dynamic'
-
-const AnalyticsTrends = dynamic(
-  () => import('@/components/admin/analytics-trends').then((mod) => mod.AnalyticsTrends),
-  {
-    loading: () => <div className="h-96 w-full animate-pulse bg-muted/20 rounded-xl mb-6" />,
-    ssr: false,
-  }
-)
+import { AnalyticsTrends } from '@/components/admin/analytics-trends'
 
 // Force dynamic rendering since this page uses Prisma queries
-export const dynamicPage = 'force-dynamic' // renamed variable due to masking
+export const dynamic = 'force-dynamic'
 
 
 async function getAnalytics() {
