@@ -1934,7 +1934,7 @@ export default function ProfilePage({ params }: PageProps) {
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            className="h-10 gap-2 text-xs font-medium"
+                                            className="h-11 gap-2 text-xs font-medium"
                                             onClick={() => setDonateModalOpen(true)}
                                             disabled={isOwnProfile}
                                         >
