@@ -1,7 +1,4 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/fther/soci4l/main/public/logo.svg" alt="SOCI4L Logo" width="150" height="150" onerror="this.src='https://via.placeholder.com/150?text=SOCI4L'"/>
-  <br/>
-  
   # SOCI4L
   
   **Turn any EVM wallet into a customizable, measurable, and shareable public profile.**
@@ -15,7 +12,6 @@
     <img src="https://img.shields.io/badge/EVM-Compatible-blueviolet?style=flat" alt="EVM Compatible" />
     <img src="https://img.shields.io/badge/Built_for-Avalanche-E84142?style=flat&logo=avalanche&logoColor=white" alt="Built for Avalanche" />
     <img src="https://img.shields.io/badge/Non--Custodial-Secure-success?style=flat" alt="Non-Custodial" />
-    <img src="https://img.shields.io/badge/License-MIT-yellow?style=flat" alt="License MIT" />
   </p>
 
 </div>
