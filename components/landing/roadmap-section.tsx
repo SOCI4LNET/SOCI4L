@@ -6,10 +6,10 @@ import { cn } from '@/lib/utils'
 
 const ROADMAP_ITEMS = [
     {
-        phase: 'NOW',
+        phase: 'DONE',
         title: 'Foundation & Data',
-        description: 'Building the core operations and data integrity layer.',
-        status: 'active',
+        description: 'Core identity layer, analytics and admin infrastructure shipped.',
+        status: 'done',
         items: [
             'Gasless Profile Engine',
             'Admin Panel & User Management',
@@ -18,15 +18,18 @@ const ROADMAP_ITEMS = [
         ]
     },
     {
-        phase: 'NEXT',
+        phase: 'NOW',
         title: 'Growth & Economy',
-        description: 'Monetization tools for creators and gamification.',
-        status: 'upcoming',
+        description: 'Social features, on-chain interactions and community tools.',
+        status: 'active',
         items: [
-            'Token-Gated Access (Web3 Patreon)',
-            'Creator Tipping & Subscriptions',
-            'SOCI4L Score v2',
-            'Luma Events Integration'
+            'Post Feed & On-chain Signed Posts',
+            'Comment System (TX-generating)',
+            'Bounty & Job Board',
+            'On-chain Reference System',
+            'Announcement / Pinned Duyuru',
+            'On-chain Poll & Voting',
+            'Gated Content (Token-Gated Access)'
         ]
     },
     {
@@ -96,10 +99,14 @@ export function RoadmapSection() {
                                     "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-500 mb-8 bg-background relative z-20 group-hover/section:scale-110",
                                     item.status === 'active'
                                         ? "border-primary shadow-[0_0_20px_rgba(var(--primary),0.3)] ring-4 ring-primary/10"
-                                        : "border-border group-hover/section:border-primary/50"
+                                        : item.status === 'done'
+                                            ? "border-emerald-500/50 bg-emerald-500/5"
+                                            : "border-border group-hover/section:border-primary/50"
                                 )}>
                                     {item.status === 'active' ? (
                                         <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                                    ) : item.status === 'done' ? (
+                                        <div className="w-2 h-2 bg-emerald-500/70 rounded-full" />
                                     ) : (
                                         <div className="w-1.5 h-1.5 bg-muted rounded-full transition-colors group-hover/section:bg-muted-foreground" />
                                     )}
@@ -118,7 +125,7 @@ export function RoadmapSection() {
                                         </div>
                                         <h3 className={cn(
                                             "text-2xl font-semibold tracking-tight mb-2 transition-colors",
-                                            item.status === 'active' ? "text-foreground" : "text-muted-foreground group-hover/section:text-foreground"
+                                            item.status === 'active' ? "text-foreground" : item.status === 'done' ? "text-muted-foreground/60" : "text-muted-foreground group-hover/section:text-foreground"
                                         )}>
                                             {item.title}
                                         </h3>
