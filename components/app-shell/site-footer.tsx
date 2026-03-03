@@ -92,19 +92,21 @@ export default function SiteFooter({ className }: SiteFooterProps = {}) {
     }
 
     return (
-        // Always dark — fixed black regardless of theme
-        <footer className={cn('w-full bg-[#0D0D0D] text-white overflow-hidden', className)}>
+        // Always dark — fixed very dark black regardless of theme
+        <footer className={cn('w-full bg-[#0A0A0A] text-white relative overflow-hidden', className)}>
 
             {/* Main grid content */}
-            <div className="max-w-7xl mx-auto px-8 pt-16 pb-0">
+            <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-8 pt-16 pb-0">
 
                 {/* 4-col top section */}
                 <div className="grid grid-cols-1 gap-10 md:grid-cols-4 mb-16">
 
                     {/* Logo + tagline */}
-                    <div className="space-y-3">
-                        {/* Force white logo: combination.svg is white-on-transparent, invert-0 keeps it white */}
-                        <Soci4LLogo variant="combination" width={110} height={22} className="invert-0 dark:invert-0 brightness-0 invert" />
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                            {/* Force white combination logo ignoring theme invert */}
+                            <img src="/logos/combination.svg" alt="SOCI4L" className="h-6 w-auto brightness-0 invert" aria-hidden />
+                        </div>
                         <p className="text-sm text-white/40 leading-relaxed max-w-[200px]">
                             Turn your Avalanche wallet into a measurable public identity.
                         </p>
@@ -193,18 +195,13 @@ export default function SiteFooter({ className }: SiteFooterProps = {}) {
                 </div>
             </div>
 
-            {/* SOCI4L watermark — very large, bottom-cropped, barely visible */}
-            <div className="relative w-full overflow-hidden" style={{ height: '200px' }}>
-                {/* Top fade so it blends into the footer */}
-                <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-[#0D0D0D] to-transparent z-10 pointer-events-none" />
-                {/* The giant wordmark, clipped ~40% from top = only lower 60% visible */}
-                <div
-                    className="absolute inset-x-0 text-white/[0.055]"
-                    style={{
-                        bottom: '-30%',   // shift down: only top portion visible
-                        height: '320px',
-                    }}
-                >
+            {/* SOCI4L watermark — massive, horizontally centered, overflow-hidden */}
+            <div className="absolute inset-x-0 bottom-0 h-[380px] overflow-hidden flex justify-center items-end pointer-events-none select-none z-0">
+                {/* Gradient fade from top to bottom so it doesn't clash with content */}
+                <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A] via-[#0A0A0A]/50 to-transparent z-10" />
+
+                {/* The wordmark scaled massively */}
+                <div className="w-[1800px] max-w-none text-white/[0.03] transform translate-y-[20%]">
                     <FooterWordmark />
                 </div>
             </div>
