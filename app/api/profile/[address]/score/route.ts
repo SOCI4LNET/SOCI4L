@@ -6,9 +6,9 @@ import { getSessionAddress } from '@/lib/auth'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { address: string } }
+  { params }: { params: Promise<{ address: string }> }
 ) {
-  const address = params.address
+  const { address } = await params
 
   if (!address || !isValidAddress(address)) {
     return NextResponse.json(
