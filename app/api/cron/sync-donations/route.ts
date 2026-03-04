@@ -20,6 +20,10 @@ const EVENT = parseAbiItem('event DonationSent(address indexed sender, address i
 const DEFAULT_START_BLOCK = BigInt(56000000)
 
 function isAuthorizedCronRequest(request: NextRequest): boolean {
+    // Check if it's a manual force sync from the frontend
+    const isForce = request.nextUrl.searchParams.get('force') === 'true'
+    if (isForce) return true
+
     const authHeader = request.headers.get('authorization')
     const cronSecret = process.env.CRON_SECRET
     if (!cronSecret) return false
