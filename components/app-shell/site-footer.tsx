@@ -41,6 +41,7 @@ function validateEmail(email: string): boolean {
 
 interface SiteFooterProps {
     className?: string
+    layout?: 'default' | 'full'
 }
 
 // Wordmark SVG — paths from /public/logos/wordmark.svg
@@ -83,10 +84,12 @@ function FooterWordmark() {
     )
 }
 
-export default function SiteFooter({ className }: SiteFooterProps = {}) {
+export default function SiteFooter({ className, layout = 'default' }: SiteFooterProps = {}) {
     const [email, setEmail] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
     const currentYear = new Date().getFullYear()
+
+    const containerMaxWidth = layout === 'full' ? 'max-w-full' : 'max-w-7xl'
 
     const handleEmailSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -115,7 +118,7 @@ export default function SiteFooter({ className }: SiteFooterProps = {}) {
         <footer className={cn('w-full bg-white dark:bg-[#0A0A0A] text-slate-900 dark:text-white relative overflow-hidden', className)}>
 
             {/* Main grid content */}
-            <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-8 pt-16 pb-0">
+            <div className={cn("relative z-10 w-full mx-auto px-6 md:px-8 pt-16 pb-0", containerMaxWidth)}>
 
                 {/* 4-col top section */}
                 <div className="grid grid-cols-1 gap-10 md:grid-cols-4 mb-16">
@@ -192,7 +195,7 @@ export default function SiteFooter({ className }: SiteFooterProps = {}) {
                 </div>
 
                 {/* Bottom bar: copyright + socials */}
-                <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-8">
+                <div className={cn("relative z-10 w-full mx-auto px-6 md:px-8", containerMaxWidth)}>
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-6 border-t border-slate-200 dark:border-white/10">
                         <p className="text-sm text-slate-500 dark:text-white/40">
                             © {currentYear} SOCI4L. All rights reserved.
@@ -220,7 +223,7 @@ export default function SiteFooter({ className }: SiteFooterProps = {}) {
             <div className="h-4 md:h-10" />
 
             {/* SOCI4L watermark — max-width matching footer content exactly */}
-            <div className="relative w-full max-w-7xl mx-auto px-6 md:px-8 overflow-hidden">
+            <div className={cn("relative w-full mx-auto px-6 md:px-8 overflow-hidden", containerMaxWidth)}>
                 {/* 
                   By using negative bottom margin, the container shrinks exactly that much,
                   allowing the footer content height to effectively "cut off" the bottom of the SVG.

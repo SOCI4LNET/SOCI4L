@@ -21,7 +21,7 @@ export function AppShell({ children, address }: AppShellProps) {
           <main className="flex flex-1 flex-col bg-background min-h-0">
             {children}
           </main>
-          <SiteFooter className="mt-auto" />
+          <SiteFooter layout="full" className="mt-auto" />
         </SidebarInset>
       </div>
     </SidebarProvider>
