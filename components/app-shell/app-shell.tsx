@@ -4,6 +4,7 @@ import { ReactNode } from 'react'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { AppSidebar } from './app-sidebar'
 import { AppTopbar } from './app-topbar'
+import SiteFooter from './site-footer'
 
 interface AppShellProps {
   children: ReactNode
@@ -20,6 +21,7 @@ export function AppShell({ children, address }: AppShellProps) {
           <main className="flex flex-1 flex-col bg-background min-h-0">
             {children}
           </main>
+          <SiteFooter className="mt-auto" />
         </SidebarInset>
       </div>
     </SidebarProvider>
