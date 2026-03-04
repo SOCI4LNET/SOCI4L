@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuGroup, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, } from '@/components/ui/dropdown-menu'
 import { QRCodeModal } from '@/components/qr/qr-code-modal'
 import { WalletConnectButtons } from '@/components/wallet-connect-buttons'
+import { NotificationsDropdown } from '@/components/topbar/notifications-dropdown'
 
 export function HeaderActions() {
   const [mounted, setMounted] = useState(false)
@@ -235,6 +236,9 @@ export function HeaderActions() {
 
   return (
     <>
+      {isConnected && connectedAddress && (
+        <NotificationsDropdown address={connectedAddress} />
+      )}
       <TooltipProvider>
         {/* Avatar dropdown - all actions inside */}
         <DropdownMenu>

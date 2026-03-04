@@ -343,3 +343,17 @@ model BillingInteraction {
   @@index([type])
   @@index([timestamp])
 }
+
+model Notification {
+  id           String   @id @default(cuid())
+  profileId    String   // wallet address (lowercase) of the recipient
+  type         String   // 'DONATION_RECEIVED' | 'SYSTEM' etc.
+  isRead       Boolean  @default(false)
+  actorAddress String?  // wallet address of the sender/actor
+  metadata     String?  // JSON payload
+  createdAt    DateTime @default(now())
+
+  @@index([profileId])
+  @@index([profileId, isRead])
+  @@index([createdAt])
+}
