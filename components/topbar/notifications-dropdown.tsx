@@ -55,9 +55,38 @@ export function NotificationsDropdown({ address }: NotificationsDropdownProps) {
         }
     }
 
+    const triggerBackgroundSync = () => {
+        if (!address) return
+
+        const lastSync = localStorage.getItem(`last_donation_sync_${address}`)
+        const now = Date.now()
+        // Throttle manual sync to once every 2 minutes
+        const COOLDOWN = 2 * 60 * 1000
+
+        if (!lastSync || now - Number(lastSync) > COOLDOWN) {
+            console.log('[Notifications] Triggering background donation sync...')
+            localStorage.setItem(`last_donation_sync_${address}`, now.toString())
+
+            fetch('/api/cron/sync-donations?force=true')
+                .then(res => res.json())
+                .then(data => {
+                    console.log('[Notifications] Sync result:', data)
+                    if (data.updatedNotifications > 0) {
+                        // Re-fetch notifications if new ones were found
+                        fetchNotifications()
+                    }
+                })
+                .catch(e => {
+                    console.error('[Notifications] Background sync failed', e)
+                    localStorage.removeItem(`last_donation_sync_${address}`)
+                })
+        }
+    }
+
     useEffect(() => {
         if (address) {
             fetchNotifications()
+            triggerBackgroundSync()
 
             // Poll every 30 seconds
             const interval = setInterval(fetchNotifications, 30000)
@@ -83,6 +112,7 @@ export function NotificationsDropdown({ address }: NotificationsDropdownProps) {
     const handleOpenChange = (open: boolean) => {
         setIsOpen(open)
         if (open) {
+            triggerBackgroundSync()
             // Small delay before marking as read to allow user to see the badge
             setTimeout(() => {
                 markAllAsRead()
