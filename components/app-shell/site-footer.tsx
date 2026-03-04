@@ -56,7 +56,7 @@ function FooterWordmark() {
         >
             <defs>
                 <linearGradient id="watermarkGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#282828" />
+                    <stop offset="0%" stopColor="#1D1D1D" />
                     <stop offset="100%" stopColor="#0A0A0A" />
                 </linearGradient>
             </defs>
