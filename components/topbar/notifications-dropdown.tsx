@@ -130,7 +130,7 @@ export function NotificationsDropdown({ address }: NotificationsDropdownProps) {
                             <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-3">
                                 <Bell className="h-5 w-5 text-muted-foreground opacity-50" />
                             </div>
-                            <p className="font-medium text-sm">Burası çok sessiz...</p>
+                            <p className="font-medium text-sm">It's very quiet here...</p>
                             <p className="text-xs text-muted-foreground mt-1">
                                 When someone interacts with your profile or sends a donation, you'll see it here.
                             </p>

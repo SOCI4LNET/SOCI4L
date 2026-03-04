@@ -236,47 +236,48 @@ export function HeaderActions() {
 
   return (
     <>
-      {isConnected && connectedAddress && (
-        <NotificationsDropdown address={connectedAddress} />
-      )}
       <TooltipProvider>
+        {/* Global Header Actions (Desktop) */}
+        {!pathname?.startsWith('/master-console') && (
+          <div className="hidden md:flex items-center gap-2 h-[38px] px-[10px] rounded-md border border-border bg-background text-foreground mr-1">
+            <span className="text-sm font-mono mr-1">{formatAddress(connectedAddress, 4)}</span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 min-h-6 min-w-6 rounded-[6px] border border-border bg-muted/60 text-foreground hover:bg-muted"
+                  onClick={handleCopyAddress}
+                >
+                  <Copy className="h-[14px] w-[14px]" strokeWidth={1} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Copy Address</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 min-h-6 min-w-6 rounded-[6px] border border-border bg-muted/60 text-foreground hover:bg-muted"
+                  onClick={handleShare}
+                  disabled={!publicProfileHref}
+                >
+                  <Share2 className="h-[14px] w-[14px]" strokeWidth={1} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Share Profile</TooltipContent>
+            </Tooltip>
+          </div>
+        )}
+
+        {isConnected && connectedAddress && (
+          <NotificationsDropdown address={connectedAddress} />
+        )}
+
         {/* Avatar dropdown - all actions inside */}
         <DropdownMenu>
-          {/* Global Header Actions (Desktop) */}
-          {!pathname?.startsWith('/master-console') && (
-            <div className="hidden md:flex items-center gap-2 h-[38px] px-[10px] rounded-md border border-border bg-background text-foreground mr-4">
-              <span className="text-sm font-mono mr-1">{formatAddress(connectedAddress, 4)}</span>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 min-h-6 min-w-6 rounded-[6px] border border-border bg-muted/60 text-foreground hover:bg-muted"
-                    onClick={handleCopyAddress}
-                  >
-                    <Copy className="h-[14px] w-[14px]" strokeWidth={1} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Copy Address</TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 min-h-6 min-w-6 rounded-[6px] border border-border bg-muted/60 text-foreground hover:bg-muted"
-                    onClick={handleShare}
-                    disabled={!publicProfileHref}
-                  >
-                    <Share2 className="h-[14px] w-[14px]" strokeWidth={1} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Share Profile</TooltipContent>
-              </Tooltip>
-            </div>
-          )}
-
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8 min-h-8 min-w-8 rounded-full shrink-0">
               <Avatar className="h-8 w-8 min-h-8 min-w-8 shrink-0">
