@@ -201,14 +201,14 @@ export default function SiteFooter({ className }: SiteFooterProps = {}) {
             <div className="h-4 md:h-10" />
 
             {/* SOCI4L watermark — max-width matching footer content exactly */}
-            <div className="relative w-full max-w-7xl mx-auto px-6 md:px-8 overflow-hidden">
+            <div className="relative w-full max-w-7xl mx-auto px-6 md:px-8 overflow-hidden [mask-image:linear-gradient(to_bottom,transparent_0%,black_70%)]">
                 {/* 
                   By using negative bottom margin, the container shrinks exactly that much,
                   allowing the footer content height to effectively "cut off" the bottom of the SVG.
                   Since we have 'overflow-hidden' on the container, the overflowing part is sliced beautifully
                   without any extra black padding underneath.
                 */}
-                <div className="w-full text-white/[0.08] -mb-[8.5%] flex items-start">
+                <div className="w-full text-white/[0.1] -mb-[8.5%] flex items-start">
                     <FooterWordmark />
                 </div>
             </div>
