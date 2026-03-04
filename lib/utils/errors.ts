@@ -17,9 +17,13 @@ export function getFriendlyErrorMessage(error: any, fallback?: string): string {
         return 'Transaction rejected by user';
     }
 
-    // 2. Handle Insufficient Funds
-    if (message.toLowerCase().includes('insufficient funds')) {
-        return 'Insufficient funds for this transaction';
+    // 2. Handle Insufficient Funds / Gas Limit Reverts
+    if (
+        message.toLowerCase().includes('insufficient funds') ||
+        message.toLowerCase().includes('unable to calculate gas limit') ||
+        message.toLowerCase().includes('intrinsic gas too low')
+    ) {
+        return 'Insufficient balance for this transaction';
     }
 
     // 3. Handle Network/RPC issues
