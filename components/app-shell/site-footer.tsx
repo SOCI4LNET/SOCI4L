@@ -195,13 +195,13 @@ export default function SiteFooter({ className }: SiteFooterProps = {}) {
                 </div>
             </div>
 
-            {/* SOCI4L watermark — massive, horizontally centered, overflow-hidden */}
-            <div className="absolute inset-x-0 bottom-0 h-[380px] overflow-hidden flex justify-center items-end pointer-events-none select-none z-0">
-                {/* Gradient fade from top to bottom so it doesn't clash with content */}
-                <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A] via-[#0A0A0A]/50 to-transparent z-10" />
+            {/* SOCI4L watermark — massive, horizontally centered, positioned BELOW content */}
+            <div className="relative w-full h-[280px] md:h-[340px] overflow-hidden flex justify-center items-end pointer-events-none select-none z-0 mt-8">
+                {/* Top fade out to softly blend the separation */}
+                <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#0A0A0A] via-[#0A0A0A]/60 to-transparent z-10" />
 
                 {/* The wordmark scaled massively */}
-                <div className="w-[1800px] max-w-none text-white/[0.03] transform translate-y-[20%]">
+                <div className="w-[1400px] md:w-[2000px] max-w-none text-white/[0.04] transform translate-y-[25%] flex-shrink-0">
                     <FooterWordmark />
                 </div>
             </div>
