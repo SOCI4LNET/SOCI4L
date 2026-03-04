@@ -197,13 +197,13 @@ export default function SiteFooter({ className }: SiteFooterProps = {}) {
                 </div>
             </div>
 
-            {/* SOCI4L watermark — massive, horizontally centered, placed BEHIND content */}
-            <div className="absolute inset-0 pointer-events-none select-none flex justify-center items-end opacity-40 mix-blend-screen" style={{ zIndex: 0 }}>
-                {/* Fade out top part so it blends with the dark background */}
-                <div className="absolute inset-x-0 top-0 h-[70%] bg-gradient-to-b from-[#0A0A0A] via-[#0A0A0A] to-transparent z-10" />
+            {/* Empty space (padding) as requested before the watermark */}
+            <div className="h-4 md:h-10" />
 
-                {/* The wordmark spanning almost full width, positioned perfectly at the bottom */}
-                <div className="w-[1200px] md:w-[1600px] lg:w-[2200px] max-w-none text-white/[0.08] flex-shrink-0 relative z-0">
+            {/* SOCI4L watermark — massive text AFTER the content flow (y-axis) */}
+            <div className="relative w-full overflow-hidden flex justify-center items-end" style={{ height: 'clamp(200px, 25vw, 360px)' }}>
+                {/* The wordmark spanning almost full width */}
+                <div className="w-[1200px] md:w-[1600px] lg:w-[2200px] max-w-none text-white/[0.08] flex-shrink-0">
                     <FooterWordmark />
                 </div>
             </div>
