@@ -166,7 +166,7 @@ export default function PremiumPage() {
                     </div>
                 </header>
 
-                <main className="pt-32 pb-20">
+                <main className="pt-32">
                     {/* HERO SECTION */}
                     <section className="max-w-5xl mx-auto px-6 text-center mb-32">
                         <motion.div

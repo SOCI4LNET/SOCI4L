@@ -3,6 +3,7 @@
 import { useDemo } from '@/lib/demo/demo-context'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DemoOverviewPanel } from '@/components/demo/demo-overview-panel'
+import SiteFooter from "@/components/app-shell/site-footer"
 
 export default function PublicDemoPage() {
     const { isLoading } = useDemo()
@@ -19,6 +20,7 @@ export default function PublicDemoPage() {
     return (
         <div className="flex-1 flex flex-col">
             <DemoOverviewPanel />
+            <SiteFooter className="mt-auto" />
         </div>
     )
 }

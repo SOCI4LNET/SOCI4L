@@ -768,7 +768,7 @@ export default function ProfilePage({ params }: PageProps) {
     }
 
     return (
-        <div className="space-y-6 min-h-screen">
+        <div className="flex flex-col min-h-screen">
             {baseLoading ? (
                 <div className="space-y-6 pb-24 md:pb-0 max-w-6xl mx-auto w-full mt-2 animate-pulse">
                     <div className="flex flex-col items-center text-center mb-6 relative w-full pt-2">
@@ -1941,7 +1941,7 @@ export default function ProfilePage({ params }: PageProps) {
                 )
             }
 
-            <SiteFooter className="mt-auto" />
+            <SiteFooter />
         </div >
     )
 }
