@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState, useRef } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useAccount } from 'wagmi'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -99,7 +99,12 @@ interface CooldownInfo {
 export default function ProfilePage({ params }: PageProps) {
     const router = useRouter()
     const searchParams = useSearchParams()
-    const routeId = typeof params?.id === 'string' ? params.id : ''
+    const routeParams = useParams<{ id?: string | string[] }>()
+    const routeIdFromProps = typeof params?.id === 'string' ? params.id : ''
+    const routeIdFromHook = typeof routeParams?.id === 'string'
+        ? routeParams.id
+        : Array.isArray(routeParams?.id) ? routeParams.id[0] || '' : ''
+    const routeId = (routeIdFromProps || routeIdFromHook || '').trim()
     const { address: connectedAddress, status, isReconnecting } = useAccount()
     const [walletData, setWalletData] = useState<WalletData | null>(null)
     const [profileStatus, setProfileStatus] = useState<'UNCLAIMED' | 'CLAIMED+PUBLIC' | 'CLAIMED+PRIVATE' | 'COOLDOWN'>('UNCLAIMED')
@@ -193,6 +198,12 @@ export default function ProfilePage({ params }: PageProps) {
 
     useEffect(() => {
         const fetchData = async () => {
+            if (!routeId) {
+                setBaseLoading(false)
+                setWalletLoading(false)
+                return
+            }
+
             setBaseLoading(true)
             setError(null)
 
