@@ -1944,7 +1944,7 @@ export default function ProfilePage({ params }: PageProps) {
                 )
             }
 
-            <SiteFooter />
+            <SiteFooter className="mt-auto" />
         </div >
     )
 }

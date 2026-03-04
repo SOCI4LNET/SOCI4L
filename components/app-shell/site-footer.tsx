@@ -68,8 +68,8 @@ function FooterWordmark() {
             </defs>
             <style>
                 {`
-                    .stop-color-top { stop-color: #f1f5f9; } /* Light mode: slate-100 */
-                    .stop-color-bottom { stop-color: #ffffff; } /* Light mode: white background */
+                    .stop-color-top { stop-color: #e2e8f0; } /* Light mode: matched to faint background */
+                    .stop-color-bottom { stop-color: #f8fafc; } /* Light mode: slightly lighter area */
                     .dark .stop-color-top { stop-color: #1D1D1D; }
                     .dark .stop-color-bottom { stop-color: #0A0A0A; }
                 `}
@@ -114,8 +114,8 @@ export default function SiteFooter({ className, layout = 'default' }: SiteFooter
     }
 
     return (
-        // Switch between dark theme fixed black and light theme white
-        <footer className={cn('w-full bg-white dark:bg-[#0A0A0A] text-slate-900 dark:text-white relative overflow-hidden', className)}>
+        // Switch between dark theme fixed black and light theme background
+        <footer className={cn('w-full bg-background dark:bg-[#0A0A0A] text-slate-900 dark:text-white relative overflow-hidden', className)}>
 
             {/* Main grid content */}
             <div className={cn("relative z-10 w-full mx-auto px-6 md:px-8 pt-16 pb-0", containerMaxWidth)}>
@@ -126,7 +126,7 @@ export default function SiteFooter({ className, layout = 'default' }: SiteFooter
                     {/* Logo + tagline */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-2">
-                            {/* Force combination logo, invert normally in dark mode, but keep colored/dark in light mode depending on how combination.svg works */}
+                            {/* Force combination logo, invert normally in dark mode, keep dark in light mode */}
                             <img src="/logos/combination.svg" alt="SOCI4L" className="h-6 w-auto dark:brightness-0 dark:invert" aria-hidden />
                         </div>
                         <p className="text-sm text-slate-500 dark:text-white/40 leading-relaxed max-w-[200px]">
