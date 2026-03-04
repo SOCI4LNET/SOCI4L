@@ -68,8 +68,8 @@ function FooterWordmark() {
             </defs>
             <style>
                 {`
-                    .stop-color-top { stop-color: #e2e8f0; } /* Light mode: matched to faint background */
-                    .stop-color-bottom { stop-color: #f8fafc; } /* Light mode: slightly lighter area */
+                    .stop-color-top { stop-color: #cbd5e1; } /* Light mode: slate-300 for visibility */
+                    .stop-color-bottom { stop-color: #ffffff; } /* Light mode: fade to white */
                     .dark .stop-color-top { stop-color: #1D1D1D; }
                     .dark .stop-color-bottom { stop-color: #0A0A0A; }
                 `}
@@ -126,8 +126,8 @@ export default function SiteFooter({ className, layout = 'default' }: SiteFooter
                     {/* Logo + tagline */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-2">
-                            {/* Force combination logo, invert normally in dark mode, keep dark in light mode */}
-                            <img src="/logos/combination.svg" alt="SOCI4L" className="h-6 w-auto dark:brightness-0 dark:invert" aria-hidden />
+                            {/* Use Soci4LLogo component which handles light/dark mode automatically */}
+                            <Soci4LLogo variant="combination" width={120} height={23} />
                         </div>
                         <p className="text-sm text-slate-500 dark:text-white/40 leading-relaxed max-w-[200px]">
                             Turn your Avalanche wallet into a measurable public identity.
