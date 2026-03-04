@@ -201,13 +201,16 @@ export default function SiteFooter({ className }: SiteFooterProps = {}) {
             <div className="h-4 md:h-10" />
 
             {/* SOCI4L watermark — max-width matching footer content exactly */}
-            <div className="relative w-full flex justify-center items-end">
+            <div
+                className="relative w-full max-w-7xl mx-auto px-6 md:px-8 flex justify-center items-start overflow-hidden"
+                style={{ height: "clamp(140px, 20vw, 240px)" }}
+            >
                 {/* 
-                  By using the exact same constraints as the content (max-w-7xl px-6 md:px-8),
-                  the text aligns exactly with the content above it (the S and L edges).
-                  The height scales automatically to the width without being cut.
+                  By aligning items-start and strictly constraining the container's height,
+                  the top of the SOCI4L text is fully preserved, while the BOTTOM
+                  is naturally sliced off (matching the design intent).
                 */}
-                <div className="w-full max-w-7xl mx-auto px-6 md:px-8 text-white/[0.08]">
+                <div className="w-full text-white/[0.08]">
                     <FooterWordmark />
                 </div>
             </div>
