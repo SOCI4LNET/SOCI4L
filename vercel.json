@@ -11,14 +11,6 @@
     {
       "path": "/api/cron/sync-premium",
       "schedule": "0 3 * * *"
-    },
-    {
-      "path": "/api/cron/sync-donations",
-      "schedule": "*/5 * * * *"
-    },
-    {
-      "path": "/api/cron/sync-slugs",
-      "schedule": "*/15 * * * *"
     }
   ]
 }
