@@ -40,22 +40,32 @@ export async function GET(
     if (connectedWalletAddress && isValidAddress(connectedWalletAddress)) {
       const normalizedConnected = connectedWalletAddress.toLowerCase()
 
-      // If no session exists but wallet is connected, return 401 to trigger auth
+      // If no session exists but wallet is connected, signal auth need without 401.
+      // This avoids noisy "Failed to load resource: 401" in browser console for passive checks.
       if (!sessionAddress) {
         return NextResponse.json(
-          { error: 'Session not found. Please log in.' },
-          { status: 401 }
+          { isFollowing: false, requiresAuth: true, authReason: 'NO_SESSION' },
+          {
+            headers: {
+              'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+              'Pragma': 'no-cache',
+            },
+          }
         )
       }
 
       const normalizedSession = sessionAddress.toLowerCase()
 
-      // If connected wallet doesn't match session, return 401 to trigger re-auth
-      // This allows the frontend to detect the stale session and prompt for a new signature
+      // If connected wallet doesn't match session, signal re-auth without 401.
       if (normalizedConnected !== normalizedSession) {
         return NextResponse.json(
-          { error: 'Session address does not match connected wallet' },
-          { status: 401 }
+          { isFollowing: false, requiresAuth: true, authReason: 'SESSION_MISMATCH' },
+          {
+            headers: {
+              'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+              'Pragma': 'no-cache',
+            },
+          }
         )
       }
     }

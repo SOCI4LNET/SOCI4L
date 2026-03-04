@@ -97,8 +97,15 @@ export function FollowToggle({ address, isBlockedByViewer: initialBlocked = fals
         credentials: 'include',
       })
 
-      // If 401, we need to create a session
-      if (statusResponse.status === 401) {
+      let statusPayload: { requiresAuth?: boolean } | null = null
+      try {
+        statusPayload = await statusResponse.json()
+      } catch {
+        statusPayload = null
+      }
+
+      // If auth is required, create/recreate session.
+      if (statusResponse.status === 401 || statusPayload?.requiresAuth === true) {
         // Step 1: Get nonce
         const nonceResponse = await fetch('/api/auth/nonce', {
           credentials: 'include',
@@ -148,8 +155,15 @@ export function FollowToggle({ address, isBlockedByViewer: initialBlocked = fals
             credentials: 'include',
           })
 
-          // If not 401, session exists
-          if (verifyStatusResponse.status !== 401) {
+          let verifyStatusPayload: { requiresAuth?: boolean } | null = null
+          try {
+            verifyStatusPayload = await verifyStatusResponse.json()
+          } catch {
+            verifyStatusPayload = null
+          }
+
+          // Session exists if endpoint no longer asks for auth
+          if (verifyStatusResponse.status !== 401 && verifyStatusPayload?.requiresAuth !== true) {
             sessionVerified = true
             break
           }
