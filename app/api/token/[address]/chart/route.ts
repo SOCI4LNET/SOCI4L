@@ -24,7 +24,6 @@ const CHAIN_TO_GECKO_NETWORK: Record<string, string> = {
     harmony: 'one',
     gnosis: 'xdai',
     aurora: 'aurora',
-    zksynx: 'zksync',
     linea: 'linea',
     scroll: 'scroll',
     mantle: 'mantle',
@@ -82,21 +81,22 @@ async function getTopPool(tokenAddress: string): Promise<PoolInfo | null> {
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { address: string } }
+    { params }: { params: Promise<{ address: string }> }
 ) {
-    const address = params.address
+    // Next.js 15+ requires awaiting params
+    const { address } = await params
     const searchParams = request.nextUrl.searchParams
     const days = searchParams.get('days') || '7' // '1', '7', or '30'
 
-    if (!address || (!isValidAddress(address) && address !== 'native')) {
+    const isNative = address === 'native' || address === 'avax'
+
+    if (!address || (!isValidAddress(address) && !isNative)) {
         return NextResponse.json({ error: 'Invalid address' }, { status: 400 })
     }
 
     try {
         // Resolve contract address — use WAVAX as proxy for native AVAX
-        const contractAddress = (address === 'native' || address === 'avax')
-            ? WAVAX_ADDRESS
-            : address.toLowerCase()
+        const contractAddress = isNative ? WAVAX_ADDRESS : address.toLowerCase()
 
         // Step 1: Get the best DEX pool for this token (any chain)
         const pool = await getTopPool(contractAddress)

@@ -5,9 +5,9 @@ const SNOWTRACE_API = 'https://api.snowtrace.io/api'
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { address: string } }
+    { params }: { params: Promise<{ address: string }> }
 ) {
-    const tokenAddress = params.address
+    const { address: tokenAddress } = await params
     const searchParams = request.nextUrl.searchParams
     const wallet = searchParams.get('wallet')
 
