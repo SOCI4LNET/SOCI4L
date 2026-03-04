@@ -5,9 +5,10 @@ import { isValidAddress } from '@/lib/utils'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { address: string } }
+  { params }: { params: Promise<{ address: string }> | { address: string } }
 ) {
-  const address = params.address
+  const resolvedParams = await Promise.resolve(params)
+  const address = resolvedParams.address
 
   // Address validation - format check
   if (!address) {

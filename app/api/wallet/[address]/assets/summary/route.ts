@@ -7,10 +7,11 @@ const CHAIN_ID = 43114 // Avalanche C-Chain
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { address: string } }
+  { params }: { params: Promise<{ address: string }> | { address: string } }
 ) {
   const startTime = Date.now()
-  const address = params.address
+  const resolvedParams = await Promise.resolve(params)
+  const address = resolvedParams.address
 
   console.log('[Assets Summary API] Request received:', {
     address,

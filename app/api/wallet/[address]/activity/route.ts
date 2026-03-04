@@ -14,10 +14,12 @@ import { getSessionAddress } from '@/lib/auth'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { address: string } }
+  { params }: { params: Promise<{ address: string }> | { address: string } }
 ) {
+  let address: string | undefined
   try {
-    const address = params.address
+    const resolvedParams = await Promise.resolve(params)
+    address = resolvedParams.address
     const searchParams = request.nextUrl.searchParams
 
     // Query parameters
@@ -86,7 +88,7 @@ export async function GET(
     console.error('[Activity API] Error:', {
       error: error.message,
       stack: error.stack,
-      address: params.address,
+      address,
     })
     return NextResponse.json(
       {

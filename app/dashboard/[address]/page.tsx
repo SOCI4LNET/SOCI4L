@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useAccount, useConnect } from 'wagmi'
 import { useRouter, useParams, useSearchParams, usePathname } from 'next/navigation'
 import Link from 'next/link'
@@ -101,7 +101,7 @@ interface WalletData {
   lastSeen?: number
 }
 
-export default function DashboardAddressPage() {
+function DashboardAddressContent() {
   const [mounted, setMounted] = useState(false)
   const params = useParams()
   const router = useRouter()
@@ -668,5 +668,18 @@ export default function DashboardAddressPage() {
       {renderPanel()}
       <DashboardCommandMenu />
     </div>
+  )
+}
+
+export default function DashboardAddressPage() {
+  return (
+    <Suspense fallback={
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    }>
+      <DashboardAddressContent />
+    </Suspense>
   )
 }
