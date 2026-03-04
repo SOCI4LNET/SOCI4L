@@ -227,7 +227,7 @@ export default function SiteFooter({ className }: SiteFooterProps = {}) {
                   Since we have 'overflow-hidden' on the container, the overflowing part is sliced beautifully
                   without any extra black padding underneath.
                 */}
-                <div className="w-full -mb-[8.5%] flex items-start">
+                <div className="w-full -mb-[10%] flex flex-col justify-end">
                     <FooterWordmark />
                 </div>
             </div>

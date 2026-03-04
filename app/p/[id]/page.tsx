@@ -1865,6 +1865,9 @@ export default function ProfilePage({ params }: PageProps) {
             ) : null
             }
 
+            {/* Adds spacing between dynamic profile blocks and the footer below */}
+            <div className="h-16 md:h-24 w-full flex-shrink-0" />
+
             {/* QR Code Modal for current profile */}
             {
                 resolvedAddress && isValidAddress(resolvedAddress) && (
