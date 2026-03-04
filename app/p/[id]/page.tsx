@@ -210,32 +210,12 @@ export default function ProfilePage({ params }: PageProps) {
             try {
                 // Check if id is an address (starts with 0x) or a slug
                 const isAddress = routeId.startsWith('0x') && isValidAddress(routeId)
-
-                let response: Response
                 // Add cache bust timestamp to prevent aggressive caching
                 const cacheBust = `${Date.now()}-${Math.random().toString(36).substring(7)}`
 
                 // --- PHASE 1: Fetch Identity Data (Fast) ---
-                let profileResponse: Response
-                if (isAddress) {
-                    const normalizedAddress = routeId.toLowerCase()
-                    profileResponse = await fetch(`/api/profile/${normalizedAddress}?_t=${cacheBust}`, {
-                        cache: 'no-store',
-                        headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' },
-                    })
-                } else {
-                    profileResponse = await fetch(`/api/profile/${routeId}?_t=${cacheBust}`, { // Assuming /api/profile handles slugs too, or might need a specific endpoint
-                        cache: 'no-store',
-                        headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' },
-                    })
-                }
-
-                // Temporary workaround since `/api/profile/[id]` doesn't return full public layout/appearance payloads yet.
-                // We'll hit the newly returning `/api/wallet` but NOT wait for the wallet data parsing to render the UI? No, /api/wallet blocks on getWalletData on the backend.
-                // We MUST use existing endpoints. `/api/profile/[id]` returns the raw DB object, but we need layout/appearance.
-                // Actually, wait, let's look closely at `/api/wallet/route.ts` - it blocks on `await getWalletData(resolvedAddress)`.
-                // If I modify `/api/wallet/route.ts` to take a `?skipWallet=true` flag, it can return instantly!
-
+                // Note: We intentionally do not call `/api/profile/${routeId}` for slug routes.
+                // That endpoint only accepts wallet addresses and returns 400 for slugs.
                 const skipWalletUrl = isAddress
                     ? `/api/wallet?address=${routeId.toLowerCase()}&skipWallet=true&_t=${cacheBust}`
                     : `/api/wallet?slug=${routeId}&skipWallet=true&_t=${cacheBust}`
