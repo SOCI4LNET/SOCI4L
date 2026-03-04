@@ -50,8 +50,8 @@ function FooterWordmark() {
             viewBox="0 0 203 52"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            className="w-full h-full"
-            preserveAspectRatio="xMidYMax slice"
+            className="w-full h-auto"
+            preserveAspectRatio="xMidYMid meet"
             aria-hidden
         >
             <path d="M18.49 51.56C14.92 51.56 11.81 50.84 9.14 49.41C6.48 47.97 4.36 45.97 2.78 43.4C1.2 40.83 0.28 37.83 0 34.4L7.5 33.91C7.82 36.27 8.47 38.26 9.45 39.89C10.42 41.51 11.7 42.73 13.27 43.54C14.84 44.35 16.67 44.76 18.76 44.76C20.85 44.76 22.51 44.49 23.9 43.96C25.29 43.43 26.35 42.65 27.1 41.63C27.84 40.61 28.21 39.38 28.21 37.95C28.21 36.52 27.86 35.17 27.17 34.06C26.48 32.95 25.22 31.93 23.42 31C21.61 30.07 18.97 29.12 15.5 28.15C12.12 27.22 9.36 26.18 7.23 25.02C5.1 23.86 3.55 22.43 2.57 20.71C1.6 19 1.11 16.87 1.11 14.32C1.11 11.5 1.77 9 3.09 6.85C4.41 4.7 6.31 3.02 8.79 1.81C11.27 0.609999 14.24 0 17.72 0C21.2 0 24.08 0.67 26.51 2.01C28.94 3.35 30.86 5.22 32.28 7.6C33.69 9.99 34.56 12.78 34.89 15.97L27.39 16.39C27.16 14.49 26.64 12.82 25.83 11.39C25.02 9.95 23.92 8.83 22.53 8.02C21.14 7.21 19.47 6.8 17.53 6.8C14.8 6.8 12.63 7.46 11.03 8.78C9.43 10.1 8.63 11.83 8.63 13.96C8.63 15.4 8.95 16.58 9.6 17.5C10.25 18.43 11.38 19.26 13 20C14.62 20.74 16.89 21.51 19.81 22.29C23.75 23.36 26.87 24.58 29.19 25.97C31.51 27.36 33.17 29.03 34.19 30.97C35.21 32.92 35.72 35.23 35.72 37.92C35.72 40.61 35 42.98 33.57 45.04C32.13 47.1 30.13 48.7 27.56 49.83C24.99 50.96 21.97 51.53 18.49 51.53V51.56Z" fill="currentColor" />
@@ -197,13 +197,18 @@ export default function SiteFooter({ className }: SiteFooterProps = {}) {
                 </div>
             </div>
 
-            {/* SOCI4L watermark — massive, horizontally centered, placed BEHIND content */}
-            <div className="absolute inset-0 pointer-events-none select-none flex justify-center items-end opacity-40 mix-blend-screen" style={{ zIndex: 0 }}>
-                {/* Fade out top part so it blends with the dark background */}
-                <div className="absolute inset-x-0 top-0 h-[70%] bg-gradient-to-b from-[#0A0A0A] via-[#0A0A0A] to-transparent z-10" />
+            {/* Empty space (padding) as requested before the watermark */}
+            <div className="h-4 md:h-10" />
 
-                {/* The wordmark spanning almost full width, positioned perfectly at the bottom */}
-                <div className="w-[1200px] md:w-[1600px] lg:w-[2200px] max-w-none text-white/[0.08] flex-shrink-0 relative z-0">
+            {/* SOCI4L watermark — max-width matching footer content exactly */}
+            <div className="relative w-full max-w-7xl mx-auto px-6 md:px-8 overflow-hidden">
+                {/* 
+                  By using negative bottom margin, the container shrinks exactly that much,
+                  allowing the footer content height to effectively "cut off" the bottom of the SVG.
+                  Since we have 'overflow-hidden' on the container, the overflowing part is sliced beautifully
+                  without any extra black padding underneath.
+                */}
+                <div className="w-full text-white/[0.08] -mb-[8.5%] flex items-start">
                     <FooterWordmark />
                 </div>
             </div>
