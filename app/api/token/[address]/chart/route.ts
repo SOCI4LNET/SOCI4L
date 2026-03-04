@@ -6,11 +6,42 @@ const WAVAX_ADDRESS = '0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7'
 const DEXSCREENER_BASE = 'https://api.dexscreener.com/latest/dex/tokens'
 const GECKOTERMINAL_BASE = 'https://api.geckoterminal.com/api/v2'
 
+// DexScreener chainId → GeckoTerminal network slug mapping
+const CHAIN_TO_GECKO_NETWORK: Record<string, string> = {
+    avalanche: 'avax',
+    bsc: 'bsc',
+    ethereum: 'eth',
+    polygon: 'polygon_pos',
+    arbitrum: 'arbitrum',
+    base: 'base',
+    optimism: 'optimism',
+    solana: 'solana',
+    fantom: 'ftm',
+    cronos: 'cro',
+    moonbeam: 'moonbeam',
+    moonriver: 'movr',
+    celo: 'celo',
+    harmony: 'one',
+    gnosis: 'xdai',
+    aurora: 'aurora',
+    zksynx: 'zksync',
+    linea: 'linea',
+    scroll: 'scroll',
+    mantle: 'mantle',
+}
+
+interface PoolInfo {
+    pairAddress: string
+    chainId: string
+    geckoNetwork: string
+}
+
 /**
- * Finds the best Avalanche pool for a given token via DexScreener
- * Returns the pair address of the pool with highest 24h liquidity
+ * Finds the best pool for a given token via DexScreener across all chains.
+ * Returns the pair address and resolved GeckoTerminal network slug of the
+ * pool with the highest 24h liquidity.
  */
-async function getTopAvalanchePool(tokenAddress: string): Promise<string | null> {
+async function getTopPool(tokenAddress: string): Promise<PoolInfo | null> {
     try {
         const res = await fetch(`${DEXSCREENER_BASE}/${tokenAddress}`, {
             headers: { 'Accept': 'application/json' },
@@ -21,12 +52,29 @@ async function getTopAvalanchePool(tokenAddress: string): Promise<string | null>
         const json = await res.json()
         const pairs: any[] = json?.pairs || []
 
-        // Filter to Avalanche pairs only and sort by liquidity descending
-        const avalanchePairs = pairs
-            .filter((p: any) => p.chainId === 'avalanche')
-            .sort((a: any, b: any) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0))
+        if (!pairs.length) return null
 
-        return avalanchePairs[0]?.pairAddress?.toLowerCase() || null
+        // Sort by liquidity descending (no chain filter — pick best pool regardless of chain)
+        const sorted = [...pairs].sort(
+            (a: any, b: any) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0)
+        )
+
+        const best = sorted[0]
+        if (!best?.pairAddress) return null
+
+        const chainId: string = best.chainId?.toLowerCase() || ''
+        const geckoNetwork = CHAIN_TO_GECKO_NETWORK[chainId]
+
+        if (!geckoNetwork) {
+            console.warn(`[Chart API] Unknown chain "${chainId}" — no GeckoTerminal mapping`)
+            return null
+        }
+
+        return {
+            pairAddress: best.pairAddress.toLowerCase(),
+            chainId,
+            geckoNetwork,
+        }
     } catch {
         return null
     }
@@ -50,10 +98,10 @@ export async function GET(
             ? WAVAX_ADDRESS
             : address.toLowerCase()
 
-        // Step 1: Get the best DEX pool for this token from DexScreener
-        const poolAddress = await getTopAvalanchePool(contractAddress)
+        // Step 1: Get the best DEX pool for this token (any chain)
+        const pool = await getTopPool(contractAddress)
 
-        if (!poolAddress) {
+        if (!pool) {
             return NextResponse.json({ data: [] })
         }
 
@@ -64,7 +112,7 @@ export async function GET(
         const limit = isIntraday ? 24 : parseInt(days)
 
         // Step 3: Fetch OHLCV from GeckoTerminal using the pool address (free endpoint)
-        const ohlcvUrl = `${GECKOTERMINAL_BASE}/networks/avax/pools/${poolAddress}/ohlcv/${timeframe}?limit=${limit}&currency=usd`
+        const ohlcvUrl = `${GECKOTERMINAL_BASE}/networks/${pool.geckoNetwork}/pools/${pool.pairAddress}/ohlcv/${timeframe}?limit=${limit}&currency=usd`
 
         const res = await fetch(ohlcvUrl, {
             headers: { 'Accept': 'application/json' },
@@ -72,7 +120,7 @@ export async function GET(
         })
 
         if (!res.ok) {
-            console.warn(`[Chart API] GeckoTerminal pool OHLCV ${res.status} for pool ${poolAddress}`)
+            console.warn(`[Chart API] GeckoTerminal OHLCV ${res.status} for pool ${pool.pairAddress} on ${pool.geckoNetwork}`)
             return NextResponse.json({ data: [] })
         }
 
