@@ -259,14 +259,16 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
   }
 
   const exportToPng = async (pixelRatio: number = 2) => {
-    // Export the entire card container
-    if (!cardContainerRef.current) {
-      toast.error('Card container not found')
+    // Export only the QR code itself, not the wrapper with padding
+    if (!qrContainerRef.current) {
+      toast.error('QR code not found')
       setExportAvailable(false)
-      throw new Error('Card container not found')
+      throw new Error('QR code container not found')
     }
 
-    const exportTarget = cardContainerRef.current
+    // Get the actual QR SVG element inside the container
+    const qrSvg = qrContainerRef.current.querySelector('svg')
+    const exportTarget = qrSvg || qrContainerRef.current
 
     try {
       // Try to import html-to-image
@@ -485,14 +487,16 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
   }
 
   const exportToSvg = async () => {
-    // Export the entire card container
-    if (!cardContainerRef.current) {
-      toast.error('Card container not found')
+    // Export only the QR code itself, not the wrapper with padding
+    if (!qrContainerRef.current) {
+      toast.error('QR code not found')
       setExportAvailable(false)
-      throw new Error('Card container not found')
+      throw new Error('QR code container not found')
     }
 
-    const exportTarget = cardContainerRef.current
+    // Get the actual QR SVG element inside the container
+    const qrSvg = qrContainerRef.current.querySelector('svg')
+    const exportTarget = qrSvg || qrContainerRef.current
 
     try {
       // Try to import html-to-image
@@ -769,146 +773,123 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
           Scan this QR code to open the profile for {displayName} ({formatAddress(profile.address, 4)})
         </DialogDescription>
 
-        <div className="flex flex-col space-y-4 p-6 bg-background rounded-lg border border-border shadow-md">
-          {/* Card Container - This is what we export */}
-          <div
-            ref={cardContainerRef}
-            className={`flex flex-col items-center space-y-6 p-8 rounded-2xl border ${currentTheme.cardBorder} ${currentTheme.cardBg} ${currentTheme.cardShadow} relative overflow-hidden`}
-          >
-            {/* Soft Branding Watermark (Optional) */}
-            <div className="absolute top-4 left-4 opacity-10">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-              </svg>
-            </div>
-
-            {/* Profile Header */}
-            <div className="flex flex-col items-center space-y-3 relative z-10 w-full">
-              <Avatar className="h-20 w-20 border-4 border-background shadow-sm">
-                <AvatarImage src={avatarUrl} alt={displayName} className="object-cover" />
-                <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-lg">
-                  {fallbackText}
-                </AvatarFallback>
-              </Avatar>
-              <div className="text-center space-y-1 w-full px-2">
-                <h3 className="text-xl font-bold tracking-tight text-foreground truncate">{displayName}</h3>
-                <p className="text-sm text-foreground/60 font-medium tracking-wide">
-                  {profile.slug ? `@${profile.slug}` : formatAddress(profile.address, 4)}
-                </p>
-              </div>
-            </div>
-
-            {/* QR Code Container */}
-            <div
-              ref={qrCodeWrapperRef}
-              className="mx-auto flex items-center justify-center rounded-xl bg-white p-5 shadow-inner"
-              style={{
-                boxShadow: theme === 'dark' ? 'inset 0 2px 10px rgba(0,0,0,0.5)' : 'inset 0 2px 10px rgba(0,0,0,0.05)'
-              }}
-            >
-              {/* Skeleton shown while QR is loading */}
-              {!qrReady && (
-                <Skeleton className="h-[220px] w-[220px] rounded-lg" />
-              )}
-              {/* QR container - React doesn't manage its children */}
-              <div
-                ref={qrContainerRef}
-                className="h-[220px] w-[220px] flex items-center justify-center"
-                suppressHydrationWarning
-                style={{
-                  display: qrReady ? 'flex' : 'none',
-                }}
-              />
-            </div>
-
-            {/* Bottom Branding / Link */}
-            <div className="flex items-center justify-center gap-2 pt-2 opacity-80">
-              <div className="h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center">
-                <span className="text-[10px] font-bold text-primary">S</span>
-              </div>
-              <p className="text-[11px] font-semibold tracking-wider text-foreground/70">
-                SOCI4L.NET
+        {/* Card Container - This is what we export */}
+        <div
+          ref={cardContainerRef}
+          className="flex flex-col items-center space-y-6 p-6 rounded-lg border border-border bg-background shadow-md"
+        >
+          {/* Profile Header */}
+          <div className="flex flex-col items-center space-y-3">
+            <Avatar className="h-16 w-16 border-2 border-border">
+              <AvatarImage src={avatarUrl} alt={displayName} />
+              <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-sm">
+                {fallbackText}
+              </AvatarFallback>
+            </Avatar>
+            <div className="text-center space-y-1">
+              <h3 className="text-lg font-semibold">{displayName}</h3>
+              <p className="text-xs text-muted-foreground font-mono">
+                {formatAddress(profile.address, 4)}
               </p>
             </div>
           </div>
 
-          <div className="px-1 space-y-4 pt-2">
-            {/* Helper Text */}
-            <p className="text-center text-xs text-muted-foreground">
-              Scan QR or share card to view profile
-            </p>
+          {/* QR Code Container */}
+          <div
+            ref={qrCodeWrapperRef}
+            className="mx-auto flex items-center justify-center rounded-lg border border-border bg-background p-4"
+          >
+            {/* Skeleton shown while QR is loading */}
+            {!qrReady && (
+              <Skeleton className="h-[240px] w-[240px] rounded-lg" />
+            )}
+            {/* QR container - React doesn't manage its children */}
+            <div
+              ref={qrContainerRef}
+              className="h-[240px] w-[240px] flex items-center justify-center rounded-lg"
+              suppressHydrationWarning
+              style={{
+                display: qrReady ? 'flex' : 'none',
+                backgroundColor: currentTheme.qrBg,
+              }}
+            />
+          </div>
 
-            {/* Theme Selector */}
-            <div className="w-full">
-              <label className="text-xs font-medium text-muted-foreground mb-2 block">
-                Style
-              </label>
-              <Select value={theme} onValueChange={(value) => setTheme(value as QRTheme)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="light">Light</SelectItem>
-                  <SelectItem value="dark">Dark</SelectItem>
-                  <SelectItem value="soft-gradient">Soft Gradient</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Helper Text */}
+          <p className="text-center text-xs text-muted-foreground">
+            Scan to open this profile
+          </p>
 
-            {/* Actions */}
-            <div className="flex items-center justify-center gap-2 w-full pt-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="default"
-                          size="sm"
-                          className="gap-2"
-                          disabled={!exportAvailable || !qrReady}
-                        >
-                          <Download className="h-4 w-4" />
-                          Download
-                          <ChevronDown className="h-3.5 w-3.5" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="center">
-                        <DropdownMenuItem
-                          onClick={handleDownloadPNG2x}
-                          disabled={!exportAvailable || !qrReady}
-                        >
-                          <Download className="mr-2 h-4 w-4" />
-                          <span>Download PNG</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={handleDownloadSVG}
-                          disabled={!exportAvailable || !qrReady}
-                        >
-                          <Download className="mr-2 h-4 w-4" />
-                          <span>Download SVG</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TooltipTrigger>
-                  {(!exportAvailable || !qrReady) && (
-                    <TooltipContent>
-                      <p>Export unavailable</p>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              </TooltipProvider>
+          {/* Theme Selector */}
+          <div className="w-full">
+            <label className="text-xs font-medium text-muted-foreground mb-2 block">
+              Style
+            </label>
+            <Select value={theme} onValueChange={(value) => setTheme(value as QRTheme)}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="light">Light</SelectItem>
+                <SelectItem value="dark">Dark</SelectItem>
+                <SelectItem value="soft-gradient">Soft Gradient</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleShare}
-                className="gap-2"
-              >
-                <Share2 className="h-4 w-4" />
-                Share
-              </Button>
-            </div>
+          {/* Actions */}
+          <div className="flex items-center justify-center gap-2 w-full pt-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="gap-2"
+                        disabled={!exportAvailable || !qrReady}
+                      >
+                        <Download className="h-4 w-4" />
+                        Download
+                        <ChevronDown className="h-3.5 w-3.5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="center">
+                      <DropdownMenuItem
+                        onClick={handleDownloadPNG2x}
+                        disabled={!exportAvailable || !qrReady}
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        <span>Download PNG</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={handleDownloadSVG}
+                        disabled={!exportAvailable || !qrReady}
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        <span>Download SVG</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TooltipTrigger>
+                {(!exportAvailable || !qrReady) && (
+                  <TooltipContent>
+                    <p>Export unavailable</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleShare}
+              className="gap-2"
+            >
+              <Share2 className="h-4 w-4" />
+              Share
+            </Button>
           </div>
         </div>
       </DialogContent>
