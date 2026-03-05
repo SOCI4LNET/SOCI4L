@@ -11,7 +11,9 @@ const ROADMAP_ITEMS = [
         description: 'Core identity layer, analytics and admin infrastructure shipped.',
         status: 'done',
         items: [
-            'Gasless Profile Engine',
+            'Gasless Profile Engine & Identity Resolution',
+            'Donate v1 via Web Extension',
+            'Personalized Link Hub & Asset Showcase',
             'Admin Panel & User Management',
             'Server-side Analytics (verified views)',
             'OpenSea NFT Integration'
