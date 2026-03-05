@@ -395,9 +395,11 @@ export default function ProfilePage({ params }: PageProps) {
     // Check for donate action in URL parameters (from extension)
     useEffect(() => {
         const action = searchParams.get('action')
-        console.log('[DonateModal] URL check:', { action, hasProfile: !!profile?.address, isBanned: profile?.isBanned, loading: baseLoading, donateModalOpen })
+        const acceptsDonations = appearanceConfig.acceptsDonations !== false // true by default
 
-        if (action === 'donate' && profile?.address && !profile?.isBanned && !baseLoading && !donateModalOpen && !isOwnProfile) {
+        console.log('[DonateModal] URL check:', { action, hasProfile: !!profile?.address, isBanned: profile?.isBanned, loading: baseLoading, donateModalOpen, acceptsDonations })
+
+        if (action === 'donate' && profile?.address && !profile?.isBanned && !baseLoading && !donateModalOpen && !isOwnProfile && acceptsDonations) {
             console.log('[DonateModal] Opening modal from URL parameter', { action })
             // Delay to ensure page is fully rendered
             const timer = setTimeout(() => {
@@ -410,7 +412,7 @@ export default function ProfilePage({ params }: PageProps) {
             }, 1200)
             return () => clearTimeout(timer)
         }
-    }, [searchParams, profile?.address, profile?.isBanned, baseLoading, donateModalOpen])
+    }, [searchParams, profile?.address, profile?.isBanned, baseLoading, donateModalOpen, appearanceConfig.acceptsDonations])
 
 
     const getStatusBadge = () => {
@@ -838,16 +840,18 @@ export default function ProfilePage({ params }: PageProps) {
                                             isBlockedByViewer={isBlockedByViewer}
                                             onBlockChange={(blocked) => setIsBlockedByViewer(blocked)}
                                         />
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="gap-2 text-xs font-medium bg-foreground/5 hover:bg-foreground/10 border-foreground/10 text-foreground"
-                                            onClick={() => setDonateModalOpen(true)}
-                                            disabled={isOwnProfile}
-                                        >
-                                            <Heart className="h-4 w-4" />
-                                            Donate
-                                        </Button>
+                                        {appearanceConfig.acceptsDonations !== false && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="gap-2 text-xs font-medium bg-foreground/5 hover:bg-foreground/10 border-foreground/10 text-foreground"
+                                                onClick={() => setDonateModalOpen(true)}
+                                                disabled={isOwnProfile}
+                                            >
+                                                <Heart className="h-4 w-4" />
+                                                Donate
+                                            </Button>
+                                        )}
                                     </div>
                                 )}
                                 {resolvedAddress && isValidAddress(resolvedAddress) && !profile?.isBanned && (
@@ -862,10 +866,12 @@ export default function ProfilePage({ params }: PageProps) {
                                                 <Copy className="mr-2 h-4 w-4" />
                                                 Copy Link
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={handleCopyDonateEmbed} className="hover:bg-foreground/10 focus:bg-foreground/10 cursor-pointer">
-                                                <Code2 className="mr-2 h-4 w-4" />
-                                                {isOwnProfile ? 'Copy Donate Embed' : 'Embed this Profile'}
-                                            </DropdownMenuItem>
+                                            {appearanceConfig.acceptsDonations !== false && (
+                                                <DropdownMenuItem onClick={handleCopyDonateEmbed} className="hover:bg-foreground/10 focus:bg-foreground/10 cursor-pointer">
+                                                    <Code2 className="mr-2 h-4 w-4" />
+                                                    {isOwnProfile ? 'Copy Donate Embed' : 'Embed this Profile'}
+                                                </DropdownMenuItem>
+                                            )}
                                             <DropdownMenuSeparator className="bg-foreground/10" />
                                             <DropdownMenuItem onClick={() => setQrModalOpen(true)} className="hover:bg-foreground/10 focus:bg-foreground/10 cursor-pointer">
                                                 <QrCode className="mr-2 h-4 w-4" />
@@ -1926,16 +1932,18 @@ export default function ProfilePage({ params }: PageProps) {
                                             isBlockedByViewer={isBlockedByViewer}
                                             onBlockChange={(blocked) => setIsBlockedByViewer(blocked)}
                                         />
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="h-11 gap-2 text-xs font-medium bg-foreground/5 hover:bg-foreground/10 border-foreground/10 text-foreground"
-                                            onClick={() => setDonateModalOpen(true)}
-                                            disabled={isOwnProfile}
-                                        >
-                                            <Heart className="h-4 w-4" />
-                                            Donate
-                                        </Button>
+                                        {appearanceConfig.acceptsDonations !== false && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-11 gap-2 text-xs font-medium bg-foreground/5 hover:bg-foreground/10 border-foreground/10 text-foreground"
+                                                onClick={() => setDonateModalOpen(true)}
+                                                disabled={isOwnProfile}
+                                            >
+                                                <Heart className="h-4 w-4" />
+                                                Donate
+                                            </Button>
+                                        )}
                                     </>
                                 )}
                             </div>

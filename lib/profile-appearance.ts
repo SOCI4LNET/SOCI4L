@@ -10,6 +10,7 @@ export interface ProfileAppearanceConfig {
   theme: ProfileTheme
   hideSelfActivity?: boolean
   donationAlertVisual?: DonationAlertVisual
+  acceptsDonations?: boolean
 }
 
 export function getDefaultAppearanceConfig(): ProfileAppearanceConfig {
@@ -17,6 +18,7 @@ export function getDefaultAppearanceConfig(): ProfileAppearanceConfig {
     theme: 'default',
     hideSelfActivity: false,
     donationAlertVisual: 'confetti',
+    acceptsDonations: true,
   }
 }
 
@@ -43,6 +45,7 @@ export function normalizeAppearanceConfig(
     theme: isValidTheme ? (theme as ProfileTheme) : 'default',
     hideSelfActivity: typeof config.hideSelfActivity === 'boolean' ? config.hideSelfActivity : false,
     donationAlertVisual: isValidDonationVisual ? (donationVisual as DonationAlertVisual) : 'confetti',
+    acceptsDonations: typeof config.acceptsDonations === 'boolean' ? config.acceptsDonations : true,
   }
 }
 
