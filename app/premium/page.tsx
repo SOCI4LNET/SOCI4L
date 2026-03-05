@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { useAccount } from "wagmi"
 import { formatDistanceToNow } from "date-fns"
 import { motion } from "framer-motion"
@@ -133,9 +133,10 @@ export default function PremiumPage() {
     const { address: connectedAddress } = useAccount()
     const { profile } = useProfile(connectedAddress)
     const router = useRouter()
+    const pathname = usePathname()
 
     const isActive = (href: string) => {
-        return window.location.pathname === href;
+        return pathname === href;
     }
 
     const navigationItems = [
