@@ -2,7 +2,7 @@
 import { sendTelegramNotification, getAvaxPrice } from '../lib/telegram';
 
 async function testNotification() {
-    console.log('Test bildirimi gönderiliyor...');
+    console.log('Sending test notification...');
 
     // Script direct run can't access process.env from Vercel, 
     // but we can pass it here for local testing if needed.
@@ -13,19 +13,19 @@ async function testNotification() {
     const usdValue = (amount * price).toFixed(2);
 
     const msg = [
-        `🔔 <b>SOCI4L Test Bildirimi</b>`,
+        `🔔 <b>SOCI4L Test Notification</b>`,
         ``,
-        `✅ Telegram altyapısı başarıyla kuruldu!`,
-        `💰 <b>Güncel AVAX:</b> $${price}`,
-        `📈 <b>Premium Geliri:</b> $${usdValue}`,
+        `✅ Telegram infrastructure successfully set up!`,
+        `💰 <b>Current AVAX:</b> $${price}`,
+        `📈 <b>Premium Revenue:</b> $${usdValue}`,
         ``,
-        `Artık her yeni satışta buraya bildirim gelecek. 🚀`
+        `You will now receive notifications here for every new sale. 🚀`
     ].join('\n');
 
     // For locally running this test, we'd need the token/ID here.
     // But the code in route.ts will use the Vercel env vars.
-    console.log('Mesaj Taslağı:\n', msg);
-    console.log('\nVercel üzerindeki değişkenler aktifse ilk satışta/sync\'de bu mesajın benzerini göreceksin.');
+    console.log('Message Draft:\n', msg);
+    console.log('\nIf the Vercel variables are active, you will see a similar message on the first sale/sync.');
 }
 
 testNotification();
