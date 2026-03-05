@@ -7,7 +7,7 @@ import { MousePointer2, Plus, Users, Wallet, ArrowUpRight, LayoutDashboard, QrCo
 
 export function OrbitConnection() {
     return (
-        <div className="w-full h-[280px] relative overflow-hidden pointer-events-none perspective-[1000px]">
+        <div className="w-full h-[280px] relative overflow-hidden pointer-events-none perspective-[1000px] flex justify-center">
             {/* Fade out to bottom */}
             <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-background to-transparent z-10" />
 

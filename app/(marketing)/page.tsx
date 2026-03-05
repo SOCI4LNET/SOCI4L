@@ -84,7 +84,7 @@ export default function HomePage() {
                   <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
                     Turn your Avalanche wallet into a measurable public identity.
                   </h1>
-                  <p className="max-w-xl text-sm text-muted-foreground md:text-base">
+                  <p className="max-w-xl text-sm text-muted-foreground md:text-base break-words hyphens-auto sm:hyphens-none">
                     Turn your wallet into your SOCI4L profile.
                     Showcase on-chain assets, add links, and share everything as one public page with full control and built-in insights.
                   </p>
