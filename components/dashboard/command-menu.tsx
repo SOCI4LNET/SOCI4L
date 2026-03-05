@@ -53,14 +53,14 @@ export function DashboardCommandMenu() {
             <DialogContent className="overflow-hidden p-0 shadow-lg">
                 <DialogTitle className="sr-only">Command Menu</DialogTitle>
                 <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
-                    <CommandInput placeholder="Bir komut yazın veya arama yapın..." />
+                    <CommandInput placeholder="Type a command or search..." />
                     <CommandList>
-                        <CommandEmpty>Sonuç bulunamadı.</CommandEmpty>
+                        <CommandEmpty>No results found.</CommandEmpty>
 
-                        <CommandGroup heading="Kısayollar">
+                        <CommandGroup heading="Shortcuts">
                             <CommandItem onSelect={() => runCommand(() => router.push(`${pathname}?tab=links&action=add-link`))}>
                                 <LinkIcon className="mr-2 h-4 w-4" />
-                                <span>Link Ekle</span>
+                                <span>Add Link</span>
                             </CommandItem>
                             <CommandItem onSelect={() => runCommand(() => router.push(`${pathname}?tab=settings`))}>
                                 <Settings className="mr-2 h-4 w-4" />
@@ -74,7 +74,7 @@ export function DashboardCommandMenu() {
 
                         <CommandSeparator />
 
-                        <CommandGroup heading="Paneller">
+                        <CommandGroup heading="Panels">
                             <CommandItem onSelect={() => runCommand(() => router.push(`${pathname}?tab=overview`))}>
                                 <User className="mr-2 h-4 w-4" />
                                 <span>Overview</span>
