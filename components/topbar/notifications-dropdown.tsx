@@ -132,12 +132,7 @@ export function NotificationsDropdown({ address }: NotificationsDropdownProps) {
                 <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full border border-border bg-background">
                     <Bell className="h-[18px] w-[18px]" strokeWidth={1.5} />
                     {unreadCount > 0 && (
-                        <Badge
-                            variant="destructive"
-                            className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center rounded-full p-0 text-[10px]"
-                        >
-                            {unreadCount > 99 ? '99+' : unreadCount}
-                        </Badge>
+                        <div className="absolute top-[8px] right-[10px] h-2 w-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)] ring-2 ring-background animate-pulse" />
                     )}
                 </Button>
             </DropdownMenuTrigger>
