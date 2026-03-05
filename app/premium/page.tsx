@@ -7,11 +7,18 @@ import { formatDistanceToNow } from "date-fns"
 import { motion } from "framer-motion"
 import { useProfile } from "@/hooks/use-profile"
 
-import { BarChart2, ShieldCheck, TrendingUp, Zap, ChevronRight, Info, Link2, ArrowRight } from "lucide-react"
+import { BarChart2, ShieldCheck, TrendingUp, Zap, ChevronRight, Info, Link2, ArrowRight, Menu } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from '@/components/ui/sheet'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { PremiumUpgradeModal } from "@/components/premium/premium-upgrade-modal"
 import { Soci4LLogo } from "@/components/logos/soci4l-logo"
@@ -122,9 +129,21 @@ const AnimatedListItem = ({ children, index }: { children: React.ReactNode, inde
 
 export default function PremiumPage() {
     const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const { address: connectedAddress } = useAccount()
     const { profile } = useProfile(connectedAddress)
     const router = useRouter()
+
+    const isActive = (href: string) => {
+        return window.location.pathname === href;
+    }
+
+    const navigationItems = [
+        { label: 'Product', href: '/' },
+        { label: 'Premium', href: '/premium', exact: true },
+        { label: 'Documentation', href: 'https://soci4l.net/docs', external: true },
+        { label: 'Live Demo', href: '/demo', badge: 'NEW' },
+    ]
 
     const isPremium = useMemo(() => {
         if (!profile?.premiumExpiresAt) return false;
@@ -162,6 +181,64 @@ export default function PremiumPage() {
                                 </Badge>
                             )}
                             <HeaderActions />
+
+                            {/* Mobile Navigation Menu */}
+                            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                                <SheetTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="md:hidden">
+                                        <Menu className="h-5 w-5" />
+                                        <span className="sr-only">Toggle mobile menu</span>
+                                    </Button>
+                                </SheetTrigger>
+                                <SheetContent side="right" className="w-[300px] sm:w-[340px] pt-12">
+                                    <SheetHeader className="mb-6 text-left">
+                                        <SheetTitle className="text-lg font-bold">Navigation</SheetTitle>
+                                    </SheetHeader>
+                                    <nav className="flex flex-col gap-2">
+                                        {navigationItems.map((item) => {
+                                            const active = !item.external && isActive(item.href)
+
+                                            if (item.external) {
+                                                return (
+                                                    <Button
+                                                        key={item.href}
+                                                        variant="ghost"
+                                                        asChild
+                                                        className="justify-start text-sm font-medium transition-colors w-full h-11 px-4"
+                                                        onClick={() => setMobileMenuOpen(false)}
+                                                    >
+                                                        <a href={item.href} target="_blank" rel="noopener">
+                                                            {item.label}
+                                                        </a>
+                                                    </Button>
+                                                )
+                                            }
+
+                                            return (
+                                                <Button
+                                                    key={item.href}
+                                                    variant={active ? "secondary" : "ghost"}
+                                                    onClick={() => {
+                                                        setMobileMenuOpen(false)
+                                                        router.push(item.href)
+                                                    }}
+                                                    className="justify-start text-sm font-medium transition-colors w-full relative h-11 px-4"
+                                                >
+                                                    {item.label}
+                                                    {item.badge && (
+                                                        <Badge
+                                                            variant="secondary"
+                                                            className="ml-auto px-1.5 py-0 h-5 text-[10px] font-bold bg-brand text-white border-brand/20 shadow-sm"
+                                                        >
+                                                            {item.badge}
+                                                        </Badge>
+                                                    )}
+                                                </Button>
+                                            )
+                                        })}
+                                    </nav>
+                                </SheetContent>
+                            </Sheet>
                         </div>
                     </div>
                 </header>
