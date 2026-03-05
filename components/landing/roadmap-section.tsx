@@ -29,7 +29,8 @@ const ROADMAP_ITEMS = [
             'On-chain Reference System',
             'Pinned Announcements',
             'On-chain Poll & Voting',
-            'Gated Content'
+            'Gated Content',
+            'Profile Customization & Premium Themes'
         ]
     },
     {
