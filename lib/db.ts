@@ -163,3 +163,38 @@ export async function getProfileBySlug(slug: string): Promise<ProfileData | null
     premiumLastTxHash: profile.premiumLastTxHash,
   }
 }
+
+/**
+ * Get count of verified social accounts for a profile
+ */
+export async function getVerifiedSocialsCount(address: string): Promise<number> {
+  const normalizedAddress = address.toLowerCase()
+
+  const profile = await prisma.profile.findUnique({
+    where: { address: normalizedAddress },
+    select: { id: true }
+  })
+
+  if (!profile) return 0
+
+  return prisma.socialConnection.count({
+    where: {
+      profileId: profile.id,
+      verifiedAt: { not: undefined }
+    }
+  })
+}
+
+/**
+ * Get count of donations sent by an address
+ */
+export async function getDonationsSentCount(address: string): Promise<number> {
+  const normalizedAddress = address.toLowerCase()
+
+  return (prisma as any).notification.count({
+    where: {
+      type: 'DONATION_RECEIVED',
+      actorAddress: normalizedAddress
+    }
+  })
+}

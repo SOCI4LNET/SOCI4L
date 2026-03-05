@@ -24,11 +24,13 @@ export async function GET(
 
   try {
     // Fetch all data needed for score calculation
-    const [profile, followersCount, profileLinks, socialLinks] = await Promise.all([
+    const [profile, followersCount, profileLinks, socialLinks, verifiedSocialsCount, donationsSentCount] = await Promise.all([
       getProfileByAddress(normalizedAddress),
       getFollowersCount(normalizedAddress),
       getProfileLinks(normalizedAddress),
       getSocialLinks(normalizedAddress),
+      import('@/lib/db').then(m => m.getVerifiedSocialsCount(normalizedAddress)),
+      import('@/lib/db').then(m => m.getDonationsSentCount(normalizedAddress)),
     ])
 
     // Calculate score
@@ -43,6 +45,8 @@ export async function GET(
       bio: profile?.bio || null,
       socialLinksCount: socialLinks?.length || 0,
       profileLinksCount: profileLinks?.length || 0,
+      verifiedSocialsCount,
+      donationsSentCount,
       followersCount,
     }
 

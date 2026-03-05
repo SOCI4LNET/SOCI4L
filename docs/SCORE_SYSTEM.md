@@ -20,7 +20,14 @@ The SOCI4L Score measures profile completeness and social engagement. It uses a 
 
 **Maximum from Profile Completion: 25 points**
 
-### Social (Followers)
+### Social & Activity
+
+| Action | Points | Description |
+|--------|--------|-------------|
+| Verified Social | +3 each (max 9) | Authenticating your social accounts (Twitter, GitHub) via OAuth to prove Sybil resistance. |
+| Donations Sent | +1 each (max 10) | Actively sending donations to other users on the platform. |
+
+### Followers (Diminishing Returns)
 
 Followers use a **tiered diminishing returns** system to prevent score inflation:
 
@@ -33,12 +40,12 @@ Followers use a **tiered diminishing returns** system to prevent score inflation
 
 ### Examples
 
-| Profile | Followers | Follower Score |
-|---------|-----------|----------------|
-| New user | 5 | 5 |
-| Active user | 20 | 10 + 5 = **15** |
-| Popular | 100 | 10 + 20 + 12.5 = **42.5** |
-| Influencer | 500 | 10 + 20 + 37.5 + 30 = **97.5** |
+| Profile | Followers | Activity | Score |
+|---------|-----------|----------|-------|
+| New user | 5 | None | 5 |
+| Active user | 20 | Verified Twitter (+3), 2 Donations Sent (+2) | 10 + 5 + 3 + 2 = **20** |
+| Popular | 100 | Verified Github & Twitter (+6), 15 Donations (+10 max) | 10 + 20 + 12.5 + 6 + 10 = **58.5** |
+| Influencer | 500 | 10+ Donations (+10), 3 Verified Socials (+9) | 10 + 20 + 37.5 + 30 + 19 = **116.5** |
 
 ## Score Tiers
 
@@ -69,7 +76,8 @@ Followers use a **tiered diminishing returns** system to prevent score inflation
 - 3 social links (+3)
 - 5 profile links (+5)
 - 15 followers (+12.5)
-- **Score: 30.5**
+- 1 Verified Twitter (+3)
+- **Score: 33.5**
 
 ### Popular Profile (Elite)
 - Claimed (+5)
@@ -78,7 +86,9 @@ Followers use a **tiered diminishing returns** system to prevent score inflation
 - 5 social links (+5)
 - 10 profile links (+10)
 - 100 followers (+42.5)
-- **Score: 67.5**
+- 2 Verified Socials (+6)
+- 5 Donations Sent (+5)
+- **Score: 78.5**
 
 ## API Endpoint
 
@@ -91,7 +101,7 @@ GET /api/profile/{address}/score
 ```json
 {
   "address": "0x...",
-  "score": 30.5,
+  "score": 33.5,
   "tier": "rising",
   "tierLabel": "Rising",
   "breakdown": {
@@ -100,8 +110,10 @@ GET /api/profile/{address}/score
     "bio": 3,
     "socialLinks": 3,
     "profileLinks": 5,
+    "verifiedSocials": 3,
+    "donationsSent": 0,
     "followers": 12.5,
-    "total": 30.5
+    "total": 33.5
   }
 }
 ```
@@ -122,7 +134,7 @@ The score system is designed to be extensible. Planned additions:
 
 - **Score Calculation**: `lib/score.ts`
 - **API Endpoint**: `app/api/profile/[address]/score/route.ts`
-- **Database Helpers**: `lib/db.ts` (getFollowersCount, getProfileLinks, getSocialLinks)
+- **Database Helpers**: `lib/db.ts` (getFollowersCount, getProfileLinks, getSocialLinks, getVerifiedSocialsCount, getDonationsSentCount)
 - **UI Display**: `app/p/[id]/page.tsx` (Badge in profile header)
 
 ## Design Principles
@@ -130,5 +142,6 @@ The score system is designed to be extensible. Planned additions:
 1. **Every point matters** - Scores stay low enough that 10 points is meaningful
 2. **Diminishing returns** - Prevents whales from having astronomically high scores
 3. **Completeness rewarded** - Filling out your profile is valuable
-4. **Social engagement** - Building a following increases your score
-5. **Extensible** - Easy to add new scoring factors in the future
+4. **Social engagement** - Building a following and verifying accounts increases your score
+5. **Platform usage** - Using core platform features like donations increases score (capped to prevent farming)
+6. **Extensible** - Easy to add new scoring factors in the future
