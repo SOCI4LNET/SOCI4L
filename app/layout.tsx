@@ -86,7 +86,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Providers>
-            <div className="flex min-h-screen flex-col bg-background text-foreground overflow-x-hidden max-w-[100vw]">
+            <div className="flex min-h-screen flex-col bg-background text-foreground overflow-x-clip max-w-[100vw]">
               {children}
             </div>
             <Toaster />
