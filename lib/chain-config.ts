@@ -35,17 +35,17 @@ export const snowtraceApiUrl = IS_TESTNET
 
 // CustomSlugRegistry
 export const MAINNET_SLUG_REGISTRY = '0xC894a2677C7E619E9692E3bF4AFF58bE53173aA1'
-export const FUJI_SLUG_REGISTRY = process.env.FUJI_SLUG_REGISTRY_ADDRESS || ''
+export const FUJI_SLUG_REGISTRY = process.env.NEXT_PUBLIC_FUJI_SLUG_REGISTRY_ADDRESS || ''
 export const activeSlugRegistry = IS_TESTNET ? FUJI_SLUG_REGISTRY : MAINNET_SLUG_REGISTRY
 
 // PremiumPayment
 export const MAINNET_PREMIUM_PAYMENT = '0x9bA02537447E6DcdeF72D0e98a4C82E6B73E3cCC'
-export const FUJI_PREMIUM_PAYMENT = process.env.FUJI_PREMIUM_PAYMENT_ADDRESS || ''
+export const FUJI_PREMIUM_PAYMENT = process.env.NEXT_PUBLIC_FUJI_PREMIUM_PAYMENT_ADDRESS || ''
 export const activePremiumPayment = IS_TESTNET ? FUJI_PREMIUM_PAYMENT : MAINNET_PREMIUM_PAYMENT
 
 // DonatePayment
 export const MAINNET_DONATE_PAYMENT = '0x863deaF39D816fBA5D10E3e846a2D953Aa9aEca5'
-export const FUJI_DONATE_PAYMENT = process.env.FUJI_DONATE_PAYMENT_ADDRESS || ''
+export const FUJI_DONATE_PAYMENT = process.env.NEXT_PUBLIC_FUJI_DONATE_PAYMENT_ADDRESS || ''
 export const activeDonatePayment = IS_TESTNET ? FUJI_DONATE_PAYMENT : MAINNET_DONATE_PAYMENT
 
 // ─── Block Explorer ─────────────────────────────────────────────────────────
