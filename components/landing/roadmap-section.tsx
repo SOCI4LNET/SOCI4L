@@ -32,11 +32,11 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
         status: 'done',
         items: [
             { text: 'Gasless Profile Engine & Identity Resolution', info: 'Instant, cost-free profile creation and updates using meta-transactions on Avalanche.' },
-            'Donate v1 via Web Extension',
+            { text: 'Donate v1 via Web Extension', info: 'Send tips and donations directly to social profiles through our specialized Chrome/Brave extension.' },
             'Personalized Link Hub & Asset Showcase',
             'Admin Panel & User Management',
             'Server-side Analytics (verified views)',
-            'OpenSea NFT Integration'
+            { text: 'OpenSea NFT Integration', info: 'Display your NFT collections from OpenSea directly on your profile with verified ownership links.' }
         ]
     },
     {
@@ -45,13 +45,13 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
         description: 'On-chain signed interactions that generate transactions and grow the ecosystem.',
         status: 'active',
         items: [
-            'Post Feed & On-chain Signed Posts',
+            { text: 'Post Feed & On-chain Signed Posts', info: 'Share updates using EIP-712 signatures, ensuring your thoughts are cryptographically tied to your wallet identity.' },
             'Comment System',
-            'Bounty & Job Board',
+            { text: 'Bounty & Job Board', info: 'Find or post tasks for the community with automated smart-contract based reward distribution.' },
             'On-chain Reference System',
             'Pinned Announcements',
-            'On-chain Poll & Voting',
-            'Gated Content',
+            { text: 'On-chain Poll & Voting', info: 'Participate in transparent, tamper-proof community polls where outcomes are recorded and verified on the blockchain.' },
+            { text: 'Gated Content', info: 'Lock specific content or files behind NFT ownership or minimum token balance requirements.' },
             'Profile Customization & Premium Themes',
             { text: 'Autonomous AI Agent Profiles', info: 'SOCI4L Identities with their own wallets, activity logs, and autonomous on-chain decision-making. They can manage assets and provide services independently.' }
         ]
@@ -64,7 +64,7 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
         items: [
             { text: 'On-chain Social Graph (Portability)', info: 'Fully portable decentralized social network where you own your connections and data across the ecosystem.' },
             { text: 'Portable Reputation (Attestations)', info: 'Credential-based reputation system that travels with your wallet and profile.' },
-            'Team & DAO Profile Pages',
+            { text: 'Team & DAO Profile Pages', info: 'Official organizational profiles for DAOs, developer teams, and university student clubs/societies.' },
             'Developer API'
         ]
     }
