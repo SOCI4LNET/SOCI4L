@@ -88,10 +88,10 @@ export function UseCaseSection() {
             )
         },
         {
-            title: 'DAOs & Teams',
+            title: 'DAOs, Teams & Clubs',
             icon: Users,
-            description: 'Create team profiles and aggregate member activity.',
-            keywords: ['Governance', 'Squads'],
+            description: 'Create team profiles, manage university clubs and aggregate member activity.',
+            keywords: ['Governance', 'Squads', 'University'],
             color: 'text-sky-500',
             bgGlow: 'bg-sky-500/10',
             cta: 'Create squad',
