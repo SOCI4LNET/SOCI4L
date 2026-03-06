@@ -3,15 +3,35 @@
 import { useRef } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import { Info } from 'lucide-react'
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 
-const ROADMAP_ITEMS = [
+interface RoadmapItemFeature {
+    text: string
+    info?: string
+}
+
+interface RoadmapItem {
+    phase: string
+    title: string
+    description: string
+    status: 'done' | 'active' | 'future'
+    items: (string | RoadmapItemFeature)[]
+}
+
+const ROADMAP_ITEMS: RoadmapItem[] = [
     {
         phase: 'DONE',
         title: 'Foundation & Data',
         description: 'Core identity layer, analytics and admin infrastructure shipped.',
         status: 'done',
         items: [
-            'Gasless Profile Engine & Identity Resolution',
+            { text: 'Gasless Profile Engine & Identity Resolution', info: 'Instant, cost-free profile creation and updates using meta-transactions on Avalanche.' },
             'Donate v1 via Web Extension',
             'Personalized Link Hub & Asset Showcase',
             'Admin Panel & User Management',
@@ -33,7 +53,7 @@ const ROADMAP_ITEMS = [
             'On-chain Poll & Voting',
             'Gated Content',
             'Profile Customization & Premium Themes',
-            'Autonomous AI Agent Profiles'
+            { text: 'Autonomous AI Agent Profiles', info: 'SOCI4L Identities with their own wallets, activity logs, and autonomous on-chain decision-making. They can manage assets and provide services independently.' }
         ]
     },
     {
@@ -42,8 +62,8 @@ const ROADMAP_ITEMS = [
         description: 'Moving social graph and reputation on-chain.',
         status: 'future',
         items: [
-            'On-chain Social Graph (Portability)',
-            'Portable Reputation (Attestations)',
+            { text: 'On-chain Social Graph (Portability)', info: 'Fully portable decentralized social network where you own your connections and data across the ecosystem.' },
+            { text: 'Portable Reputation (Attestations)', info: 'Credential-based reputation system that travels with your wallet and profile.' },
             'Team & DAO Profile Pages',
             'Developer API'
         ]
@@ -148,15 +168,42 @@ export function RoadmapSection() {
 
                                     {/* Items List */}
                                     <ul className="grid grid-cols-1 gap-y-2.5 pt-4 border-t border-border/10">
-                                        {item.items.map((feature, i) => (
-                                            <li key={i} className="flex items-center gap-3 text-xs md:text-sm text-muted-foreground/60 transition-all duration-300 hover:text-foreground hover:translate-x-1 cursor-default group/item">
-                                                <div className={cn(
-                                                    "w-1 h-1 rounded-full transition-all duration-300 group-hover/item:scale-150",
-                                                    item.status === 'active' ? "bg-primary/50 group-hover/item:bg-primary" : "bg-muted group-hover/item:bg-muted-foreground"
-                                                )} />
-                                                {feature}
-                                            </li>
-                                        ))}
+                                        {item.items.map((feature, i) => {
+                                            const isObject = typeof feature === 'object';
+                                            const text = isObject ? feature.text : feature;
+                                            const info = isObject ? feature.info : null;
+
+                                            return (
+                                                <li key={i} className="flex items-center gap-3 text-xs md:text-sm text-muted-foreground/60 transition-all duration-300 hover:text-foreground hover:translate-x-1 cursor-default group/item">
+                                                    <div className={cn(
+                                                        "w-1 h-1 rounded-full transition-all duration-300 group-hover/item:scale-150",
+                                                        item.status === 'active' ? "bg-primary/50 group-hover/item:bg-primary" : "bg-muted group-hover/item:bg-muted-foreground"
+                                                    )} />
+                                                    <div className="flex items-center gap-2">
+                                                        <span>{text}</span>
+                                                        {info && (
+                                                            <TooltipProvider delayDuration={100}>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <button className="text-muted-foreground/40 hover:text-primary transition-colors focus:outline-none">
+                                                                            <Info className="h-3.5 w-3.5" />
+                                                                        </button>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent
+                                                                        side="right"
+                                                                        className="max-w-[200px] bg-background border border-foreground/10 p-3 rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+                                                                    >
+                                                                        <p className="text-[11px] leading-relaxed text-foreground/80">
+                                                                            {info}
+                                                                        </p>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            </TooltipProvider>
+                                                        )}
+                                                    </div>
+                                                </li>
+                                            )
+                                        })}
                                     </ul>
                                 </div>
                             </div>
