@@ -55,39 +55,53 @@ export function PremiumUpgradeModal({ open, onOpenChange, onSuccess }: PremiumUp
         }
     }, [writeError]);
 
-    // Handle confirmation (Optimistic UI)
+    // Handle confirmation (Optimistic UI & Manual Sync)
     useEffect(() => {
-        if (isConfirmed) {
+        if (isConfirmed && hash) {
             setIsOptimisticSuccess(true);
-            toast.success("Premium Unlocked!");
 
-            // Fire premium celebration confetti
-            const duration = 3 * 1000;
-            const animationEnd = Date.now() + duration;
-            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10001 };
+            // Call the sync endpoint to ensure instant DB update
+            fetch('/api/premium/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    address,
+                    txHash: hash
+                })
+            }).then(() => {
+                toast.success("Premium Unlocked!");
+            }).catch((err) => {
+                console.error("Instant sync failed, fallback to cron", err);
+                toast.success("Premium Unlocked!");
+            }).finally(() => {
+                // Fire premium celebration confetti
+                const duration = 3 * 1000;
+                const animationEnd = Date.now() + duration;
+                const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10001 };
 
-            const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+                const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
 
-            const interval: any = setInterval(function () {
-                const timeLeft = animationEnd - Date.now();
+                const interval: any = setInterval(function () {
+                    const timeLeft = animationEnd - Date.now();
 
-                if (timeLeft <= 0) {
-                    return clearInterval(interval);
-                }
+                    if (timeLeft <= 0) {
+                        return clearInterval(interval);
+                    }
 
-                const particleCount = 50 * (timeLeft / duration);
-                confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
-                confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
-            }, 250);
+                    const particleCount = 50 * (timeLeft / duration);
+                    confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+                    confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+                }, 250);
 
-            if (onSuccess) onSuccess();
+                if (onSuccess) onSuccess();
 
-            // Close after a delay to show success state
-            setTimeout(() => {
-                onOpenChange(false);
-            }, 2000);
+                // Close after a delay to show success state
+                setTimeout(() => {
+                    onOpenChange(false);
+                }, 2000);
+            });
         }
-    }, [isConfirmed, onSuccess, onOpenChange]);
+    }, [isConfirmed, hash, address, onSuccess, onOpenChange]);
 
     const handleUpgrade = async () => {
         if (!isConnected) {
