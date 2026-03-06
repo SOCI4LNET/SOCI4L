@@ -23,6 +23,8 @@ model Profile {
   isPublic     Boolean  @default(false)       // kept for backward compatibility
   isBanned     Boolean  @default(false)
   isVerified   Boolean  @default(false)
+  isAgent      Boolean  @default(false)
+  agentCapabilities String[] @default([])
   role         String   @default("USER")      // USER | ADMIN
   claimedAt    DateTime?
   displayName      String?  // max 32 characters

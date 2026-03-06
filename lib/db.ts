@@ -12,6 +12,9 @@ export interface ProfileData {
   status: ProfileStatus
   visibility: ProfileVisibility
   isBanned: boolean
+  isVerified: boolean
+  isAgent: boolean
+  agentCapabilities: string[]
   claimedAt: Date | null
   createdAt: Date
   updatedAt: Date
@@ -47,8 +50,11 @@ export async function getProfileByAddress(address: string): Promise<ProfileData 
     owner: profile.owner,
     ownerAddress: profile.ownerAddress,
     status: (profile.status as ProfileStatus) || (profile.ownerAddress || profile.owner ? 'CLAIMED' : 'UNCLAIMED'),
-    visibility: (profile.visibility as ProfileVisibility) || (profile.isPublic ? 'PUBLIC' : 'PRIVATE'),
-    isBanned: profile.isBanned || false,
+    visibility: (profile.visibility as ProfileVisibility) || ((profile as any).isPublic ? 'PUBLIC' : 'PRIVATE'),
+    isBanned: (profile as any).isBanned || false,
+    isVerified: (profile as any).isVerified || false,
+    isAgent: (profile as any).isAgent || false,
+    agentCapabilities: (profile as any).agentCapabilities || [],
     claimedAt: profile.claimedAt,
     createdAt: profile.createdAt,
     updatedAt: profile.updatedAt,
@@ -148,8 +154,11 @@ export async function getProfileBySlug(slug: string): Promise<ProfileData | null
     owner: profile.owner,
     ownerAddress: profile.ownerAddress,
     status: (profile.status as ProfileStatus) || (profile.ownerAddress || profile.owner ? 'CLAIMED' : 'UNCLAIMED'),
-    visibility: (profile.visibility as ProfileVisibility) || (profile.isPublic ? 'PUBLIC' : 'PRIVATE'),
-    isBanned: profile.isBanned || false,
+    visibility: (profile.visibility as ProfileVisibility) || ((profile as any).isPublic ? 'PUBLIC' : 'PRIVATE'),
+    isBanned: (profile as any).isBanned || false,
+    isVerified: (profile as any).isVerified || false,
+    isAgent: (profile as any).isAgent || false,
+    agentCapabilities: (profile as any).agentCapabilities || [],
     claimedAt: profile.claimedAt,
     createdAt: profile.createdAt,
     updatedAt: profile.updatedAt,

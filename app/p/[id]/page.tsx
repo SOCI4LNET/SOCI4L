@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { formatAddress, isValidAddress } from '@/lib/utils'
 import { getPublicProfileHref } from '@/lib/routing'
 import Link from 'next/link'
-import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Heart, Share2, Instagram, Youtube, Sparkles, ShieldAlert, Layers, UserX, CheckCircle, MoreVertical, Ban, Puzzle, Code2, ChevronDown, ChevronUp, Wallet } from 'lucide-react'
+import { ExternalLink, Linkedin, Github, Globe, MessageCircle, Send, Mail, QrCode, Link2, Activity, Copy, ArrowRight, Heart, Share2, Instagram, Youtube, Sparkles, ShieldAlert, Layers, UserX, CheckCircle, MoreVertical, Ban, Puzzle, Code2, ChevronDown, ChevronUp, Wallet, Bot } from 'lucide-react'
 import { XIcon } from '@/components/icons/x-icon'
 import { getCachedLogo, getCacheKey } from '@/lib/logo-cache'
 
@@ -124,6 +124,7 @@ export default function ProfilePage({ params }: PageProps) {
         statusMessage?: string | null
         isBanned?: boolean
         isVerified?: boolean
+        isAgent?: boolean
         socialLinks?: Array<{ id?: string; platform?: string; type?: string; url: string; label?: string; verified?: boolean; enabled?: boolean }> | null
         premiumExpiresAt?: string | null
         profileViews?: number
@@ -257,6 +258,7 @@ export default function ProfilePage({ params }: PageProps) {
                             statusMessage: data.profile.statusMessage,
                             isBanned: data.profile.isBanned,
                             isVerified: data.profile.isVerified,
+                            isAgent: data.profile.isAgent,
                             socialLinks: data.profile.socialLinks,
                             premiumExpiresAt: data.profile.premiumExpiresAt,
                             profileViews: data.profile.profileViews,
@@ -538,6 +540,7 @@ export default function ProfilePage({ params }: PageProps) {
                     premiumExpiresAt: data.profile.premiumExpiresAt,
                     isBanned: data.profile.isBanned,
                     isVerified: data.profile.isVerified,
+                    isAgent: data.profile.isAgent,
                     profileViews: data.profile.profileViews,
                 })
                 // Update status based on fresh data
@@ -914,6 +917,11 @@ export default function ProfilePage({ params }: PageProps) {
                                                 {profile?.isVerified && (
                                                     <div className="absolute bottom-0 right-0 bg-background rounded-full p-1 border border-foreground/10 z-10 translate-x-1/4 translate-y-1/4 pointer-events-none">
                                                         <Sparkles className="h-3.5 w-3.5 text-blue-400" />
+                                                    </div>
+                                                )}
+                                                {profile?.isAgent && (
+                                                    <div className="absolute -top-1 -left-1 bg-background rounded-full p-1.5 border border-[#BAD6FF]/20 z-10 shadow-[0_0_15px_rgba(186,214,255,0.3)] pointer-events-none animate-pulse">
+                                                        <Bot className="h-4 w-4 text-[#BAD6FF]" />
                                                     </div>
                                                 )}
                                             </div>

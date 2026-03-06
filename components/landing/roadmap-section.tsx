@@ -32,7 +32,8 @@ const ROADMAP_ITEMS = [
             'Pinned Announcements',
             'On-chain Poll & Voting',
             'Gated Content',
-            'Profile Customization & Premium Themes'
+            'Profile Customization & Premium Themes',
+            'Autonomous AI Agent Profiles'
         ]
     },
     {
