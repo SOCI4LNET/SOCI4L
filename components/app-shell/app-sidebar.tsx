@@ -4,12 +4,31 @@ import * as React from 'react'
 import { usePathname, useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { sanitizeQueryParams } from '@/lib/query-params'
+import { useProfile } from '@/hooks/use-profile'
+import { Button } from '@/components/ui/button'
+import { X, Sparkles } from 'lucide-react'
 
 import { LayoutDashboard, Wallet, Activity, Settings, Users, Wand2, Link2, BarChart3, ChevronDown, User, Shield, CreditCard, Layers } from 'lucide-react'
 
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton, SidebarRail, useSidebar } from '@/components/ui/sidebar'
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton, SidebarRail, SidebarFooter, useSidebar } from '@/components/ui/sidebar'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Soci4LLogo } from '@/components/logos/soci4l-logo'
+
+// Define a key for localStorage
+const CARD_DISMISSED_KEY = 'soci4l:sidebar-card-dismissed'
+const CARD_CHOICE_KEY = 'soci4l:sidebar-card-choice'
+
+// Chrome Icon implementation as SVG
+const ChromeIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    {...props}
+  >
+    <path d="M11.996 24C18.625 24 24 18.625 24 11.996 24 5.368 18.625 0 11.996 0 5.368 0 0 5.368 0 11.996c0 6.629 5.368 12.004 11.996 12.004zM12 4.093c4.368 0 7.91 3.542 7.91 7.91 0 .61-.073 1.201-.2 1.777L14.793 5.3A7.854 7.854 0 0012 4.093zm-5.748 3.51a7.868 7.868 0 00-1.875 5.2c0 2.222.923 4.227 2.408 5.655l4.897-8.484H6.252zm11.455 9.098A7.868 7.868 0 0112 19.91c-1.84 0-3.53-.63-4.881-1.688l4.84-8.384h5.688a7.848 7.848 0 01.06 1.865zm-5.707-8.312a3.616 3.616 0 110 7.23 3.616 3.616 0 010-7.23z" />
+  </svg>
+)
 
 const platformItems = [
   {
@@ -103,6 +122,43 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }
 
   const isCollapsed = state === 'collapsed'
+
+  const { profile, loading } = useProfile()
+  const [isCardDismissed, setIsCardDismissed] = React.useState(true) // Default true to prevent hydration mismatch flash
+  const [cardType, setCardType] = React.useState<'PRO' | 'EXTENSION' | null>(null)
+
+  React.useEffect(() => {
+    // Check local storage after mount
+    const dismissed = localStorage.getItem(CARD_DISMISSED_KEY)
+    if (dismissed !== 'true') {
+      setIsCardDismissed(false)
+    }
+
+    // Determine card type based on profile and random logic
+    const isPremium = profile?.premiumExpiresAt ? new Date(profile.premiumExpiresAt) > new Date() : false
+
+    if (isPremium) {
+      // Premium users always see the extension card
+      setCardType('EXTENSION')
+    } else {
+      // Non-premium users see a mix of Pro card (70%) and Extension card (30%)
+      const existingChoice = localStorage.getItem(CARD_CHOICE_KEY)
+      if (existingChoice === 'PRO' || existingChoice === 'EXTENSION') {
+        setCardType(existingChoice)
+      } else {
+        const choice = Math.random() < 0.7 ? 'PRO' : 'EXTENSION'
+        localStorage.setItem(CARD_CHOICE_KEY, choice)
+        setCardType(choice)
+      }
+    }
+  }, [profile])
+
+  const handleDismissCard = () => {
+    localStorage.setItem(CARD_DISMISSED_KEY, 'true')
+    setIsCardDismissed(true)
+  }
+
+  const showCard = !loading && !isCardDismissed && !isCollapsed && cardType !== null
 
   // Determine which sections should be open based on the current tab
   const isStudioTab = studioItems.some((item: any) => item.value === currentTab)
@@ -291,6 +347,88 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      {showCard && cardType === 'PRO' && (
+        <SidebarFooter className="p-4 pb-6 mt-auto">
+          <div className="relative overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm">
+            {/* Top Illustration Area */}
+            <div className="h-28 bg-gradient-to-br from-[#d8b4fe] via-[#c084fc] to-[#a855f7] relative w-full flex items-center justify-center overflow-hidden">
+              {/* Decorative elements representing the illustration */}
+              <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_50%_120%,rgba(255,255,255,0.8),transparent)]" />
+              <Sparkles className="h-12 w-12 text-white/40 absolute right-4 bottom-2" />
+              <div className="w-16 h-16 bg-white/20 rounded-full blur-xl absolute -left-4 -top-4" />
+
+              <button
+                onClick={handleDismissCard}
+                className="absolute top-2 right-2 h-6 w-6 bg-white/50 hover:bg-white/80 rounded-full flex items-center justify-center transition-colors text-black"
+                aria-label="Dismiss upgrade card"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            {/* Content Area */}
+            <div className="p-4 bg-[#f4f4f5] dark:bg-zinc-900/50">
+              <h3 className="font-semibold text-base leading-tight mb-1">
+                Upgrade to Premium
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4 leading-snug">
+                Unlock advanced analytics, custom themes, and AI-powered insights.
+              </p>
+
+              <Button
+                asChild
+                className="w-full bg-[#18181b] hover:bg-[#27272a] text-white dark:bg-white dark:text-black dark:hover:bg-gray-100 rounded-full h-10 shadow-sm"
+              >
+                <Link href="/premium">
+                  Upgrade to Pro
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </SidebarFooter>
+      )}
+
+      {showCard && cardType === 'EXTENSION' && (
+        <SidebarFooter className="p-4 pb-6 mt-auto">
+          <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#98fcae] to-[#fbf07b] text-black shadow-sm group">
+            {/* Dismiss Button */}
+            <button
+              onClick={handleDismissCard}
+              className="absolute top-2 right-2 h-6 w-6 bg-black/5 hover:bg-black/10 rounded-full flex items-center justify-center transition-colors text-black z-10"
+              aria-label="Dismiss extension card"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+
+            {/* Content Area */}
+            <a
+              href="https://chromewebstore.google.com/detail/soci4l-donate/hpdblnjffdobbhohkjlniikdfkafagdk?hl=en-US&utm_source=ext_sidebar"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-5 flex items-center gap-4 transition-opacity hover:opacity-90 cursor-pointer block"
+            >
+              {/* Icon Area */}
+              <div className="flex-shrink-0">
+                <ChromeIcon className="w-12 h-12 text-[#1c1c1c] drop-shadow-sm" />
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-base leading-tight">
+                  Get the extension
+                </h3>
+                <p className="text-sm font-medium mt-0.5 inline-block border-b border-black">
+                  Install Now
+                </p>
+                <p className="text-xs text-black/70 mt-1 leading-tight group-hover:text-black/80 transition-colors">
+                  Never miss an update. Stay connected anywhere.
+                </p>
+              </div>
+            </a>
+          </div>
+        </SidebarFooter>
+      )}
+
       <SidebarRail />
     </Sidebar>
   )
