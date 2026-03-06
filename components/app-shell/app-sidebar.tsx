@@ -393,14 +393,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       {showCard && cardType === 'EXTENSION' && (
         <SidebarFooter className="p-3 pb-4 mt-auto h-auto border-none">
-          <div className="relative overflow-hidden rounded-[20px] bg-gradient-to-r from-[#A8F7B5] to-[#FDF398] text-black shadow-sm group">
+          <div className="relative overflow-hidden rounded-[20px] bg-gradient-to-br from-[#805AD5] via-[#9F7AEA] to-[#B794F4] text-white shadow-lg group border border-white/10">
+            {/* Glossy/Radial glow effect to match the screenshot style */}
+            <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/20 rounded-full blur-2xl pointer-events-none" />
+
             {/* Dismiss Button */}
             <button
               onClick={handleDismissCard}
-              className="absolute top-2.5 right-2.5 h-7 w-7 bg-black/[0.06] hover:bg-black/10 rounded-full flex items-center justify-center transition-colors text-black/70 hover:text-black z-10"
+              className="absolute top-2 right-2 h-6 w-6 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors text-white/80 hover:text-white z-10"
               aria-label="Dismiss extension card"
             >
-              <X className="h-4 w-4" />
+              <X className="h-3.5 w-3.5" />
             </button>
 
             {/* Content Area */}
@@ -408,23 +411,24 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               href="https://chromewebstore.google.com/detail/soci4l-donate/hpdblnjffdobbhohkjlniikdfkafagdk?hl=en-US&utm_source=ext_sidebar"
               target="_blank"
               rel="noopener noreferrer"
-              className="pl-5 pr-10 py-4 flex flex-row items-center gap-3.5 transition-opacity hover:opacity-90 cursor-pointer block"
+              className="pl-4 pr-8 py-4 flex flex-row items-center gap-3.5 transition-opacity hover:opacity-95 cursor-pointer block"
             >
               {/* Icon Area */}
-              <div className="flex-shrink-0 bg-[#94E4A2]/60 p-2.5 rounded-2xl">
-                <Chrome className="w-6 h-6 text-black/90 stroke-[2.5]" />
+              <div className="flex-shrink-0 bg-white/20 p-2.5 rounded-2xl backdrop-blur-sm border border-white/20">
+                <Chrome className="w-5 h-5 text-white" />
               </div>
 
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-[15px] leading-tight text-black/90 tracking-tight mb-1">
+                <h3 className="font-bold text-[14px] leading-tight text-white tracking-tight mb-1">
                   Get the extension
                 </h3>
-                <p className="text-[11.5px] font-medium text-black/60 leading-snug mb-2 pr-1">
+                <p className="text-[11px] font-medium text-white/70 leading-snug mb-2">
                   Tip creators directly from your X timeline with one click.
                 </p>
-                <p className="text-[12px] font-bold inline-block text-black/80 group-hover:text-black transition-colors group-hover:underline decoration-black/40 decoration-2 underline-offset-4">
+                <div className="inline-flex items-center gap-1 bg-white text-black text-[11px] font-bold px-3 py-1 rounded-full shadow-sm group-hover:bg-gray-100 transition-colors">
                   Install Now
-                </p>
+                  <ChevronDown className="w-3 h-3 rotate-[-90deg]" />
+                </div>
               </div>
             </a>
           </div>
