@@ -393,14 +393,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       {showCard && cardType === 'EXTENSION' && (
         <SidebarFooter className="p-3 pb-4 mt-auto h-auto border-none">
-          <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#B5FBC4] to-[#FEF695] text-black shadow-sm group">
+          <div className="relative overflow-hidden rounded-[20px] bg-gradient-to-br from-[#c1f5c6] to-[#fbf196] text-black shadow-sm group">
             {/* Dismiss Button */}
             <button
               onClick={handleDismissCard}
-              className="absolute top-1.5 right-1.5 h-6 w-6 bg-black/5 hover:bg-black/10 rounded-full flex items-center justify-center transition-colors text-black/70 hover:text-black z-10"
+              className="absolute top-2.5 right-2.5 h-7 w-7 bg-black/[0.06] hover:bg-black/10 rounded-full flex items-center justify-center transition-colors text-black/70 hover:text-black z-10"
               aria-label="Dismiss extension card"
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-4 w-4" />
             </button>
 
             {/* Content Area */}
@@ -408,18 +408,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               href="https://chromewebstore.google.com/detail/soci4l-donate/hpdblnjffdobbhohkjlniikdfkafagdk?hl=en-US&utm_source=ext_sidebar"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3 py-3.5 flex items-center gap-3 transition-opacity hover:opacity-90 cursor-pointer block"
+              className="pl-5 pr-10 py-4 flex flex-row items-center gap-3.5 transition-opacity hover:opacity-90 cursor-pointer block"
             >
               {/* Icon Area */}
-              <div className="flex-shrink-0 bg-[#A2EDBA]/50 p-2.5 rounded-xl">
-                <Chrome className="w-5 h-5 text-black/90" />
+              <div className="flex-shrink-0 bg-[#A6E8B6]/50 p-2.5 rounded-2xl">
+                <Chrome className="w-6 h-6 text-black/90 stroke-[2.5]" />
               </div>
 
-              <div className="flex-1 min-w-0 pr-6">
-                <h3 className="font-semibold text-sm leading-tight text-black/90 tracking-tight">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-[15px] leading-tight text-black/90 tracking-tight mb-1">
                   Get the extension
                 </h3>
-                <p className="text-[11px] font-semibold mt-0.5 inline-block text-black/70 group-hover:text-black transition-colors group-hover:underline decoration-black/40 decoration-2 underline-offset-2">
+                <p className="text-[11.5px] font-medium text-black/60 leading-snug mb-2 pr-1">
+                  Tip creators directly from your X timeline with one click.
+                </p>
+                <p className="text-[12px] font-bold inline-block text-black/80 group-hover:text-black transition-colors group-hover:underline decoration-black/40 decoration-2 underline-offset-4">
                   Install Now
                 </p>
               </div>
