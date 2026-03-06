@@ -1,5 +1,5 @@
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
-import { avalanche } from 'wagmi/chains'
+import { activeChainId } from '@/lib/chain-config'
 import { parseEther } from 'viem'
 import { toast } from 'sonner'
 import { DONATE_PAYMENT_ADDRESS, DONATE_PAYMENT_ABI } from '@/lib/contracts/DonatePayment'
@@ -10,7 +10,7 @@ export function useDonate() {
 
     const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
         hash,
-        chainId: avalanche.id,
+        chainId: activeChainId,
     })
 
     const donate = async (recipientAddress: string, amount: string, message: string = '') => {
@@ -21,7 +21,7 @@ export function useDonate() {
                 functionName: 'donate',
                 args: [recipientAddress as `0x${string}`, message],
                 value: parseEther(amount),
-                chainId: avalanche.id,
+                chainId: activeChainId,
             })
 
             toast.success('Donation sent!', {

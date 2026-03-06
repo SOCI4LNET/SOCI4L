@@ -2,14 +2,14 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { normalizeSlug, hashSlug, validateSlugFormat } from "@/lib/utils/slug";
 import { createPublicClient, http, recoverMessageAddress } from "viem";
-import { avalanche } from "viem/chains";
+import { activeChain, activeRpc } from "@/lib/chain-config";
 import { CUSTOM_SLUG_REGISTRY_ADDRESS, CUSTOM_SLUG_REGISTRY_ABI } from "@/lib/contracts/CustomSlugRegistry";
 import { parseAbi } from "viem";
 import { revalidatePath } from "next/cache";
 
 const client = createPublicClient({
-    chain: avalanche,
-    transport: http("https://api.avax.network/ext/bc/C/rpc")
+    chain: activeChain,
+    transport: http(activeRpc)
 });
 
 const ABI = parseAbi(CUSTOM_SLUG_REGISTRY_ABI);

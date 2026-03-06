@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createPublicClient, http, parseAbiItem } from 'viem'
-import { avalanche } from 'viem/chains'
+import { activeChain, activeRpc, IS_TESTNET } from '@/lib/chain-config'
 import { prisma } from '@/lib/prisma'
 import { PREMIUM_PAYMENT_ADDRESS } from '@/lib/contracts/PremiumPayment'
 
@@ -8,15 +8,15 @@ export const dynamic = 'force-dynamic'
 
 // 1. Setup Viem Client
 const client = createPublicClient({
-    chain: avalanche,
-    transport: http(),
+    chain: activeChain,
+    transport: http(activeRpc),
 })
 
 // 2. Event Definition
 const EVENT = parseAbiItem('event PremiumPurchased(address indexed user, uint256 paidAt, uint256 expiresAt, uint256 amount)')
 
 // 3. Helper: Resolve Start Block
-const DEFAULT_START_BLOCK = BigInt(77000000)
+const DEFAULT_START_BLOCK = IS_TESTNET ? BigInt(37800000) : BigInt(77000000)
 
 function isAuthorizedCronRequest(request: NextRequest): boolean {
     const authHeader = request.headers.get('authorization')

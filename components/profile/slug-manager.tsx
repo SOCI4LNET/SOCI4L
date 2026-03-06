@@ -6,6 +6,7 @@ import { parseAbi, decodeFunctionData, parseAbiItem } from "viem";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { CUSTOM_SLUG_REGISTRY_ADDRESS, CUSTOM_SLUG_REGISTRY_ABI } from "@/lib/contracts/CustomSlugRegistry";
+import { activeChainId } from "@/lib/chain-config";
 import { validateSlugFormat, hashSlug } from "@/lib/utils/slug";
 import { getFriendlyErrorMessage } from "@/lib/utils/errors";
 import { SlugCelebration } from "./slug-celebration";
@@ -479,6 +480,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                                                 address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
                                                 abi: ABI,
                                                 functionName: "release",
+                                                chainId: activeChainId,
                                             });
                                             toast.loading("Releasing slug...", { id: "release-toast" });
                                         } catch (e: any) {
@@ -546,6 +548,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                                                                 address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
                                                                 abi: ABI,
                                                                 functionName: "release",
+                                                                chainId: activeChainId,
                                                             });
                                                             toast.loading("Releasing mystery slug...", { id: "release-toast" });
                                                         } catch (e: any) {
@@ -617,7 +620,8 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                                                         address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
                                                         abi: ABI,
                                                         functionName: "claim",
-                                                        args: [debouncedSlug]
+                                                        args: [debouncedSlug],
+                                                        chainId: activeChainId,
                                                     });
                                                     toast.loading("Claiming slug...", { id: "claim-toast" });
                                                 } catch (e: any) {

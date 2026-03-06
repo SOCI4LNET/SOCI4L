@@ -4,11 +4,12 @@ import { normalizeSlug, hashSlug, validateSlugFormat } from "@/lib/utils/slug";
 import { revalidatePath } from "next/cache";
 import { getSessionAddress } from "@/lib/auth";
 import { createPublicClient, http, decodeFunctionData, parseAbi, type Address } from "viem";
-import { avalanche } from "viem/chains";
+import { activeChain, activeRpc } from "@/lib/chain-config";
+import { CUSTOM_SLUG_REGISTRY_ADDRESS } from "@/lib/contracts/CustomSlugRegistry";
 
 const client = createPublicClient({
-    chain: avalanche,
-    transport: http("https://api.avax.network/ext/bc/C/rpc")
+    chain: activeChain,
+    transport: http(activeRpc)
 });
 
 export async function POST(request: Request) {
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
                 }
 
                 // 2. Verify contract address (tx.to) matches Registry
-                const REGISTRY_ADDRESS = "0xC894a2677C7E619E9692E3bF4AFF58bE53173aA1".toLowerCase();
+                const REGISTRY_ADDRESS = CUSTOM_SLUG_REGISTRY_ADDRESS.toLowerCase();
                 if (!tx.to || tx.to.toLowerCase() !== REGISTRY_ADDRESS) {
                     console.error(`[Slug Update] Transaction target mismatch: ${tx.to} vs ${REGISTRY_ADDRESS}`);
                     throw new Error("Transaction target mismatch - not sent to Slug Registry");

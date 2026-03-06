@@ -1,14 +1,11 @@
 import { createPublicClient, http, formatEther, formatUnits } from 'viem'
-import { avalanche } from 'viem/chains'
 import { fetchAccountNfts, OpenSeaNft } from '@/lib/opensea'
 import { SNOWTRACE_API_KEY, SNOWTRACE_API_URL } from '@/lib/constants'
-
-const AVALANCHE_RPC = process.env.NEXT_PUBLIC_AVALANCHE_RPC || 'https://api.avax.network/ext/bc/C/rpc'
-// const SNOWTRACE_API_KEY = process.env.SNOWTRACE_API_KEY || ''
+import { activeChain, activeRpc, snowtraceApiUrl } from './chain-config'
 
 export const avalancheClient = createPublicClient({
-  chain: avalanche,
-  transport: http(AVALANCHE_RPC),
+  chain: activeChain,
+  transport: http(activeRpc),
 })
 
 export interface TokenBalance {
@@ -92,7 +89,7 @@ export async function getWalletData(address: string): Promise<WalletData> {
     // Helper functions for concurrent fetching
     const fetchTokens = async () => {
       try {
-        const res = await fetch(`${SNOWTRACE_API_URL}?module=account&action=tokentx&address=${address}&startblock=0&endblock=99999999&sort=asc${apiKeyParam}`)
+        const res = await fetch(`${snowtraceApiUrl}?module=account&action=tokentx&address=${address}&startblock=0&endblock=99999999&sort=asc${apiKeyParam}`)
         const data = await res.json()
         if (data.status === '1' && data.result && Array.isArray(data.result)) {
           const tokenMap = new Map<string, { name: string; symbol: string; decimals: number; balance: bigint }>()
@@ -169,7 +166,7 @@ export async function getWalletData(address: string): Promise<WalletData> {
 
       if (fetchedNfts.length === 0) {
         try {
-          const res = await fetch(`https://api.snowtrace.io/api?module=account&action=tokennfttx&address=${address}&startblock=0&endblock=99999999&sort=asc${apiKeyParam}`)
+          const res = await fetch(`${snowtraceApiUrl}?module=account&action=tokennfttx&address=${address}&startblock=0&endblock=99999999&sort=asc${apiKeyParam}`)
           const data = await res.json()
           if (data.status === '1' && data.result && Array.isArray(data.result)) {
             const nftMap = new Map<string, { contractAddress: string; tokenId: string; name?: string }>()
@@ -200,7 +197,7 @@ export async function getWalletData(address: string): Promise<WalletData> {
 
     const fetchTxData = async () => {
       try {
-        const res = await fetch(`https://api.snowtrace.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc${apiKeyParam}`)
+        const res = await fetch(`${snowtraceApiUrl}?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=asc${apiKeyParam}`)
         const data = await res.json()
         if (data.status === '1' && data.result) {
           const fetchedTransactions = data.result

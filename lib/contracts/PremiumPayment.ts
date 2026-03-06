@@ -1,5 +1,7 @@
-// Deployed on Avalanche C-Chain
-export const PREMIUM_PAYMENT_ADDRESS = "0x9bA02537447E6DcdeF72D0e98a4C82E6B73E3cCC";
+import { activePremiumPayment } from '../chain-config'
+
+// Deployed on Avalanche C-Chain / Fuji
+export const PREMIUM_PAYMENT_ADDRESS = activePremiumPayment;
 
 export const PREMIUM_PAYMENT_ABI = [
     {

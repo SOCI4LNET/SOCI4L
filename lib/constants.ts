@@ -1,2 +1,4 @@
+import { snowtraceApiUrl as SNOWTRACE_API_URL } from './chain-config'
+
 export const SNOWTRACE_API_KEY = process.env.SNOWTRACE_API_KEY || ''
-export const SNOWTRACE_API_URL = 'https://api.snowtrace.io/api'
+export { SNOWTRACE_API_URL }

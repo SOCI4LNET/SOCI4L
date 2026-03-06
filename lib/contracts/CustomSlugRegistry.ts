@@ -1,4 +1,6 @@
-export const CUSTOM_SLUG_REGISTRY_ADDRESS = "0xC894a2677C7E619E9692E3bF4AFF58bE53173aA1";
+import { activeSlugRegistry } from '../chain-config'
+
+export const CUSTOM_SLUG_REGISTRY_ADDRESS = activeSlugRegistry;
 
 export const CUSTOM_SLUG_REGISTRY_ABI = [
     "function claim(string calldata _slug) external",

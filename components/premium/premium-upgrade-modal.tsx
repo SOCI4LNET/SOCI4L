@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useBalance, useSwitchChain } from "wagmi";
 import { parseEther } from "viem";
-import { avalanche } from "viem/chains";
+import { activeChainId } from "@/lib/chain-config";
 import { toast } from "sonner";
 import { PREMIUM_PAYMENT_ADDRESS } from "@/lib/contracts/PremiumPayment";
 import confetti from "canvas-confetti";
@@ -95,12 +95,12 @@ export function PremiumUpgradeModal({ open, onOpenChange, onSuccess }: PremiumUp
             return;
         }
 
-        // Ensure we are on Avalanche C-Chain
-        if (chainId !== avalanche.id) {
+        // Ensure we are on the Active Chain
+        if (chainId !== activeChainId) {
             try {
                 setIsSwitchingNetwork(true);
-                await switchChainAsync({ chainId: avalanche.id });
-                toast.success("Switched to Avalanche C-Chain");
+                await switchChainAsync({ chainId: activeChainId });
+                toast.success("Switched to the correct network");
             } catch (error: any) {
                 console.error("Failed to switch network:", error);
                 toast.error("Please switch to Avalanche C-Chain to continue");
@@ -123,7 +123,7 @@ export function PremiumUpgradeModal({ open, onOpenChange, onSuccess }: PremiumUp
                 abi: PAY_ABI,
                 functionName: "payPremium",
                 value: price,
-                chainId: avalanche.id,
+                chainId: activeChainId,
             });
         } catch (e) {
             console.error("Transaction Error:", e);

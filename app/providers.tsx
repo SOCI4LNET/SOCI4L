@@ -4,7 +4,8 @@ import { useState, type ReactNode } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WagmiProvider, createConfig, http, cookieStorage, createStorage, type Config } from 'wagmi'
 import { walletConnect, injected } from 'wagmi/connectors'
-import { avalanche } from 'viem/chains'
+import { avalanche, avalancheFuji } from 'viem/chains'
+import { activeChain } from '@/lib/chain-config'
 
 import { TransactionProvider } from '@/components/providers/transaction-provider'
 import PrivyProviderWrapper from '@/components/providers/privy-provider'
@@ -35,7 +36,7 @@ export function getConfig() {
   ]
 
   wagmiConfig = createConfig({
-    chains: [avalanche],
+    chains: [activeChain, activeChain.id === avalancheFuji.id ? avalanche : avalancheFuji],
     ssr: true,
     storage: createStorage({
       storage: cookieStorage,
@@ -44,6 +45,7 @@ export function getConfig() {
     connectors,
     transports: {
       [avalanche.id]: http(),
+      [avalancheFuji.id]: http(),
     },
   })
 

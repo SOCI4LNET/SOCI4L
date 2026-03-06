@@ -1,5 +1,7 @@
-// Deployed on Avalanche C-Chain
-export const DONATE_PAYMENT_ADDRESS = "0x863deaF39D816fBA5D10E3e846a2D953Aa9aEca5";
+import { activeDonatePayment } from '../chain-config'
+
+// Deployed on Avalanche C-Chain / Fuji
+export const DONATE_PAYMENT_ADDRESS = activeDonatePayment;
 
 export const DONATE_PAYMENT_ABI = [
     {

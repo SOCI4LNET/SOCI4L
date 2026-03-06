@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createPublicClient, http, parseAbiItem, parseAbi, formatEther } from 'viem'
-import { avalanche } from 'viem/chains'
+import { activeChain, activeRpc, IS_TESTNET } from '@/lib/chain-config'
 import { prisma } from '@/lib/prisma'
 import { DONATE_PAYMENT_ADDRESS } from '@/lib/contracts/DonatePayment'
 
@@ -8,8 +8,8 @@ export const dynamic = 'force-dynamic'
 
 // 1. Setup Viem Client
 const client = createPublicClient({
-    chain: avalanche,
-    transport: http(),
+    chain: activeChain,
+    transport: http(activeRpc),
 })
 
 // 2. Event Definition (matching DonatePayment.ts ABI)
@@ -17,7 +17,7 @@ const EVENT = parseAbiItem('event DonationSent(address indexed sender, address i
 
 // 3. Helper: Resolve Start Block
 // A safe start block for recent Avalanche deployments
-const DEFAULT_START_BLOCK = BigInt(56000000)
+const DEFAULT_START_BLOCK = IS_TESTNET ? BigInt(37800000) : BigInt(56000000)
 
 function isAuthorizedCronRequest(request: NextRequest): boolean {
     // Check if it's a manual force sync from the frontend
