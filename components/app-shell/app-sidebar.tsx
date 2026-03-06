@@ -393,7 +393,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       {showCard && cardType === 'EXTENSION' && (
         <SidebarFooter className="p-3 pb-4 mt-auto h-auto border-none">
-          <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#bbf7d0] to-[#fef08a] text-black shadow-sm group">
+          <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#B5FBC4] to-[#FEF695] text-black shadow-sm group">
             {/* Dismiss Button */}
             <button
               onClick={handleDismissCard}
@@ -411,12 +411,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="px-3 py-3.5 flex items-center gap-3 transition-opacity hover:opacity-90 cursor-pointer block"
             >
               {/* Icon Area */}
-              <div className="flex-shrink-0 bg-black/5 p-2.5 rounded-xl">
+              <div className="flex-shrink-0 bg-[#A2EDBA]/50 p-2.5 rounded-xl">
                 <Chrome className="w-5 h-5 text-black/90" />
               </div>
 
               <div className="flex-1 min-w-0 pr-6">
-                <h3 className="font-semibold text-sm leading-tight text-black/90">
+                <h3 className="font-semibold text-sm leading-tight text-black/90 tracking-tight">
                   Get the extension
                 </h3>
                 <p className="text-[11px] font-semibold mt-0.5 inline-block text-black/70 group-hover:text-black transition-colors group-hover:underline decoration-black/40 decoration-2 underline-offset-2">
