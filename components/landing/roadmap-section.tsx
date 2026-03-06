@@ -3,7 +3,8 @@
 import { useRef } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { Info } from 'lucide-react'
+import { Info, ExternalLink } from 'lucide-react'
+import Link from 'next/link'
 import {
     Tooltip,
     TooltipContent,
@@ -14,6 +15,7 @@ import {
 interface RoadmapItemFeature {
     text: string
     info?: string
+    link?: { label: string; href: string }
 }
 
 interface RoadmapItem {
@@ -53,7 +55,7 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
             { text: 'On-chain Poll & Voting', info: 'Participate in transparent, tamper-proof community polls where outcomes are recorded and verified on the blockchain.' },
             { text: 'Gated Content', info: 'Lock specific content or files behind NFT ownership or minimum token balance requirements.' },
             'Profile Customization & Premium Themes',
-            { text: 'Universal AI Agent Identities', info: 'An open identity layer where AI agents from any project or ecosystem can have a verified SOCI4L profile, own assets, and interact with the social economy autonomously.' }
+            { text: 'Universal AI Agent Identities', info: 'An open identity layer where AI agents from any project or ecosystem can have a verified SOCI4L profile, own assets, and interact with the social economy autonomously.', link: { label: 'Example Agent Profile', href: '/p/0x3e52708c89aa2ac0235f56d1313f5c55956b1ec3' } }
         ]
     },
     {
@@ -191,11 +193,21 @@ export function RoadmapSection() {
                                                                     </TooltipTrigger>
                                                                     <TooltipContent
                                                                         side="right"
-                                                                        className="max-w-[200px] bg-background border border-foreground/10 p-3 rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+                                                                        className="max-w-[220px] bg-background border border-foreground/10 p-3 rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-200"
                                                                     >
                                                                         <p className="text-[11px] leading-relaxed text-foreground/80">
                                                                             {info}
                                                                         </p>
+                                                                        {isObject && (feature as RoadmapItemFeature).link && (
+                                                                            <Link
+                                                                                href={(feature as RoadmapItemFeature).link!.href}
+                                                                                target="_blank"
+                                                                                className="mt-2 flex items-center gap-1 text-[11px] text-primary hover:underline"
+                                                                            >
+                                                                                <ExternalLink className="h-3 w-3" />
+                                                                                {(feature as RoadmapItemFeature).link!.label}
+                                                                            </Link>
+                                                                        )}
                                                                     </TooltipContent>
                                                                 </Tooltip>
                                                             </TooltipProvider>
