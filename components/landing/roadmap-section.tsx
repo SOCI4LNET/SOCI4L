@@ -63,7 +63,7 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
         status: 'future',
         items: [
             { text: 'On-chain Social Graph (Portability)', info: 'Fully portable decentralized social network where you own your connections and data across the ecosystem.' },
-            { text: 'Portable Reputation (Attestations)', info: 'Credential-based reputation system that travels with your wallet and profile.' },
+            { text: 'Portable Reputation (Attestations)', info: 'Reputation system built on social interactions and on-chain activities that travels with your wallet and profile across the ecosystem.' },
             { text: 'Team & DAO Profile Pages', info: 'Official organizational profiles for DAOs, developer teams, and university student clubs/societies.' },
             'Developer API'
         ]
