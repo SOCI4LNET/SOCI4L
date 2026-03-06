@@ -349,18 +349,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
 
       {showCard && cardType === 'PRO' && (
-        <SidebarFooter className="p-4 pb-6 mt-auto">
+        <SidebarFooter className="p-3 pb-4 mt-auto h-auto border-none">
           <div className="relative overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm">
             {/* Top Illustration Area */}
-            <div className="h-28 bg-gradient-to-br from-[#d8b4fe] via-[#c084fc] to-[#a855f7] relative w-full flex items-center justify-center overflow-hidden">
+            <div className="h-16 bg-gradient-to-br from-[#d8b4fe] via-[#c084fc] to-[#a855f7] relative w-full flex items-center justify-center overflow-hidden">
               {/* Decorative elements representing the illustration */}
               <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_50%_120%,rgba(255,255,255,0.8),transparent)]" />
-              <Sparkles className="h-12 w-12 text-white/40 absolute right-4 bottom-2" />
-              <div className="w-16 h-16 bg-white/20 rounded-full blur-xl absolute -left-4 -top-4" />
+              <Sparkles className="h-10 w-10 text-white/40 absolute right-4 bottom-1" />
+              <div className="w-12 h-12 bg-white/20 rounded-full blur-xl absolute -left-2 -top-2" />
 
               <button
                 onClick={handleDismissCard}
-                className="absolute top-2 right-2 h-6 w-6 bg-white/50 hover:bg-white/80 rounded-full flex items-center justify-center transition-colors text-black"
+                className="absolute top-1.5 right-1.5 h-6 w-6 bg-white/50 hover:bg-white/80 rounded-full flex items-center justify-center transition-colors text-black"
                 aria-label="Dismiss upgrade card"
               >
                 <X className="h-3.5 w-3.5" />
@@ -368,17 +368,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </div>
 
             {/* Content Area */}
-            <div className="p-4 bg-[#f4f4f5] dark:bg-zinc-900/50">
-              <h3 className="font-semibold text-base leading-tight mb-1">
+            <div className="p-3 bg-[#f4f4f5] dark:bg-zinc-900/50">
+              <h3 className="font-semibold text-sm leading-tight mb-1">
                 Upgrade to Premium
               </h3>
-              <p className="text-sm text-muted-foreground mb-4 leading-snug">
+              <p className="text-xs text-muted-foreground mb-3 leading-snug">
                 Unlock advanced analytics, custom themes, and AI-powered insights.
               </p>
 
               <Button
                 asChild
-                className="w-full bg-[#18181b] hover:bg-[#27272a] text-white dark:bg-white dark:text-black dark:hover:bg-gray-100 rounded-full h-10 shadow-sm"
+                className="w-full bg-[#18181b] hover:bg-[#27272a] text-white dark:bg-white dark:text-black dark:hover:bg-gray-100 rounded-full h-8 px-3 text-xs shadow-sm"
               >
                 <Link href="/premium">
                   Upgrade to Pro
@@ -390,15 +390,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       )}
 
       {showCard && cardType === 'EXTENSION' && (
-        <SidebarFooter className="p-4 pb-6 mt-auto">
+        <SidebarFooter className="p-3 pb-4 mt-auto h-auto border-none">
           <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#98fcae] to-[#fbf07b] text-black shadow-sm group">
             {/* Dismiss Button */}
             <button
               onClick={handleDismissCard}
-              className="absolute top-2 right-2 h-6 w-6 bg-black/5 hover:bg-black/10 rounded-full flex items-center justify-center transition-colors text-black z-10"
+              className="absolute top-1 right-1 h-5 w-5 bg-black/5 hover:bg-black/10 rounded-full flex items-center justify-center transition-colors text-black z-10"
               aria-label="Dismiss extension card"
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-3 w-3" />
             </button>
 
             {/* Content Area */}
@@ -406,22 +406,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               href="https://chromewebstore.google.com/detail/soci4l-donate/hpdblnjffdobbhohkjlniikdfkafagdk?hl=en-US&utm_source=ext_sidebar"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-4 py-5 flex items-center gap-4 transition-opacity hover:opacity-90 cursor-pointer block"
+              className="px-3 py-3 flex items-center gap-3 transition-opacity hover:opacity-90 cursor-pointer block"
             >
               {/* Icon Area */}
               <div className="flex-shrink-0">
-                <ChromeIcon className="w-12 h-12 text-[#1c1c1c] drop-shadow-sm" />
+                <ChromeIcon className="w-8 h-8 text-[#1c1c1c] drop-shadow-sm" />
               </div>
 
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-base leading-tight">
+              <div className="flex-1 min-w-0 pr-2">
+                <h3 className="font-semibold text-sm leading-tight text-[#1c1c1c]">
                   Get the extension
                 </h3>
-                <p className="text-sm font-medium mt-0.5 inline-block border-b border-black">
+                <p className="text-[11px] font-semibold mt-0.5 inline-block border-b border-[#1c1c1c]/40 hover:border-[#1c1c1c]/80 text-[#1c1c1c]/90 transition-colors">
                   Install Now
-                </p>
-                <p className="text-xs text-black/70 mt-1 leading-tight group-hover:text-black/80 transition-colors">
-                  Never miss an update. Stay connected anywhere.
                 </p>
               </div>
             </a>
