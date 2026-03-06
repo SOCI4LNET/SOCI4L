@@ -109,15 +109,17 @@ export function PremiumUpgradeModal({ open, onOpenChange, onSuccess }: PremiumUp
             return;
         }
 
-        // Ensure we are on the Active Chain
-        if (chainId !== activeChainId) {
+        // Allow either Mainnet (43114) or Fuji (43113)
+        const isSupportedNetwork = chainId === 43114 || chainId === 43113;
+
+        if (!isSupportedNetwork) {
             try {
                 setIsSwitchingNetwork(true);
                 await switchChainAsync({ chainId: activeChainId });
                 toast.success("Switched to the correct network");
             } catch (error: any) {
                 console.error("Failed to switch network:", error);
-                toast.error("Please switch to Avalanche C-Chain to continue");
+                toast.error("Please switch to Avalanche C-Chain or Fuji to continue");
                 return;
             } finally {
                 setIsSwitchingNetwork(false);
@@ -132,12 +134,24 @@ export function PremiumUpgradeModal({ open, onOpenChange, onSuccess }: PremiumUp
         }
 
         try {
+            // Determine the correct contract address and chain ID based on the user's active network
+            const isFuji = chainId === 43113;
+            const fallbackChainId = isSupportedNetwork ? chainId : activeChainId;
+            const targetAddress = isFuji
+                ? process.env.NEXT_PUBLIC_FUJI_PREMIUM_PAYMENT_ADDRESS || ""
+                : "0x9bA02537447E6DcdeF72D0e98a4C82E6B73E3cCC"; // Mainnet address
+
+            if (!targetAddress) {
+                toast.error("Contract address not configured for this network");
+                return;
+            }
+
             await writeContractAsync({
-                address: PREMIUM_PAYMENT_ADDRESS as `0x${string}`,
+                address: targetAddress as `0x${string}`,
                 abi: PAY_ABI,
                 functionName: "payPremium",
                 value: price,
-                chainId: activeChainId,
+                chainId: fallbackChainId,
             });
         } catch (e) {
             console.error("Transaction Error:", e);
