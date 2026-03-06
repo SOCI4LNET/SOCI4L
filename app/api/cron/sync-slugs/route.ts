@@ -32,8 +32,10 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-        const INDEXER_KEY = 'slug_registry_v1'
+        const networkSuffix = IS_TESTNET ? '_fuji' : ''
+        const INDEXER_KEY = `slug_registry_v1${networkSuffix}`
 
+        // 1. Get last synced block
         let state = await (prisma as any).indexerState.findUnique({
             where: { key: INDEXER_KEY }
         })

@@ -36,8 +36,10 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-        const INDEXER_KEY = 'donation_indexer_v1'
+        const networkSuffix = IS_TESTNET ? '_fuji' : ''
+        const INDEXER_KEY = `donate_payment_v1${networkSuffix}`
 
+        // 1. Fetch current indexer state
         let state = await (prisma as any).indexerState.findUnique({
             where: { key: INDEXER_KEY }
         })
