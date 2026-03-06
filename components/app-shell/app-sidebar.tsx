@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { sanitizeQueryParams } from '@/lib/query-params'
 import { useProfile } from '@/hooks/use-profile'
 import { Button } from '@/components/ui/button'
-import { X, Sparkles } from 'lucide-react'
+import { X, Sparkles, Chrome } from 'lucide-react'
 
 import { LayoutDashboard, Wallet, Activity, Settings, Users, Wand2, Link2, BarChart3, ChevronDown, User, Shield, CreditCard, Layers } from 'lucide-react'
 
@@ -17,18 +17,6 @@ import { Soci4LLogo } from '@/components/logos/soci4l-logo'
 // Define a key for localStorage
 const CARD_DISMISSED_KEY = 'soci4l:sidebar-card-dismissed'
 const CARD_CHOICE_KEY = 'soci4l:sidebar-card-choice'
-
-// Chrome Icon implementation as SVG
-const ChromeIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    {...props}
-  >
-    <path d="M11.996 24C18.625 24 24 18.625 24 11.996 24 5.368 18.625 0 11.996 0 5.368 0 0 5.368 0 11.996c0 6.629 5.368 12.004 11.996 12.004zM12 4.093c4.368 0 7.91 3.542 7.91 7.91 0 .61-.073 1.201-.2 1.777L14.793 5.3A7.854 7.854 0 0012 4.093zm-5.748 3.51a7.868 7.868 0 00-1.875 5.2c0 2.222.923 4.227 2.408 5.655l4.897-8.484H6.252zm11.455 9.098A7.868 7.868 0 0112 19.91c-1.84 0-3.53-.63-4.881-1.688l4.84-8.384h5.688a7.848 7.848 0 01.06 1.865zm-5.707-8.312a3.616 3.616 0 110 7.23 3.616 3.616 0 010-7.23z" />
-  </svg>
-)
 
 const platformItems = [
   {
@@ -405,11 +393,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       {showCard && cardType === 'EXTENSION' && (
         <SidebarFooter className="p-3 pb-4 mt-auto h-auto border-none">
-          <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#98fcae] to-[#fbf07b] text-black shadow-sm group">
+          <div className="relative overflow-hidden rounded-xl border border-[#BAD6FF]/40 bg-card shadow-sm group hover:border-[#BAD6FF]/80 transition-colors">
+            {/* Background Accent Gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#BAD6FF]/10 to-transparent pointer-events-none" />
+
             {/* Dismiss Button */}
             <button
               onClick={handleDismissCard}
-              className="absolute top-1 right-1 h-5 w-5 bg-black/5 hover:bg-black/10 rounded-full flex items-center justify-center transition-colors text-black z-10"
+              className="absolute top-1 right-1 h-5 w-5 bg-foreground/5 hover:bg-foreground/10 dark:bg-foreground/10 dark:hover:bg-foreground/20 rounded-full flex items-center justify-center transition-colors text-muted-foreground hover:text-foreground z-10"
               aria-label="Dismiss extension card"
             >
               <X className="h-3 w-3" />
@@ -420,18 +411,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               href="https://chromewebstore.google.com/detail/soci4l-donate/hpdblnjffdobbhohkjlniikdfkafagdk?hl=en-US&utm_source=ext_sidebar"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3 py-3 flex items-center gap-3 transition-opacity hover:opacity-90 cursor-pointer block"
+              className="px-3 py-3 flex items-center gap-3 transition-opacity cursor-pointer block"
             >
               {/* Icon Area */}
-              <div className="flex-shrink-0">
-                <ChromeIcon className="w-8 h-8 text-[#1c1c1c] drop-shadow-sm" />
+              <div className="flex-shrink-0 bg-[#BAD6FF]/20 p-2 rounded-lg">
+                <Chrome className="w-5 h-5 text-[#BAD6FF]" />
               </div>
 
               <div className="flex-1 min-w-0 pr-2">
-                <h3 className="font-semibold text-sm leading-tight text-[#1c1c1c]">
+                <h3 className="font-semibold text-sm leading-tight text-foreground">
                   Get the extension
                 </h3>
-                <p className="text-[11px] font-semibold mt-0.5 inline-block border-b border-[#1c1c1c]/40 hover:border-[#1c1c1c]/80 text-[#1c1c1c]/90 transition-colors">
+                <p className="text-[11px] font-semibold mt-0.5 text-muted-foreground group-hover:text-foreground transition-colors group-hover:underline decoration-[#BAD6FF] decoration-2 underline-offset-2">
                   Install Now
                 </p>
               </div>
