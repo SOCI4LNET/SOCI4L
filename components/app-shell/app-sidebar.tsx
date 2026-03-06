@@ -375,7 +375,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 Upgrade to Premium
               </h3>
               <p className="text-xs text-muted-foreground mb-3 leading-snug">
-                0% Platform fees, exclusive verified badge, priority support & more.
+                Unlock precise source tracking, real-time visitor activity, and per-link analytics.
               </p>
 
               <Button
