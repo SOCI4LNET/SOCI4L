@@ -393,17 +393,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       {showCard && cardType === 'EXTENSION' && (
         <SidebarFooter className="p-3 pb-4 mt-auto h-auto border-none">
-          <div className="relative overflow-hidden rounded-xl border border-[#BAD6FF]/40 bg-card shadow-sm group hover:border-[#BAD6FF]/80 transition-colors">
-            {/* Background Accent Gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[#BAD6FF]/10 to-transparent pointer-events-none" />
-
+          <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#bbf7d0] to-[#fef08a] text-black shadow-sm group">
             {/* Dismiss Button */}
             <button
               onClick={handleDismissCard}
-              className="absolute top-1 right-1 h-5 w-5 bg-foreground/5 hover:bg-foreground/10 dark:bg-foreground/10 dark:hover:bg-foreground/20 rounded-full flex items-center justify-center transition-colors text-muted-foreground hover:text-foreground z-10"
+              className="absolute top-1.5 right-1.5 h-6 w-6 bg-black/5 hover:bg-black/10 rounded-full flex items-center justify-center transition-colors text-black/70 hover:text-black z-10"
               aria-label="Dismiss extension card"
             >
-              <X className="h-3 w-3" />
+              <X className="h-3.5 w-3.5" />
             </button>
 
             {/* Content Area */}
@@ -411,18 +408,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               href="https://chromewebstore.google.com/detail/soci4l-donate/hpdblnjffdobbhohkjlniikdfkafagdk?hl=en-US&utm_source=ext_sidebar"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3 py-3 flex items-center gap-3 transition-opacity cursor-pointer block"
+              className="px-3 py-3.5 flex items-center gap-3 transition-opacity hover:opacity-90 cursor-pointer block"
             >
               {/* Icon Area */}
-              <div className="flex-shrink-0 bg-[#BAD6FF]/20 p-2 rounded-lg">
-                <Chrome className="w-5 h-5 text-[#BAD6FF]" />
+              <div className="flex-shrink-0 bg-black/5 p-2.5 rounded-xl">
+                <Chrome className="w-5 h-5 text-black/90" />
               </div>
 
-              <div className="flex-1 min-w-0 pr-2">
-                <h3 className="font-semibold text-sm leading-tight text-foreground">
+              <div className="flex-1 min-w-0 pr-6">
+                <h3 className="font-semibold text-sm leading-tight text-black/90">
                   Get the extension
                 </h3>
-                <p className="text-[11px] font-semibold mt-0.5 text-muted-foreground group-hover:text-foreground transition-colors group-hover:underline decoration-[#BAD6FF] decoration-2 underline-offset-2">
+                <p className="text-[11px] font-semibold mt-0.5 inline-block text-black/70 group-hover:text-black transition-colors group-hover:underline decoration-black/40 decoration-2 underline-offset-2">
                   Install Now
                 </p>
               </div>
