@@ -32,7 +32,7 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
         status: 'done',
         items: [
             { text: 'Gasless Profile Engine & Identity Resolution', info: 'Instant, cost-free profile creation and updates using meta-transactions on Avalanche.' },
-            { text: 'Donate v1 via Web Extension', info: 'Send tips and donations directly to social profiles through our specialized Chrome/Brave extension.' },
+            { text: 'Donate V1', info: 'Accept tips directly on your public profile, via our Web Extension, or by adding the SOCI4L Donate Embed to your own website.' },
             'Personalized Link Hub & Asset Showcase',
             'Admin Panel & User Management',
             'Server-side Analytics (verified views)',
@@ -65,7 +65,7 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
             { text: 'On-chain Social Graph (Portability)', info: 'Fully portable decentralized social network where you own your connections and data across the ecosystem.' },
             { text: 'Portable Reputation (Attestations)', info: 'Reputation system built on social interactions and on-chain activities that travels with your wallet and profile across the ecosystem.' },
             { text: 'Team & DAO Profile Pages', info: 'Official organizational profiles for DAOs, developer teams, and university student clubs/societies.' },
-            'Developer API'
+            { text: 'Developer API', info: 'Open API and SDK for developers to build applications and integrations on top of the SOCI4L protocol layer.' }
         ]
     }
 ]
