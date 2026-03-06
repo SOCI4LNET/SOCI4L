@@ -13,6 +13,7 @@ interface TokenData {
     symbol: string
     name: string
     valueUsd?: number
+    balanceFormatted: string
     logoUrl?: string
 }
 
@@ -25,6 +26,7 @@ interface AssetsHeroProps {
 interface DistItem {
     symbol: string
     value: number
+    balance: number
     percent: number
     color: string
     logoUrl: string | null
@@ -62,6 +64,7 @@ export function AssetsHero({ totalValueUsd, isLoading, tokens }: AssetsHeroProps
             return {
                 symbol: token.symbol,
                 value: token.valueUsd || 0,
+                balance: parseFloat(token.balanceFormatted) || 0,
                 percent: ((token.valueUsd || 0) / totalValueUsd) * 100,
                 color: chartColors[index % chartColors.length],
                 logoUrl: getCachedLogo(cacheKey) || null
@@ -69,12 +72,14 @@ export function AssetsHero({ totalValueUsd, isLoading, tokens }: AssetsHeroProps
         })
 
         const topTokensValue = topTokens.reduce((sum, t) => sum + (t.valueUsd || 0), 0)
+        const topTokensBalance = topTokens.reduce((sum, t) => sum + (parseFloat(t.balanceFormatted) || 0), 0)
         const otherValue = totalValueUsd - topTokensValue
 
         if (sortedTokens.length > 5) {
             processedTokens.push({
                 symbol: 'Other',
                 value: otherValue > 0 ? otherValue : 0,
+                balance: 0, // Other doesn't have a single balance
                 percent: otherValue > 0 ? (otherValue / totalValueUsd) * 100 : 0,
                 color: '#6B7280', // Gray for "Other"
                 logoUrl: null
@@ -129,16 +134,19 @@ export function AssetsHero({ totalValueUsd, isLoading, tokens }: AssetsHeroProps
                 const visualValue = visualWeight * baseMultipliers[i] * (1 + (pseudoRandom * 0.1 - 0.05))
 
                 // The Tooltip expects the REAL total USD value, not our compressed visual height.
-                // So we store two things: the visual height for Recharts, and the real value for the Tooltip.
+                // So we store: the visual height, the real value, and the real balance.
                 const realValue = item.value * baseMultipliers[i] * (1 + (pseudoRandom * 0.1 - 0.05))
+                const realBalance = item.balance * baseMultipliers[i] * (1 + (pseudoRandom * 0.1 - 0.05))
 
                 // Highlight logic
                 if (selectedTokenSymbol && selectedTokenSymbol !== item.symbol) {
                     dayData[item.symbol] = 0 // Hide unselected tokens completely
                     dayData[`${item.symbol}_real`] = realValue // Keep real value (though hidden in tooltip usually)
+                    dayData[`${item.symbol}_balance`] = realBalance
                 } else {
                     dayData[item.symbol] = visualValue // This creates the chart height
                     dayData[`${item.symbol}_real`] = realValue // This powers the tooltip
+                    dayData[`${item.symbol}_balance`] = realBalance
                 }
 
                 dayTotal += realValue // Tooltip Total should be the sum of real values
@@ -157,6 +165,15 @@ export function AssetsHero({ totalValueUsd, isLoading, tokens }: AssetsHeroProps
             currency: 'USD',
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
+        }).format(value)
+    }
+
+    const formatNumber = (value: number) => {
+        if (value === 0) return '0'
+        if (value < 0.000001) return '<0.0001'
+        return new Intl.NumberFormat('en-US', {
+            maximumFractionDigits: 4,
+            minimumFractionDigits: 0,
         }).format(value)
     }
 
@@ -181,20 +198,30 @@ export function AssetsHero({ totalValueUsd, isLoading, tokens }: AssetsHeroProps
                             return valB - valA
                         })
                         .map((entry: any, index: number) => {
-                            // Retrieve the real value we stored earlier, instead of the compressed visual height
+                            // Retrieve the real value and balance we stored earlier
                             const realValue = entry.payload[`${entry.dataKey}_real`]
+                            const realBalance = entry.payload[`${entry.dataKey}_balance`]
                             const isFaded = selectedTokenSymbol && selectedTokenSymbol !== entry.dataKey
 
                             // Hide from tooltip if another token is explicitly selected globally
                             if (isFaded) return null
 
+                            const isOther = entry.dataKey === 'Other'
+
                             return (
-                                <div key={index} className="flex items-center justify-between gap-4 mb-1">
+                                <div key={index} className="flex items-center justify-between gap-6 mb-1.5 last:mb-0">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                                        <span className="text-muted-foreground">{entry.name}</span>
+                                        <div className="w-2.5 h-2.5 rounded-full ring-1 ring-inset ring-white/10" style={{ backgroundColor: entry.color }} />
+                                        <div className="flex flex-col">
+                                            <span className="text-foreground font-semibold text-[13px] leading-tight">{entry.name}</span>
+                                            {!isOther && (
+                                                <span className="text-[10px] text-muted-foreground/80 leading-tight">
+                                                    {formatNumber(realBalance)} {entry.name}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
-                                    <span className="font-medium">{formatCurrency(realValue)}</span>
+                                    <span className="font-mono font-bold text-[13px]">{formatCurrency(realValue)}</span>
                                 </div>
                             )
                         })}
