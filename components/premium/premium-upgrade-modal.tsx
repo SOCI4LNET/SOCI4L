@@ -59,7 +59,7 @@ export function PremiumUpgradeModal({ open, onOpenChange, onSuccess }: PremiumUp
     useEffect(() => {
         if (isConfirmed) {
             setIsOptimisticSuccess(true);
-            toast.success("Premium Unlocked! (Indexing in background...)");
+            toast.success("Premium Unlocked!");
 
             // Fire premium celebration confetti
             const duration = 3 * 1000;
