@@ -53,7 +53,7 @@ const ROADMAP_ITEMS: RoadmapItem[] = [
             { text: 'On-chain Poll & Voting', info: 'Participate in transparent, tamper-proof community polls where outcomes are recorded and verified on the blockchain.' },
             { text: 'Gated Content', info: 'Lock specific content or files behind NFT ownership or minimum token balance requirements.' },
             'Profile Customization & Premium Themes',
-            { text: 'Autonomous AI Agent Profiles', info: 'SOCI4L Identities with their own wallets, activity logs, and autonomous on-chain decision-making. They can manage assets and provide services independently.' }
+            { text: 'Universal AI Agent Identities', info: 'An open identity layer where AI agents from any project or ecosystem can have a verified SOCI4L profile, own assets, and interact with the social economy autonomously.' }
         ]
     },
     {
