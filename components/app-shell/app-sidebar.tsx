@@ -128,9 +128,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [cardType, setCardType] = React.useState<'PRO' | 'EXTENSION' | null>(null)
 
   React.useEffect(() => {
-    // Check local storage after mount
-    const dismissed = localStorage.getItem(CARD_DISMISSED_KEY)
-    if (dismissed !== 'true') {
+    // Check local storage after mount for 24-hour expiration
+    const dismissedAt = localStorage.getItem(CARD_DISMISSED_KEY)
+    if (dismissedAt) {
+      const dismissedTime = new Date(dismissedAt).getTime()
+      const now = new Date().getTime()
+      const hoursPassed = (now - dismissedTime) / (1000 * 60 * 60)
+
+      // If less than 24 hours have passed, keep it dismissed
+      if (hoursPassed < 24) {
+        setIsCardDismissed(true)
+      } else {
+        // Expired, show card again and clean up storage
+        localStorage.removeItem(CARD_DISMISSED_KEY)
+        setIsCardDismissed(false)
+      }
+    } else {
       setIsCardDismissed(false)
     }
 
@@ -154,7 +167,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }, [profile])
 
   const handleDismissCard = () => {
-    localStorage.setItem(CARD_DISMISSED_KEY, 'true')
+    // Save current ISO timestamp
+    localStorage.setItem(CARD_DISMISSED_KEY, new Date().toISOString())
     setIsCardDismissed(true)
   }
 

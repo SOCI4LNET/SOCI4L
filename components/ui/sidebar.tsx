@@ -210,58 +210,20 @@ const Sidebar = React.forwardRef<
   // Combine refs
   React.useImperativeHandle(ref, () => sidebarRef.current as HTMLDivElement)
 
-  // Track scroll position and move sidebar up when footer is reached
+  // Track scroll position - simplified as sticky positioning is usually enough for a sidebar
   React.useEffect(() => {
     if (mobile || typeof window === 'undefined') return
 
-    const updateTranslateY = () => {
-      const footer = document.querySelector('footer')
-      if (!footer || !sidebarRef.current) {
-        setTranslateY(0)
-        return
-      }
-
-      const footerRect = footer.getBoundingClientRect()
-      const viewportHeight = window.innerHeight
-      const sidebarRect = sidebarRef.current.getBoundingClientRect()
-
-      // Calculate when footer enters the viewport
-      const footerTop = footerRect.top
-      const sidebarBottom = sidebarRect.bottom
-
-      // If footer is visible and sidebar would overlap with it, move sidebar up
-      if (footerTop < viewportHeight && footerTop < sidebarBottom) {
-        // Calculate how much to move sidebar up
-        // Move it up by the amount that would cause overlap
-        const overlap = sidebarBottom - footerTop
-        setTranslateY(-overlap)
-      } else {
-        // Footer is below viewport or sidebar is above footer, no translation needed
-        setTranslateY(0)
-      }
+    const updateSidebarHeight = () => {
+      // Just ensure the sidebar is correctly sized, CSS handles the sticky behavior usually
+      setTranslateY(0)
     }
 
-    // Initial calculation with a small delay to ensure DOM is ready
-    const timeoutId = setTimeout(updateTranslateY, 100)
-    updateTranslateY()
-
-    // Update on scroll and resize
-    window.addEventListener('scroll', updateTranslateY, { passive: true })
-    window.addEventListener('resize', updateTranslateY)
-    const resizeObserver = new ResizeObserver(updateTranslateY)
-    const footer = document.querySelector('footer')
-    if (footer) {
-      resizeObserver.observe(footer)
-    }
-    if (sidebarRef.current) {
-      resizeObserver.observe(sidebarRef.current)
-    }
+    // Update on resize
+    window.addEventListener('resize', updateSidebarHeight)
 
     return () => {
-      clearTimeout(timeoutId)
-      window.removeEventListener('scroll', updateTranslateY)
-      window.removeEventListener('resize', updateTranslateY)
-      resizeObserver.disconnect()
+      window.removeEventListener('resize', updateSidebarHeight)
     }
   }, [mobile])
 
