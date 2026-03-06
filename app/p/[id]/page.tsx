@@ -920,12 +920,28 @@ export default function ProfilePage({ params }: PageProps) {
                                                     </div>
                                                 )}
                                                 {profile?.isAgent && (
-                                                    <div className="absolute -top-1 -left-1 bg-background rounded-full p-1.5 border border-[#BAD6FF]/20 z-10 shadow-[0_0_15px_rgba(186,214,255,0.3)] pointer-events-none animate-pulse">
+                                                    <div className="absolute -top-1 -left-1 bg-background rounded-full p-1.5 border border-[#BAD6FF]/20 z-10 shadow-[0_0_15px_rgba(186,214,255,0.3)] pointer-events-none">
                                                         <Bot className="h-4 w-4 text-[#BAD6FF]" />
                                                     </div>
                                                 )}
                                             </div>
                                         </TooltipTrigger>
+                                        <TooltipContent
+                                            side="right"
+                                            sideOffset={14}
+                                            className="bg-background border border-foreground/5 rounded-[12px] p-2 shadow-xl"
+                                        >
+                                            <div className="flex flex-col gap-1">
+                                                <p className="text-sm font-medium">
+                                                    {profile?.isAgent ? 'Autonomous AI Agent' : 'Verified Profile'}
+                                                </p>
+                                                {profile?.isAgent && (
+                                                    <p className="text-[10px] text-muted-foreground">
+                                                        This is an official AI agent profile.
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </TooltipContent>
 
                                         {score && (
                                             <TooltipContent
