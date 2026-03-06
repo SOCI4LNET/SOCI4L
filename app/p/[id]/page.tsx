@@ -29,6 +29,7 @@ import {
 import SiteFooter from "@/components/app-shell/site-footer"
 import { toast } from 'sonner'
 import { trackProfileView, trackLinkClick, getSourceFromUrl, getProfileViewCount } from '@/lib/analytics'
+import { activeChain, activeSlugRegistry, blockExplorerUrl } from '@/lib/chain-config'
 import { type ProfileLink } from '@/lib/profile-links'
 import { DonateModal } from '@/components/donate/donate-modal'
 import { useDonate } from '@/hooks/use-donate'
@@ -1523,7 +1524,7 @@ export default function ProfilePage({ params }: PageProps) {
                                                                                     </div>
                                                                                 </div>
                                                                                 <a
-                                                                                    href={`https://snowtrace.io/tx/${tx.hash}`}
+                                                                                    href={`${blockExplorerUrl}/tx/${tx.hash}`}
                                                                                     target="_blank"
                                                                                     rel="noopener"
                                                                                     className="text-muted-foreground hover:text-foreground shrink-0"
@@ -1780,7 +1781,7 @@ export default function ProfilePage({ params }: PageProps) {
                                                                                         <Tooltip>
                                                                                             <TooltipTrigger asChild>
                                                                                                 <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
-                                                                                                    <a href={`https://snowtrace.io/token/${asset.contractAddress}?a=${asset.tokenId}`} target="_blank" rel="noopener">
+                                                                                                    <a href={`${blockExplorerUrl}/token/${asset.contractAddress}?a=${asset.tokenId}`} target="_blank" rel="noopener">
                                                                                                         <ExternalLink className="h-3.5 w-3.5" />
                                                                                                     </a>
                                                                                                 </Button>

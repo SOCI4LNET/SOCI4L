@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAccount } from 'wagmi'
 import { toast } from 'sonner'
+import { blockExplorerUrl } from '@/lib/chain-config'
 import { getCachedLogo, setCachedLogo, setCachedLogos, getCacheKey } from '@/lib/logo-cache'
 
 import { RefreshCw, Coins, Search } from 'lucide-react'
@@ -70,9 +71,9 @@ interface AssetsSummary {
 
 function getExplorerLink(type: 'token' | 'nft', address: string, tokenId?: string): string {
   if (type === 'token') {
-    return `https://snowtrace.io/token/${address}`
+    return `${blockExplorerUrl}/token/${address}`
   }
-  return `https://snowtrace.io/token/${address}?a=${tokenId}`
+  return `${blockExplorerUrl}/token/${address}?a=${tokenId}`
 }
 
 export function AssetsPanel({ walletData: legacyWalletData, address: propAddress }: AssetsPanelProps) {
@@ -209,8 +210,8 @@ export function AssetsPanel({ walletData: legacyWalletData, address: propAddress
   }, [tokensData?.tokens, searchQuery])
 
   const explorerHref = targetAddress
-    ? `https://snowtrace.io/address/${targetAddress}`
-    : 'https://snowtrace.io'
+    ? `${blockExplorerUrl}/address/${targetAddress}`
+    : blockExplorerUrl
 
   if (!mounted || !targetAddress) {
     return (

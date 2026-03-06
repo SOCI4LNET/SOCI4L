@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { createPublicClient, http, parseAbiItem, formatEther } from "viem"
 import { avalanche } from "viem/chains"
 import { formatDistanceToNow } from "date-fns"
+import { blockExplorerUrl } from '@/lib/chain-config'
 
 import { Loader2, ExternalLink, Receipt, AlertCircle } from "lucide-react"
 
@@ -204,7 +205,7 @@ export function TransactionHistory({ address }: TransactionHistoryProps) {
                                         </TableCell>
                                         <TableCell className="py-5 px-6 text-right">
                                             <a
-                                                href={`https://snowtrace.io/tx/${tx.hash}`}
+                                                href={`${blockExplorerUrl}/tx/${tx.hash}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border/50 bg-background/50 text-[11px] font-bold text-muted-foreground hover:text-primary hover:border-primary/30 transition-all group/link shadow-sm"

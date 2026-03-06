@@ -19,7 +19,8 @@
  */
 
 import { formatEther, formatUnits } from 'viem'
-import { SNOWTRACE_API_KEY , SNOWTRACE_API_URL } from '@/lib/constants'
+import { SNOWTRACE_API_KEY } from '@/lib/constants'
+import { snowtraceApiUrl as SNOWTRACE_API_URL, blockExplorerUrl } from '../chain-config'
 
 // const SNOWTRACE_API_KEY = process.env.SNOWTRACE_API_KEY || ''
 // const SNOWTRACE_API_URL = 'https://api.snowtrace.io/api'
@@ -139,7 +140,7 @@ async function fetchFromSnowTrace(
         nativeValueAvax: nativeValue,
         feeAvax: fee,
         tokenTransfers: [],
-        explorerUrl: `https://snowtrace.io/tx/${tx.hash}`,
+        explorerUrl: `${blockExplorerUrl}/tx/${tx.hash}`,
         blockNumber: parseInt(tx.blockNumber),
         gasUsed,
         gasPrice,
@@ -188,7 +189,7 @@ async function fetchFromSnowTrace(
             nativeValueAvax: '0',
             feeAvax: '0',
             tokenTransfers: [],
-            explorerUrl: `https://snowtrace.io/tx/${txHash}`,
+            explorerUrl: `${blockExplorerUrl}/tx/${txHash}`,
             blockNumber: parseInt(tx.blockNumber),
           }
           transactions.push(activityTx)
@@ -353,7 +354,7 @@ function generateMockTransactions(address: string, count: number = 10): Activity
         amount: (Math.random() * 1000).toFixed(6),
       }] : [],
       method: isContract ? (i % 3 === 0 ? 'transfer' : 'approve') : undefined,
-      explorerUrl: `https://snowtrace.io/tx/0x${i}`,
+      explorerUrl: `${blockExplorerUrl}/tx/0x${i}`,
       blockNumber: 30000000 + i,
       gasUsed: (21000 + Math.random() * 50000).toString(),
       gasPrice: (Math.random() * 0.0000001).toFixed(9),

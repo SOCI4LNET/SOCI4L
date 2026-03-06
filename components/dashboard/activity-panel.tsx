@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useAccount } from "wagmi"
 import type { ActivityTransaction } from "@/lib/activity/fetchActivity"
+import { blockExplorerUrl } from "@/lib/chain-config"
 
 import { RefreshCw, Activity, ExternalLink } from "lucide-react"
 
@@ -251,7 +252,7 @@ export function ActivityPanel({ walletData: legacyWalletData, address: propAddre
                     aria-label="View on explorer"
                   >
                     <a
-                      href={targetAddress ? `https://snowtrace.io/address/${targetAddress}` : 'https://snowtrace.io'}
+                      href={targetAddress ? `${blockExplorerUrl}/address/${targetAddress}` : blockExplorerUrl}
                       target="_blank"
                       rel="noopener"
                     >

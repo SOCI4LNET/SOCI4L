@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, memo } from 'react'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useAccount } from 'wagmi'
+import { blockExplorerUrl } from '@/lib/chain-config'
 
 import { Search, RefreshCw, ImageOff, Layers, ExternalLink, ChevronDown } from 'lucide-react'
 import Image from 'next/image'
@@ -48,7 +49,7 @@ function NftCardSkeleton() {
 const NftCard = memo(function NftCard({ nft }: { nft: NormalizedNft }) {
     const [imgError, setImgError] = useState(false)
     const explorerUrl = nft.contract && nft.tokenId
-        ? `https://snowtrace.io/token/${nft.contract}?a=${nft.tokenId}`
+        ? `${blockExplorerUrl}/token/${nft.contract}?a=${nft.tokenId}`
         : null
 
     return (
