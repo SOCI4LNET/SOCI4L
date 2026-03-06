@@ -14,9 +14,9 @@ export const dynamic = 'force-dynamic'
 
 
 interface AdminUserPageProps {
-  params: {
+  params: Promise<{
     address: string
-  }
+  }>
 }
 
 async function getUserData(rawAddress: string) {
@@ -231,7 +231,8 @@ async function getUserData(rawAddress: string) {
 }
 
 export default async function AdminUserDetailPage({ params }: AdminUserPageProps) {
-  const data = await getUserData(params.address)
+  const { address } = await params
+  const data = await getUserData(address)
 
   const title =
     data.profile?.displayName ||
@@ -248,6 +249,7 @@ export default async function AdminUserDetailPage({ params }: AdminUserPageProps
         <AdminUserActions
           address={data.address}
           isBanned={data.profile?.isBanned || false}
+          isVerified={data.profile?.isVerified || false}
           currentBio={data.profile?.bio}
           currentDisplayName={data.profile?.displayName}
         />

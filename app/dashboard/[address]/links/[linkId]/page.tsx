@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSignMessage } from 'wagmi'
 import { toast } from 'sonner'
@@ -41,10 +41,10 @@ const PRIMARY_LINKS_KEY = 'soci4l.links.v1'
 const LEGACY_LINKS_KEY = 'soci4l.profileLinks.v1'
 
 interface PageProps {
-  params: {
+  params: Promise<{
     address: string
     linkId: string
-  }
+  }>
 }
 
 function loadLinksFromStorage(): LinkItem[] {
@@ -164,6 +164,7 @@ function buildBuckets(now: number, events: AnalyticsEvent[], range: TimeRange): 
 }
 
 export default function LinkInsightsPage({ params }: PageProps) {
+  const { address, linkId } = React.use(params)
   const router = useRouter()
   const { signMessageAsync } = useSignMessage()
   const { showTransactionLoader, hideTransactionLoader } = useTransaction()
@@ -171,7 +172,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
   const [linksLoaded, setLinksLoaded] = useState(false)
   const [range, setRange] = useState<TimeRange>('7d')
 
-  const { profile } = useProfile(params.address)
+  const { profile } = useProfile(address)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
   const isPremium = useMemo(() => {
@@ -271,8 +272,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
     );
   };
 
-  const profileId = params.address.toLowerCase()
-  const linkId = params.linkId
+  const profileId = address.toLowerCase()
   const [loading, setLoading] = useState(true)
   const [serverEvents, setServerEvents] = useState<AnalyticsEvent[] | null>(null)
   const [clickPage, setClickPage] = useState(1)
@@ -590,7 +590,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
   }
 
   const handleBackToLinks = () => {
-    router.push(`/dashboard/${params.address}?tab=links`)
+    router.push(`/dashboard/${address}?tab=links`)
   }
 
   if (loading) {

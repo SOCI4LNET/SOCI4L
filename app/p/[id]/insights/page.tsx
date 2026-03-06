@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
 import { isValidAddress, formatAddress } from '@/lib/utils'
 import { type ProfileLayoutConfig } from '@/lib/profile-layout'
@@ -16,9 +16,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 type TimeRange = '24h' | '7d' | '30d' | 'all'
 
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 interface LinkItem {
@@ -71,6 +71,7 @@ interface PublicInsightsData {
 }
 
 export default function PublicInsightsPage({ params }: PageProps) {
+  const { id } = React.use(params)
   const [data, setData] = useState<PublicInsightsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -86,16 +87,16 @@ export default function PublicInsightsPage({ params }: PageProps) {
       setError(null)
 
       try {
-        const isAddress = params.id.startsWith('0x') && isValidAddress(params.id)
+        const isAddress = id.startsWith('0x') && isValidAddress(id)
 
         let response: Response
         if (isAddress) {
-          const normalizedAddress = params.id.toLowerCase()
+          const normalizedAddress = id.toLowerCase()
           response = await fetch(`/api/profile/insights?address=${normalizedAddress}&range=${range}`, {
             cache: 'no-store',
           })
         } else {
-          response = await fetch(`/api/profile/insights?slug=${params.id}&range=${range}`, {
+          response = await fetch(`/api/profile/insights?slug=${id}&range=${range}`, {
             cache: 'no-store',
           })
         }
@@ -124,7 +125,7 @@ export default function PublicInsightsPage({ params }: PageProps) {
     }
 
     fetchData()
-  }, [params.id, range])
+  }, [id, range])
 
   // Check if Links block is enabled in layout config
   const linksBlockEnabled = useMemo(() => {
@@ -220,7 +221,7 @@ export default function PublicInsightsPage({ params }: PageProps) {
               <div className="text-center py-8">
                 <p className="text-sm text-muted-foreground">{error || 'Failed to load insights'}</p>
                 <Link
-                  href={`/p/${params.id}`}
+                  href={`/p/${id}`}
                   className="mt-4 inline-block text-sm text-primary hover:underline"
                 >
                   View profile
@@ -258,7 +259,7 @@ export default function PublicInsightsPage({ params }: PageProps) {
             </p>
           </div>
           <Link
-            href={`/p/${params.id}`}
+            href={`/p/${id}`}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             View Profile

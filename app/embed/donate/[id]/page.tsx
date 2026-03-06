@@ -6,9 +6,9 @@ import { normalizeSlug } from '@/lib/utils/slug'
 import { DonateEmbedWidget } from '@/components/donate/donate-embed-widget'
 
 interface PageProps {
-    params: {
+    params: Promise<{
         id: string
-    }
+    }>
 }
 
 async function getProfileData(id: string) {
@@ -46,7 +46,8 @@ async function getProfileData(id: string) {
 }
 
 export default async function DonateEmbedPage({ params }: PageProps) {
-    const profile = await getProfileData(params.id)
+    const { id } = await params
+    const profile = await getProfileData(id)
 
     if (!profile) {
         return (

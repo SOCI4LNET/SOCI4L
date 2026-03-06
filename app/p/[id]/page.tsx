@@ -55,9 +55,9 @@ import { getAvatarUrl } from '@/lib/avatar'
 
 
 interface PageProps {
-    params: {
+    params: Promise<{
         id?: string
-    }
+    }>
 }
 
 interface WalletData {
@@ -97,10 +97,11 @@ interface CooldownInfo {
 }
 
 export default function ProfilePage({ params }: PageProps) {
+    const { id } = React.use(params)
     const router = useRouter()
     const searchParams = useSearchParams()
     const routeParams = useParams<{ id?: string | string[] }>()
-    const routeIdFromProps = typeof params?.id === 'string' ? params.id : ''
+    const routeIdFromProps = typeof id === 'string' ? id : ''
     const routeIdFromHook = typeof routeParams?.id === 'string'
         ? routeParams.id
         : Array.isArray(routeParams?.id) ? routeParams.id[0] || '' : ''

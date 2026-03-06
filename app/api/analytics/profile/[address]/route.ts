@@ -4,10 +4,10 @@ import { isValidAddress } from '@/lib/utils'
 
 export async function GET(
   _request: NextRequest,
-  context: { params: { address: string } },
+  { params }: { params: Promise<{ address: string }> },
 ) {
   try {
-    const rawAddress = context.params.address
+    const { address: rawAddress } = await params
     if (!rawAddress) {
       return NextResponse.json(
         { error: 'Missing address parameter' },

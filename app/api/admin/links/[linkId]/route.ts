@@ -9,14 +9,15 @@ import { requireAdmin } from '@/lib/admin-auth'
  */
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { linkId: string } }
+    { params }: { params: Promise<{ linkId: string }> }
 ) {
+    const { linkId } = await params
     try {
         // Authorization: Check admin session
         const adminAddress = await requireAdmin('api')
 
         // Validate linkId
-        if (!params.linkId) {
+        if (!linkId) {
             return NextResponse.json({ error: 'Link ID required' }, { status: 400 })
         }
 
@@ -53,7 +54,7 @@ export async function PATCH(
 
         // Check if link exists
         const existingLink = await prisma.profileLink.findUnique({
-            where: { id: params.linkId },
+            where: { id: linkId },
             include: { profile: true },
         })
 
@@ -63,7 +64,7 @@ export async function PATCH(
 
         // Update link
         const link = await prisma.profileLink.update({
-            where: { id: params.linkId },
+            where: { id: linkId },
             data: updateData,
         })
 
@@ -119,20 +120,21 @@ export async function PATCH(
  */
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { linkId: string } }
+    { params }: { params: Promise<{ linkId: string }> }
 ) {
+    const { linkId } = await params
     try {
         // Authorization: Check admin session
         const adminAddress = await requireAdmin('api')
 
         // Validate linkId
-        if (!params.linkId) {
+        if (!linkId) {
             return NextResponse.json({ error: 'Link ID required' }, { status: 400 })
         }
 
         // Get link info before deleting (for audit log)
         const link = await prisma.profileLink.findUnique({
-            where: { id: params.linkId },
+            where: { id: linkId },
             include: { profile: true },
         })
 
@@ -142,7 +144,7 @@ export async function DELETE(
 
         // Delete link
         await prisma.profileLink.delete({
-            where: { id: params.linkId },
+            where: { id: linkId },
         })
 
         // Log admin action

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -13,9 +13,10 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
-export default function ArticleEditorPage({ params }: { params: { id: string } }) {
+export default function ArticleEditorPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = React.use(params)
     const router = useRouter()
-    const isNew = params.id === 'new'
+    const isNew = id === 'new'
 
     const [loading, setLoading] = useState(false)
     const [title, setTitle] = useState('')
@@ -30,7 +31,7 @@ export default function ArticleEditorPage({ params }: { params: { id: string } }
 
         const fetchArticle = async () => {
             try {
-                const res = await fetch(`/api/docs-admin/articles/${params.id}`)
+                const res = await fetch(`/api/docs-admin/articles/${id}`)
                 if (!res.ok) throw new Error('Failed to fetch')
                 const data = await res.json()
                 if (data.article) {
@@ -45,7 +46,7 @@ export default function ArticleEditorPage({ params }: { params: { id: string } }
             }
         }
         fetchArticle()
-    }, [isNew, params.id])
+    }, [isNew, id])
 
     // Auto-generate slug from title if new
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,7 +69,7 @@ export default function ArticleEditorPage({ params }: { params: { id: string } }
                 method: isNew ? 'POST' : 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    id: isNew ? undefined : params.id,
+                    id: isNew ? undefined : id,
                     title,
                     slug,
                     category,

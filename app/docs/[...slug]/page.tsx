@@ -5,9 +5,10 @@ import { prisma } from '@/lib/prisma'
 import { components } from '@/components/docs/mdx-components'
 import { Badge } from '@/components/ui/badge'
 
-export default async function DocPage({ params }: { params: { slug: string[] } }) {
+export default async function DocPage({ params }: { params: Promise<{ slug: string[] }> }) {
+    const { slug: slugArray } = await params
     // Join slug array to support nested paths (e.g. docs/advanced/setup)
-    const slug = params.slug.join('/')
+    const slug = slugArray.join('/')
 
     const article = await prisma.docsArticle.findUnique({
         where: { slug },

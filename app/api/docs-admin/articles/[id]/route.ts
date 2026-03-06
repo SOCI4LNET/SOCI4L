@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getDocsAdminSession } from '@/lib/docs-auth'
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params
     const session = await getDocsAdminSession()
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const article = await prisma.docsArticle.findUnique({
-        where: { id: params.id }
+        where: { id }
     })
 
     if (!article) return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -15,7 +16,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json({ article })
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params
     const session = await getDocsAdminSession()
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -24,7 +26,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
         const { title, slug, content, category, published } = body
 
         const article = await prisma.docsArticle.update({
-            where: { id: params.id },
+            where: { id },
             data: {
                 title,
                 slug,
@@ -41,13 +43,14 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params
     const session = await getDocsAdminSession()
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     try {
         await prisma.docsArticle.delete({
-            where: { id: params.id }
+            where: { id }
         })
         return NextResponse.json({ success: true })
     } catch (error: any) {
