@@ -103,9 +103,10 @@ export function AccountMenu() {
         })
         return
       } catch (error: any) {
-        if (error.name !== 'AbortError') {
-          console.error('Share failed:', error)
+        if (error.name === 'AbortError') {
+          return
         }
+        console.error('Share failed:', error)
       }
     }
 

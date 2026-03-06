@@ -133,10 +133,12 @@ export function HeaderActions() {
         })
         return
       } catch (error: any) {
-        // User cancelled or share failed, fall back to clipboard
-        if (error.name !== 'AbortError') {
-          console.error('Share failed:', error)
+        // User cancelled or share failed
+        if (error.name === 'AbortError') {
+          return // User cancelled, don't fallback to clipboard
         }
+        console.error('Share failed:', error)
+        // For other errors, we can fall back to clipboard
       }
     }
 

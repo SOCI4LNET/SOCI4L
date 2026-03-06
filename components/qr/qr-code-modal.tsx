@@ -727,10 +727,10 @@ export function QRCodeModal({ open, onOpenChange, profile }: QRCodeModalProps) {
         })
         return
       } catch (error: any) {
-        // User cancelled or share failed, fall back to clipboard
-        if (error.name !== 'AbortError') {
-          console.error('Share failed:', error)
+        if (error.name === 'AbortError') {
+          return
         }
+        console.error('Share failed:', error)
       }
     }
 

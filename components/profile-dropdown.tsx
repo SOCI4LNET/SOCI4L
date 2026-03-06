@@ -5,7 +5,7 @@ import { useRouter, useParams, usePathname } from 'next/navigation'
 import { useAccount, useDisconnect } from 'wagmi'
 import { toast } from 'sonner'
 import { formatAddress } from '@/lib/utils'
-import {  getConnectedDashboardHref, getCurrentProfileAddressFromRoute, getPublicProfileHref } from '@/lib/routing'
+import { getConnectedDashboardHref, getCurrentProfileAddressFromRoute, getPublicProfileHref } from '@/lib/routing'
 
 import { LayoutDashboard, User, Copy, LogOut, Share2, QrCode } from 'lucide-react'
 
@@ -46,7 +46,7 @@ export function ProfileDropdown() {
             cache: 'no-store',
           })
           const data = await response.json()
-          
+
           if (data.profile) {
             setProfile({
               slug: data.profile.slug,
@@ -78,17 +78,17 @@ export function ProfileDropdown() {
   // Get addresses using helper functions
   const normalizedConnectedAddress = connectedAddress.toLowerCase()
   const currentProfileAddress = getCurrentProfileAddressFromRoute(pathname, params || {})
-  
+
   // Dashboard href always uses connected wallet (never current profile)
   const dashboardHref = getConnectedDashboardHref(connectedAddress)
-  
+
   // Public profile href uses current profile if available, otherwise connected wallet
   const profileAddressForView = currentProfileAddress || normalizedConnectedAddress
   const publicProfileHref = profileAddressForView ? getPublicProfileHref(profileAddressForView, profile?.slug) : null
-  
+
   // Generate avatar URL using effigy.im
   const avatarUrl = `https://effigy.im/a/${normalizedConnectedAddress}.svg`
-  
+
   // Get first 2-3 characters for fallback
   const fallbackText = connectedAddress.slice(2, 5).toUpperCase()
 
@@ -113,7 +113,7 @@ export function ProfileDropdown() {
     // Copy current profile address if on profile page, otherwise connected wallet
     const addressToCopy = currentProfileAddress || connectedAddress
     if (!addressToCopy) return
-    
+
     try {
       await navigator.clipboard.writeText(addressToCopy)
       toast.success('Address copied')
@@ -141,10 +141,10 @@ export function ProfileDropdown() {
         })
         return
       } catch (error: any) {
-        // User cancelled or share failed, fall back to clipboard
-        if (error.name !== 'AbortError') {
-          console.error('Share failed:', error)
+        if (error.name === 'AbortError') {
+          return
         }
+        console.error('Share failed:', error)
       }
     }
 
@@ -170,11 +170,11 @@ export function ProfileDropdown() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon-sm" className="rounded-full">
+        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8 cursor-pointer hover:opacity-80 transition-opacity">
             {!imageError && (
-              <AvatarImage 
-                src={avatarUrl} 
+              <AvatarImage
+                src={avatarUrl}
                 alt={formatAddress(connectedAddress)}
                 onError={() => setImageError(true)}
               />
@@ -223,7 +223,7 @@ export function ProfileDropdown() {
           <span>Disconnect</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
-      
+
       {/* QR Code Modal for connected wallet */}
       {isConnected && connectedAddress && (
         <QRCodeModal
