@@ -19,8 +19,11 @@ interface DonateEmbedWidgetProps {
 }
 
 export function DonateEmbedWidget({ profile }: DonateEmbedWidgetProps) {
-  // Use NEXT_PUBLIC_BASE_URL to ensure we break out of iframe contexts correctly, fallback to production URL
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://soci4l.net'
+  // Compute baseUrl dynamically on the client so it respects the current domain (Testnet vs Mainnet)
+  const baseUrl = typeof window !== 'undefined'
+    ? window.location.origin
+    : process.env.NEXT_PUBLIC_BASE_URL || 'https://soci4l.net'
+
   const profileUrl = `${baseUrl}${getPublicProfileHref(profile.address, profile.slug)}?action=donate`
 
   const handleDonateClick = () => {
