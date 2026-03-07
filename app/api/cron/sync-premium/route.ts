@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createPublicClient, http, parseAbiItem } from 'viem'
-import { activeChain, activeRpc, IS_TESTNET } from '@/lib/chain-config'
+import { activeChain, activeRpc, IS_TESTNET, blockExplorerUrl } from '@/lib/chain-config'
 import { prisma } from '@/lib/prisma'
 import { PREMIUM_PAYMENT_ADDRESS } from '@/lib/contracts/PremiumPayment'
 
@@ -194,14 +194,14 @@ export async function POST(request: NextRequest) {
                                 });
 
                                 const txHash = result.transactionHash;
-                                const explorerUrl = `https://snowtrace.io/tx/${txHash}`;
+                                const explorerUrl = `${blockExplorerUrl}/tx/${txHash}`;
 
                                 const profileIdentity = result.existingProfile?.slug
                                     ? `<b>${result.existingProfile.slug}</b> (<code>${result.userAddress}</code>)`
                                     : `<code>${result.userAddress}</code>`;
 
                                 const msg = [
-                                    `🚀 <b>New Premium Purchase!</b>`,
+                                    `🚀 <b>New Premium Purchase! (Cron Sync)</b>`,
                                     ``,
                                     `👤 <b>User:</b> ${profileIdentity}`,
                                     `💰 <b>Amount:</b> ${amount} AVAX (~$${usdValue})`,

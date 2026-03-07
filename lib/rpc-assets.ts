@@ -20,6 +20,7 @@ import { avalancheClient } from './avalanche'
 import { formatEther, formatUnits } from 'viem'
 import { getAVAXPrice, getTokenLogos, getTokenLogoUrl, getTokenLogosByAddresses, getAvalancheTokenList } from './coingecko'
 import { SNOWTRACE_API_KEY, SNOWTRACE_API_URL } from '@/lib/constants'
+import { activeChainId } from '@/lib/chain-config'
 
 // const SNOWTRACE_API_KEY = process.env.SNOWTRACE_API_KEY || ''
 // const SNOWTRACE_API_URL = 'https://api.snowtrace.io/api'
@@ -593,7 +594,7 @@ export async function fetchAssetsFromRPC(
 
     return {
       address: normalizedAddress,
-      chainId: 43114,
+      chainId: activeChainId,
       native: {
         symbol: 'AVAX',
         name: 'Avalanche',

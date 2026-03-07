@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { isValidAddress } from '@/lib/utils'
 import { fetchAssetsFromRPC } from '@/lib/rpc-assets'
 import { fetchAccountNfts } from '@/lib/opensea'
+import { activeChainId } from '@/lib/chain-config'
 
-const CHAIN_ID = 43114 // Avalanche C-Chain
+const CHAIN_ID = activeChainId // Dynamic network ID
 
 export async function GET(
   request: NextRequest,

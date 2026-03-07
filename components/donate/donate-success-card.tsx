@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import Image from 'next/image'
 import { toast } from 'sonner'
 import { formatAddress } from '@/lib/utils'
+import { blockExplorerUrl, IS_TESTNET } from '@/lib/chain-config'
 
 import { Download, Share2, X } from 'lucide-react'
 
@@ -75,7 +76,7 @@ export function DonateSuccessCard({
 
     const shareOnTwitter = async () => {
         const recipientName = recipient.displayName || formatAddress(recipient.address)
-        const tweetText = `I just donated ${parseFloat(amount).toFixed(2)} AVAX to ${recipientName} on @SOCI4LNET! 🎉\n\nSupporting amazing creators on Avalanche. 🔺\n\n${txHash ? `https://snowtrace.io/tx/${txHash}` : 'https://soci4l.net'}`
+        const tweetText = `I just donated ${parseFloat(amount).toFixed(2)} AVAX to ${recipientName} on @SOCI4LNET! 🎉\n\nSupporting amazing creators on Avalanche. 🔺\n\n${txHash ? `${blockExplorerUrl}/tx/${txHash}` : 'https://soci4l.net'}`
 
         // Open Twitter Intent immediately
         const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`
@@ -156,18 +157,18 @@ export function DonateSuccessCard({
                     <div className="text-center space-y-2 mt-8">
                         <h2 className="text-2xl font-bold">Donation Sent! 🎉</h2>
                         <p className="text-sm text-muted-foreground">
-                            Your donation has been successfully sent on Avalanche C-Chain
+                            Your donation has been successfully sent on {IS_TESTNET ? 'Avalanche Fuji Testnet' : 'Avalanche C-Chain'}
+                            {txHash && (
+                                <a
+                                    href={`${blockExplorerUrl}/tx/${txHash}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-brand-500 hover:underline inline-block mt-1"
+                                >
+                                    View on Snowtrace →
+                                </a>
+                            )}
                         </p>
-                        {txHash && (
-                            <a
-                                href={`https://snowtrace.io/tx/${txHash}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs text-brand-500 hover:underline inline-block mt-1"
-                            >
-                                View on Snowtrace →
-                            </a>
-                        )}
                     </div>
 
                     {/* Action Buttons */}

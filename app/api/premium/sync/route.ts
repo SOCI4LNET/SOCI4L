@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createPublicClient, http, parseAbiItem, verifyMessage, recoverMessageAddress } from 'viem'
-import { activeChain, activeRpc } from '@/lib/chain-config'
+import { activeChain, activeRpc, blockExplorerUrl } from '@/lib/chain-config'
 import { prisma } from '@/lib/prisma'
 import { PREMIUM_PAYMENT_ADDRESS } from '@/lib/contracts/PremiumPayment'
 import { isValidAddress } from '@/lib/utils'
@@ -189,7 +189,7 @@ export async function POST(request: NextRequest) {
                     `📅 <b>Expires:</b> ${newExpiresAt.toLocaleDateString()}`,
                     `🏆 <b>Total Premium:</b> ${totalPremium}`,
                     ``,
-                    `⛓️ <a href="https://snowtrace.io/tx/${txHash}">View on Snowtrace</a>`
+                    `⛓️ <a href="${blockExplorerUrl}/tx/${txHash}">View on Snowtrace</a>`
                 ].join('\n');
 
                 // Non-blocking

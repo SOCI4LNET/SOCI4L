@@ -5,8 +5,9 @@ import { avalancheClient } from '@/lib/avalanche'
 import { formatEther } from 'viem'
 import { getAVAXPrice } from '@/lib/coingecko'
 import { fetchAccountNfts } from '@/lib/opensea'
+import { activeChainId } from '@/lib/chain-config'
 
-const CHAIN_ID = 43114 // Avalanche C-Chain
+const CHAIN_ID = activeChainId // Avalanche Network ID (Dynamic)
 
 export async function GET(
   request: NextRequest,
@@ -112,7 +113,7 @@ export async function GET(
           address: normalizedAddress as `0x${string}`,
         })
         const balanceFormatted = formatEther(balance)
-        
+
         // Fetch AVAX price and logo from CoinGecko
         let avaxPrice = 0
         let avaxLogoUrl: string | undefined
@@ -175,7 +176,7 @@ export async function GET(
         logoUrl?: string
         isNative?: boolean
       }
-      
+
       let tokens: TokenItem[] = []
 
       if (rpcData) {
@@ -283,16 +284,16 @@ export async function GET(
           openseaAttempted = true
           // Convert cursor to OpenSea pagination format
           const openseaNext = cursor && cursor !== '0' && !/^\d+$/.test(cursor) ? cursor : null
-          
+
           console.log('[Assets API] Attempting OpenSea fetch:', {
             address: normalizedAddress,
             chain: 'avalanche',
             limit,
             cursor: openseaNext,
           })
-          
+
           const openseaData = await fetchAccountNfts('avalanche', normalizedAddress, limit, openseaNext)
-          
+
           nfts = openseaData.nfts.map((openseaNft) => ({
             contract: openseaNft.contract || '',
             tokenId: openseaNft.identifier || '',
