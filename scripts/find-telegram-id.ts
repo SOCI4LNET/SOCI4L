@@ -1,5 +1,5 @@
 
-const TOKEN = '8263216534:AAGqK9Pvz1yPko5_JGZUoq7eCtgc3jY0_Iw';
+const TOKEN = process.env.TELEGRAM_BOT_TOKEN || 'YOUR_TELEGRAM_BOT_TOKEN_HERE';
 
 async function findChatId() {
     console.log('Checking your bot...');
