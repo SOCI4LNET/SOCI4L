@@ -1,0 +1,17 @@
+version: 2
+updates:
+  # Ana uygulama bağımlılıkları - aktif olarak takip edilir
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    ignore:
+      # smart-contracts klasörü kasıtlı olarak hariç tutuldu.
+      # Hardhat/Truffle araç zincirindeki açıklar production'ı etkilemiyor.
+      - dependency-name: "*"
+        dependency-type: "indirect"
+
+  # smart-contracts bağımlılıkları - yalnızca geliştirici aracı, devre dışı
+  # Bu klasördeki açıklar hardhat, truffle ve onların eski bağımlılıklarından
+  # kaynaklanmaktadır. Kontratlar deploy edildi ve aktif geliştirme yok.
+  # Uyarıları susturmak için bu ecosystem'ı tamamen hariç bırakıyoruz.
