@@ -24,7 +24,16 @@ import {
     CreditCard,
     Layout,
     Layers,
-    PieChart
+    PieChart,
+    Activity,
+    Wallet,
+    Palette,
+    Lock,
+    Cpu,
+    Trophy,
+    Users,
+    Gem,
+    Globe
 } from "lucide-react"
 
 import {
@@ -60,74 +69,86 @@ const navData = [
     {
         title: "Introduction",
         items: [
-            { title: "Overview", url: "/docs", icon: BookOpen },
+            { title: "Welcome to SOCI4L", url: "/docs/welcome", icon: BookOpen },
+            { title: "Core Vision", url: "/docs/vision", icon: Zap },
+            { title: "Project Roadmap", url: "/docs/roadmap", icon: Activity },
+            { title: "Key Terminology", url: "/docs/terminology", icon: FileText },
         ]
     },
     {
         title: "Getting Started",
         items: [
-            { title: "Connect Your Wallet", url: "/docs/getting-started/connect-wallet", icon: WalletIcon },
-            { title: "Claim Your Profile", url: "/docs/getting-started/claim-profile", icon: Key },
+            { title: "Quick Start Guide", url: "/docs/quick-start", icon: Zap },
+            { title: "Wallet Connectivity", url: "/docs/wallet-connectivity", icon: Wallet },
+            { title: "Claim Your Profile", url: "/docs/claim-profile", icon: Key },
+            { title: "Initial Setup", url: "/docs/initial-setup", icon: Settings },
         ]
     },
     {
-        title: "Profile",
+        title: "Profile Management",
         items: [
-            { title: "Overview", url: "/docs/profile/general-informations", icon: FileText },
-            { title: "Links & Socials", url: "/docs/profile/links-socials", icon: Layers },
-            { title: "Presenting Possessions", url: "/docs/profile/presenting-possessions", icon: Package },
-            { title: "Transactions", url: "/docs/profile/transactions", icon: CreditCard },
+            { title: "Identity Overview", url: "/docs/identity-overview", icon: User },
+            { title: "Digital Assets", url: "/docs/possessions", icon: Package },
+            { title: "Social Graph", url: "/docs/social-graph", icon: Layers },
+            { title: "On-Chain Activity", url: "/docs/transactions", icon: CreditCard },
+            { title: "Visual Personalization", url: "/docs/customization", icon: Palette },
         ]
     },
     {
-        title: "Dashboard",
+        title: "SOCI4L Studio",
         items: [
-            { title: "Overview", url: "/docs/dashboard/overview", icon: LayoutDashboard },
-            {
-                title: "Studio",
-                url: "/docs/dashboard/studio",
-                icon: Layout,
-                items: [
-                    { title: "Builder", url: "/docs/dashboard/studio/builder" },
-                    { title: "Links", url: "/docs/dashboard/studio/links" },
-                    { title: "Insights", url: "/docs/dashboard/studio/insights" },
-                ]
-            },
-            {
-                title: "Account",
-                url: "/docs/dashboard/account",
-                icon: Settings,
-                items: [
-                    { title: "Safety", url: "/docs/dashboard/account/safety" },
-                    { title: "Settings", url: "/docs/dashboard/account/settings" },
-                    { title: "Billing", url: "/docs/dashboard/account/billing" },
-                ]
-            }
+            { title: "Page Builder", url: "/docs/builder", icon: Layout },
+            { title: "Link Management", url: "/docs/links", icon: Layers },
+            { title: "Growth Insights", url: "/docs/insights", icon: PieChart },
         ]
     },
     {
-        title: "AI Agents",
+        title: "Account & Safety",
         items: [
-            { title: "Overview", url: "/docs/ai-agents", icon: Bot }
+            { title: "Security Settings", url: "/docs/security", icon: Shield },
+            { title: "Privacy Controls", url: "/docs/privacy", icon: Lock },
+            { title: "Billing & Subscriptions", url: "/docs/billing", icon: CreditCard },
         ]
     },
     {
-        title: "Profile Scoring",
+        title: "AI Ecosystem",
         items: [
-            { title: "Ranks", url: "/docs/profile-scoring/ranks", icon: Star }
+            { title: "Agent Overview", url: "/docs/agent-overview", icon: Bot },
+            { title: "Behavior Configuration", url: "/docs/agent-config", icon: Cpu },
+            { title: "Automation Logic", url: "/docs/automation", icon: Zap },
+        ]
+    },
+    {
+        title: "Scoring & Reputation",
+        items: [
+            { title: "Scoring Algorithm", url: "/docs/scoring-logic", icon: Activity },
+            { title: "Hierarchy & Ranks", url: "/docs/ranks", icon: Star },
+            { title: "Achievement Badges", url: "/docs/badges", icon: Trophy },
         ]
     },
     {
         title: "Donations",
         items: [
-            { title: "via Platform", url: "/docs/donations/platform", icon: Heart },
-            { title: "via Extension", url: "/docs/donations/extension", icon: Heart },
+            { title: "Platform Donations", url: "/docs/platform-donations", icon: Heart },
+            { title: "Browser Extension", url: "/docs/extension-donations", icon: Globe },
+            { title: "Supporter Leaderboards", url: "/docs/leaderboards", icon: Users },
         ]
     },
     {
         title: "Premium",
         items: [
-            { title: "Overview", url: "/docs/premium", icon: Zap }
+            { title: "Exclusive Benefits", url: "/docs/benefits", icon: Gem },
+            { title: "SOCI4L Pass NFT", url: "/docs/pass", icon: Zap },
+            { title: "Tier Comparison", url: "/docs/tiers", icon: Layers },
+        ]
+    },
+    {
+        title: "Technical Reference",
+        items: [
+            { title: "System Architecture", url: "/docs/architecture", icon: Database },
+            { title: "Database Schema", url: "/docs/database", icon: FileCode },
+            { title: "API Specification", url: "/docs/api", icon: Terminal },
+            { title: "Security Protocols", url: "/docs/protocols", icon: Shield },
         ]
     }
 ]
