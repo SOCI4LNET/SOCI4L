@@ -42,7 +42,7 @@ export async function GET(
   }
 
   try {
-    // Find the link
+    // Find the link in ProfileLink table
     const link = await prisma.profileLink.findUnique({
       where: { id: linkId },
       include: {
@@ -59,7 +59,69 @@ export async function GET(
       },
     })
 
+    // Fallback: check social links stored in Profile.socialLinks JSON
     if (!link) {
+      const profiles = await prisma.profile.findMany({
+        where: {
+          socialLinks: { contains: linkId },
+        },
+        select: {
+          address: true,
+          socialLinks: true,
+        },
+      })
+
+      for (const profile of profiles) {
+        try {
+          const socialLinks = JSON.parse(profile.socialLinks || '[]')
+          const found = socialLinks.find((sl: any) => sl.id === linkId)
+          if (found && found.url) {
+            const isEnabled = found.enabled !== false
+            if (!isEnabled) {
+              return NextResponse.json({ error: 'Link is disabled' }, { status: 403 })
+            }
+
+            const profileAddress = profile.address.toLowerCase()
+            const searchParams = request.nextUrl.searchParams
+            const source = getSourceFromUrl(searchParams)
+            const visitorWallet = searchParams.get('wallet') || undefined
+            const referer = request.headers.get('referer') || null
+
+            let eventId: string | undefined
+            try {
+              const event = await prisma.analyticsEvent.create({
+                data: {
+                  type: 'link_click',
+                  profileId: profileAddress,
+                  linkId,
+                  linkTitle: found.label || found.platform || null,
+                  linkUrl: found.url,
+                  categoryId: null,
+                  source,
+                  visitorWallet,
+                  referrer: referer,
+                },
+              })
+              eventId = event.id
+            } catch (err) {
+              console.error('[Redirect] Analytics event create failed (social)', err)
+            }
+
+            const baseUrl = request.nextUrl.origin
+            const trackingUrl = new URL(`/r/${linkId}/track`, baseUrl)
+            trackingUrl.searchParams.set('url', found.url)
+            trackingUrl.searchParams.set('profileId', profileAddress)
+            if (eventId) trackingUrl.searchParams.set('eventId', eventId)
+            if (found.label || found.platform) trackingUrl.searchParams.set('title', found.label || found.platform)
+            trackingUrl.searchParams.set('source', source)
+
+            return NextResponse.redirect(trackingUrl.toString())
+          }
+        } catch {
+          continue
+        }
+      }
+
       return NextResponse.json({ error: 'Link not found' }, { status: 404 })
     }
 
