@@ -39,9 +39,9 @@ With SOCI4L, every wallet becomes a distinct public identity.
 
 SOCI4L is built on a modern, performance-oriented stack designed to scale seamlessly across Web2 and Web3 paradigms.
 
-- **Framework**: [Next.js 14 (App Router)](https://nextjs.org/) for server-side rendering, routing, and optimized performance.
+- **Framework**: [Next.js 16 (App Router)](https://nextjs.org/) for server-side rendering, routing, and optimized performance.
 - **Language**: [TypeScript](https://www.typescriptlang.org/) for robust type safety and improved developer experience.
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/) paired with [shadcn/ui](https://ui.shadcn.com/) for rapid, accessible, and customizable interface design.
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) paired with [Radix UI](https://www.radix-ui.com/) for rapid, accessible, and customizable interface design.
 - **State Management**: [Zustand](https://github.com/pmndrs/zustand) for global client state and [TanStack React Query](https://tanstack.com/query/latest) for efficient data fetching and caching.
 - **Web3 Integration**: Engineered with [wagmi](https://wagmi.sh/), [viem](https://viem.sh/), and WalletConnect for secure and versatile wallet interactions and contract reads/writes.
 - **Database & ORM**: [Prisma](https://www.prisma.io/) serves as the ORM layer, utilizing PostgreSQL in production and SQLite for streamlined local development.
