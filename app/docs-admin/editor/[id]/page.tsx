@@ -65,7 +65,7 @@ export default function ArticleEditorPage({ params }: { params: Promise<{ id: st
 
         setLoading(true)
         try {
-            const response = await fetch('/api/docs-admin/articles', {
+            const response = await fetch(isNew ? '/api/docs-admin/articles' : `/api/docs-admin/articles/${id}`, {
                 method: isNew ? 'POST' : 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

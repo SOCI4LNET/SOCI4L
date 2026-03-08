@@ -30,11 +30,11 @@ export default function DocsAdminLayout({ children }: { children: React.ReactNod
             href: "/docs-admin/editor/new",
             icon: <PlusCircle className="h-5 w-5 flex-shrink-0" />,
         },
-        {
+        /* {
             label: "Settings",
             href: "/docs-admin/settings",
             icon: <Settings className="h-5 w-5 flex-shrink-0" />,
-        },
+        }, */
     ]
 
     const handleLogout = async () => {
