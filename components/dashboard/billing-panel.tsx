@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { format } from 'date-fns'
+import { blockExplorerUrl } from '@/lib/chain-config'
 
 import { Loader2, ExternalLink, XCircle, Clock } from 'lucide-react'
 
@@ -155,7 +156,7 @@ export function BillingPanel({ profile, address }: BillingPanelProps) {
                                     </div>
                                     <Button variant="outline" className="w-full group" asChild>
                                         <a
-                                            href={`https://snowtrace.io/tx/${txHash}`}
+                                            href={`${blockExplorerUrl}/tx/${txHash}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="flex items-center justify-center gap-2"
