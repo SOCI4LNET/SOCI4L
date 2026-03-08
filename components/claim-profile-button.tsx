@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAccount, useSignMessage } from 'wagmi'
+import { useAccount, useSignMessage, useSwitchChain } from 'wagmi'
 import { toast } from 'sonner'
 import { getFriendlyErrorMessage } from '@/lib/utils/errors'
+import { activeChainId } from '@/lib/chain-config'
 
 import { useTransaction } from '@/components/providers/transaction-provider'
 import { WalletConnectButtons } from '@/components/wallet-connect-buttons'
@@ -22,6 +23,7 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
   const [isClaimed, setIsClaimed] = useState(false)
   const { address: connectedAddress, isConnected } = useAccount()
   const { signMessageAsync } = useSignMessage()
+  const { switchChainAsync } = useSwitchChain()
   const { showTransactionLoader, hideTransactionLoader } = useTransaction()
 
   useEffect(() => {
@@ -42,6 +44,15 @@ export function ClaimProfileButton({ address, onSuccess }: ClaimProfileButtonPro
     if (isClaimed) return
 
     try {
+      showTransactionLoader("Switching network...")
+      try {
+        await switchChainAsync({ chainId: activeChainId })
+      } catch (switchError: any) {
+        hideTransactionLoader()
+        toast.error("Please switch to Avalanche C-Chain to continue")
+        return
+      }
+
       showTransactionLoader("Waiting for signature...")
 
       // Step 1: Get nonce

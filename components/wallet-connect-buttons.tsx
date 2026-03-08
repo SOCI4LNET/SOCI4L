@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useConnect } from 'wagmi'
 import { toast } from 'sonner'
+import { activeChainId } from '@/lib/chain-config'
 
 import { Wallet, Loader2, QrCode, Plug } from 'lucide-react'
 
@@ -79,7 +80,7 @@ export function WalletConnectButtons({
       <Button
         variant={variant}
         size={size}
-        onClick={() => connect({ connector: walletConnectConnector })}
+        onClick={() => connect({ connector: walletConnectConnector, chainId: activeChainId })}
         disabled={isConnecting}
         className={className}
       >
@@ -95,7 +96,7 @@ export function WalletConnectButtons({
       <Button
         variant={variant}
         size={size}
-        onClick={() => connect({ connector: injectedConnector })}
+        onClick={() => connect({ connector: injectedConnector, chainId: activeChainId })}
         disabled={isConnecting}
         className={className}
       >
@@ -142,7 +143,7 @@ export function WalletConnectButtons({
             <>
               {/* Installed Wallet - shown first when detected */}
               <DropdownMenuItem
-                onClick={() => connect({ connector: injectedConnector })}
+                onClick={() => connect({ connector: injectedConnector, chainId: activeChainId })}
                 disabled={isConnecting}
                 className="flex-col items-start gap-1.5 py-2.5"
               >
@@ -164,7 +165,7 @@ export function WalletConnectButtons({
               
               {/* WalletConnect - shown second when extension detected */}
               <DropdownMenuItem
-                onClick={() => connect({ connector: walletConnectConnector })}
+                onClick={() => connect({ connector: walletConnectConnector, chainId: activeChainId })}
                 disabled={isConnecting}
                 className="flex-col items-start gap-0.5 py-2.5"
               >
@@ -179,7 +180,7 @@ export function WalletConnectButtons({
             <>
               {/* WalletConnect - shown first when no extension detected */}
               <DropdownMenuItem
-                onClick={() => connect({ connector: walletConnectConnector })}
+                onClick={() => connect({ connector: walletConnectConnector, chainId: activeChainId })}
                 disabled={isConnecting}
                 className="flex-col items-start gap-0.5 py-2.5"
               >
@@ -192,7 +193,7 @@ export function WalletConnectButtons({
               
               {/* Installed Wallet - shown second when no extension detected */}
               <DropdownMenuItem
-                onClick={() => connect({ connector: injectedConnector })}
+                onClick={() => connect({ connector: injectedConnector, chainId: activeChainId })}
                 disabled={isConnecting}
                 className="flex-col items-start gap-1.5 py-2.5"
               >
@@ -223,7 +224,7 @@ export function WalletConnectButtons({
     <Button
       variant={variant}
       size={size}
-      onClick={() => connect({ connector: fallbackConnector })}
+      onClick={() => connect({ connector: fallbackConnector, chainId: activeChainId })}
       disabled={isConnecting}
       className={className}
     >
