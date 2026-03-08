@@ -69,86 +69,81 @@ const navData = [
     {
         title: "Introduction",
         items: [
-            { title: "Welcome to SOCI4L", url: "/docs/welcome", icon: BookOpen },
-            { title: "Core Vision", url: "/docs/vision", icon: Zap },
-            { title: "Project Roadmap", url: "/docs/roadmap", icon: Activity },
-            { title: "Key Terminology", url: "/docs/terminology", icon: FileText },
+            { title: "Overview", url: "/docs/overview", icon: Home },
         ]
     },
     {
         title: "Getting Started",
         items: [
-            { title: "Quick Start Guide", url: "/docs/quick-start", icon: Zap },
-            { title: "Wallet Connectivity", url: "/docs/wallet-connectivity", icon: Wallet },
+            { title: "Connect Your Wallet", url: "/docs/connect-wallet", icon: Wallet },
             { title: "Claim Your Profile", url: "/docs/claim-profile", icon: Key },
-            { title: "Initial Setup", url: "/docs/initial-setup", icon: Settings },
         ]
     },
     {
-        title: "Profile Management",
+        title: "Profile",
         items: [
-            { title: "Identity Overview", url: "/docs/identity-overview", icon: User },
-            { title: "Digital Assets", url: "/docs/possessions", icon: Package },
-            { title: "Social Graph", url: "/docs/social-graph", icon: Layers },
-            { title: "On-Chain Activity", url: "/docs/transactions", icon: CreditCard },
-            { title: "Visual Personalization", url: "/docs/customization", icon: Palette },
+            { title: "Overview", url: "/docs/profile-overview", icon: User },
+            { title: "Links & Socials", url: "/docs/links-socials", icon: Layers },
+            { title: "Presenting Possessions", url: "/docs/possessions", icon: Package },
+            { title: "Transactions", url: "/docs/transactions", icon: CreditCard },
         ]
     },
     {
-        title: "SOCI4L Studio",
+        title: "Dashboard",
         items: [
-            { title: "Page Builder", url: "/docs/builder", icon: Layout },
-            { title: "Link Management", url: "/docs/links", icon: Layers },
-            { title: "Growth Insights", url: "/docs/insights", icon: PieChart },
+            { title: "Overview", url: "/docs/dashboard-overview", icon: LayoutDashboard },
+            {
+                title: "Studio",
+                url: "/docs/studio",
+                icon: Layout,
+                items: [
+                    { title: "Builder", url: "/docs/builder" },
+                    { title: "Links", url: "/docs/links" },
+                    { title: "Insights", url: "/docs/insights" },
+                ]
+            },
+            {
+                title: "Account",
+                url: "/docs/account",
+                icon: Settings,
+                items: [
+                    { title: "Safety", url: "/docs/safety" },
+                    { title: "Settings", url: "/docs/settings" },
+                    { title: "Billing", url: "/docs/billing" },
+                ]
+            },
         ]
     },
     {
-        title: "Account & Safety",
+        title: "AI Agents",
         items: [
-            { title: "Security Settings", url: "/docs/security", icon: Shield },
-            { title: "Privacy Controls", url: "/docs/privacy", icon: Lock },
-            { title: "Billing & Subscriptions", url: "/docs/billing", icon: CreditCard },
+            { title: "Overview", url: "/docs/ai-agents", icon: Bot },
         ]
     },
     {
-        title: "AI Ecosystem",
+        title: "Profile Scoring",
         items: [
-            { title: "Agent Overview", url: "/docs/agent-overview", icon: Bot },
-            { title: "Behavior Configuration", url: "/docs/agent-config", icon: Cpu },
-            { title: "Automation Logic", url: "/docs/automation", icon: Zap },
-        ]
-    },
-    {
-        title: "Scoring & Reputation",
-        items: [
-            { title: "Scoring Algorithm", url: "/docs/scoring-logic", icon: Activity },
-            { title: "Hierarchy & Ranks", url: "/docs/ranks", icon: Star },
-            { title: "Achievement Badges", url: "/docs/badges", icon: Trophy },
+            { title: "Ranks", url: "/docs/ranks", icon: Trophy },
         ]
     },
     {
         title: "Donations",
         items: [
-            { title: "Platform Donations", url: "/docs/platform-donations", icon: Heart },
-            { title: "Browser Extension", url: "/docs/extension-donations", icon: Globe },
-            { title: "Supporter Leaderboards", url: "/docs/leaderboards", icon: Users },
+            { title: "via Platform", url: "/docs/platform-donations", icon: Heart },
+            { title: "via Extension", url: "/docs/extension-donations", icon: Globe },
         ]
     },
     {
-        title: "Premium",
+        title: "Pro",
         items: [
-            { title: "Exclusive Benefits", url: "/docs/benefits", icon: Gem },
-            { title: "SOCI4L Pass NFT", url: "/docs/pass", icon: Zap },
-            { title: "Tier Comparison", url: "/docs/tiers", icon: Layers },
+            { title: "Overview", url: "/docs/pro-overview", icon: Gem },
         ]
     },
     {
-        title: "Technical Reference",
+        title: "References",
         items: [
-            { title: "System Architecture", url: "/docs/architecture", icon: Database },
-            { title: "Database Schema", url: "/docs/database", icon: FileCode },
-            { title: "API Specification", url: "/docs/api", icon: Terminal },
-            { title: "Security Protocols", url: "/docs/protocols", icon: Shield },
+            { title: "API", url: "/docs/api", icon: Terminal },
+            { title: "SDK", url: "/docs/sdk", icon: FileCode },
         ]
     }
 ]
