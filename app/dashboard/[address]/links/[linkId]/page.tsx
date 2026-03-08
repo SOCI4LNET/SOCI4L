@@ -524,7 +524,7 @@ export default function LinkInsightsPage({ params }: PageProps) {
       return
     }
 
-    // Custom Link Toggle Logic (Existing)
+    // Custom Link Toggle Logic
     try {
       // Load all links
       const response = await fetch(`/api/profile/links?address=${encodeURIComponent(profileId)}`)
@@ -541,7 +541,17 @@ export default function LinkInsightsPage({ params }: PageProps) {
           : item
       )
 
-      // Save all links
+      // Get nonce and sign
+      const nonceResponse = await fetch('/api/auth/nonce')
+      if (!nonceResponse.ok) throw new Error('Failed to get nonce')
+      const { nonce } = await nonceResponse.json()
+
+      showTransactionLoader("Confirm in Wallet...")
+      const message = `Update links for ${profileId}. Nonce: ${nonce}`
+      const signature = await signMessageAsync({ message })
+
+      showTransactionLoader("Saving changes...")
+
       const saveResponse = await fetch('/api/profile/links', {
         method: 'POST',
         headers: {
@@ -555,9 +565,10 @@ export default function LinkInsightsPage({ params }: PageProps) {
             url: item.url,
             enabled: item.enabled,
             order: item.order || 0,
-            categoryId: item.categoryId, // Fix: duplicate preservation
-            platform: item.platform, // Fix: duplicate preservation
+            categoryId: item.categoryId,
           })),
+          signature,
+          nonce,
         }),
       })
 
@@ -566,7 +577,6 @@ export default function LinkInsightsPage({ params }: PageProps) {
       }
 
       const saveData = await saveResponse.json()
-      // For custom links, we look for the updated item in response
       const updated = (saveData.links || []).find((item: any) => item.id === link.id) || null
       if (updated) {
         setLink({
@@ -579,13 +589,18 @@ export default function LinkInsightsPage({ params }: PageProps) {
           type: 'custom',
         })
       } else {
-        // Fallback if API doesn't return the item clearly or we are just updating state optimistically/based on input
         setLink({ ...link, enabled: !link.enabled })
       }
       toast.success(link.enabled ? 'Link disabled' : 'Link enabled')
-    } catch (error) {
+    } catch (error: any) {
       console.error('[LinkDetail] Failed to toggle link enabled', error)
-      toast.error('Failed to update link')
+      if (error?.message?.includes('User rejected') || error?.name === 'UserRejectedRequestError') {
+        toast.error('Transaction rejected')
+      } else {
+        toast.error('Failed to update link')
+      }
+    } finally {
+      hideTransactionLoader()
     }
   }
 
