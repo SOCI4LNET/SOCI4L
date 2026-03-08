@@ -3,20 +3,20 @@
 import * as React from "react"
 import { usePathname } from "next/navigation"
 
-import { 
-    BookOpen, 
-    FileText, 
-    Home, 
-    Terminal, 
-    FileCode, 
-    Package, 
-    Key, 
-    Database, 
-    User, 
-    LayoutDashboard, 
-    Bot, 
-    Star, 
-    Heart, 
+import {
+    BookOpen,
+    FileText,
+    Home,
+    Terminal,
+    FileCode,
+    Package,
+    Key,
+    Database,
+    User,
+    LayoutDashboard,
+    Bot,
+    Star,
+    Heart,
     Zap,
     ChevronRight,
     Settings,
@@ -27,16 +27,16 @@ import {
     PieChart
 } from "lucide-react"
 
-import { 
-    Sidebar, 
-    SidebarContent, 
-    SidebarGroup, 
-    SidebarGroupContent, 
-    SidebarGroupLabel, 
-    SidebarHeader, 
-    SidebarMenu, 
-    SidebarMenuButton, 
-    SidebarMenuItem, 
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarGroup,
+    SidebarGroupContent,
+    SidebarGroupLabel,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
     SidebarRail,
     SidebarMenuSub,
     SidebarMenuSubButton,
@@ -67,14 +67,13 @@ const navData = [
         title: "Getting Started",
         items: [
             { title: "Connect Your Wallet", url: "/docs/getting-started/connect-wallet", icon: WalletIcon },
-            { title: "Claim Your Username", url: "/docs/getting-started/claim-username", icon: Key },
-            { title: "Basic Profile Setup", url: "/docs/getting-started/basic-profile-setup", icon: User },
+            { title: "Claim Your Profile", url: "/docs/getting-started/claim-profile", icon: Key },
         ]
     },
     {
         title: "Profile",
         items: [
-            { title: "General Informations", url: "/docs/profile/general-informations", icon: FileText },
+            { title: "Overview", url: "/docs/profile/general-informations", icon: FileText },
             { title: "Links & Socials", url: "/docs/profile/links-socials", icon: Layers },
             { title: "Presenting Possessions", url: "/docs/profile/presenting-possessions", icon: Package },
             { title: "Transactions", url: "/docs/profile/transactions", icon: CreditCard },
@@ -135,7 +134,7 @@ const navData = [
 
 // Simple Wallet Icon fallback if needed
 function WalletIcon(props: any) {
-    return <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/><path d="M7 15h.01"/><path d="M11 15h2"/></svg>
+    return <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="5" rx="2" /><line x1="2" x2="22" y1="10" y2="10" /><path d="M7 15h.01" /><path d="M11 15h2" /></svg>
 }
 
 export function DocsSidebar({ articles = [], ...props }: DocsSidebarProps) {
@@ -168,9 +167,9 @@ export function DocsSidebar({ articles = [], ...props }: DocsSidebarProps) {
                                 {group.items.map((item: any) => (
                                     <React.Fragment key={item.title}>
                                         {item.items ? (
-                                            <Collapsible 
-                                                asChild 
-                                                defaultOpen={pathname.startsWith(item.url)} 
+                                            <Collapsible
+                                                asChild
+                                                defaultOpen={pathname.startsWith(item.url)}
                                                 className="group/collapsible"
                                             >
                                                 <SidebarMenuItem>
@@ -198,9 +197,9 @@ export function DocsSidebar({ articles = [], ...props }: DocsSidebarProps) {
                                             </Collapsible>
                                         ) : (
                                             <SidebarMenuItem>
-                                                <SidebarMenuButton 
-                                                    asChild 
-                                                    isActive={pathname === item.url} 
+                                                <SidebarMenuButton
+                                                    asChild
+                                                    isActive={pathname === item.url}
                                                     tooltip={item.title}
                                                 >
                                                     <a href={item.url}>
