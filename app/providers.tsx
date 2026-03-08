@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
 import { WagmiProvider, createConfig, http, cookieStorage, createStorage, type Config } from 'wagmi'
 import { walletConnect, injected } from 'wagmi/connectors'
 import { avalanche, avalancheFuji } from 'viem/chains'
@@ -24,12 +25,12 @@ export function getConfig() {
 
   const connectors = [
     injected({ shimDisconnect: true }),
-    ...(walletConnectProjectId ? [walletConnect({
+    ...(walletConnectProjectId && typeof window !== 'undefined' ? [walletConnect({
       projectId: walletConnectProjectId,
       metadata: {
         name: 'SOCI4L',
         description: 'Avalanche Wallet Profile Hub',
-        url: typeof window !== 'undefined' ? window.location.origin : 'https://soci4l.net',
+        url: window.location.origin,
         icons: [],
       },
     })] : []),

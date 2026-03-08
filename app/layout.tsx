@@ -2,6 +2,29 @@ import type { Metadata } from "next"
 import Script from "next/script"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 
+// SSR polyfill for localStorage to prevent crashes in Web3 libraries
+if (typeof window === 'undefined') {
+  try {
+    if (!global.localStorage) {
+      const mockStorage = {
+        getItem: (key: string) => null,
+        setItem: (key: string, value: string) => {},
+        removeItem: (key: string) => {},
+        clear: () => {},
+        key: (index: number) => null,
+        length: 0,
+      }
+      Object.defineProperty(global, 'localStorage', {
+        value: mockStorage,
+        writable: false,
+        configurable: true
+      })
+    }
+  } catch (e) {
+    // Ignore if already defined or restricted
+  }
+}
+
 import { Playfair_Display, Outfit } from "next/font/google"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"

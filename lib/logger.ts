@@ -1,5 +1,6 @@
 const IS_DEV = process.env.NODE_ENV === 'development'
-const DEBUG_ENABLED = typeof window !== 'undefined' && localStorage.getItem('DEBUG_MODE') === 'true'
+const DEBUG_ENABLED = typeof window !== 'undefined' && 
+    (() => { try { return window.localStorage?.getItem('DEBUG_MODE') === 'true' } catch { return false } })()
 
 export const Logger = {
     info: (message: string, ...args: any[]) => {
