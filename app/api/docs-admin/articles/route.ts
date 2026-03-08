@@ -10,12 +10,13 @@ export async function POST(request: NextRequest) {
 
     try {
         const body = await request.json()
-        const { title, slug, content, category, published } = body
+        const { title, slug, description, content, category, published } = body
 
         const article = await prisma.docsArticle.create({
             data: {
                 title,
                 slug,
+                description,
                 content,
                 category,
                 published,

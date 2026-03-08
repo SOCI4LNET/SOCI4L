@@ -23,17 +23,18 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     try {
         const body = await request.json()
-        const { title, slug, content, category, published } = body
+        const { title, slug, description, content, category, published } = body
 
         const article = await prisma.docsArticle.update({
             where: { id },
             data: {
                 title,
                 slug,
+                description,
                 content,
                 category,
                 published,
-                authorId: session.id // Keep author as creator or update to editor? Usually keep creator or track last editor.
+                authorId: session.id
             }
         })
 

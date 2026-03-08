@@ -9,6 +9,7 @@ import { Save, ArrowLeft, Loader2 } from 'lucide-react'
 
 import { EditorShell } from '@/components/docs-admin/mdx-editor/editor-shell'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -21,6 +22,7 @@ export default function ArticleEditorPage({ params }: { params: Promise<{ id: st
     const [loading, setLoading] = useState(false)
     const [title, setTitle] = useState('')
     const [slug, setSlug] = useState('')
+    const [description, setDescription] = useState('')
     const [category, setCategory] = useState("General")
     const [content, setContent] = useState('')
     const [initialContent, setInitialContent] = useState('') // Separate initial state to prevent loop
@@ -37,6 +39,7 @@ export default function ArticleEditorPage({ params }: { params: Promise<{ id: st
                 if (data.article) {
                     setTitle(data.article.title)
                     setSlug(data.article.slug)
+                    setDescription(data.article.description ?? '')
                     setCategory(data.article.category)
                     setContent(data.article.content)
                     setInitialContent(data.article.content)
@@ -72,6 +75,7 @@ export default function ArticleEditorPage({ params }: { params: Promise<{ id: st
                     id: isNew ? undefined : id,
                     title,
                     slug,
+                    description,
                     category,
                     content,
                     published: true // auto publishing for demo
@@ -137,6 +141,18 @@ export default function ArticleEditorPage({ params }: { params: Promise<{ id: st
                         </SelectContent>
                     </Select>
                 </div>
+            </div>
+
+            {/* Description Field */}
+            <div className="space-y-2">
+                <Label>Description <span className="text-muted-foreground text-xs">(optional — shown as subtitle under the article title)</span></Label>
+                <Textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="A short summary of what this article covers…"
+                    rows={2}
+                    className="resize-none"
+                />
             </div>
 
             {/* Editor */}
