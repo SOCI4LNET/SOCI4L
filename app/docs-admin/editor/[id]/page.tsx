@@ -135,6 +135,7 @@ export default function ArticleEditorPage({ params }: { params: Promise<{ id: st
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="General">General</SelectItem>
+                            <SelectItem value="Getting Started">Getting Started</SelectItem>
                             <SelectItem value="SDK">SDK</SelectItem>
                             <SelectItem value="API Reference">API Reference</SelectItem>
                             <SelectItem value="Integrations">Integrations</SelectItem>
