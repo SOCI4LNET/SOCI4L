@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { MDXRemote } from 'next-mdx-remote/rsc'
+import remarkGfm from 'remark-gfm'
 import { prisma } from '@/lib/prisma'
 
 import { components } from '@/components/docs/mdx-components'
@@ -33,7 +34,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
             </div>
 
             <div className="prose prose-zinc dark:prose-invert max-w-none">
-                <MDXRemote source={article.content} components={components} />
+                <MDXRemote source={article.content} components={components} options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }} />
             </div>
         </div>
     )
