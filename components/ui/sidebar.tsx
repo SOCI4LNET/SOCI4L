@@ -175,7 +175,7 @@ const SidebarProvider = React.forwardRef<
 SidebarProvider.displayName = "SidebarProvider"
 
 const sidebarVariants = cva(
-  "group/sidebar flex h-full flex-col bg-background text-sidebar-foreground transition-[width] duration-200 ease-linear border-r border-sidebar-border overflow-x-hidden",
+  "group group/sidebar flex h-full flex-col bg-background text-sidebar-foreground transition-[width] duration-200 ease-linear border-r border-sidebar-border overflow-x-hidden",
   {
     variants: {
       variant: {

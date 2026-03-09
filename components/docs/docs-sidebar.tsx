@@ -175,7 +175,7 @@ export function DocsSidebar({ articles = [], ...props }: DocsSidebarProps) {
             <SidebarContent className="px-2">
                 {navData.map((group) => (
                     <SidebarGroup key={group.title} className="py-2">
-                        <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider mb-2 px-2">
+                        <SidebarGroupLabel className="text-xs font-semibold text-foreground/60 uppercase tracking-wider mb-2 px-2">
                             {group.title}
                         </SidebarGroupLabel>
                         <SidebarGroupContent>
@@ -190,7 +190,7 @@ export function DocsSidebar({ articles = [], ...props }: DocsSidebarProps) {
                                             >
                                                 <SidebarMenuItem>
                                                     <CollapsibleTrigger asChild>
-                                                        <SidebarMenuButton tooltip={item.title}>
+                                                        <SidebarMenuButton tooltip={item.title} isActive={pathname === item.url || item.items?.some((sub: any) => pathname === sub.url)} className="text-muted-foreground">
                                                             {item.icon && <item.icon className="size-4" />}
                                                             <span>{item.title}</span>
                                                             <ChevronRight className="ml-auto size-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
@@ -217,6 +217,7 @@ export function DocsSidebar({ articles = [], ...props }: DocsSidebarProps) {
                                                     asChild
                                                     isActive={pathname === item.url}
                                                     tooltip={item.title}
+                                                    className="text-muted-foreground"
                                                 >
                                                     <a href={item.url}>
                                                         {item.icon && <item.icon className="size-4" />}

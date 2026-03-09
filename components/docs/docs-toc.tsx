@@ -58,7 +58,7 @@ export function DocsTOC() {
                                 className={cn(
                                     "block text-sm transition-colors hover:text-foreground",
                                     item.url === `#${activeId}`
-                                        ? "font-medium text-foreground"
+                                        ? "font-medium text-primary -ml-[17px] pl-[16px] border-l-2 border-primary"
                                         : "text-muted-foreground"
                                 )}
                             >

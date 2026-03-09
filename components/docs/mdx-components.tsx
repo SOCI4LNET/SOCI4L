@@ -26,7 +26,7 @@ export const components = {
     },
     h4: ({ className, children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => {
         const id = slugify(typeof children === 'string' ? children : '')
-        return <h4 id={id} className={cn("scroll-m-20 text-lg font-medium tracking-tight mt-2 mb-0", className)} {...props}>{children}</h4>
+        return <h4 id={id} className={cn("scroll-m-20 text-base font-medium tracking-tight mt-2 mb-0", className)} {...props}>{children}</h4>
     },
     p: DocsParagraph,
     ul: DocsList,

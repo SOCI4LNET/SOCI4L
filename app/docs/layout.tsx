@@ -23,32 +23,34 @@ export default async function DocsLayout({ children }: { children: React.ReactNo
         <SidebarProvider defaultOpen={true}>
             <DocsSidebar articles={articles} />
 
-            <SidebarInset className="flex w-full flex-col overflow-y-auto">
+            <SidebarInset className="flex w-full flex-col">
                 <DocsHeader />
 
-                <div className="flex flex-1 container max-w-screen-2xl mx-auto">
-                    <main className="relative py-6 lg:gap-10 lg:py-10 xl:grid xl:grid-cols-[1fr_250px] w-full px-4 md:px-8">
-                        <div className="mx-auto w-full min-w-0 max-w-3xl">
-                            {children}
-                        </div>
+                <div className="flex-1 overflow-y-auto">
+                    <div className="container max-w-screen-2xl mx-auto">
+                        <main className="relative py-6 lg:gap-10 lg:py-10 xl:grid xl:grid-cols-[1fr_250px] w-full px-4 md:px-8">
+                            <div className="mx-auto w-full min-w-0 max-w-3xl">
+                                {children}
+                            </div>
 
-                        {/* Table of Contents Column */}
-                        <div className="hidden text-sm xl:block pl-6">
-                            <div className="sticky top-20 h-[calc(100vh-3.5rem)] overflow-hidden">
-                                <DocsTOC />
-                                <div className="mt-10 pt-6 border-t border-border/40">
-                                    <p className="text-xs text-muted-foreground font-medium mb-4 uppercase tracking-wider">Community</p>
-                                    <a href="#" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-3 transition-colors">
-                                        <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_0_rgba(34,197,94,0.5)]"></span>
-                                        Systems Normal
-                                    </a>
-                                    <a href="#" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                                        Join Discord
-                                    </a>
+                            {/* Table of Contents Column */}
+                            <div className="hidden text-sm xl:block pl-6">
+                                <div className="sticky top-6 h-[calc(100vh-7rem)] overflow-y-auto">
+                                    <DocsTOC />
+                                    <div className="mt-10 pt-6 border-t border-border/40">
+                                        <p className="text-xs text-muted-foreground font-medium mb-4 uppercase tracking-wider">Community</p>
+                                        <a href="#" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-3 transition-colors">
+                                            <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_0_rgba(34,197,94,0.5)]"></span>
+                                            Systems Normal
+                                        </a>
+                                        <a href="#" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                                            Join Discord
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </main>
+                        </main>
+                    </div>
                 </div>
             </SidebarInset>
         </SidebarProvider>

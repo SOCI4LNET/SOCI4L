@@ -6,7 +6,7 @@ export function DocsTitle({ className, ...props }: DocsTypographyProps) {
     return (
         <h1
             className={cn(
-                "scroll-m-20 text-3xl font-semibold tracking-tight lg:text-4xl mb-2 font-display",
+                "scroll-m-20 text-2xl font-semibold tracking-tight lg:text-3xl mb-2 font-display",
                 className
             )}
             {...props}
@@ -18,7 +18,7 @@ export function DocsHeading({ className, ...props }: DocsTypographyProps) {
     return (
         <h2
             className={cn(
-                "scroll-m-20 border-b pb-1 text-2xl font-medium tracking-tight first:mt-0 mt-3 mb-0",
+                "scroll-m-20 border-b pb-1 text-xl font-medium tracking-tight first:mt-0 mt-3 mb-0",
                 className
             )}
             {...props}
@@ -30,7 +30,7 @@ export function DocsSubHeading({ className, ...props }: DocsTypographyProps) {
     return (
         <h3
             className={cn(
-                "scroll-m-20 text-xl font-medium tracking-tight mt-2 mb-0",
+                "scroll-m-20 text-lg font-medium tracking-tight mt-2 mb-0",
                 className
             )}
             {...props}
