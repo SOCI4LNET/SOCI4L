@@ -142,6 +142,7 @@ export default function ArticleEditorPage({ params }: { params: Promise<{ id: st
                             <SelectItem value="Account">Account</SelectItem>
                             <SelectItem value="Profile Scoring">Profile Scoring</SelectItem>
                             <SelectItem value="Donations">Donations</SelectItem>
+                            <SelectItem value="Pro">Pro</SelectItem>
                             <SelectItem value="SDK">SDK</SelectItem>
                             <SelectItem value="API Reference">API Reference</SelectItem>
                             <SelectItem value="Integrations">Integrations</SelectItem>
