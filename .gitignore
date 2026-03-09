@@ -52,3 +52,11 @@ mirror_key.pub
 
 # backups
 /backups
+
+# local docs drafts (not committed)
+/docs-admin-drafts
+
+# docs admin scripts (internal use, do not commit)
+scripts/seed-docs-from-drafts.ts
+scripts/add-docs-admin.ts
+scripts/fix-user.ts

@@ -185,7 +185,7 @@ export function DocsSidebar({ articles = [], ...props }: DocsSidebarProps) {
                                         {item.items ? (
                                             <Collapsible
                                                 asChild
-                                                defaultOpen={pathname.startsWith(item.url)}
+                                                defaultOpen={pathname.startsWith(item.url) || (item.items && item.items.some((sub: any) => pathname === sub.url || pathname.startsWith(sub.url + '/')))}
                                                 className="group/collapsible"
                                             >
                                                 <SidebarMenuItem>
