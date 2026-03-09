@@ -50,7 +50,7 @@ export function BlockedUsersList() {
 
             setUnblockingIds(prev => new Set(prev).add(address))
             const response = await fetch(`/api/profile/${address.toLowerCase()}/block`, {
-                method: "POST",
+                method: "DELETE",
             })
 
             if (!response.ok) throw new Error("Failed to unblock")
@@ -204,7 +204,7 @@ export function MutedUsersList() {
 
             setUnmutingIds(prev => new Set(prev).add(address))
             const response = await fetch(`/api/profile/${address.toLowerCase()}/mute`, {
-                method: "POST",
+                method: "DELETE",
             })
 
             if (!response.ok) throw new Error("Failed to unmute")
