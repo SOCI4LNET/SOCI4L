@@ -14,13 +14,14 @@ export function DocsTOC() {
     const [activeId, setActiveId] = React.useState<string>("")
 
     React.useEffect(() => {
-        // Select headings with IDs, but exclude those explicitly marked to ignore
         const headings = Array.from(document.querySelectorAll("h2[id]:not([data-toc-ignore]), h3[id]:not([data-toc-ignore])"))
         const tocItems: TocItem[] = headings.map((heading) => ({
             title: heading.textContent || "",
             url: `#${heading.id}`,
         }))
         setItems(tocItems)
+
+        const scrollContainer = document.querySelector('.flex-1.overflow-y-auto') as HTMLElement | null
 
         const observer = new IntersectionObserver(
             (entries) => {
@@ -30,13 +31,23 @@ export function DocsTOC() {
                     }
                 })
             },
-            { rootMargin: "0% 0% -80% 0%" }
+            { root: scrollContainer, rootMargin: "0% 0% -65% 0%" }
         )
 
         headings.forEach((heading) => observer.observe(heading))
 
+        const handleScroll = () => {
+            if (!scrollContainer) return
+            const { scrollTop, scrollHeight, clientHeight } = scrollContainer
+            if (scrollHeight - scrollTop - clientHeight < 50 && headings.length > 0) {
+                setActiveId(headings[headings.length - 1].id)
+            }
+        }
+        scrollContainer?.addEventListener('scroll', handleScroll)
+
         return () => {
             headings.forEach((heading) => observer.unobserve(heading))
+            scrollContainer?.removeEventListener('scroll', handleScroll)
         }
     }, [])
 

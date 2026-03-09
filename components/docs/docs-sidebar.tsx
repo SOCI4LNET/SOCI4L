@@ -172,7 +172,7 @@ export function DocsSidebar({ articles = [], ...props }: DocsSidebarProps) {
                 </div>
             </SidebarHeader>
 
-            <SidebarContent className="px-2">
+            <SidebarContent className="px-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 {navData.map((group) => (
                     <SidebarGroup key={group.title} className="py-2">
                         <SidebarGroupLabel className="text-xs font-semibold text-foreground/60 uppercase tracking-wider mb-2 px-2">
@@ -193,7 +193,7 @@ export function DocsSidebar({ articles = [], ...props }: DocsSidebarProps) {
                                                         <SidebarMenuButton tooltip={item.title} isActive={pathname === item.url || item.items?.some((sub: any) => pathname === sub.url)} className="text-muted-foreground">
                                                             {item.icon && <item.icon className="size-4" />}
                                                             <span>{item.title}</span>
-                                                            <ChevronRight className="ml-auto size-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                                                            <ChevronRight className="ml-auto size-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" />
                                                         </SidebarMenuButton>
                                                     </CollapsibleTrigger>
                                                     <CollapsibleContent>
