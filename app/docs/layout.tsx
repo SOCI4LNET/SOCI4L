@@ -1,4 +1,5 @@
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
+import SiteFooter from '@/components/app-shell/site-footer'
 import { DocsSidebar } from '@/components/docs/docs-sidebar'
 import { DocsTOC } from '@/components/docs/docs-toc'
 import { DocsHeader } from '@/components/docs/docs-header'
@@ -52,6 +53,7 @@ export default async function DocsLayout({ children }: { children: React.ReactNo
                         </main>
                     </div>
                 </div>
+                <SiteFooter className="mt-auto" />
             </SidebarInset>
         </SidebarProvider>
     )
