@@ -79,6 +79,8 @@ We have developed a Chrome Extension that allows users to send AVAX donations di
 > **To test the extension with Fuji test funds:** Download the **Fuji Testnet build** directly from our dedicated repository: [SOCI4L-Web-Extension-Fuji](https://github.com/SOCI4LNET/SOCI4L-Web-Extension-Fuji). This build is pre-configured to point to `testnet.soci4l.net`. Load it in Developer Mode (`chrome://extensions` → Enable Developer Mode → Load unpacked) and test the cross-platform tipping feature on profiles like [x.com/0xBrokkr](https://x.com/0xBrokkr).
 
 > **Done with the walkthrough?** After reviewing this showcase repository, we highly recommend exploring our other core repositories: our **[Chrome Extension (Fuji Testnet)](https://github.com/SOCI4LNET/SOCI4L-Web-Extension-Fuji)** to experience cross-platform tipping, and our **[Brand Assets](https://github.com/SOCI4LNET/SOCI4L-Brand-Assets)** repository (which includes our official Figma design link) to see our visual identity system.
+>
+> **📖 User Documentation:** We have also prepared a comprehensive documentation site for our users. Browse it at **[soci4l.net/docs](https://soci4l.net/docs/)** to understand the platform's features, architecture and usage flows in detail.
 
 ---
 
