@@ -51,9 +51,11 @@ export default async function DocsLayout({ children }: { children: React.ReactNo
                                 </div>
                             </div>
                         </main>
+
+                        {/* Global footer - placed inside scrollable docs content so it never overlaps text */}
+                        <SiteFooter className="mt-16" />
                     </div>
                 </div>
-                <SiteFooter className="mt-auto" />
             </SidebarInset>
         </SidebarProvider>
     )
