@@ -138,8 +138,8 @@ export function PremiumUpgradeModal({ open, onOpenChange, onSuccess }: PremiumUp
             const isFuji = chainId === 43113;
             const fallbackChainId = isSupportedNetwork ? chainId : activeChainId;
             const targetAddress = isFuji
-                ? process.env.NEXT_PUBLIC_FUJI_PREMIUM_PAYMENT_ADDRESS || ""
-                : "0x9bA02537447E6DcdeF72D0e98a4C82E6B73E3cCC"; // Mainnet address
+                ? process.env.NEXT_PUBLIC_FUJI_PREMIUM_PAYMENT_ADDRESS || PREMIUM_PAYMENT_ADDRESS
+                : PREMIUM_PAYMENT_ADDRESS;
 
             if (!targetAddress) {
                 toast.error("Contract address not configured for this network");
