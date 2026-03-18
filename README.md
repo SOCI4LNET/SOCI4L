@@ -468,14 +468,14 @@ Moving social graph and reputation on-chain.
 All SOCI4L smart contracts are deployed and their source codes are fully verified on Snowtrace. Judges can read the source codes, verify ABIs, and interact with the contracts directly via the explorer links below.
 
 ### Avalanche C-Chain (Mainnet)
-- **CustomSlugRegistry:** [`0xC894a2677C7E619E9692E3bF4AFF58bE53173aA1`](https://snowtrace.io/address/0xC894a2677C7E619E9692E3bF4AFF58bE53173aA1#code)
-- **PremiumPayment:** [`0x9bA02537447E6DcdeF72D0e98a4C82E6B73E3cCC`](https://snowtrace.io/address/0x9bA02537447E6DcdeF72D0e98a4C82E6B73E3cCC#code)
-- **DonatePayment:** [`0x863deaF39D816fBA5D10E3e846a2D953Aa9aEca5`](https://snowtrace.io/address/0x863deaF39D816fBA5D10E3e846a2D953Aa9aEca5#code)
+- **CustomSlugRegistry:** [`0x9673Fd37B4057CA4Bad0B687F11644145895FcB0`](https://snowtrace.io/address/0x9673Fd37B4057CA4Bad0B687F11644145895FcB0#code)
+- **PremiumPayment:** [`0xD7D57ffb36c267166930BD16fEf05fC2009F6a02`](https://snowtrace.io/address/0xD7D57ffb36c267166930BD16fEf05fC2009F6a02#code)
+- **DonatePayment:** [`0xFb87172BF2a402a45ff243a5D69f559c62500487`](https://snowtrace.io/address/0xFb87172BF2a402a45ff243a5D69f559c62500487#code)
 
 ### Avalanche Fuji (Testnet)
-- **CustomSlugRegistry:** [`0xd8c1C36c6d68858AC8c6AFD7f4AdB654Fef8630A`](https://testnet.snowtrace.io/address/0xd8c1C36c6d68858AC8c6AFD7f4AdB654Fef8630A#code)
-- **PremiumPayment:** [`0x63c4cBe555aFae0DA3C86f868F0BA496d74c988E`](https://testnet.snowtrace.io/address/0x63c4cBe555aFae0DA3C86f868F0BA496d74c988E#code)
-- **DonatePayment:** [`0xE4303a02F8246CCf64190AE5d48089534290C7Ab`](https://testnet.snowtrace.io/address/0xE4303a02F8246CCf64190AE5d48089534290C7Ab#code)
+- **CustomSlugRegistry:** [`0xD7D57ffb36c267166930BD16fEf05fC2009F6a02`](https://testnet.snowtrace.io/address/0xD7D57ffb36c267166930BD16fEf05fC2009F6a02#code)
+- **PremiumPayment:** [`0x9673Fd37B4057CA4Bad0B687F11644145895FcB0`](https://testnet.snowtrace.io/address/0x9673Fd37B4057CA4Bad0B687F11644145895FcB0#code)
+- **DonatePayment:** [`0xFb87172BF2a402a45ff243a5D69f559c62500487`](https://testnet.snowtrace.io/address/0xFb87172BF2a402a45ff243a5D69f559c62500487#code)
 
 ## Impact on Avalanche Ecosystem
 
