@@ -152,7 +152,6 @@ export async function POST(request: NextRequest) {
         markNonceAsUsed(nonce)
         
         // Clear nonce cookie
-        const cookieStore = await cookies()
         cookieStore.delete('aph_nonce')
 
         return NextResponse.json({
@@ -201,7 +200,6 @@ export async function POST(request: NextRequest) {
     })
 
     // Clear nonce cookie after successful claim
-    const cookieStore = await cookies()
     cookieStore.delete('aph_nonce')
 
     return NextResponse.json({
