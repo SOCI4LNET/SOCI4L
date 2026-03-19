@@ -60,3 +60,12 @@ mirror_key.pub
 scripts/seed-docs-from-drafts.ts
 scripts/add-docs-admin.ts
 scripts/fix-user.ts
+
+# local assistant and personal notes
+.claude/
+JURI_SONRASI_YAPILACAKLAR.md
+SECURITY_AUDIT_REPORT.md
+docs/
+
+# smart-contracts uses pnpm lockfile; ignore npm lockfile there
+smart-contracts/package-lock.json
