@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
     } catch (error) {
         console.error('Error saving all profile changes:', error)
         return NextResponse.json(
-            { error: `An error occurred: ${error instanceof Error ? error.message : 'Unknown error'}` },
+            { error: 'An error occurred while saving profile changes' },
             { status: 500 }
         )
     }

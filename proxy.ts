@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { DOCS_ADMIN_SESSION_COOKIE, verifyDocsAdminSessionToken } from './lib/docs-auth-token'
+import { getClientIp } from './lib/get-ip'
 
 // Simple in-memory rate limiter
 // Note: In a serverless/edge environment, this map is not shared across instances.
@@ -9,7 +10,7 @@ const rateLimit = new Map<string, { count: number; lastReset: number }>()
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const ip = request.headers.get('x-forwarded-for') || '127.0.0.1'
+  const ip = getClientIp(request)
 
   // Rate Limiting for API routes
   if (pathname.startsWith('/api')) {

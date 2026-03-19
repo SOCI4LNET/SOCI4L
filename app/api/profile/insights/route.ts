@@ -7,14 +7,15 @@ import {
   normalizeLayoutConfig,
   type ProfileLayoutConfig,
 } from '@/lib/profile-layout'
+import { getSessionAddress } from '@/lib/auth'
 
 /**
- * Public Insights API endpoint
- * Returns read-only analytics data for a profile
- * 
- * Note: Currently analytics are stored client-side in localStorage,
- * so this endpoint returns empty data. In a production system,
- * analytics should be stored server-side in the database.
+ * Profile Insights API endpoint.
+ *
+ * Aggregate totals (view count, link click count, CTR) are public so profile
+ * owners can share their stats.  Sensitive fields — visitor wallet addresses,
+ * full referrer URLs, raw recent activity, and device breakdown — are only
+ * returned when the authenticated session belongs to the profile owner.
  */
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -67,6 +68,12 @@ export async function GET(request: NextRequest) {
   if (!resolvedAddress) {
     return NextResponse.json({ error: 'Could not resolve address' }, { status: 400 })
   }
+
+  // Determine whether the caller is the profile owner (LOW-10).
+  // Sensitive fields (visitor wallets, referrers, raw activity) are only
+  // returned when the session matches the resolved profile address.
+  const sessionAddress = await getSessionAddress()
+  const isOwner = !!sessionAddress && sessionAddress.toLowerCase() === resolvedAddress.toLowerCase()
 
   try {
     // Load profile links
@@ -366,13 +373,16 @@ export async function GET(request: NextRequest) {
       take: 10,
     })
 
+    // Strip sensitive fields for non-owners (LOW-10):
+    // visitor wallet addresses and full referrer URLs are only shown to the
+    // profile owner in their dashboard.
     const recentActivity = recentEvents.map((event: any) => ({
       type: event.type as 'profile_view' | 'link_click',
       timestamp: event.createdAt.getTime(),
       linkTitle: event.linkTitle || undefined,
       linkId: event.linkId || undefined,
-      visitorWallet: event.visitorWallet || undefined,
-      referrer: event.referrer || undefined,
+      visitorWallet: isOwner ? (event.visitorWallet || undefined) : undefined,
+      referrer: isOwner ? (event.referrer || undefined) : undefined,
       source: event.source,
     }))
 
@@ -396,30 +406,34 @@ export async function GET(request: NextRequest) {
       })),
       layout: layoutConfig,
       analytics: {
+        // Public aggregate stats
         totalProfileViews,
         totalLinkClicks,
         ctr,
         topLinks,
         topCategories,
-        recentActivity,
         sourceBreakdown,
-        topReferrers,
-        deviceBreakdown: await (async () => {
-          const stats = await prisma.analyticsEvent.groupBy({
-            by: ['device'],
-            where: {
-              profileId: resolvedAddress!,
-              ...selfActivityFilter,
-              ...dateFilter,
-            },
-            _count: { _all: true }
-          })
-          const breakdown: Record<string, number> = {}
-          stats.forEach(s => {
-            if (s.device) breakdown[s.device] = s._count._all
-          })
-          return breakdown
-        })()
+        // Owner-only sensitive data (LOW-10)
+        recentActivity: isOwner ? recentActivity : [],
+        topReferrers: isOwner ? topReferrers : [],
+        deviceBreakdown: isOwner
+          ? await (async () => {
+              const stats = await prisma.analyticsEvent.groupBy({
+                by: ['device'],
+                where: {
+                  profileId: resolvedAddress!,
+                  ...selfActivityFilter,
+                  ...dateFilter,
+                },
+                _count: { _all: true },
+              })
+              const breakdown: Record<string, number> = {}
+              stats.forEach((s) => {
+                if (s.device) breakdown[s.device] = s._count._all
+              })
+              return breakdown
+            })()
+          : {},
       },
     })
   } catch (error) {

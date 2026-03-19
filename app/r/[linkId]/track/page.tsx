@@ -19,11 +19,25 @@ export default function LinkTrackPage() {
 
   useEffect(() => {
     // Basic validation
-    const url = searchParams.get('url')
+    const rawUrl = searchParams.get('url')
     const profileId = searchParams.get('profileId')
     const eventId = searchParams.get('eventId')
 
-    if (!url || !profileId || !linkId) {
+    if (!rawUrl || !profileId || !linkId) {
+      return
+    }
+
+    // Validate URL: only allow http/https to prevent open redirect to javascript: or data: URIs
+    let url: string
+    try {
+      const parsed = new URL(rawUrl)
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+        console.error('[LinkTrack] Blocked redirect to non-http(s) URL:', parsed.protocol)
+        return
+      }
+      url = parsed.toString()
+    } catch {
+      console.error('[LinkTrack] Blocked redirect to invalid URL')
       return
     }
 

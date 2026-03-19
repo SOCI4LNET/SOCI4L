@@ -27,10 +27,16 @@ function base64UrlDecode(input: string): string {
 }
 
 function constantTimeEqual(a: string, b: string): boolean {
-  if (a.length !== b.length) return false
-  let result = 0
-  for (let i = 0; i < a.length; i++) {
-    result |= a.charCodeAt(i) ^ b.charCodeAt(i)
+  // Avoid any early return that would leak the length of the expected value.
+  // We iterate over the longer string so that the loop count is independent of
+  // whether the lengths match, then fold the length difference into `result`.
+  const lenA = a.length
+  const lenB = b.length
+  let result = lenA ^ lenB  // non-zero when lengths differ → always false
+  const maxLen = Math.max(lenA, lenB)
+  for (let i = 0; i < maxLen; i++) {
+    // Use modulo to avoid out-of-bounds access while keeping branch-free logic.
+    result |= a.charCodeAt(i % lenA) ^ b.charCodeAt(i % lenB)
   }
   return result === 0
 }

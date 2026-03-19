@@ -53,8 +53,10 @@ export function SocialConnect() {
     const performDbUnlink = async () => {
         const walletAddress = user?.wallet?.address || connectedAddress
         if (walletAddress) {
-            const response = await fetch(`/api/social/link?platform=twitter&walletAddress=${walletAddress}`, {
-                method: 'DELETE'
+            const response = await fetch('/api/social/link', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ platform: 'twitter', address: walletAddress }),
             })
             if (!response.ok) {
                 console.warn('Backend social unlink failed, but Privy unlink succeeded')
@@ -106,8 +108,10 @@ export function SocialConnect() {
             if (error?.message?.includes('not linked') || error?.message?.includes('not found')) {
                 const walletAddress = user?.wallet?.address || connectedAddress
                 if (walletAddress) {
-                    await fetch(`/api/social/link?platform=twitter&walletAddress=${walletAddress}`, {
-                        method: 'DELETE'
+                    await fetch('/api/social/link', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ platform: 'twitter', address: walletAddress }),
                     })
                     toast.success('Connection removed from profile')
                     return

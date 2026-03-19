@@ -1,120 +1,94 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getClientIp } from '@/lib/get-ip'
 
-/**
- * Normalize email: trim whitespace and convert to lowercase
- */
+// Per-IP rate limit: max 5 subscription attempts per 10 minutes.
+// This prevents both spam subscriptions and email enumeration via timing.
+const subscribeRateLimit = new Map<string, { count: number; lastReset: number }>()
+const SUBSCRIBE_LIMIT = 5
+const SUBSCRIBE_WINDOW_MS = 10 * 60 * 1000
+
+function isSubscribeRateLimited(ip: string): boolean {
+  const now = Date.now()
+  const entry = subscribeRateLimit.get(ip) || { count: 0, lastReset: now }
+
+  if (now - entry.lastReset > SUBSCRIBE_WINDOW_MS) {
+    entry.count = 0
+    entry.lastReset = now
+  }
+
+  entry.count++
+  subscribeRateLimit.set(ip, entry)
+  return entry.count > SUBSCRIBE_LIMIT
+}
+
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase()
 }
 
-/**
- * Validate email format using a simple but deterministically regex
- */
 function isValidEmail(email: string): boolean {
-  // Validate: local part + @ + domain with at least 2-char TLD, max 254 chars total
   if (email.length > 254) return false
   const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/
   return emailRegex.test(email)
 }
 
+// Generic success response — intentionally identical whether the email is new
+// or already subscribed, to prevent email enumeration (MED-8).
+const SUCCESS_RESPONSE = { ok: true }
+
 export async function POST(request: NextRequest) {
+  const ip = getClientIp(request)
+  if (isSubscribeRateLimited(ip)) {
+    return new NextResponse('Too Many Requests', { status: 429 })
+  }
+
   try {
     const { email } = await request.json()
 
-    // Email validation: required and must be string
     if (!email || typeof email !== 'string') {
       return NextResponse.json(
-        { 
-          error: 'Email address is required',
-          code: 'EMAIL_REQUIRED'
-        },
-        { status: 400 }
+        { error: 'Email address is required' },
+        { status: 400 },
       )
     }
 
-    // Normalize email: trim and lowercase
     const normalizedEmail = normalizeEmail(email)
 
-    // Check if normalized email is empty
     if (!normalizedEmail) {
       return NextResponse.json(
-        { 
-          error: 'Email address is required',
-          code: 'EMAIL_REQUIRED'
-        },
-        { status: 400 }
+        { error: 'Email address is required' },
+        { status: 400 },
       )
     }
 
-    // Validate email format
     if (!isValidEmail(normalizedEmail)) {
       return NextResponse.json(
-        { 
-          error: 'Invalid email format',
-          code: 'INVALID_EMAIL_FORMAT'
-        },
-        { status: 400 }
+        { error: 'Invalid email format' },
+        { status: 400 },
       )
     }
 
-    // Check if email already exists (duplicate check)
-    const existing = await prisma.emailSubscription.findUnique({
-      where: { email: normalizedEmail },
-    })
-
-    if (existing) {
-      return NextResponse.json(
-        { 
-          error: 'Already subscribed',
-          code: 'ALREADY_SUBSCRIBED'
-        },
-        { status: 400 }
-      )
-    }
-
-    // Create new subscription
+    // Attempt to create; if the email already exists, silently succeed so
+    // that callers cannot enumerate which addresses are already registered.
     try {
-      const subscription = await prisma.emailSubscription.create({
-        data: {
-          email: normalizedEmail,
-        },
-      })
-
-      return NextResponse.json({
-        ok: true,
-        email: normalizedEmail,
+      await prisma.emailSubscription.create({
+        data: { email: normalizedEmail },
       })
     } catch (createError: any) {
-      // Handle unique constraint violation (race condition protection)
-      // This can happen if two requests try to create the same email simultaneously
+      // P2002 = unique constraint violation — email already subscribed.
+      // Return the same success response to prevent enumeration.
       if (createError.code === 'P2002' || createError.code === 'SQLITE_CONSTRAINT_UNIQUE') {
-        return NextResponse.json(
-          { 
-            error: 'Already subscribed',
-            code: 'ALREADY_SUBSCRIBED'
-          },
-          { status: 400 }
-        )
+        return NextResponse.json(SUCCESS_RESPONSE)
       }
-      
-      // Re-throw other errors
       throw createError
     }
+
+    return NextResponse.json(SUCCESS_RESPONSE)
   } catch (error: any) {
     console.error('Error subscribing email:', error)
-    
-    // If it's already a response error (from above), re-throw it
-    if (error.status) {
-      throw error
-    }
-    
     return NextResponse.json(
-      { 
-        error: 'An error occurred while saving email',
-        code: 'INTERNAL_ERROR'
-      },
-      { status: 500 }
+      { error: 'An error occurred while saving email' },
+      { status: 500 },
     )
   }
 }

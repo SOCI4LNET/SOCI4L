@@ -5,6 +5,7 @@ import { isValidAddress } from '@/lib/utils'
 import { prisma } from '@/lib/prisma'
 import { getNonce, markNonceAsUsed } from '@/lib/nonce-store'
 import { setSessionAddress } from '@/lib/auth'
+import { getClientIp } from '@/lib/get-ip'
 
 export async function POST(request: NextRequest) {
   try {
@@ -130,7 +131,7 @@ export async function POST(request: NextRequest) {
           profileId: profile.id,
           action: 'login',
           metadata: JSON.stringify({ method: 'signature' }),
-          ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
+          ipAddress: getClientIp(request),
         },
       })
     }

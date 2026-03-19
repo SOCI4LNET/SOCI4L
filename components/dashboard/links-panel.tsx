@@ -1073,8 +1073,10 @@ export function LinksPanel() {
 
     try {
       // 1. Backend Unlink
-      let response = await fetch(`/api/social/link?platform=${backendPlatform}&address=${targetAddress}`, {
+      let response = await fetch('/api/social/link', {
         method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ platform: backendPlatform, address: targetAddress }),
       });
       let unlinkPayload: any = null
 
@@ -1103,8 +1105,10 @@ export function LinksPanel() {
 
             // Retry with signature
             toast.loading("Verifying signature...", { id: toastId });
-            response = await fetch(`/api/social/link?platform=${backendPlatform}&address=${targetAddress}&signature=${signature}`, {
+            response = await fetch('/api/social/link', {
               method: 'DELETE',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ platform: backendPlatform, address: targetAddress, signature }),
             });
 
             if (!response.ok) {

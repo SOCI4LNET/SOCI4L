@@ -4,6 +4,7 @@ import { verifyMessage, recoverMessageAddress } from 'viem'
 import { prisma } from '@/lib/prisma'
 import { isValidAddress } from '@/lib/utils'
 import { getNonce, markNonceAsUsed, isValidNonce } from '@/lib/nonce-store'
+import { getClientIp } from '@/lib/get-ip'
 
 export async function POST(request: NextRequest) {
   try {
@@ -210,7 +211,7 @@ export async function POST(request: NextRequest) {
               fields: Object.keys(updateData),
               hasShowcase: Array.isArray(showcase)
             }),
-            ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
+            ipAddress: getClientIp(request),
           },
         })
 

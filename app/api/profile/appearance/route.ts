@@ -8,6 +8,7 @@ import {
 } from '@/lib/profile-appearance'
 import { cookies } from 'next/headers'
 import { verifyMessage, recoverMessageAddress } from 'viem'
+import { getNonce, markNonceAsUsed } from '@/lib/nonce-store'
 
 // GET: Fetch appearance config for a profile by address
 export async function GET(request: NextRequest) {
@@ -47,9 +48,9 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error fetching profile appearance:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    console.error('Error fetching profile appearance:', error)
     return NextResponse.json(
-      { error: `An error occurred while fetching appearance: ${errorMessage}` },
+      { error: 'An error occurred while fetching appearance' },
       { status: 500 }
     )
   }
@@ -87,6 +88,15 @@ export async function POST(request: NextRequest) {
     if (!nonce) {
       return NextResponse.json(
         { error: 'Nonce not found. Please call /api/auth/nonce first.' },
+        { status: 400 }
+      )
+    }
+
+    // Validate nonce is not already used or expired
+    const nonceRecord = getNonce(nonce)
+    if (!nonceRecord || nonceRecord.used) {
+      return NextResponse.json(
+        { error: 'Nonce expired or already used. Please request a new nonce.' },
         { status: 400 }
       )
     }
@@ -183,6 +193,8 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    // Mark nonce as used in the in-memory store (replay protection)
+    markNonceAsUsed(nonce)
     // Clear nonce cookie after successful update
     cookieStore.delete('aph_nonce')
 
@@ -197,9 +209,8 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error saving profile appearance:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: `An error occurred while saving appearance: ${errorMessage}` },
+      { error: 'An error occurred while saving appearance' },
       { status: 500 }
     )
   }

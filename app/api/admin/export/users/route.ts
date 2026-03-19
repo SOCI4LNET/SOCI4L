@@ -22,7 +22,11 @@ export async function GET(request: NextRequest) {
     const adminAddress = await requireAdmin('api')
 
     const searchParams = request.nextUrl.searchParams
-    const limit = parseInt(searchParams.get('limit') || '10000', 10)
+    const MAX_EXPORT_LIMIT = 10_000
+    const limit = Math.min(
+      Math.max(1, parseInt(searchParams.get('limit') || String(MAX_EXPORT_LIMIT), 10) || MAX_EXPORT_LIMIT),
+      MAX_EXPORT_LIMIT,
+    )
 
     const profiles = await prisma.profile.findMany({
       take: limit,

@@ -7,6 +7,29 @@ import { verifyMessage, recoverMessageAddress } from 'viem'
 import { getNonce, markNonceAsUsed, isValidNonce } from '@/lib/nonce-store'
 import { isValidAddress } from '@/lib/utils'
 
+// Explicit allowlist of supported social platforms (LOW-6).
+// Adding a new platform requires a code change — prevents arbitrary strings
+// from being stored in the database.
+const ALLOWED_PLATFORMS = new Set([
+  'twitter',
+  'x',
+  'github',
+  'linkedin',
+  'instagram',
+  'farcaster',
+  'lens',
+  'discord',
+  'telegram',
+  'youtube',
+  'tiktok',
+  'twitch',
+  'reddit',
+  'spotify',
+  'medium',
+  'substack',
+  'mirror',
+  'website',
+])
 
 export async function POST(req: NextRequest) {
     try {
@@ -75,6 +98,11 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
         }
 
+        // Validate platform against allowlist (LOW-6)
+        if (!ALLOWED_PLATFORMS.has(platform.toLowerCase())) {
+            return NextResponse.json({ error: 'Unsupported platform' }, { status: 400 })
+        }
+
         const profile = await prisma.profile.findUnique({
             where: { address: effectiveAddress.toLowerCase() }
         })
@@ -133,11 +161,21 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
     try {
-        // Get data from query params
-        const url = new URL(req.url)
-        const platform = url.searchParams.get('platform')
-        const address = url.searchParams.get('address') // wallet address
-        const signature = url.searchParams.get('signature')
+        // Read all parameters from the JSON body — never from query params,
+        // because query strings are recorded in server access logs, proxy logs,
+        // and browser history, which would expose the ECDSA signature.
+        let platform: string | null = null
+        let address: string | null = null
+        let signature: string | null = null
+
+        try {
+            const body = await req.json()
+            platform = body.platform ?? null
+            address = body.address ?? null
+            signature = body.signature ?? null
+        } catch {
+            return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+        }
 
         if (!platform) {
             return NextResponse.json({ error: 'Missing platform parameter' }, { status: 400 })
