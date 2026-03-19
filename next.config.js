@@ -13,7 +13,35 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**',
+        hostname: '*.ipfs.io',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ipfs.io',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.nftstorage.link',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.arweave.net',
+      },
+      {
+        protocol: 'https',
+        hostname: 'arweave.net',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.cloudflare-ipfs.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'glacier-api.avax.network',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.githubusercontent.com',
       },
     ],
   },
@@ -89,11 +117,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "frame-ancestors * http: https: http://localhost:* https://localhost:* http://localhost:5500 http://127.0.0.1:5500;"
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'ALLOWALL'
+            value: "frame-ancestors https: http://localhost:* https://localhost:*;"
           }
         ]
       }

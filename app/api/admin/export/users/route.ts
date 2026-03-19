@@ -5,6 +5,17 @@ export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
 import { logAdminAction } from '@/lib/admin-audit'
 
+// Escape CSV values to prevent CSV injection
+function escapeCsvValue(value: string): string {
+  if (!value) return ''
+  // If value starts with =, +, -, @, tab, or carriage return, prefix with single quote
+  if (/^[=+\-@\t\r]/.test(value)) {
+    value = "'" + value
+  }
+  // Escape double quotes by doubling them
+  return value.replace(/"/g, '""')
+}
+
 export async function GET(request: NextRequest) {
   try {
     // 1. Verify Admin Auth
@@ -48,7 +59,7 @@ export async function GET(request: NextRequest) {
     const csvRows = profiles
       .map((profile) => {
         const followers = followerCountMap.get(profile.address.toLowerCase()) || 0
-        return `"${profile.address}","${profile.slug || ''}","${profile.displayName || ''}","${profile.status}","${profile.visibility}","${profile.claimedAt?.toISOString() || ''}","${profile.createdAt.toISOString()}","${profile.updatedAt.toISOString()}","${followers}"`
+        return `"${escapeCsvValue(profile.address)}","${escapeCsvValue(profile.slug || '')}","${escapeCsvValue(profile.displayName || '')}","${escapeCsvValue(profile.status)}","${escapeCsvValue(profile.visibility)}","${profile.claimedAt?.toISOString() || ''}","${profile.createdAt.toISOString()}","${profile.updatedAt.toISOString()}","${followers}"`
       })
       .join('\n')
 

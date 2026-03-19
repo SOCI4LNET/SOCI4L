@@ -5,9 +5,6 @@ import { prisma } from '@/lib/prisma'
 import { isValidAddress } from '@/lib/utils'
 import { getNonce, markNonceAsUsed, isValidNonce } from '@/lib/nonce-store'
 
-// Test mode: allow "signed-{nonce}" format for MCP tests
-const TEST_MODE = process.env.NODE_ENV === 'test' || process.env.MCP_TEST_MODE === '1'
-
 export async function POST(request: NextRequest) {
   try {
     const { address, slug, isPublic, showcase, displayName, bio, signature } = await request.json()
@@ -47,27 +44,15 @@ export async function POST(request: NextRequest) {
 
     const normalizedAddress = address.toLowerCase()
 
-    // Get nonce from cookie or store
+    // Get nonce from cookie
     const cookieStore = await cookies()
     let nonce: string | null = null
 
-    // Test mode: check if signature is "signed-{nonce}" format
-    if (TEST_MODE && signature.startsWith('signed-')) {
-      const extractedNonce = signature.replace('signed-', '')
-      const nonceRecord = getNonce(extractedNonce)
+    const cookieNonce = cookieStore.get('aph_nonce')?.value
+    if (cookieNonce) {
+      const nonceRecord = getNonce(cookieNonce)
       if (nonceRecord && !nonceRecord.used) {
-        nonce = extractedNonce
-      }
-    }
-
-    // Check cookie for nonce
-    if (!nonce) {
-      const cookieNonce = cookieStore.get('aph_nonce')?.value
-      if (cookieNonce) {
-        const nonceRecord = getNonce(cookieNonce)
-        if (nonceRecord && !nonceRecord.used) {
-          nonce = cookieNonce
-        }
+        nonce = cookieNonce
       }
     }
 
@@ -89,54 +74,25 @@ export async function POST(request: NextRequest) {
     // Verify signature and recover signer
     let signer: string
     try {
-      // Test mode: if signature === "signed-{nonce}" or signature === nonce, accept it
-      // In test mode, signer must match the address in the request
-      if (TEST_MODE && (signature === `signed-${nonce}` || signature === nonce)) {
-        signer = normalizedAddress // In test mode, signer is the address from request
-      } else if (TEST_MODE && signature.startsWith('signed-')) {
-        // Test mode with address: "signed-{address}-{nonce}" format
-        const parts = signature.replace('signed-', '').split('-')
-        if (parts.length >= 2) {
-          const sigAddress = parts[0].toLowerCase()
-          const sigNonce = parts.slice(1).join('-')
-          if (sigNonce === nonce && sigAddress === normalizedAddress) {
-            signer = normalizedAddress
-          } else {
-            return NextResponse.json(
-              { error: 'Invalid signature' },
-              { status: 400 }
-            )
-          }
-        } else {
-          return NextResponse.json(
-            { error: 'Invalid signature format' },
-            { status: 400 }
-          )
-        }
-      } else {
-        // Production mode: real ECDSA signature verification
-        // Build message
-        const message = `Update profile for ${normalizedAddress}. Nonce: ${nonce}`
+      // ECDSA signature verification
+      const message = `Update profile for ${normalizedAddress}. Nonce: ${nonce}`
 
-        // Recover signer from signature
-        signer = await recoverMessageAddress({
-          message,
-          signature: signature as `0x${string}`,
-        })
+      signer = await recoverMessageAddress({
+        message,
+        signature: signature as `0x${string}`,
+      })
 
-        // Additional verification - verify that signer signed the message
-        const isValid = await verifyMessage({
-          address: signer as `0x${string}`,
-          message,
-          signature: signature as `0x${string}`,
-        })
+      const isValid = await verifyMessage({
+        address: signer as `0x${string}`,
+        message,
+        signature: signature as `0x${string}`,
+      })
 
-        if (!isValid) {
-          return NextResponse.json(
-            { error: 'Invalid signature' },
-            { status: 400 }
-          )
-        }
+      if (!isValid) {
+        return NextResponse.json(
+          { error: 'Invalid signature' },
+          { status: 400 }
+        )
       }
     } catch (error) {
       console.error('Signature verification error:', error)
@@ -270,6 +226,22 @@ export async function POST(request: NextRequest) {
 
     // Update showcase items
     if (Array.isArray(showcase)) {
+      // Validate showcase items
+      for (const item of showcase) {
+        if (!item.contractAddress || !/^0x[a-fA-F0-9]{40}$/.test(item.contractAddress)) {
+          return NextResponse.json(
+            { error: 'Invalid contract address in showcase items' },
+            { status: 400 }
+          )
+        }
+        if (!item.tokenId || typeof item.tokenId !== 'string') {
+          return NextResponse.json(
+            { error: 'Invalid token ID in showcase items' },
+            { status: 400 }
+          )
+        }
+      }
+
       // Delete existing showcase items
       await prisma.showcaseItem.deleteMany({
         where: { profileId: updated.id },

@@ -13,7 +13,7 @@ interface AuthSessionPayload {
 }
 
 function getAuthSessionSecret(): string | null {
-  return process.env.AUTH_SESSION_SECRET || process.env.SESSION_SECRET || process.env.NEXTAUTH_SECRET || null
+  return process.env.AUTH_SESSION_SECRET || null
 }
 
 export async function createAuthSession(address: string): Promise<string | null> {

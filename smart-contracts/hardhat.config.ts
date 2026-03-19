@@ -29,8 +29,8 @@ const config: HardhatUserConfig = {
         // Snowtrace uses Blockscout, but hardhat-verify plugin supports it via custom chains or standard config if updated.
         // For now, we'll leave basic config.
         apiKey: {
-            avalanche: SNOWTRACE_API_KEY || "",
-            avalancheFujiTestnet: SNOWTRACE_API_KEY || "",
+            avalanche: process.env.SNOWTRACE_API_KEY || "snowtrace",
+            avalancheFujiTestnet: process.env.SNOWTRACE_API_KEY || "snowtrace",
         },
     },
 };

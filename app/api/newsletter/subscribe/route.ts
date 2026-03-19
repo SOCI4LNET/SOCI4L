@@ -12,8 +12,9 @@ function normalizeEmail(email: string): string {
  * Validate email format using a simple but deterministically regex
  */
 function isValidEmail(email: string): boolean {
-  // Simple regex: at least one char before @, at least one char after @, then dot, then at least one char
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  // Validate: local part + @ + domain with at least 2-char TLD, max 254 chars total
+  if (email.length > 254) return false
+  const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/
   return emailRegex.test(email)
 }
 

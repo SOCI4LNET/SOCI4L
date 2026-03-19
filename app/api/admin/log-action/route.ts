@@ -25,11 +25,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true })
   } catch (error: any) {
     const message = String(error?.message || '')
-    if (message.includes('Unauthorized:')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    if (message.includes('Forbidden:')) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (message.includes('Unauthorized:') || message.includes('Forbidden:')) {
+      // Silently ignore auth errors for logging to prevent console spam
+      // when client and server session states are temporarily mismatched
+      return NextResponse.json({ success: false, ignored: true }, { status: 200 })
     }
 
     console.error('[POST /api/admin/log-action] Error', error)

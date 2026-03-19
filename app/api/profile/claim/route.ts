@@ -5,8 +5,6 @@ import { prisma } from '@/lib/prisma'
 import { isValidAddress } from '@/lib/utils'
 import { getNonce, markNonceAsUsed, isValidNonce } from '@/lib/nonce-store'
 
-// Test mode: allow signature === nonce for MCP tests
-const TEST_MODE = process.env.NODE_ENV === 'test' || process.env.MCP_TEST_MODE === '1'
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,36 +34,15 @@ export async function POST(request: NextRequest) {
 
     const normalizedAddress = address.toLowerCase()
 
-    // Try to get nonce from store first, then fallback to cookie (backward compatibility)
+    // Get nonce from cookie
     let nonce: string | null = null
-    
-    // Test mode: check if signature is "signed-{nonce}" format
-    if (TEST_MODE && signature.startsWith('signed-')) {
-      const extractedNonce = signature.replace('signed-', '')
-      const nonceRecord = getNonce(extractedNonce)
-      if (nonceRecord && !nonceRecord.used) {
-        nonce = extractedNonce
-      }
-    }
-    
-    // Check if signature itself is a valid nonce (test mode shortcut)
-    if (!nonce && TEST_MODE && signature.length === 64 && /^[a-fA-F0-9]{64}$/.test(signature)) {
-      // In test mode, signature might be the nonce itself
-      const nonceRecord = getNonce(signature)
-      if (nonceRecord && !nonceRecord.used) {
-        nonce = signature
-      }
-    }
 
-    // If not found, try to get nonce from store by checking cookie
-    if (!nonce) {
-      const cookieStore = await cookies()
-      const cookieNonce = cookieStore.get('aph_nonce')?.value
-      if (cookieNonce) {
-        const nonceRecord = getNonce(cookieNonce)
-        if (nonceRecord && !nonceRecord.used) {
-          nonce = cookieNonce
-        }
+    const cookieStore = await cookies()
+    const cookieNonce = cookieStore.get('aph_nonce')?.value
+    if (cookieNonce) {
+      const nonceRecord = getNonce(cookieNonce)
+      if (nonceRecord && !nonceRecord.used) {
+        nonce = cookieNonce
       }
     }
 
@@ -91,49 +68,40 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Signature verification
+    // ECDSA signature verification
     let signatureValid = false
     let signerAddress: string | null = null
 
-    // Test mode: if signature === "signed-{nonce}" or signature === nonce, accept it
-    if (TEST_MODE && (signature === `signed-${nonce}` || signature === nonce)) {
-      signatureValid = true
-      signerAddress = normalizedAddress // In test mode, assume address matches
-    } else {
-      // Production mode: real ECDSA signature verification
-      try {
-        // Build message
-        const message = `Claim SOCI4L profile for ${normalizedAddress}. Nonce: ${nonce}`
+    try {
+      const message = `Claim SOCI4L profile for ${normalizedAddress}. Nonce: ${nonce}`
 
-        // Verify signature
-        const isValid = await verifyMessage({
-          address: normalizedAddress as `0x${string}`,
-          message,
-          signature: signature as `0x${string}`,
-        })
+      const isValid = await verifyMessage({
+        address: normalizedAddress as `0x${string}`,
+        message,
+        signature: signature as `0x${string}`,
+      })
 
-        if (isValid) {
-          signatureValid = true
-          signerAddress = normalizedAddress
-        } else {
-          return NextResponse.json(
-            { 
-              error: 'Invalid signature',
-              code: 'INVALID_SIGNATURE'
-            },
-            { status: 400 }
-          )
-        }
-      } catch (error) {
-        console.error('Signature verification error:', error)
+      if (isValid) {
+        signatureValid = true
+        signerAddress = normalizedAddress
+      } else {
         return NextResponse.json(
-          { 
-            error: 'Signature verification failed',
-            code: 'SIGNATURE_VERIFICATION_FAILED'
+          {
+            error: 'Invalid signature',
+            code: 'INVALID_SIGNATURE'
           },
           { status: 400 }
         )
       }
+    } catch (error) {
+      console.error('Signature verification error:', error)
+      return NextResponse.json(
+        {
+          error: 'Signature verification failed',
+          code: 'SIGNATURE_VERIFICATION_FAILED'
+        },
+        { status: 400 }
+      )
     }
 
     if (!signatureValid || !signerAddress) {

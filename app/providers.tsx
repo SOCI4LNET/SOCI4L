@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import { WagmiProvider, createConfig, http, cookieStorage, createStorage, type Config } from 'wagmi'
 import { walletConnect, injected } from 'wagmi/connectors'
-import { avalanche, avalancheFuji } from 'viem/chains'
+import { avalanche, avalancheFuji, mainnet, base, polygon, bsc, optimism, arbitrum } from 'viem/chains'
 import { activeChain } from '@/lib/chain-config'
 
 import { TransactionProvider } from '@/components/providers/transaction-provider'
@@ -37,7 +37,11 @@ export function getConfig() {
   ]
 
   wagmiConfig = createConfig({
-    chains: [activeChain, activeChain.id === avalancheFuji.id ? avalanche : avalancheFuji],
+    chains: [
+      activeChain,
+      activeChain.id === avalancheFuji.id ? avalanche : avalancheFuji,
+      mainnet, base, polygon, bsc, optimism, arbitrum
+    ],
     ssr: true,
     storage: createStorage({
       storage: cookieStorage,
@@ -47,6 +51,12 @@ export function getConfig() {
     transports: {
       [avalanche.id]: http(),
       [avalancheFuji.id]: http(),
+      [mainnet.id]: http(),
+      [base.id]: http(),
+      [polygon.id]: http(),
+      [bsc.id]: http(),
+      [optimism.id]: http(),
+      [arbitrum.id]: http(),
     },
   })
 

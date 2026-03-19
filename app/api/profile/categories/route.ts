@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { address, categories, signature } = body
+    const { address, categories, signature, nonce: bodyNonce } = body
 
     if (!address || !isValidAddress(address)) {
       return NextResponse.json({ error: 'Invalid wallet address' }, { status: 400 })
@@ -96,9 +96,9 @@ export async function POST(request: NextRequest) {
 
     const normalizedAddress = address.toLowerCase()
 
-    // Get nonce from cookie or store
+    // Get nonce from body, cookie, or store
     const cookieStore = await cookies()
-    let nonce: string | null = null
+    let nonce: string | null = bodyNonce || null
 
     // Test mode: check if signature is "signed-{nonce}" format
     if (TEST_MODE && signature.startsWith('signed-')) {

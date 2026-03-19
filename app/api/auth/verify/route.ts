@@ -6,9 +6,6 @@ import { prisma } from '@/lib/prisma'
 import { getNonce, markNonceAsUsed } from '@/lib/nonce-store'
 import { setSessionAddress } from '@/lib/auth'
 
-// Test mode: allow "signed-{nonce}" format for MCP tests
-const TEST_MODE = process.env.NODE_ENV === 'test' || process.env.MCP_TEST_MODE === '1'
-
 export async function POST(request: NextRequest) {
   try {
     const { address, signature } = await request.json()
@@ -57,37 +54,30 @@ export async function POST(request: NextRequest) {
 
     let signatureValid = false
 
-    // Test mode: if signature === "signed-{nonce}", accept it
-    if (TEST_MODE && signature === `signed-${nonce}`) {
-      signatureValid = true
-    } else {
-      // Production mode: real ECDSA signature verification
-      try {
-        // Build message
-        const message = `Follow auth for SOCI4L. Address: ${normalizedAddress}. Nonce: ${nonce}`
+    // ECDSA signature verification
+    try {
+      const message = `Follow auth for SOCI4L. Address: ${normalizedAddress}. Nonce: ${nonce}`
 
-        // Verify signature
-        const isValid = await verifyMessage({
-          address: normalizedAddress as `0x${string}`,
-          message,
-          signature: signature as `0x${string}`,
-        })
+      const isValid = await verifyMessage({
+        address: normalizedAddress as `0x${string}`,
+        message,
+        signature: signature as `0x${string}`,
+      })
 
-        if (isValid) {
-          signatureValid = true
-        } else {
-          return NextResponse.json(
-            { error: 'Invalid signature' },
-            { status: 400 }
-          )
-        }
-      } catch (error) {
-        console.error('Signature verification error:', error)
+      if (isValid) {
+        signatureValid = true
+      } else {
         return NextResponse.json(
-          { error: 'Signature verification failed' },
+          { error: 'Invalid signature' },
           { status: 400 }
         )
       }
+    } catch (error) {
+      console.error('Signature verification error:', error)
+      return NextResponse.json(
+        { error: 'Signature verification failed' },
+        { status: 400 }
+      )
     }
 
     if (!signatureValid) {

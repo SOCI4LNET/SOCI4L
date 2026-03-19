@@ -3,8 +3,6 @@ import { prisma } from '@/lib/prisma'
 import { getSessionAddress } from '@/lib/auth'
 import { isValidAddress } from '@/lib/utils'
 
-// Test mode: allow body-based follower address
-const TEST_MODE = process.env.NODE_ENV === 'test' || process.env.MCP_TEST_MODE === '1'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,91 +29,8 @@ export async function POST(
     const searchParams = request.nextUrl.searchParams
     const connectedWalletAddress = searchParams.get('connectedAddress')
 
-    // Get follower address: from body (test mode) or session (production)
-    let followerAddress: string | null = null
-
-    if (TEST_MODE) {
-      try {
-        const body = await request.json()
-        followerAddress = body.followerAddress || body.address
-        const action = body.action
-
-        // If action is "unfollow", use DELETE instead
-        if (action === 'unfollow') {
-          // Handle unfollow via DELETE method logic
-          if (!followerAddress || !isValidAddress(followerAddress)) {
-            return NextResponse.json(
-              { error: 'Invalid follower address' },
-              { status: 400 }
-            )
-          }
-
-          const normalizedFollower = followerAddress.toLowerCase()
-
-          // Prevent self-unfollow check (optional)
-          if (normalizedFollower === normalizedAddress) {
-            return NextResponse.json(
-              { error: 'Cannot unfollow yourself' },
-              { status: 400 }
-            )
-          }
-
-          // Delete follow relationship
-          await prisma.follow.deleteMany({
-            where: {
-              followerAddress: normalizedFollower,
-              followingAddress: normalizedAddress,
-            },
-          })
-
-          // Log unfollow activity
-          const followerProfile = await prisma.profile.findUnique({ where: { address: normalizedFollower } })
-          if (followerProfile) {
-            await prisma.userActivityLog.create({
-              data: {
-                profileId: followerProfile.id,
-                action: 'unfollow',
-                metadata: JSON.stringify({ target: normalizedAddress }),
-                ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
-              },
-            })
-          }
-
-          // Get updated followers count
-          const followersCount = await prisma.follow.count({
-            where: {
-              followingAddress: normalizedAddress,
-            },
-          })
-
-          return NextResponse.json({
-            followersCount,
-            isFollowing: false,
-          }, {
-            headers: {
-              'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
-              'Pragma': 'no-cache',
-            },
-          })
-        }
-
-        // Action is "follow" or missing (default to follow)
-        if (!followerAddress || !isValidAddress(followerAddress)) {
-          return NextResponse.json(
-            { error: 'Invalid follower address' },
-            { status: 400 }
-          )
-        }
-      } catch (bodyError) {
-        // Body parsing failed, try session
-        followerAddress = await getSessionAddress()
-      }
-    }
-
-    // Fallback to session if not in test mode or body parsing failed
-    if (!followerAddress) {
-      followerAddress = await getSessionAddress()
-    }
+    // Get follower address from session
+    const followerAddress = await getSessionAddress()
 
     if (!followerAddress) {
       return NextResponse.json(
@@ -308,23 +223,8 @@ export async function DELETE(
     const searchParams = request.nextUrl.searchParams
     const connectedWalletAddress = searchParams.get('connectedAddress')
 
-    // Get follower address: from body (test mode) or session (production)
-    let followerAddress: string | null = null
-
-    if (TEST_MODE) {
-      try {
-        const body = await request.json().catch(() => ({}))
-        followerAddress = body.followerAddress || body.address
-      } catch (bodyError) {
-        // Body parsing failed, try session
-        followerAddress = await getSessionAddress()
-      }
-    }
-
-    // Fallback to session if not in test mode or body parsing failed
-    if (!followerAddress) {
-      followerAddress = await getSessionAddress()
-    }
+    // Get follower address from session
+    const followerAddress = await getSessionAddress()
 
     if (!followerAddress) {
       return NextResponse.json(

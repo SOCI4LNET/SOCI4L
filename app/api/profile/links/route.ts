@@ -5,10 +5,6 @@ import { prisma } from '@/lib/prisma'
 import { isValidAddress } from '@/lib/utils'
 import { getNonce, markNonceAsUsed, isValidNonce } from '@/lib/nonce-store'
 
-// just do it
-
-// Test mode: allow "signed-{nonce}" format for MCP tests
-const TEST_MODE = process.env.NODE_ENV === 'test' || process.env.MCP_TEST_MODE === '1'
 
 // GET: Fetch links for a profile by address
 export async function GET(request: NextRequest) {
@@ -57,9 +53,8 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error fetching profile links:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: `An error occurred while fetching links: ${errorMessage}` },
+      { error: 'An error occurred while fetching links' },
       { status: 500 }
     )
   }
@@ -69,7 +64,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { address, links, signature } = body
+    const { address, links, signature, nonce: bodyNonce } = body
 
     if (!address || !isValidAddress(address)) {
       return NextResponse.json({ error: 'Invalid wallet address' }, { status: 400 })
@@ -81,20 +76,10 @@ export async function POST(request: NextRequest) {
 
     const normalizedAddress = address.toLowerCase()
 
-    // Get nonce from cookie or store
+    // Get nonce from body or cookie
     const cookieStore = await cookies()
-    let nonce: string | null = null
+    let nonce: string | null = bodyNonce || null
 
-    // Test mode: check if signature is "signed-{nonce}" format
-    if (TEST_MODE && signature.startsWith('signed-')) {
-      const extractedNonce = signature.replace('signed-', '')
-      const nonceRecord = getNonce(extractedNonce)
-      if (nonceRecord && !nonceRecord.used) {
-        nonce = extractedNonce
-      }
-    }
-
-    // Check cookie for nonce
     if (!nonce) {
       const cookieNonce = cookieStore.get('aph_nonce')?.value
       if (cookieNonce) {
@@ -120,41 +105,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify signature and recover signer
+    // Verify signature and recover signer (ECDSA)
     let signer: string
     try {
-      // Test mode logic
-      if (TEST_MODE && (signature === `signed-${nonce}` || signature === nonce)) {
-        signer = normalizedAddress
-      } else if (TEST_MODE && signature.startsWith('signed-')) {
-        const parts = signature.replace('signed-', '').split('-')
-        if (parts.length >= 2) {
-          const sigAddress = parts[0].toLowerCase()
-          const sigNonce = parts.slice(1).join('-')
-          if (sigNonce === nonce && sigAddress === normalizedAddress) {
-            signer = normalizedAddress
-          } else {
-            return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
-          }
-        } else {
-          return NextResponse.json({ error: 'Invalid signature format' }, { status: 400 })
-        }
-      } else {
-        // Production logic
-        const message = `Update links for ${normalizedAddress}. Nonce: ${nonce}`
-        signer = await recoverMessageAddress({
-          message,
-          signature: signature as `0x${string}`,
-        })
+      const message = `Update links for ${normalizedAddress}. Nonce: ${nonce}`
+      signer = await recoverMessageAddress({
+        message,
+        signature: signature as `0x${string}`,
+      })
 
-        const isValid = await verifyMessage({
-          address: signer as `0x${string}`,
-          message,
-          signature: signature as `0x${string}`,
-        })
+      const isValid = await verifyMessage({
+        address: signer as `0x${string}`,
+        message,
+        signature: signature as `0x${string}`,
+      })
 
-        if (!isValid) throw new Error('Invalid signature')
-      }
+      if (!isValid) throw new Error('Invalid signature')
     } catch (error) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
     }
@@ -263,8 +229,13 @@ export async function POST(request: NextRequest) {
       if (!link.url || typeof link.url !== 'string') {
         return NextResponse.json({ error: 'URL is required for each link' }, { status: 400 })
       }
-      if (!link.url.startsWith('http://') && !link.url.startsWith('https://')) {
-        return NextResponse.json({ error: 'URL must start with http:// or https://' }, { status: 400 })
+      try {
+        const parsed = new URL(link.url)
+        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+          return NextResponse.json({ error: 'URL must use http or https protocol' }, { status: 400 })
+        }
+      } catch {
+        return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 })
       }
     }
 
@@ -360,9 +331,8 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error saving profile links:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: `An error occurred while saving links: ${errorMessage}` },
+      { error: 'An error occurred while saving links' },
       { status: 500 }
     )
   }

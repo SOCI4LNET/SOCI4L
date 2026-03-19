@@ -107,7 +107,7 @@ export async function PATCH(
 
         console.error('[Admin] Error toggling link:', error)
         return NextResponse.json(
-            { error: 'Internal server error', details: error.message },
+            { error: 'Internal server error' },
             { status: 500 }
         )
     }
@@ -180,7 +180,7 @@ export async function DELETE(
 
         console.error('[Admin] Error deleting link:', error)
         return NextResponse.json(
-            { error: 'Internal server error', details: error.message },
+            { error: 'Internal server error' },
             { status: 500 }
         )
     }

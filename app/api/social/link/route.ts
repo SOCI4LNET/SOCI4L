@@ -7,8 +7,6 @@ import { verifyMessage, recoverMessageAddress } from 'viem'
 import { getNonce, markNonceAsUsed, isValidNonce } from '@/lib/nonce-store'
 import { isValidAddress } from '@/lib/utils'
 
-// Test mode: allow "signed-{nonce}" format for MCP tests
-const TEST_MODE = process.env.NODE_ENV === 'test' || process.env.MCP_TEST_MODE === '1'
 
 export async function POST(req: NextRequest) {
     try {
@@ -34,54 +32,27 @@ export async function POST(req: NextRequest) {
             const normalizedAddress = address.toLowerCase()
             const cookieStore = await cookies()
 
-            // Nonce verification logic (reused from profile/links)
+            // Get nonce from cookie
             let nonce: string | null = null
 
-            // Test mode nonce
-            if (TEST_MODE && signature.startsWith('signed-')) {
-                const extracted = signature.replace('signed-', '')
-                const rec = getNonce(extracted)
-                if (rec && !rec.used) nonce = extracted
-            }
-
-            // Cookie nonce
-            if (!nonce) {
-                const cNonce = cookieStore.get('aph_nonce')?.value
-                if (cNonce) {
-                    const rec = getNonce(cNonce)
-                    if (rec && !rec.used) nonce = cNonce
-                }
+            const cNonce = cookieStore.get('aph_nonce')?.value
+            if (cNonce) {
+                const rec = getNonce(cNonce)
+                if (rec && !rec.used) nonce = cNonce
             }
 
             if (!nonce || !isValidNonce(nonce)) {
                 return NextResponse.json({ error: 'Invalid or expired nonce' }, { status: 401 })
             }
 
-            // Verify Signature
+            // Verify Signature (ECDSA)
             try {
                 let signer: string
-                if (TEST_MODE && signature.startsWith('signed-')) {
-                    // Test signature logic
-                    const parts = signature.replace('signed-', '').split('-')
-                    if (parts.length >= 2 && parts.slice(1).join('-') === nonce && parts[0].toLowerCase() === normalizedAddress) {
-                        signer = normalizedAddress
-                    } else {
-                        throw new Error('Invalid test signature')
-                    }
-                } else {
-                    // Real ECDSA logic
-                    // We need to define the message format clearly. 
-                    // reusing the generic update format or specific one? 
-                    // Let's use a specific one for social linking if possible, or generic to be safe.
-                    // To avoid breaking existing clients that might expect a specific message, 
-                    // but since this is a NEW requirement, I can define the message.
-                    // Message: "Link {platform} account to {address}. Nonce: {nonce}"
-                    const message = `Link ${platform} account to ${normalizedAddress}. Nonce: ${nonce}`
+                const message = `Link ${platform} account to ${normalizedAddress}. Nonce: ${nonce}`
 
-                    signer = await recoverMessageAddress({ message, signature: signature as `0x${string}` })
-                    const isValid = await verifyMessage({ address: signer as `0x${string}`, message, signature: signature as `0x${string}` })
-                    if (!isValid) throw new Error('Invalid signature')
-                }
+                signer = await recoverMessageAddress({ message, signature: signature as `0x${string}` })
+                const isValid = await verifyMessage({ address: signer as `0x${string}`, message, signature: signature as `0x${string}` })
+                if (!isValid) throw new Error('Invalid signature')
 
                 if (signer.toLowerCase() !== normalizedAddress) {
                     return NextResponse.json({ error: 'Unauthorized: Signer mismatch' }, { status: 403 })

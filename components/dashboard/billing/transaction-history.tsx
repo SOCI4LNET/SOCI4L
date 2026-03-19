@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { createPublicClient, http, parseAbiItem, formatEther } from "viem"
-import { avalanche } from "viem/chains"
 import { formatDistanceToNow } from "date-fns"
-import { blockExplorerUrl } from '@/lib/chain-config'
+import { activeChain, activeRpc, activePremiumPayment, activeSlugRegistry, blockExplorerUrl } from '@/lib/chain-config'
 
 import { Loader2, ExternalLink, Receipt, AlertCircle } from "lucide-react"
 
@@ -13,9 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 // --- Configuration ---
-const PREMIUM_CONTRACT = "0x9bA02537447E6DcdeF72D0e98a4C82E6B73E3cCC"
-const SLUG_CONTRACT = "0xC894a2677C7E619E9692E3bF4AFF58bE53173aA1"
-const RPC_URL = "https://api.avax.network/ext/bc/C/rpc"
+// Removed hardcoded addresses to use dynamic chain configs imported above.
 
 // --- Types ---
 interface Transaction {
@@ -56,21 +53,21 @@ export function TransactionHistory({ address }: TransactionHistoryProps) {
                 let recentTxs: Transaction[] = []
                 try {
                     const client = createPublicClient({
-                        chain: avalanche,
-                        transport: http(RPC_URL)
+                        chain: activeChain,
+                        transport: http(activeRpc)
                     })
                     const currentBlock = await client.getBlockNumber()
                     const fromBlock = currentBlock - 5000n
 
                     const [premiumLogs, slugLogs] = await Promise.all([
                         client.getLogs({
-                            address: PREMIUM_CONTRACT as `0x${string}`,
+                            address: activePremiumPayment as `0x${string}`,
                             event: parseAbiItem('event PremiumPurchased(address indexed user, uint256 paidAt, uint256 expiresAt, uint256 amount)'),
                             args: { user: address as `0x${string}` },
                             fromBlock
                         }),
                         client.getLogs({
-                            address: SLUG_CONTRACT as `0x${string}`,
+                            address: activeSlugRegistry as `0x${string}`,
                             event: parseAbiItem('event SlugClaimed(bytes32 indexed slugHash, address indexed owner, uint256 timestamp)'),
                             args: { owner: address as `0x${string}` },
                             fromBlock

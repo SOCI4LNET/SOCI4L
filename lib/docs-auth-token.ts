@@ -17,13 +17,7 @@ export interface DocsAdminSessionPayload {
 }
 
 function getDocsAdminSecret(): string | null {
-  return (
-    process.env.DOCS_ADMIN_SESSION_SECRET ||
-    process.env.AUTH_SESSION_SECRET ||
-    process.env.SESSION_SECRET ||
-    process.env.NEXTAUTH_SECRET ||
-    null
-  )
+  return process.env.DOCS_ADMIN_SESSION_SECRET || null
 }
 
 export async function createDocsAdminSessionToken(input: {

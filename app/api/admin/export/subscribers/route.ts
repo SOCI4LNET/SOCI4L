@@ -6,6 +6,15 @@ import { logAdminAction } from '@/lib/admin-audit'
 
 import { requireAdmin } from '@/lib/admin-auth'
 
+// Escape CSV values to prevent CSV injection
+function escapeCsvValue(value: string): string {
+  if (!value) return ''
+  if (/^[=+\-@\t\r]/.test(value)) {
+    value = "'" + value
+  }
+  return value.replace(/"/g, '""')
+}
+
 export async function GET(request: NextRequest) {
   try {
     const adminAddress = await requireAdmin('api')
@@ -18,7 +27,7 @@ export async function GET(request: NextRequest) {
     const csvRows = subscribers
       .map(
         (sub) =>
-          `"${sub.email}","${sub.createdAt.toISOString()}","${sub.updatedAt.toISOString()}"`,
+          `"${escapeCsvValue(sub.email)}","${sub.createdAt.toISOString()}","${sub.updatedAt.toISOString()}"`,
       )
       .join('\n')
 

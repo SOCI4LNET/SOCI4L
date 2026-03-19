@@ -2,16 +2,34 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyMessage } from 'viem'
 import { clearDocsAdminSession, setDocsAdminSession } from '@/lib/docs-auth'
+import { getNonce, markNonceAsUsed } from '@/lib/nonce-store'
+import { cookies } from 'next/headers'
 
 export async function POST(request: NextRequest) {
     try {
-        const { address, signature, message } = await request.json()
+        const { address, signature } = await request.json()
 
-        if (!address || !signature || !message) {
+        if (!address || !signature) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
         }
 
-        // 1. Verify Signature
+        // Get nonce from cookie for replay protection
+        const cookieStore = await cookies()
+        const nonce = cookieStore.get('aph_nonce')?.value
+
+        if (!nonce) {
+            return NextResponse.json({ error: 'Nonce not found. Please call /api/auth/nonce first.' }, { status: 400 })
+        }
+
+        const nonceRecord = getNonce(nonce)
+        if (!nonceRecord || nonceRecord.used) {
+            return NextResponse.json({ error: 'Nonce expired or already used' }, { status: 400 })
+        }
+
+        // Build message with nonce for replay protection
+        const message = `Docs Admin login for ${address.toLowerCase()}. Nonce: ${nonce}`
+
+        // 1. Verify Signature with nonce-bound message
         const isValid = await verifyMessage({
             address,
             message,
@@ -21,6 +39,10 @@ export async function POST(request: NextRequest) {
         if (!isValid) {
             return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
         }
+
+        // Mark nonce as used
+        markNonceAsUsed(nonce)
+        cookieStore.delete('aph_nonce')
 
         // 2. Check if user is a DocsAdmin
         const admin = await prisma.docsAdmin.findUnique({
