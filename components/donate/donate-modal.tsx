@@ -206,7 +206,10 @@ export function DonateModal({ open, onOpenChange, recipient, donationAlertVisual
                             <Label htmlFor="message">Message (Optional)</Label>
                             <Select value={message || undefined} onValueChange={setMessage}>
                                 <SelectTrigger id="message">
-                                    <SelectValue placeholder="Select a message or leave empty" />
+                                    <SelectValue
+                                        placeholder="Select a message or leave empty"
+                                        className="text-[#3B3B3B]"
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {MESSAGE_TEMPLATES.map((template) => (
