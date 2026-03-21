@@ -3,11 +3,25 @@ import { prisma } from '@/lib/prisma'
 
 // Explicit list of origins allowed to query the social lookup endpoint (LOW-9).
 // Wildcard '*' was removed because it enables unrestricted cross-origin
-// scraping of profile data.  Add your production domain and any approved
-// browser-extension origins here.
+// scraping of profile data.
+//
+// Mainnet (hpdblnjffdobbhohkjlniikdfkafagdk) and Fuji testnet
+// (iacmfillllnjmfpcpoplkjkphjlpjfge) extension IDs are hardcoded.
+// Add any other custom build IDs via CHROME_EXTENSION_IDS (comma-separated).
+const MAINNET_EXTENSION_ORIGIN = 'chrome-extension://hpdblnjffdobbhohkjlniikdfkafagdk'
+const FUJI_EXTENSION_ORIGIN = 'chrome-extension://iacmfillllnjmfpcpoplkjkphjlpjfge'
+
+const extraExtensionOrigins = (process.env.CHROME_EXTENSION_IDS ?? '')
+  .split(',')
+  .map((id) => id.trim())
+  .filter(Boolean)
+  .map((id) => `chrome-extension://${id}`)
+
 const ALLOWED_ORIGINS = new Set([
   process.env.NEXT_PUBLIC_APP_URL ?? '',
-  'chrome-extension://your-extension-id', // replace with real extension ID
+  MAINNET_EXTENSION_ORIGIN,
+  FUJI_EXTENSION_ORIGIN,
+  ...extraExtensionOrigins,
 ].filter(Boolean))
 
 function getCorsHeaders(request: NextRequest): Record<string, string> {

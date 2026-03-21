@@ -100,7 +100,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
         }
     });
 
-    const { data: userActiveSlug, refetch: refetchUserActiveSlug } = useReadContract({
+    const { data: userActiveSlug, refetch: refetchUserActiveSlug, isPending: isLoadingActiveSlug } = useReadContract({
         address: CUSTOM_SLUG_REGISTRY_ADDRESS as `0x${string}`,
         abi: ABI,
         functionName: "getActiveSlug",
@@ -567,7 +567,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                             </Alert>
                         )}
 
-                        {!recoveredSlug && (
+                        {!recoveredSlug && !isLoadingActiveSlug && (!activeSlugHash || activeSlugHash === ZERO_HASH) && (
                             <div className="space-y-2">
                                 <Label>Desired Handle</Label>
                                 <div className="flex gap-2">
@@ -630,7 +630,7 @@ export function SlugManager({ currentSlug, slugClaimedAt }: SlugManagerProps) {
                                                     setPendingAction(null);
                                                 }
                                             }}
-                                            disabled={availability !== "available" || isWritePending || isConfirming || !!(activeSlugHash && activeSlugHash !== ZERO_HASH)}
+                                            disabled={availability !== "available" || isWritePending || isConfirming || !!(activeSlugHash && activeSlugHash !== ZERO_HASH) || isLoadingActiveSlug}
                                         >
                                             {isWritePending && pendingAction === "claim" ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                                             Claim
